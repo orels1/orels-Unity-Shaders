@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Program Wave Rectangle
+  m_Shader: {fileID: 4800000, guid: 8ef9ec201a5f1eb4d9635f32022891df, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 1
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _GlobalMask:
+        m_Texture: {fileID: 2800000, guid: 370707c605705a443996b9d141c69aba, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainEmission:
+        m_Texture: {fileID: 2800000, guid: cd9044c4df669094f8b2793c08c2e439, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainOpacity:
+        m_Texture: {fileID: 2800000, guid: 6386003303d8709449798322483d9264, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OverlayEmission:
+        m_Texture: {fileID: 2800000, guid: fb02dbbc766086c48ad66e024c7104c6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Program_Wave_albedo:
+        m_Texture: {fileID: 2800000, guid: 7e859b11b1acf204fb07697fed2f4af8, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Program_Wave_emission:
+        m_Texture: {fileID: 2800000, guid: cd9044c4df669094f8b2793c08c2e439, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Program_Wave_opacity:
+        m_Texture: {fileID: 2800000, guid: 6386003303d8709449798322483d9264, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Program_Wave_overlay_effect:
+        m_Texture: {fileID: 2800000, guid: 8cac49ade22bf3447b34984b3b054a5c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Program_Wave_overlay_mask:
+        m_Texture: {fileID: 2800000, guid: fb02dbbc766086c48ad66e024c7104c6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Program_Wave_sweep_mask:
+        m_Texture: {fileID: 2800000, guid: 8fe18cba70cd89e4daed06cf83037e2a, type: 3}
+        m_Scale: {x: 0.19, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SweepMask:
+        m_Texture: {fileID: 2800000, guid: 8fe18cba70cd89e4daed06cf83037e2a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _texcoord:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _texcoord2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _AutoSweepCycleDivison: 1
+    - _AutoSweepSpeed: 4.66
+    - _GlobalMaskContrastMax: 1
+    - _GlobalMaskContrastMin: 0
+    - _GlobalSweep: 0.516
+    - _GlossyReflections: 1
+    - _MaxWaveHeight: 2.91
+    - _Metallic: 1
+    - _OpacityNoiseScale: 1.35
+    - _PositionNoiseScale: 2.09
+    - _Smooth: 0.7058824
+    - _SpecularHighlights: 1
+    - _SweepMaskScale: 0.18
+    - _Sweeping: 1
+    - __dirty: 0
+    - _globalsweep: 0
+    - _maxheight: 2.24
+    - _scale: 0.15
+    - _sweep: 0.864
+    m_Colors:
+    - _AlbedoTint: {r: 0.01960784, g: 0.40392148, b: 0.12549007, a: 1}
+    - _Emission: {r: 0.6760184, g: 5.915161, b: 10.759959, a: 0}
+    - _EmissionTint: {r: 6.6234126, g: 78.81861, b: 126.50718, a: 0}
+    - _OpacityNoiseScroll: {r: 0.52, g: 0.44, b: 0, a: 0}
+    - _OverlayColor: {r: 7.9066987, g: 0.8693229, b: 7.8653026, a: 0}
+    - _OverlayEmissionTint: {r: 3.4415908, g: 0.4865076, b: 1.2793348, a: 0}
+    - _PositionNoiseScroll: {r: 0.31, g: 0.15, b: 0, a: 0}
+    - _Tint: {r: 0.019607844, g: 0.19454268, b: 0.40392157, a: 1}
