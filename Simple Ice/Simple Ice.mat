@@ -1,0 +1,109 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Simple Ice
+  m_Shader: {fileID: 4800000, guid: 519d281cb1fc45a478b6dd788453c88f, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 0
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 2, y: 2}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: b8e11a440e4c999469fa466e73b2e9f0, type: 3}
+        m_Scale: {x: 2, y: 2}
+        m_Offset: {x: 0, y: 0}
+    - _Metalness:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Metanelness:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetanessMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 2, y: 2}
+        m_Offset: {x: 0, y: 0}
+    - _MovementMask:
+        m_Texture: {fileID: 2800000, guid: 27127545775166246b527ab88b7e5669, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Movement_Mask:
+        m_Texture: {fileID: 2800000, guid: 27127545775166246b527ab88b7e5669, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 2800000, guid: c10b5e35126d7ac429de1336baa58727, type: 3}
+        m_Scale: {x: 2, y: 2}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxInternal:
+        m_Texture: {fileID: 2800000, guid: 02806d1ac32ad15438298bd87b7d9dc9, type: 3}
+        m_Scale: {x: 3, y: 3}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxLayer1:
+        m_Texture: {fileID: 2800000, guid: 4177054a6a2fc65489900ec19111a5c5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxLayer2:
+        m_Texture: {fileID: 2800000, guid: 8280ae6037505f54ba58e2dc66ab3c60, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxLevel1:
+        m_Texture: {fileID: 2800000, guid: 02806d1ac32ad15438298bd87b7d9dc9, type: 3}
+        m_Scale: {x: 2, y: 2}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxLevel2:
+        m_Texture: {fileID: 2800000, guid: 4b2f9211089130e4288f9e1a58acad75, type: 3}
+        m_Scale: {x: 2, y: 2}
+        m_Offset: {x: 0, y: 0}
+    - _PulseMask:
+        m_Texture: {fileID: 2800000, guid: 3c32269171a000d4f9904193192e8630, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RoughnessMap:
+        m_Texture: {fileID: 2800000, guid: e4e86fe78a8b4b742992c75a9afb3ed8, type: 3}
+        m_Scale: {x: 2, y: 2}
+        m_Offset: {x: 0, y: 0}
+    - _pulse_mask:
+        m_Texture: {fileID: 2800000, guid: 3c32269171a000d4f9904193192e8630, type: 3}
+        m_Scale: {x: 0.27, y: 0.27}
+        m_Offset: {x: 0, y: 0}
+    - _texcoord:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _Layer1MaskMovement: 0
+    - _Layer1Movement: 0
+    - _Layer1Offset: 0.04
+    - _Layer1Offset1: 0.26
+    - _Layer1Strength: 1
+    - _Layer2Offset: 0.15
+    - _Layer2Strength: 0.93
+    - _MetalnessScale: 0
+    - _ParallaxEffects: 1
+    - _PulseMaskStrength: 10
+    - _RoughnessScale: 1
+    - __dirty: 0
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 0}
+    - _Emission: {r: 0, g: 0, b: 0, a: 0}
+    - _Emissions: {r: 0, g: 0, b: 0, a: 0}
+    - _Layer1Color: {r: 0.75678957, g: 3.4956472, b: 6.8831816, a: 0}
+    - _Layer2Color: {r: 0, g: 0.5598835, b: 2.0483541, a: 0}
+    - _PulseMaskScrollDirection: {r: 0.01, g: 0.01, b: 0, a: 0}

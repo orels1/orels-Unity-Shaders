@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 519d281cb1fc45a478b6dd788453c88f
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures:
+  - _NormalMap: {fileID: 2800000, guid: c10b5e35126d7ac429de1336baa58727, type: 3}
+  - _PulseMask: {fileID: 2800000, guid: 3c32269171a000d4f9904193192e8630, type: 3}
+  - _MovementMask: {fileID: 2800000, guid: 27127545775166246b527ab88b7e5669, type: 3}
+  - _ParallaxLayer1: {fileID: 2800000, guid: 4177054a6a2fc65489900ec19111a5c5, type: 3}
+  - _ParallaxLayer2: {fileID: 2800000, guid: 8280ae6037505f54ba58e2dc66ab3c60, type: 3}
+  - _MainTex: {fileID: 2800000, guid: b8e11a440e4c999469fa466e73b2e9f0, type: 3}
+  - _RoughnessMap: {fileID: 2800000, guid: e4e86fe78a8b4b742992c75a9afb3ed8, type: 3}
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

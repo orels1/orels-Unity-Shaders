@@ -6,17 +6,28 @@ using orels1;
 public class ORS1MaterialEditor : ShaderGUI {
   private Texture headerImage;
   private bool headerFailed;
+  private string helpLink;
+  private bool noHelpLink;
   
   public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties) {
     try {
-      if (!headerFailed) {
-        if (headerImage == null) {
+      if (!headerFailed && !noHelpLink) {
+        if (headerImage == null || helpLink == null) {
           var shaderName = (materialEditor.target as Material).shader.name;
           if (shaderName.StartsWith("orels1") || shaderName.StartsWith("ors1")) {
             headerImage = ORS1ShaderMap.GetShaderHeaderTexture(shaderName);
+            helpLink = ORS1ShaderMap.GetShaderHelpLink(shaderName);
+            if (headerImage == null) {
+              headerFailed = true;
+            }
+
+            if (helpLink == null) {
+              noHelpLink = true;
+            }
           }
           else {
             headerFailed = true;
+            noHelpLink = true;
           }
         }
 
@@ -25,10 +36,18 @@ public class ORS1MaterialEditor : ShaderGUI {
           var rect = EditorGUILayout.GetControlRect(GUILayout.Height(64));
           GUI.DrawTexture(rect, headerImage, ScaleMode.ScaleToFit);
         }
+
+        if (!noHelpLink) {
+          if (GUILayout.Button(new GUIContent("Check out the docs"), GUILayout.Height(15))) {
+            Application.OpenURL(helpLink);
+          }
+          EditorGUILayout.Space();
+        }
       }
     }
     catch {
       headerFailed = true;
+      noHelpLink = true;
     }
     EditorGUI.BeginChangeCheck();
     base.OnGUI(materialEditor, properties);

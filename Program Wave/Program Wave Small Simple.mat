@@ -76,7 +76,7 @@ Material:
     - _AutoSweepSpeed: 2.88
     - _GlobalMaskContrastMax: 0.31
     - _GlobalMaskContrastMin: -0.02
-    - _GlobalSweep: 0.659
+    - _GlobalSweep: 0.594
     - _GlossyReflections: 1
     - _MaxWaveHeight: 2.94
     - _Metallic: 1
