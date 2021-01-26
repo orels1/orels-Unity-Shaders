@@ -7,13 +7,15 @@ namespace orels1 {
     private static Dictionary<string, string> shaderMap = new Dictionary<string, string> {
       {"ProgramWaveNoise", "ProgramWave"},
       {"ProgramWaveSimple", "ProgramWave"},
-      {"SimpleIce", "SimpleIce"}
+      {"SimpleIce", "SimpleIce"},
+      {"CeilingLights", "CeilingLights"}
     };
     
     private static Dictionary<string, string> docsMap = new Dictionary<string, string> {
       {"ProgramWaveNoise", "https://shaders.orels.sh/shaders/program-wave"},
       {"ProgramWaveSimple", "https://shaders.orels.sh/shaders/program-wave"},
-      {"SimpleIce", "https://shaders.orels.sh/shaders/simple-ice"}
+      {"SimpleIce", "https://shaders.orels.sh/shaders/simple-ice"},
+      {"CeilingLights", "https://shaders.orels.sh/shaders/ceiling-lights"}
     };
 
     public static Texture GetShaderHeaderTexture(string shaderName) {
