@@ -15,7 +15,7 @@
 
 **Do not download the repository itself to get the shaders**
 
-The repository is there mostly for reference, as it contains functionality that requires 3rd party packages to work: BetterShaders and Odin Inspector. If you're curious about the dev process, check out this page on the documentation website 👀
+The repository is there mostly for reference, as it contains functionality that requires 3rd party packages to work: BetterShaders and Odin Inspector. If you're curious about the dev process, [check out this page on the documentation website](https://shaders.orels.sh/development/github-repo) 👀
 
 ## Installation
 
