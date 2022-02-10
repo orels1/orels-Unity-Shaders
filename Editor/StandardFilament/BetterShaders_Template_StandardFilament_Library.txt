@@ -1,0 +1,222 @@
+﻿  half D_GGX(half NoH, half roughness) {
+      half a = NoH * roughness;
+      half k = roughness / (1.0 - NoH * NoH + a * a);
+      return k * k * (1.0 / UNITY_PI);
+  }
+  
+  half V_SmithGGXCorrelated(half NoV, half NoL, half roughness) {
+    half a2 = roughness * roughness;
+    half GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
+    half GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
+    return 0.5 / (GGXV + GGXL);
+  }
+  
+  half3 F_Schlick(half u, half3 f0)
+  {
+      return f0 + (1.0 - f0) * pow(1.0 - u, 5.0);
+  }
+  
+  half3 F_Schlick(half3 f0, half f90, half VoH)
+  {
+      // Schlick 1994, "An Inexpensive BRDF Model for Physically-Based Rendering"
+      return f0 + (f90 - f0) * pow(1.0 - VoH, 5);
+  }
+  
+  half3 fresnel(half3 f0, half LoH)
+  {
+      half f90 = saturate(dot(f0, half(50.0 / 3).xxx));
+      return F_Schlick(f0, f90, LoH);
+  }
+  
+  half Fd_Burley(half perceptualRoughness, half NoV, half NoL, half LoH)
+  {
+      // Burley 2012, "Physically-Based Shading at Disney"
+      half f90 = 0.5 + 2.0 * perceptualRoughness * LoH * LoH;
+      half lightScatter = F_Schlick(1.0, f90, NoL);
+      half viewScatter = F_Schlick(1.0, f90, NoV);
+      return lightScatter * viewScatter;
+  }
+  
+  half3 getBoxProjection (half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
+  {
+      #if defined(UNITY_SPECCUBE_BOX_PROJECTION) && !defined(SHADER_API_MOBILE)
+          if (cubemapPosition.w > 0)
+          {
+              half3 factors = ((direction > 0 ? boxMax : boxMin) - position) / direction;
+              half scalar = min(min(factors.x, factors.y), factors.z);
+              direction = direction * scalar + (position - cubemapPosition.xyz);
+          }
+      #endif
+  
+      return direction;
+  }
+  
+  half3 EnvBRDFMultiscatter(half2 dfg, half3 f0)
+  {
+      return lerp(dfg.xxx, dfg.yyy, f0);
+  }
+  
+  half3 EnvBRDFApprox(half perceptualRoughness, half NoV, half3 f0)
+  {
+      half g = 1 - perceptualRoughness;
+      //https://blog.selfshadow.com/publications/s2013-shading-course/lazarov/s2013_pbs_black_ops_2_notes.pdf
+      half4 t = half4(1 / 0.96, 0.475, (0.0275 - 0.25 * 0.04) / 0.96, 0.25);
+      t *= half4(g, g, g, g);
+      t += half4(0, 0, (0.015 - 0.75 * 0.04) / 0.96, 0.75);
+      half a0 = t.x * min(t.y, exp2(-9.28 * NoV)) + t.z;
+      half a1 = t.w;
+      return saturate(lerp(a0, a1, f0));
+  }
+
+half _GSAAVariance = 0.15;
+half _GSAAThreshold = 0.1;
+half GSAA_Filament(half3 worldNormal, half perceptualRoughness)
+{
+    // Kaplanyan 2016, "Stable specular highlights"
+    // Tokuyoshi 2017, "Error Reduction and Simplification for Shading Anti-Aliasing"
+    // Tokuyoshi and Kaplanyan 2019, "Improved Geometric Specular Antialiasing"
+
+    // This implementation is meant for deferred rendering in the original paper but
+    // we use it in forward rendering as well (as discussed in Tokuyoshi and Kaplanyan
+    // 2019). The main reason is that the forward version requires an expensive transform
+    // of the half vector by the tangent frame for every light. This is therefore an
+    // approximation but it works well enough for our needs and provides an improvement
+    // over our original implementation based on Vlachos 2015, "Advanced VR Rendering".
+
+    half3 du = ddx(worldNormal);
+    half3 dv = ddy(worldNormal);
+
+    half variance = _GSAAVariance * (dot(du, du) + dot(dv, dv));
+
+    half roughness = perceptualRoughness * perceptualRoughness;
+    half kernelRoughness = min(2.0 * variance, _GSAAThreshold);
+    half squareRoughness = saturate(roughness * roughness + kernelRoughness);
+
+    return sqrt(sqrt(squareRoughness));
+}
+
+// w0, w1, w2, and w3 are the four cubic B-spline basis functions
+half w0(half a)
+{
+    //    return (1.0f/6.0f)*(-a*a*a + 3.0f*a*a - 3.0f*a + 1.0f);
+    return (1.0f/6.0f)*(a*(a*(-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+}
+
+half w1(half a)
+{
+    //    return (1.0f/6.0f)*(3.0f*a*a*a - 6.0f*a*a + 4.0f);
+    return (1.0f/6.0f)*(a*a*(3.0f*a - 6.0f) + 4.0f);
+}
+
+half w2(half a)
+{
+    //    return (1.0f/6.0f)*(-3.0f*a*a*a + 3.0f*a*a + 3.0f*a + 1.0f);
+    return (1.0f/6.0f)*(a*(a*(-3.0f*a + 3.0f) + 3.0f) + 1.0f);
+}
+
+half w3(half a)
+{
+    return (1.0f/6.0f)*(a*a*a);
+}
+
+// g0 and g1 are the two amplitude functions
+half g0(half a)
+{
+    return w0(a) + w1(a);
+}
+
+half g1(half a)
+{
+    return w2(a) + w3(a);
+}
+
+// h0 and h1 are the two offset functions
+half h0(half a)
+{
+    // note +0.5 offset to compensate for CUDA linear filtering convention
+    return -1.0f + w1(a) / (w0(a) + w1(a)) + 0.5f;
+}
+
+half h1(half a)
+{
+    return 1.0f + w3(a) / (w2(a) + w3(a)) + 0.5f;
+}
+
+//https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
+half3 tex2DFastBicubicLightmap(half2 uv, inout half4 bakedColorTex)
+{
+    #if defined(SHADER_API_D3D11) && defined(BICUBIC_LIGHTMAP)
+    half width;
+    half height;
+    unity_Lightmap.GetDimensions(width, height);
+    half x = uv.x * width;
+    half y = uv.y * height;
+
+    
+    
+    x -= 0.5f;
+    y -= 0.5f;
+    half px = floor(x);
+    half py = floor(y);
+    half fx = x - px;
+    half fy = y - py;
+
+    // note: we could store these functions in a lookup table texture, but maths is cheap
+    half g0x = g0(fx);
+    half g1x = g1(fx);
+    half h0x = h0(fx);
+    half h1x = h1(fx);
+    half h0y = h0(fy);
+    half h1y = h1(fy);
+
+    half4 r = g0(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f/width)) +
+                         g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f/width))) +
+                         g1(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f/width)) +
+                         g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f/width)));
+    bakedColorTex = r;
+    return DecodeLightmap(r);
+    #else
+    bakedColorTex = UNITY_SAMPLE_TEX2D(unity_Lightmap, uv);
+    return DecodeLightmap(bakedColorTex);
+    #endif
+}
+
+half3 GetSpecularHighlights(half3 worldNormal, half3 lightColor, half3 lightDirection, half3 f0, half3 viewDir, half clampedRoughness, half NoV, half3 energyCompensation)
+{
+    half3 halfVector = Unity_SafeNormalize(lightDirection + viewDir);
+
+    half NoH = saturate(dot(worldNormal, halfVector));
+    half NoL = saturate(dot(worldNormal, lightDirection));
+    half LoH = saturate(dot(lightDirection, halfVector));
+
+    half3 F = F_Schlick(LoH, f0);
+    half D = D_GGX(NoH, clampedRoughness);
+    half V = V_SmithGGXCorrelated(NoV, NoL, clampedRoughness);
+
+    #ifndef SHADER_API_MOBILE
+    F *= energyCompensation;
+    #endif
+
+    return max(0, (D * V) * F) * lightColor * NoL * UNITY_PI;
+}
+
+#ifdef DYNAMICLIGHTMAP_ON
+half3 getRealtimeLightmap(half2 uv, half3 worldNormal)
+{   
+    half2 realtimeUV = uv;
+    half4 bakedCol = UNITY_SAMPLE_TEX2D(unity_DynamicLightmap, realtimeUV);
+    half3 realtimeLightmap = DecodeRealtimeLightmap(bakedCol);
+
+    #ifdef DIRLIGHTMAP_COMBINED
+        half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
+        realtimeLightmap += DecodeDirectionalLightmap (realtimeLightmap, realtimeDirTex, worldNormal);
+    #endif
+
+    return realtimeLightmap;
+}
+#endif
+
+half computeSpecularAO(half NoV, half ao, half roughness)
+{
+    return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
+}

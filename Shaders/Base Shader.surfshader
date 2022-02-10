@@ -1,0 +1,167 @@
+﻿BEGIN_OPTIONS
+  ShaderName "orels1/Internal/Standard Base"
+END_OPTIONS
+
+BEGIN_PROPERTIES
+  [ToggleUI]UI_MainHeader("# Main Settings", Int) = 1
+  [Enum(Off, 0, Front,1, Back, 2)] _Culling ("Culling Mode", Int) = 2
+	_Color ("Main Color", Color) = (1, 1, 1, 1)
+	_MainTex("Albedo", 2D) = "white" {}
+	[Enum(RGB, 0, R, 1, G, 2, B, 3)]_AlbedoChannel("Albedo Channel [_MainTex]", Int) = 0
+  [Enum(UV, 0, Local Space, 1, World Space, 2)]_MappingSpace("Mapping Space", Int) = 0
+  [ToggleUI]UI_PlanarAxisSelector("!DRAWER MultiProperty _PlanarAxisX _PlanarAxisY [_MappingSpace > 0]", Int) = 0
+  [Enum(X, 0, Y, 1, Z, 2)]_PlanarAxisX("X Axis", Int) = 0
+  [Enum(X, 0, Y, 1, Z, 2)]_PlanarAxisY("Y Axis", Int) = 2
+	[NoScaleOffset]_MaskMap("Masks &", 2D)  = "white" {}
+	[ToggleUI]UI_ChannelSelector("!DRAWER MultiProperty _MetalChannel _AOChannel _DetailMaskChannel _SmoothChannel [_MaskMap]", Int) = 0
+	[Enum(R, 0, G, 1, B, 2, A, 3)]_MetalChannel("Metal", Int) = 0
+	[Enum(R, 0, G, 1, B, 2, A, 3)]_AOChannel("AO", Int) = 1
+	[Enum(R, 0, G, 1, B, 2, A, 3)]_DetailMaskChannel("Detail", Int) = 2
+	[Enum(R, 0, G, 1, B, 2, A, 3)]_SmoothChannel("Smooth", Int) = 3
+	_Smoothness("Smoothness [!_MaskMap]", Range(0,1)) = 0.5
+	[ToggleUI]_RoughnessMode("Roughness Mode [_MaskMap]", Int) = 0
+	[ToggleUI]UI_SmoothnessRemap("!DRAWER MinMax _SmoothnessRemap.x _SmoothnessRemap.y [_MaskMap]", Float) = 0
+	_Metallic("Metallic [!_MaskMap]", Range(0,1)) = 0
+	[ToggleUI]UI_MetallicRemap("!DRAWER MinMax _MetallicRemap.x _MetallicRemap.y [_MaskMap]", Float) = 0
+	[HideInInspector]_MetallicRemap("Metallic Remap", Vector) = (0,1,0,1)
+	[HideInInspector]_SmoothnessRemap("Smoothness Remap", Vector) = (0,1,0,1)
+	_OcclusionStrength("AO Strength [_MaskMap]", Range(0,1)) = 1
+	[ToggleUI]_DetailAsTintMask("Detail as Tint Mask [_MaskMap]", Int) = 0
+	[NoScaleOffset]_BumpMap("Normal Map &&", 2D) = "bump" {}
+	_BumpScale("Normal Map Scale", Range(-1,1)) = 1
+	[ToggleUI]_FlipBumpY("Flip Y (UE Mode) [_BumpMap]", Int) = 0
+	[Toggle(_EMISSION)]_EmissionEnabled("Emission", Int) = 0
+	_EmissionMap("Emission Map && [_EMISSION]", 2D) = "white" {}
+	[HDR]_EmissionColor("Emission Color [_EMISSION]", Color) = (0,0,0,1)
+	[Enum(RGB, 0, R, 1, G, 2, B, 3)]_EmissionChannel("Emission Channel [_EmissionMap]", Int) = 0
+	
+	// i would _love_ to move this into a separate module, but since this affects global uvs - we want it in this order
+  [ToggleUI]UI_ParallaxHeader("# Parallax", Int) = 0
+  [Toggle(PARALLAX)]_EnableParallax("Enable Parallax", Int) = 0
+  [NoScaleOffset]_Height("Height && [PARALLAX]", 2D) = "black" {}
+  _HeightScale("Height Scale [PARALLAX]", Range(0, 0.1)) = 0.006
+  _HeightRefPlane("Height Ref Plane [PARALLAX]", Range(-1, 1)) = 0.5
+  _HeightStepsMin("Steps Min [PARALLAX]", Range(8, 32)) = 8
+  _HeightStepsMax("Steps Max [PARALLAX]", Range(8, 32)) = 16
+END_PROPERTIES
+
+BEGIN_DEFINES
+  #pragma shader_feature_local _EMISSION
+  #pragma shader_feature_local PARALLAX
+END_DEFINES
+
+BEGIN_PASS("Forward")
+  Cull [_Culling]
+END_PASS
+BEGIN_PASS("ForwardAdd")
+  Cull [_Culling]
+END_PASS
+BEGIN_PASS("Depth")
+  Cull [_Culling]
+END_PASS
+BEGIN_PASS("Shadow")
+  Cull [_Culling]
+END_PASS
+
+
+BEGIN_SUBSHADERS
+  "Utility.surfshader"
+END_SUBSHADERS
+
+BEGIN_CBUFFER
+	half4 _Color;
+	half4 _MainTex_ST;
+	int _AlbedoChannel;
+	int _MappingSpace;
+	int _PlanarAxisX;
+	int _PlanarAxisY;
+	
+	int _MetalChannel;
+	int _AOChannel;
+	int _DetailMaskChannel;
+	int _SmoothChannel;
+	int _RoughnessMode;
+	
+	half _Smoothness;
+	half _Metallic;
+	half4 _MetallicRemap;
+	half4 _SmoothnessRemap;
+	half4 _MaskMap_TexelSize;
+	half _OcclusionStrength;
+	int _DetailAsTintMask;
+	half _BumpScale;
+	int _FlipBumpY;
+	half4 _EmissionColor;
+	int _EmissionChannel;
+	
+	half _HeightScale;
+	half _HeightRefPlane;
+	half _HeightStepsMin;
+	half _HeightStepsMax;
+END_CBUFFER
+
+BEGIN_CODE
+  TEXTURE2D(_MainTex);
+  SAMPLER(sampler_MainTex);
+  TEXTURE2D(_MaskMap);
+  SAMPLER(sampler_MaskMap);
+  TEXTURE2D(_BumpMap);
+  SAMPLER(sampler_BumpMap);
+  TEXTURE2D(_EmissionMap);
+  SAMPLER(sampler_EmissionMap);
+  TEXTURE2D(_Height);
+  SAMPLER(sampler_Height);
+  
+  half2 globalUv;
+  
+	void SurfaceFunction(inout Surface o, ShaderData d)
+	{
+	  globalUv = d.texcoord0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+	  if (_MappingSpace > 0) {
+	    globalUv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
+	    globalUv = globalUv * _MainTex_ST.xy + _MainTex_ST.zw;
+	  }
+	  #if PARALLAX
+	    half customHeight = 0;
+	    globalUv = POM(_Height, sampler_Height, globalUv, ddx(globalUv), ddy(globalUv), d.worldSpaceNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1,1), half2(0,0), 0, customHeight);
+	  #endif
+	  half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, globalUv);
+	  if (_AlbedoChannel > 0) {
+	    albedo.rgb = albedo[_AlbedoChannel].xxx;
+	  }
+	  half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, globalUv);
+	  half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, globalUv);
+	  if (_FlipBumpY) {
+	    normalTex.y = 1-normalTex.y;
+	  }
+	  half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
+	  half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, globalUv).rgb;
+	  if (_EmissionChannel > 0) {
+	    emission.rgb = emission[_EmissionChannel].xxx;
+	  }
+	  int hasMasks = _MaskMap_TexelSize.z > 8; 
+	  half metal = masks[_MetalChannel];
+	  half smooth = masks[_SmoothChannel];
+	  if (_RoughnessMode) {
+	    smooth = 1 - smooth;
+	  }
+	  half detailMask = masks[_DetailMaskChannel];
+	  half occlusion = masks[_AOChannel];
+	  metal = remap(metal, 0, 1, _MetallicRemap.x, _MetallicRemap.y);
+	  smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
+	  o.Metallic = lerp(_Metallic, metal, hasMasks);
+	  o.Smoothness = lerp(_Smoothness, smooth, hasMasks);
+	  o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
+	  o.Normal = normal;
+	  if (!_DetailAsTintMask) {
+		  o.Albedo = albedo.rgb * _Color.rgb;
+	  } else {
+	    o.Albedo = lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
+	  }
+		o.Alpha = albedo.a * _Color.a;
+		#if defined(_EMISSION)
+		o.Emission = emission * _EmissionColor;
+		#endif
+	}
+END_CODE
+

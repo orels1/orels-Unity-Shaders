@@ -1,0 +1,511 @@
+﻿
+      Pass
+      {
+        Name "FORWARD"
+        Tags { "LightMode" = "ForwardBase" }
+        %FORWARDBASEBLEND%
+        %PASSFORWARD%
+        
+        CGPROGRAM
+        // compile directives
+        %PRAGMAS%
+        
+        #pragma target %SHADERTARGET%
+        #pragma multi_compile_instancing
+        #pragma multi_compile_fog
+        #pragma multi_compile_fwdbase
+        #include "HLSLSupport.cginc"
+        #define UNITY_INSTANCED_LOD_FADE
+        #define UNITY_INSTANCED_SH
+        #define UNITY_INSTANCED_LIGHTMAPSTS
+        
+        #include "UnityShaderVariables.cginc"
+        #include "UnityShaderUtilities.cginc"
+        // -------- variant for: <when no other keywords are defined>
+        
+        #include "UnityCG.cginc"
+        #include "Lighting.cginc"
+        #include "UnityPBSLighting.cginc"
+        #include "AutoLight.cginc"
+        #define SHADER_PASS SHADERPASS_FORWARD
+        #define _PASSFORWARD 1
+        
+        %DEFINES%
+        
+        // data across stages, stripped like the above.
+        struct VertexToPixel
+        {
+          UNITY_POSITION(pos);
+          float3 worldPos : TEXCOORD0;
+          float3 worldNormal : TEXCOORD1;
+          float4 worldTangent : TEXCOORD2;
+          %V2FUV0% float4 texcoord0 : TEXCOORD3%TEXCOORD0MOD%;
+          %V2FUV1% float4 texcoord1 : TEXCOORD4%TEXCOORD1MOD%;
+          %V2FUV2% float4 texcoord2 : TEXCOORD5%TEXCOORD2MOD%;
+          %TEXCOORD3REQUIRE% #if %TEXCOORD3REQUIREKEY%
+          %V2FUV3% float4 texcoord3 : TEXCOORD6%TEXCOORD3MOD%;
+          %TEXCOORD3REQUIRE% #endif
+        
+          %SCREENPOSREQUIRE% #if %SCREENPOSREQUIREKEY%
+          %SCREENPOS% float4 screenPos : TEXCOORD7;
+          %SCREENPOSREQUIRE% #endif
+        
+          float4 lmap : TEXCOORD8;
+          #if UNITY_SHOULD_SAMPLE_SH
+             half3 sh : TEXCOORD9; // SH
+          #endif
+          #ifdef LIGHTMAP_ON
+             UNITY_LIGHTING_COORDS(10,11)
+             UNITY_FOG_COORDS(12)
+          #else
+             UNITY_FOG_COORDS(10)
+             UNITY_SHADOW_COORDS(11)
+          #endif
+        
+          %VERTEXCOLORREQUIRE% #if %VERTEXCOLORREQUIREKEY%
+          %V2FVERTEXCOLOR% float4 vertexColor : COLOR%VERTEXCOLORMOD%;
+          %VERTEXCOLORREQUIRE% #endif
+        
+          %EXTRAV2F0REQUIRE% #if %EXTRAV2F0REQUIREKEY%
+          %EXTRAV2F0% float4 extraV2F0 : TEXCOORD13%EXTRAV2F0MOD%;
+          %EXTRAV2F0REQUIRE% #endif
+        
+          %EXTRAV2F1REQUIRE% #if %EXTRAV2F1REQUIREKEY%
+          %EXTRAV2F1% float4 extraV2F1 : TEXCOORD14%EXTRAV2F1MOD%;
+          %EXTRAV2F1REQUIRE% #endif
+        
+          %EXTRAV2F2REQUIRE% #if %EXTRAV2F2REQUIREKEY%
+          %EXTRAV2F2% float4 extraV2F2 : TEXCOORD15%EXTRAV2F2MOD%;
+          %EXTRAV2F2REQUIRE% #endif
+        
+          %EXTRAV2F3REQUIRE% #if %EXTRAV2F3REQUIREKEY%
+          %EXTRAV2F3% float4 extraV2F3 : TEXCOORD16%EXTRAV2F3MOD%;
+          %EXTRAV2F3REQUIRE% #endif
+        
+          %EXTRAV2F4REQUIRE% #if %EXTRAV2F4REQUIREKEY%
+          %EXTRAV2F4% float4 extraV2F4 : TEXCOORD17%EXTRAV2F4MOD%;
+          %EXTRAV2F4REQUIRE% #endif
+        
+          %EXTRAV2F5REQUIRE% #if %EXTRAV2F5REQUIREKEY%
+          %EXTRAV2F5% float4 extraV2F5 : TEXCOORD18%EXTRAV2F5MOD%;
+          %EXTRAV2F5REQUIRE% #endif
+        
+          %EXTRAV2F6REQUIRE% #if %EXTRAV2F6REQUIREKEY%
+          %EXTRAV2F6% float4 extraV2F6 : TEXCOORD19%EXTRAV2F6MOD%;
+          %EXTRAV2F6REQUIRE% #endif
+        
+          %EXTRAV2F7REQUIRE% #if %EXTRAV2F7REQUIREKEY%
+          %EXTRAV2F7% float4 extraV2F7 : TEXCOORD20%EXTRAV2F7MOD%;
+          %EXTRAV2F7REQUIRE% #endif
+        
+        
+          UNITY_VERTEX_INPUT_INSTANCE_ID
+          UNITY_VERTEX_OUTPUT_STEREO
+        };
+
+        %TEMPLATE_SHARED%
+          
+        %CBUFFER%
+        
+        %CUSTOMCBUFFER%
+        
+        %CUSTOMINSTANCEPROPS%
+        
+        %CUSTOMDEFINES%
+        
+        %CODE%
+        
+        %SHADERDESC%
+
+        // vertex shader
+        VertexToPixel Vert (VertexData v)
+        {
+          UNITY_SETUP_INSTANCE_ID(v);
+          VertexToPixel o;
+          UNITY_INITIALIZE_OUTPUT(VertexToPixel,o);
+          UNITY_TRANSFER_INSTANCE_ID(v,o);
+          UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+          
+          #if !_TESSELLATION_ON
+          ChainModifyVertex(v, o, _Time);
+          #endif
+          
+          o.pos = UnityObjectToClipPos(v.vertex);
+          %V2FUV0% o.texcoord0 = v.texcoord0;
+          %V2FUV1% o.texcoord1 = v.texcoord1;
+          %V2FUV2% o.texcoord2 = v.texcoord2;
+          
+          %TEXCOORD3REQUIRE% #if %TEXCOORD3REQUIREKEY%
+          %V2FUV3% o.texcoord3 = v.texcoord3;
+          %TEXCOORD3REQUIRE% #endif
+          
+          %VERTEXCOLORREQUIRE% #if %VERTEXCOLORREQUIREKEY%
+          %V2FVERTEXCOLOR% o.vertexColor = v.vertexColor;
+          %VERTEXCOLORREQUIRE% #endif
+          
+          %SCREENPOSREQUIRE% #if %SCREENPOSREQUIREKEY%
+          %SCREENPOS% o.screenPos = ComputeScreenPos(o.pos);
+          %SCREENPOSREQUIRE% #endif
+          
+          o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+          o.worldNormal = UnityObjectToWorldNormal(v.normal);
+          o.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
+          fixed tangentSign = v.tangent.w * unity_WorldTransformParams.w;
+          o.worldTangent.w = tangentSign;
+          
+          #ifdef DYNAMICLIGHTMAP_ON
+          o.lmap.zw = v.texcoord2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+          #endif
+          #ifdef LIGHTMAP_ON
+          o.lmap.xy = v.texcoord1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+          #endif
+          
+          // SH/ambient and vertex lights
+          #ifndef LIGHTMAP_ON
+           #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
+             o.sh = 0;
+             // Approximated illumination from non-important point lights
+             #ifdef VERTEXLIGHT_ON
+               o.sh += Shade4PointLights (
+                 unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,
+                 unity_LightColor[0].rgb, unity_LightColor[1].rgb, unity_LightColor[2].rgb, unity_LightColor[3].rgb,
+                 unity_4LightAtten0, o.worldPos, o.worldNormal);
+             #endif
+             o.sh = ShadeSHPerVertex (o.worldNormal, o.sh);
+           #endif
+          #endif // !LIGHTMAP_ON
+          
+          UNITY_TRANSFER_LIGHTING(o,v.texcoord1.xy); // pass shadow and, possibly, light cookie coordinates to pixel shader
+          #ifdef FOG_COMBINED_WITH_TSPACE
+           UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(o,o.pos); // pass fog coordinates to pixel shader
+          #elif defined FOG_COMBINED_WITH_WORLD_POS
+           UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(o,o.pos); // pass fog coordinates to pixel shader
+          #else
+           UNITY_TRANSFER_FOG(o,o.pos); // pass fog coordinates to pixel shader
+          #endif
+          
+          return o;
+        }
+
+        %TESSELLATION%
+
+        // fragment shader
+        fixed4 Frag (VertexToPixel IN
+        #ifdef _DEPTHOFFSET_ON
+            , out float outputDepth : SV_Depth
+        #endif
+        #if NEED_FACING
+          , bool facing : SV_IsFrontFace
+        #endif
+        ) : SV_Target
+        {
+          UNITY_SETUP_INSTANCE_ID(IN);
+          // prepare and unpack data
+          #ifdef FOG_COMBINED_WITH_TSPACE
+           UNITY_EXTRACT_FOG_FROM_TSPACE(IN);
+          #elif defined FOG_COMBINED_WITH_WORLD_POS
+           UNITY_EXTRACT_FOG_FROM_WORLD_POS(IN);
+          #else
+           UNITY_EXTRACT_FOG(IN);
+          #endif
+          
+          ShaderData d = CreateShaderData(IN
+            #if NEED_FACING
+               , facing
+            #endif
+          );
+          Surface l = (Surface)0;
+          
+          
+          #ifdef _DEPTHOFFSET_ON
+            l.outputDepth = outputDepth;
+          #endif
+          
+          
+          
+          l.Albedo = half3(0.5, 0.5, 0.5);
+          l.Normal = float3(0,0,1);
+          l.Occlusion = 1;
+          l.Alpha = 1;
+          
+          ChainSurfaceFunction(l, d);
+          
+          
+          
+          #ifdef _DEPTHOFFSET_ON
+            outputDepth = l.outputDepth;
+          #endif
+          
+          
+          #ifndef USING_DIRECTIONAL_LIGHT
+           fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
+          #else
+           fixed3 lightDir = _WorldSpaceLightPos0.xyz;
+          #endif
+          float3 worldViewDir = normalize(UnityWorldSpaceViewDir(d.worldSpacePosition));
+          
+          #if _USESPECULAR || _USESPECULARWORKFLOW || _SPECULARFROMMETALLIC
+            #ifdef UNITY_COMPILER_HLSL
+               SurfaceOutputStandardSpecular o = (SurfaceOutputStandardSpecular)0;
+            #else
+               SurfaceOutputStandardSpecular o;
+            #endif
+            o.Specular = l.Specular;
+            o.Occlusion = l.Occlusion;
+            o.Smoothness = l.Smoothness;
+          #elif _BDRFLAMBERT || _BDRF3 || _SIMPLELIT
+            #ifdef UNITY_COMPILER_HLSL
+               SurfaceOutput o = (SurfaceOutput)0;
+            #else
+               SurfaceOutput o;
+            #endif
+          
+            o.Specular = l.SpecularPower;
+            o.Gloss = l.Smoothness;
+            _SpecColor.rgb = l.Specular; // fucking hell Unity, wtf..
+          #else
+            #ifdef UNITY_COMPILER_HLSL
+               SurfaceOutputStandard o = (SurfaceOutputStandard)0;
+            #else
+               SurfaceOutputStandard o;
+            #endif
+            o.Smoothness = l.Smoothness;
+            o.Metallic = l.Metallic;
+            o.Occlusion = l.Occlusion;
+          #endif
+          
+          o.Albedo = l.Albedo;
+          o.Emission = l.Emission;
+          o.Alpha = l.Alpha;
+          half3 tangentNormal = l.Normal;
+          #if _WORLDSPACENORMAL
+            o.Normal = l.Normal;
+          #else
+            o.Normal = normalize(TangentToWorldSpace(d, l.Normal));
+          #endif
+          
+          half4 c = 0;
+          
+          half reflectance = 0.5;
+          half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
+          half3 finalColor = 0;
+          half3 pixelLight = 0;
+          half3 indirectDiffuse = 1;
+          half3 indirectSpecular = 0;
+          half3 directSpecular = 0;
+          half occlusion = o.Occlusion;
+          half perceptualRoughness = 1 - o.Smoothness;
+          
+          // GSAA_ON is a Shadergraph-Markdown powered prop, so we alias here too
+          #if defined(GSAA)
+            perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness);
+          #endif
+          	  
+          UNITY_LIGHT_ATTENUATION(lightAttenuation, IN, d.worldSpacePosition);
+          half3 lightColor = lightAttenuation * _LightColor0.rgb;
+          
+          half3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
+          half lightNoL = saturate(dot(o.Normal, lightDir));
+          half lightLoH = saturate(dot(lightDir, lightHalfVector));
+          
+          half NoV = abs(dot(o.Normal, d.worldSpaceViewDir)) + 1e-5;
+          pixelLight = lightNoL * lightColor * Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
+          
+          // READ THE LIGHTMAP
+          #if defined(LIGHTMAP_ON)
+            half3 lightMap = 0;
+            half4 bakedColorTex = 0;
+            half2 lightmapUV = IN.lmap.xy;
+            
+            // UNITY LIGHTMAPPING
+            #if !defined(BAKERYLM_ENABLED) || !defined(BAKERY_ENABLED)
+              lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
+            #endif
+            
+            // BAKERY RNM MODE (why do we even support it??)
+            #if defined(BAKERY_RNM) && defined(BAKERY_ENABLED)
+              half3 rnm0 = DecodeLightmap(BakeryTex2D(_RNM0, lightmapUV, _RNM0_TexelSize));
+              half3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize));
+              half3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize));
+              
+              lightMap = saturate(dot(rnmBasis0, tangentNormal)) *  rnm0 + 
+                         saturate(dot(rnmBasis1, tangentNormal)) *  rnm1 +
+                         saturate(dot(rnmBasis2, tangentNormal)) *  rnm2;
+            #endif
+            
+            // BAKERY SH MODE (these are also used for the specular)
+            #if defined(BAKERY_SH) && defined(BAKERY_ENABLED)
+              half3 L0 = DecodeLightmap(BakeryTex2D(unity_Lightmap, samplerunity_Lightmap, lightmapUV, _RNM0_TexelSize));
+              
+              half3 nL1x = BakeryTex2D(_RNM0, lightmapUV, _RNM0_TexelSize) * 2 - 1;
+              half3 nL1y = BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize) * 2 - 1;
+              half3 nL1z = BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize) * 2 - 1;
+              half3 L1x = nL1x * L0 * 2;
+              half3 L1y = nL1y * L0 * 2;
+              half3 L1z = nL1z * L0 * 2;
+              
+              // non-linear SH goes here
+              
+              lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+            #endif
+            
+            #if defined(DIRLIGHTMAP_COMBINED) && !defined(SHADER_API_MOBILE)
+                half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
+                lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
+            #endif
+            
+            #if defined(DYNAMICLIGHTMAP_ON) && !defined(SHADER_API_MOBILE)
+                half3 realtimeLightMap = getRealtimeLightmap(IN.lmap.zw, o.Normal);
+                lightMap += realtimeLightMap; 
+            #endif
+            
+            #if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
+                pixelLight = 0;
+                lightMap = SubtractMainLightWithRealtimeAttenuationFromLightmap (lightMap, lightAttenuation, bakedColorTex, o.Normal);
+            #endif
+            indirectDiffuse = lightMap;
+          #else
+            #if UNITY_LIGHT_PROBE_PROXY_VOLUME
+              UNITY_BRANCH
+              if (unity_ProbeVolumeParams.x == 1) {
+                indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), IN.worldPos);
+              }
+              else {
+            #endif
+                indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
+            #if UNITY_LIGHT_PROBE_PROXY_VOLUME
+              }
+            #endif
+          #endif
+          
+           #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
+             pixelLight *= UnityComputeForwardShadows(IN.lmap.xy, d.worldSpacePosition, d.screenPos);
+           #endif
+          
+          
+          half3 dfguv = half3(NoV, perceptualRoughness, 0);
+          half2 dfg = SAMPLE_TEXTURE2D(_DFG, sampler_DFG, dfguv).xy;
+          half3 energyCompensation = 1.0 + f0 * (1.0 / dfg.y - 1.0);
+          
+          half rough = perceptualRoughness * perceptualRoughness;
+          half clampedRoughness = max(rough, 0.002);
+          
+          #if !defined(SPECULAR_HIGHLIGHTS_OFF) && defined(USING_LIGHT_MULTI_COMPILE)
+            half NoH = saturate(dot(o.Normal, lightHalfVector));
+            half3 F = F_Schlick(lightLoH, f0);
+            half D = D_GGX(NoH, clampedRoughness);
+            half V = V_SmithGGXCorrelated(NoV, lightNoL, clampedRoughness);
+            
+            F *= energyCompensation;
+                
+            directSpecular = max(0, D * V * F) * pixelLight * UNITY_PI;
+          #endif
+    
+          // BAKED SPECULAR
+          #if defined(BAKED_SPECULAR) && !defined(BAKERYLM_ENABLED)
+          {
+            half3 bakedDominantDirection = 1;
+            half3 bakedSpecularColor = 0;
+            
+            // only do it if we have a directional lightmap
+            #if defined(DIRLIGHTMAP_COMBINED) && defined(LIGHTMAP_ON)
+              bakedDominantDirection = (lightMapDirection.xyz) * 2 - 1;
+              half directionality = max(0.001, length(bakedDominantDirection));
+              bakedDominantDirection /= directionality;
+              bakedSpecularColor = indirectDiffuse;
+            #endif
+            
+            // if we do not have lightmap - derive the specular from probes
+            //#ifndef LIGHTMAP_ON
+              //bakedSpecularColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+              //bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+           // #endif
+            
+            bakedDominantDirection = normalize(bakedDominantDirection);
+            directSpecular += GetSpecularHighlights(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+          }
+          #endif
+          
+          half3 fresnel = F_Schlick(NoV, f0);
+          
+          // BAKERY DIRECT SPECULAR
+          #if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED)
+            #if defined(BAKERY_RNM)
+            {
+              half3 viewDirTangent = -normalize(d.tangentSpaceViewDir);
+              half3 dominantDirTangent = rnmBasis0 * dot(rnm0, lumaConv) +
+                                         rnmBasis1 * dot(rnm1, lumaConv) +
+                                         rnmBasis2 * dot(rnm2, lumaConv);
+                                         
+              half3 dominantDirTangentNormalized = normalize(dominantDirTangent);
+              half3 specColor = saturate(dot(rnmBasis0, dominantDirTangentNormalized)) * rnm0 +
+                                saturate(dot(rnmBasis1, dominantDirTangentNormalized)) * rnm1 +
+                                saturate(dot(rnmBasis2, dominantDirTangentNormalized)) * rnm2;
+              half3 halfDir = Unity_SafeNormalize(dominantDirTangentNormalized - viewDirTangent);
+              half NoH = saturate(dot(tangentNormal, halfDir));
+              half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+              directSpecular += spec * specColor * fresnel;
+            }
+            #endif
+            
+            #if defined(BAKERY_SH)
+            {
+              half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
+              half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + d.worldSpaceViewDir);
+              half NoH = saturate(dot(o.Normal, halfDir));
+              half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+              half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
+              dominantDir = normalize(dominantDir);
+              directSpecular += max(spec * sh, 0.0) * fresnel;
+            }
+            #endif
+          #endif
+          
+          // REFLECTIONS
+          half3 reflDir = reflect(-d.worldSpaceViewDir, o.Normal);
+          reflDir = lerp(reflDir, o.Normal, rough * rough);
+          
+          Unity_GlossyEnvironmentData envData;
+          envData.roughness = perceptualRoughness;
+          envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
+          
+          half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+          indirectSpecular = probe0;
+          
+          #if defined(UNITY_SPECCUBE_BLENDING)
+            UNITY_BRANCH
+            if (unity_SpecCube0_BoxMin.w < 0.99999) {
+              envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
+              half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
+              indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
+            }
+          #endif
+          
+          half horizon = min(1 + dot(reflDir, o.Normal), 1);
+          dfg.x *= saturate(pow(dot(indirectDiffuse, 1), _SpecOcclusion));
+          indirectSpecular = indirectSpecular * horizon * horizon * energyCompensation * EnvBRDFMultiscatter(dfg, f0);
+          
+          #if defined(_MASK_MAP)
+            indirectSpecular *= computeSpecularAO(NoV, o.Occlusion, perceptualRoughness * perceptualRoughness);
+          #endif
+           
+          #if defined(_INTEGRATE_CUSTOMGI)
+            IntegrateCustomGI(d, o, indirectSpecular, indirectDiffuse); 
+          #endif
+          
+          // FINAL COLOR
+          c = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
+          
+          c.rgb += o.Emission;
+          
+          ChainFinalColorForward(l, d, c);
+          
+          UNITY_APPLY_FOG(_unity_fogCoord, c); // apply fog
+          
+          return c;
+        }
+
+        ENDCG
+
+      }
+

@@ -1,0 +1,8 @@
+﻿BEGIN_OPTIONS
+  ShaderName "orels1/Develop/Standard Layered Material"
+END_OPTIONS
+
+BEGIN_SUBSHADERS
+  "Layered Material.surfshader"
+  "Filament Base/StandardFilament.surfshader"
+END_SUBSHADERS

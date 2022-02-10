@@ -1,0 +1,15 @@
+﻿BEGIN_OPTIONS
+  ShaderName "orels1/Internal/Standard Filament Base"
+  AdapterStandard PipelineStandardFilament
+  CustomEditor "Needle.MarkdownShaderGUI"
+END_OPTIONS
+
+BEGIN_PROPERTIES
+END_PROPERTIES
+
+BEGIN_CBUFFER
+END_CBUFFER
+
+BEGIN_CODE
+END_CODE
+

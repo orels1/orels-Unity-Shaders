@@ -1,0 +1,33 @@
+﻿BEGIN_OPTIONS
+  ShaderName "orels1/Internal/Vertical Fog"
+END_OPTIONS
+
+BEGIN_PROPERTIES
+  [ToggleUI]UI_VerticalFogHeader("# Vertical Fog", Int) = 0
+  _VFBottomColor("Bottom Color", Color) = (1,1,1,1)
+  _VFTopColor("Top Color", Color) = (1,1,1,0)
+  _VFStart("Start Height", Float) = -100
+  _VFEnd("End Height", Float) = 0
+  _VFGlobalTint("Tint", Color) = (1,1,1,1)
+END_PROPERTIES
+
+BEGIN_CBUFFER
+  half4 _VFBottomColor;
+  half4 _VFTopColor;
+  half _VFStart;
+  half _VFEnd;
+  half4 _VFGlobalTint;
+END_CBUFFER
+
+BEGIN_SUBSHADERS
+END_SUBSHADERS
+
+BEGIN_CODE
+  void FinalColorForward(Surface o, ShaderData d, inout half4 color) {
+    half mask = saturate(remap(d.worldSpacePosition.y, _VFStart, _VFEnd, 0, 1));
+    mask = saturate(pow(mask, 0.2));
+    half4 col = lerp(_VFBottomColor, _VFTopColor, mask);
+    color *= _VFGlobalTint;
+    color.rgb = lerp(color.rgb, col.rgb, col.a);
+  }
+END_CODE

@@ -1,0 +1,9 @@
+﻿BEGIN_OPTIONS
+  ShaderName "orels1/Develop/Standard Triplanar Effects"
+END_OPTIONS
+
+BEGIN_SUBSHADERS
+  "Base Shader.surfshader"
+  "Triplanar Effects.surfshader"
+  "Filament Base/StandardFilament.surfshader"
+END_SUBSHADERS

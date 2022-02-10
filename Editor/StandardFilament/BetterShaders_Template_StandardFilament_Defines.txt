@@ -1,0 +1,31 @@
+﻿half _SpecOcclusion;
+half _SpecularRoughnessMod;
+TEXTURE2D(_DFG);
+SAMPLER(sampler_DFG);
+
+#if !defined(LIGHTMAP_ON) || !defined(UNITY_PASS_FORWARDBASE)
+    #undef BAKERY_SH
+    #undef BAKERY_RNM
+#endif
+
+#ifdef LIGHTMAP_ON
+    #undef BAKERY_VOLUME
+#endif
+
+#ifdef LIGHTMAP_ON
+    #if defined(BAKERY_RNM) || defined(BAKERY_SH) || defined(BAKERY_VERTEXLM)
+        #define BAKERYLM_ENABLED
+        #undef DIRLIGHTMAP_COMBINED
+    #endif
+#endif
+
+#if defined(BAKERY_SH) || defined(BAKERY_RNM) || defined(BAKERY_VOLUME)
+    #ifdef BAKERY_SH
+        #define BAKERY_SHNONLINEAR
+    #endif
+    
+    #ifdef BAKED_SPECULAR
+        #define _BAKERY_LMSPEC
+        #define BAKERY_LMSPEC
+    #endif
+#endif

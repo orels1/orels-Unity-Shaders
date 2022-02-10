@@ -1,0 +1,84 @@
+﻿BEGIN_OPTIONS
+  ShaderName "orels1/Internal/Glass"
+  Alpha "Blend"
+END_OPTIONS
+
+BEGIN_PROPERTIES
+  [ToggleUI]UI_GlassHeader("# Glass", Int) = 0
+  _GlassRimTint("Shadow Tint", Color) = (0.2,0.2,0.2,0.3)
+  _GlassRimPower("Rim Power", Float) = 1
+  _GlassRimStrength("Rim Strength", Float) = 1
+  [ToggleUI]UI_GlassRimSmoothing("!DRAWER MinMax _GlassRimSmoothing.x _GlassRimSmoothing.y", Int) = 0
+  _GlassRimSmoothing("Rim Smoothing", Vector) = (0, 1, 0, 0)
+  _GlassAlphaMod("Rim Alpha Mod", Float) = 0
+  [Toggle(BLURRY_GLASS)]_GlassBlurry("Blurry Glass Mode", Int) = 0
+  _GlassBlurryAmount("Blur Level [BLURRY_GLASS]", Range(0, 1)) = 0.5
+  _GlassBlurryMask("Blur Mask [BLURRY_GLASS]", 2D) = "white" {}
+  [Enum(Off,0,On,1)] _ZWrite("ZWrite", Int) = 0
+END_PROPERTIES
+
+BEGIN_PASS("Forward")
+  ZWrite [_ZWrite]
+END_PASS
+BEGIN_PASS("ForwardAdd")
+  ZWrite [_ZWrite]
+END_PASS
+BEGIN_PASS("Depth")
+  ZWrite [_ZWrite]
+END_PASS
+BEGIN_PASS("Shadow")
+  ZWrite [_ZWrite]
+END_PASS
+
+BEGIN_DEFINES
+  #pragma shader_feature_local BLURRY_GLASS
+END_DEFINES
+
+BEGIN_CBUFFER
+  half4 _GlassRimTint;
+  half _GlassRimPower;
+  half _GlassRimStrength;
+  half4 _GlassRimSmoothing;
+  half _GlassAlphaMod;
+  
+  half _GlassBlurryAmount;
+END_CBUFFER
+
+BEGIN_CODE  
+  TEXTURE2D(_GlassBlurryMask);
+  SAMPLER(sampler_GlassBlurryMask);
+  
+  void SurfaceFunction(inout Surface o, ShaderData d)
+  {
+    half NdV = dot(d.worldSpaceNormal, d.worldSpaceViewDir);
+    NdV = saturate(abs(NdV));
+    NdV *= _GlassRimStrength;
+    NdV = saturate(pow(saturate(NdV), _GlassRimPower));
+    NdV = smoothstep(_GlassRimSmoothing.x, _GlassRimSmoothing.y, NdV);
+    o.Occlusion =  NdV;
+    o.Albedo *= NdV * _GlassRimTint;
+    o.Alpha = saturate(o.Alpha + (1 - NdV) * _GlassAlphaMod);
+  }
+  
+  void FinalColorForward(Surface o, ShaderData d, inout half4 color) {
+    #if defined(BLURRY_GLASS)
+      float3 viewDir = d.worldSpaceViewDir;
+      half3 wNormal = normalize(d.worldSpaceNormal);
+      half3 reflDir = reflect(-viewDir, reflect(half3(0,0,0), wNormal));
+      half glassBlurMask = SAMPLE_TEXTURE2D(_GlassBlurryMask, sampler_GlassBlurryMask, d.texcoord0).r;
+      half rough = _GlassBlurryAmount * o.Smoothness * glassBlurMask;
+      reflDir = lerp(reflDir, wNormal, rough * rough);
+          
+      Unity_GlossyEnvironmentData envData;
+      envData.roughness = rough;
+      envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
+          
+      half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+      color.rgb += probe0 * o.Albedo;
+    #endif
+  }
+END_CODE
+
+BEGIN_CUSTOM_PASS
+
+END_CUSTOM_PASS

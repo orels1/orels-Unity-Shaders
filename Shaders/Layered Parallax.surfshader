@@ -1,0 +1,300 @@
+﻿BEGIN_OPTIONS
+  ShaderName "orels1/Internal/LayeredParallax"
+END_OPTIONS
+
+BEGIN_PROPERTIES
+  [ToggleUI]UI_LPHeader("# Layered Parallax (Posters)", Float) = 0
+  [ToggleUI]UI_GeneralHeader("## General Settings", Int) = 0
+  _LPBackground("Background", 2D) = "black" {}
+  _LPOverlay("Overlay", 2D) = "black" {}
+  [IntRange]_LPLayerCount("Layer Count", Range(1, 5)) = 3
+  
+  // LAYER 1
+  [ToggleUI]UI_LPLayer1Header("## Layer 1", Int) = 0
+  [ToggleUI]_LPLayer2UVControls("!DRAWER MultiProperty _LPLayer1UV _LPLayer1UVMode", Int) = 0
+  [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_LPLayer1UV("UV Set", Int) = 0
+  [Enum(Repeat, 0, Clamped, 1)]_LPLayer1UVMode("UV Mode", Int) = 0
+  _LPLayer1("Texture", 2D) = "white" {}
+  [HDR]_LPLayer1Color("Tint", Color) = (1,1,1,1)
+  _LPLayer1Depth("Layer Depth", Range(0, 1)) = 0.2
+  [Enum(None, 0, Float, 1, Scroll, 2)]_LPLayer1Mode("Movement Mode", Int) = 0
+  _LPLayer1Speed("Movement Speed [_LPLayer1Mode > 0]", Float) = 1
+  _LPLayer1Direction("Movement Direction [_LPLayer1Mode > 0]", Vector) = (0, 1, 0, 0)
+  
+  // LAYER 2
+  [ToggleUI]UI_LPLayer2Header("## Layer 2 [_LPLayerCount > 1]", Int) = 0
+  [ToggleUI]_LPLayer2UVControls("!DRAWER MultiProperty _LPLayer2UV _LPLayer2UVMode [_LPLayerCount > 1]", Int) = 0
+  [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_LPLayer2UV("UV Set", Int) = 0
+  [Enum(Repeat, 0, Clamped, 1)]_LPLayer2UVMode("UV Mode", Int) = 0
+  _LPLayer2("Texture [_LPLayerCount > 1]", 2D) = "black" {}
+  [HDR]_LPLayer2Color("Tint [_LPLayerCount > 1]", Color) = (1,1,1,1)
+  _LPLayer2Depth("Layer Depth [_LPLayerCount > 1]", Range(0, 1)) = 0.2
+  [Enum(None, 0, Float, 1, Scroll, 2)]_LPLayer2Mode("Movement Mode [_LPLayerCount > 1]", Int) = 0
+  _LPLayer2Speed("Movement Speed [_LPLayer2Mode > 0 && _LPLayerCount > 1]", Float) = 1
+  _LPLayer2Direction("Movement Direction [_LPLayer2Mode > 0 && _LPLayerCount > 1]", Vector) = (0, 1, 0, 0)
+  
+  // LAYER 3
+  [ToggleUI]UI_LPLayer3Header("## Layer 3 [_LPLayerCount > 2]", Int) = 0
+  [ToggleUI]_LPLayer3UVControls("!DRAWER MultiProperty _LPLayer3UV _LPLayer3UVMode [_LPLayerCount > 2]", Int) = 0
+  [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_LPLayer3UV("UV Set", Int) = 0
+  [Enum(Repeat, 0, Clamped, 1)]_LPLayer3UVMode("UV Mode", Int) = 0
+  _LPLayer3("Texture [_LPLayerCount > 2]", 2D) = "black" {}
+  [HDR]_LPLayer3Color("Tint [_LPLayerCount > 2]", Color) = (1,1,1,1)
+  _LPLayer3Depth("Layer Depth [_LPLayerCount > 2]", Range(0, 1)) = 0.2
+  [Enum(None, 0, Float, 1, Scroll, 2)]_LPLayer3Mode("Movement Mode [_LPLayerCount > 2]", Int) = 0
+  _LPLayer3Speed("Movement Speed [_LPLayer3Mode > 0 && _LPLayerCount > 2]", Float) = 1
+  _LPLayer3Direction("Movement Direction [_LPLayer3Mode > 0 && _LPLayerCount > 2]", Vector) = (0, 1, 0, 0)
+  
+  // LAYER 4
+  [ToggleUI]UI_LPLayer4Header("## Layer 4 [_LPLayerCount > 3]", Int) = 0
+  [ToggleUI]_LPLayer4UVControls("!DRAWER MultiProperty _LPLayer4UV _LPLayer4UVMode [_LPLayerCount > 3]", Int) = 0
+  [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_LPLayer4UV("UV Set", Int) = 0
+  [Enum(Repeat, 0, Clamped, 1)]_LPLayer4UVMode("UV Mode", Int) = 0
+  _LPLayer4("Texture [_LPLayerCount > 3]", 2D) = "black" {}
+  [HDR]_LPLayer4Color("Tint [_LPLayerCount > 3]", Color) = (1,1,1,1)
+  _LPLayer4Depth("Layer Depth [_LPLayerCount > 3]", Range(0, 1)) = 0.2
+  [Enum(None, 0, Float, 1, Scroll, 2)]_LPLayer4Mode("Movement Mode [_LPLayerCount > 3]", Int) = 0
+  _LPLayer4Speed("Movement Speed [_LPLayer4Mode > 0 && _LPLayerCount > 3]", Float) = 1
+  _LPLayer4Direction("Movement Direction [_LPLayer4Mode > 0 && _LPLayerCount > 3]", Vector) = (0, 1, 0, 0)
+  
+  // LAYER 5
+  [ToggleUI]UI_LPLayer5Header("## Layer 4 [_LPLayerCount > 4]", Int) = 0
+  [ToggleUI]_LPLayer5UVControls("!DRAWER MultiProperty _LPLayer5UV _LPLayer5UVMode [_LPLayerCount > 4]", Int) = 0
+  [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_LPLayer5UV("UV Set", Int) = 0
+  [Enum(Repeat, 0, Clamped, 1)]_LPLayer5UVMode("UV Mode", Int) = 0
+  _LPLayer5("Texture [_LPLayerCount > 4]", 2D) = "black" {}
+  [HDR]_LPLayer5Color("Tint [_LPLayerCount > 4]", Color) = (1,1,1,1)
+  _LPLayer5Depth("Layer Depth [_LPLayerCount > 4]", Range(0, 1)) = 0.2
+  [Enum(None, 0, Float, 1, Scroll, 2)]_LPLayer5Mode("Movement Mode [_LPLayerCount > 4]", Int) = 0
+  _LPLayer5Speed("Movement Speed [_LPLayer5Mode > 0 && _LPLayerCount > 4]", Float) = 1
+  _LPLayer5Direction("Movement Direction [_LPLayer5Mode > 0 && _LPLayerCount > 4]", Vector) = (0, 1, 0, 0)
+  
+  [ToggleUI]UI_LPNote("!NOTE It is NOT recommended to use this together with regular parallax", Float) = 0
+END_PROPERTIES
+
+BEGIN_CBUFFER
+  half4 _LPBackground_ST;
+  half4 _LPOverlay_ST;
+  int _LPLayerCount;
+
+  // LAYER 1
+  int _LPLayer1UV;
+  int _LPLayer1UVMode;
+  half4 _LPLayer1_ST;
+  half4 _LPLayer1Color;
+  half _LPLayer1Depth;
+  int _LPLayer1Mode;
+  half _LPLayer1Speed;
+  half4 _LPLayer1Direction;
+ 
+  // LAYER 2
+  int _LPLayer2UV;
+  int _LPLayer2UVMode;
+  half4 _LPLayer2_ST;
+  half4 _LPLayer2Color;
+  half _LPLayer2Depth;
+  int _LPLayer2Mode;
+  half _LPLayer2Speed;
+  half4 _LPLayer2Direction;
+  
+  // LAYER 3
+  int _LPLayer3UV;
+  int _LPLayer3UVMode;
+  half4 _LPLayer3_ST;
+  half4 _LPLayer3Color;
+  half _LPLayer3Depth;
+  int _LPLayer3Mode;
+  half _LPLayer3Speed;
+  half4 _LPLayer3Direction;
+    
+  // LAYER 4
+  int _LPLayer4UV;
+  int _LPLayer4UVMode;
+  half4 _LPLayer4_ST;
+  half4 _LPLayer4Color;
+  half _LPLayer4Depth;
+  int _LPLayer4Mode;
+  half _LPLayer4Speed;
+  half4 _LPLayer4Direction;
+
+  // LAYER 5
+  int _LPLayer5UV;
+  int _LPLayer5UVMode;
+  half4 _LPLayer5_ST;
+  half4 _LPLayer5Color;
+  half _LPLayer5Depth;
+  int _LPLayer5Mode;
+  half _LPLayer5Speed;
+  half4 _LPLayer5Direction;
+    
+  
+END_CBUFFER
+
+BEGIN_CODE
+  TEXTURE2D(_LPBackground);
+  TEXTURE2D(_LPOverlay);
+  SAMPLER(sampler_LPBackground);
+  TEXTURE2D(_LPLayer1);
+  TEXTURE2D(_LPLayer2);
+  TEXTURE2D(_LPLayer3);
+  TEXTURE2D(_LPLayer4);
+  TEXTURE2D(_LPLayer5);
+  SAMPLER(sampler_LPLayer1);
+
+  void SurfaceFunction(inout Surface o, ShaderData d)
+  {
+    // BACKGROUND
+    half2 bgUv = d.texcoord0.xy * _LPBackground_ST.xy + _LPBackground_ST.zw;
+    half4 bg = SAMPLE_TEXTURE2D(_LPBackground, sampler_LPBackground, bgUv);
+    o.Albedo = bg.rgb;
+  
+    // LAYER 1
+    half2 layerUv = lerp(d.texcoord0.xy, lerp(d.texcoord1.xy, lerp(d.texcoord2.xy, d.texcoord3.xy, saturate(_LPLayer1UV - 2)), saturate(_LPLayer1UV - 1)), saturate(_LPLayer1UV));
+    _LPLayer1Direction = _LPLayer1Direction / 10.0;
+    layerUv = layerUv * _LPLayer1_ST.xy + _LPLayer1_ST.zw;
+    half2 offset = ParallaxOffset(-1, _LPLayer1Depth, d.tangentSpaceViewDir);
+    switch (_LPLayer1Mode) {
+      case 0:
+        layerUv = lerp(layerUv % 1.0 + offset, clamp(offset + layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
+        break;
+      case 1:
+        layerUv += sin(_Time.y * _LPLayer1Speed) * _LPLayer1Direction.xy;
+        layerUv = lerp(layerUv % 1.0 + offset, clamp(offset + layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
+        break;
+      case 2:
+        layerUv = lerp(layerUv % 1.0, clamp(layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
+        layerUv += offset;
+        layerUv += _Time.y * _LPLayer1Speed * _LPLayer1Direction.xy;
+        break;
+    }
+    half4 layerColor = SAMPLE_TEXTURE2D(_LPLayer1, sampler_LPLayer1, layerUv);
+    o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer1Color, layerColor.a * _LPLayer1Color.a);
+    
+    UNITY_BRANCH
+    if (_LPLayerCount < 2) {
+      half2 ovUv = d.texcoord0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+      half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
+      o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+      return;
+    };
+    
+    // LAYER 2
+    layerUv = lerp(d.texcoord0.xy, lerp(d.texcoord1.xy, lerp(d.texcoord2.xy, d.texcoord3.xy, saturate(_LPLayer2UV - 2)), saturate(_LPLayer2UV - 1)), saturate(_LPLayer2UV));
+    _LPLayer2Direction = _LPLayer2Direction / 10.0;
+    layerUv = layerUv * _LPLayer2_ST.xy + _LPLayer2_ST.zw;
+    offset = ParallaxOffset(-1, _LPLayer2Depth, d.tangentSpaceViewDir);
+    switch (_LPLayer2Mode) {
+      case 0:
+        layerUv = lerp(layerUv % 1.0 + offset, clamp(offset + layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
+        break;
+      case 1:
+        layerUv += sin(_Time.y * _LPLayer2Speed) * _LPLayer2Direction.xy;
+        layerUv = lerp(layerUv % 1.0 + offset, clamp(offset + layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
+        break;
+      case 2:
+        layerUv += offset;
+        layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
+        layerUv += _Time.y * _LPLayer2Speed * _LPLayer2Direction.xy;
+        break;
+    }
+    layerColor = SAMPLE_TEXTURE2D(_LPLayer2, sampler_LPLayer1, layerUv);
+    
+    o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer2Color, layerColor.a * _LPLayer2Color.a);
+    
+    UNITY_BRANCH
+    if (_LPLayerCount < 3) {
+      half2 ovUv = d.texcoord0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+      half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
+      o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+      return;
+    };
+    
+    // LAYER 3
+    layerUv = lerp(d.texcoord0.xy, lerp(d.texcoord1.xy, lerp(d.texcoord2.xy, d.texcoord3.xy, saturate(_LPLayer3UV - 2)), saturate(_LPLayer3UV - 1)), saturate(_LPLayer3UV));
+    _LPLayer3Direction = _LPLayer3Direction / 10.0;
+    layerUv = layerUv * _LPLayer3_ST.xy + _LPLayer3_ST.zw;
+    offset = ParallaxOffset(-1, _LPLayer3Depth, d.tangentSpaceViewDir);
+    switch (_LPLayer3Mode) {
+      case 0:
+        layerUv = lerp(layerUv % 1.0 + offset, clamp(offset + layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
+        break;
+      case 1:
+        layerUv += sin(_Time.y * _LPLayer3Speed) * _LPLayer3Direction.xy;
+        layerUv = lerp(layerUv % 1.0 + offset, clamp(offset + layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
+        break;
+      case 2:
+        layerUv += offset;
+        layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
+        layerUv += _Time.y * _LPLayer3Speed * _LPLayer3Direction.xy;
+        break;
+    }
+    layerColor = SAMPLE_TEXTURE2D(_LPLayer3, sampler_LPLayer1, layerUv);
+    
+    o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer3Color, layerColor.a * _LPLayer3Color.a);
+    
+    UNITY_BRANCH
+    if (_LPLayerCount < 4) {
+      half2 ovUv = d.texcoord0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+      half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
+      o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+      return;
+    };
+    
+    // LAYER 4
+    layerUv = lerp(d.texcoord0.xy, lerp(d.texcoord1.xy, lerp(d.texcoord2.xy, d.texcoord3.xy, saturate(_LPLayer4UV - 2)), saturate(_LPLayer4UV - 1)), saturate(_LPLayer4UV));
+    _LPLayer4Direction = _LPLayer4Direction / 10.0;
+    layerUv = layerUv * _LPLayer4_ST.xy + _LPLayer4_ST.zw;
+    offset = ParallaxOffset(-1, _LPLayer4Depth, d.tangentSpaceViewDir);
+    switch (_LPLayer4Mode) {
+      case 0:
+        layerUv = lerp(layerUv % 1.0 + offset, clamp(offset + layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
+        break;
+      case 1:
+        layerUv += sin(_Time.y * _LPLayer4Speed) * _LPLayer4Direction.xy;
+        layerUv = lerp(layerUv % 1.0 + offset, clamp(offset + layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
+        break;
+      case 2:
+        layerUv += offset;
+        layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
+        layerUv += _Time.y * _LPLayer4Speed * _LPLayer4Direction.xy;
+        break;
+    }
+    layerColor = SAMPLE_TEXTURE2D(_LPLayer4, sampler_LPLayer1, layerUv);
+    
+    o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer4Color, layerColor.a * _LPLayer4Color.a);
+    
+    UNITY_BRANCH
+    if (_LPLayerCount < 4) {
+      half2 ovUv = d.texcoord0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+      half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
+      o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+      return;
+    };
+    
+    // LAYER 5
+    layerUv = lerp(d.texcoord0.xy, lerp(d.texcoord1.xy, lerp(d.texcoord2.xy, d.texcoord3.xy, saturate(_LPLayer5UV - 2)), saturate(_LPLayer5UV - 1)), saturate(_LPLayer5UV));
+    _LPLayer5Direction = _LPLayer5Direction / 10.0;
+    layerUv = layerUv * _LPLayer5_ST.xy + _LPLayer5_ST.zw;
+    offset = ParallaxOffset(-1, _LPLayer5Depth, d.tangentSpaceViewDir);
+    switch (_LPLayer5Mode) {
+      case 0:
+        layerUv = lerp(layerUv % 1.0 + offset, clamp(offset + layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
+        break;
+      case 1:
+        layerUv += sin(_Time.y * _LPLayer5Speed) * _LPLayer5Direction.xy;
+        layerUv = lerp(layerUv % 1.0 + offset, clamp(offset + layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
+        break;
+      case 2:
+        layerUv += offset;
+        layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
+        layerUv += _Time.y * _LPLayer5Speed * _LPLayer5Direction.xy;
+        break;
+    }
+    layerColor = SAMPLE_TEXTURE2D(_LPLayer5, sampler_LPLayer1, layerUv);
+    
+    o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer5Color, layerColor.a * _LPLayer5Color.a);
+    half2 ovUv = d.texcoord0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+    half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
+    o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+  }
+END_CODE

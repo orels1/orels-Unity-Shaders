@@ -1,0 +1,54 @@
+﻿BEGIN_OPTIONS
+  ShaderName "orels1/Internal/Color Randomisation"
+END_OPTIONS
+
+BEGIN_PROPERTIES
+  [ToggleUI]UI_ColorRandomisationHeader("# Color Randomisation", Int) = 0
+  _CRColorPalette("Color Palette", 2D) = "white" {}
+  [KeywordEnum(Albedo, Mask Texture)]MASK_MODE("Mask By", Int) = 0
+  [ToggleUI]UI_AlbedoMaskContrast("!DRAWER MinMaxDrawer _CRAlbedoMaskContrastMin _CRAlbedoMaskContrastMax [MASK_MODE_ALBEDO]", Int) = 0
+  _CRAlbedoMaskContrastMin("Mask Contrast Min", Float) = 0
+  _CRAlbedoMaskContrastMax("Max", Float) = 1
+  _CRMask("Randomisation Mask [MASK_MODE_MASK_TEXTURE]", 2D) = "white" {}
+  _CRTintStrength("Tint Strength", Range(0, 1)) = 0.5
+  _CRColorBoost("Color Boost", Range(1,40)) = 1
+END_PROPERTIES
+
+BEGIN_DEFINES
+  #pragma shader_feature_local MASK_MODE_ALBEDO MASK_MODE_MASK_TEXTURE
+  
+  #if !defined(MASK_MODE_MASK_TEXTURE)
+    #define MASK_MODE_ALBEDO
+  #endif
+END_DEFINES
+
+BEGIN_CBUFFER
+  half _CRTintStrength;
+  half _CRColorBoost;
+  half _CRAlbedoMaskContrastMin;
+  half _CRAlbedoMaskContrastMax;
+END_CBUFFER
+
+BEGIN_CODE
+  TEXTURE2D(_CRColorPalette);
+  TEXTURE2D(_CRMask);
+  SAMPLER(sampler_CRColorPalette);
+  
+  void SurfaceFunction(inout Surface o, ShaderData d)
+  {
+    half3 objPivot = TransformObjectToWorld(0..xxx);
+    half2 uv = half2(((objPivot.x + objPivot.y + objPivot.z) * 100) % 1, 0);
+    half3 color = SAMPLE_TEXTURE2D(_CRColorPalette, sampler_CRColorPalette, uv).rgb;
+    #if defined(MASK_MODE_MASK_TEXTURE)
+      half mask = SAMPLE_TEXTURE2D(_CRMask, sampler_CRColorPalette, d.texcoord0.xy).rgb;
+      o.Albedo = lerp(o.Albedo, saturate(o.Albedo * color * _CRColorBoost), _CRTintStrength * mask);
+    #else
+      half mask = smoothstep(o.Albedo, _CRAlbedoMaskContrastMin, _CRAlbedoMaskContrastMax);
+      o.Albedo = lerp(o.Albedo, saturate(o.Albedo * color * _CRColorBoost), _CRTintStrength * mask);
+    #endif
+  }
+END_CODE
+
+BEGIN_CUSTOM_PASS
+
+END_CUSTOM_PASS

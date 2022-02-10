@@ -1,0 +1,45 @@
+﻿Shader "%SHADERNAME%"
+{
+   Properties
+   {
+      %PROPERTIES%
+      [ToggleUI]UI_AdvancedHeader("# Advanced Features", Int) = 0
+      [ToggleUI]UI_GSAAHeader("## GSAA", Int) = 0
+      [Toggle(GSAA)]_EnableGSAA("GSAA Enabled", Int) = 1
+      [ToggleUI]UI_GSAANote("!NOTE GSAA dramatically reduces specular aliasing", Int) = 0
+      _GSAAVariance("- GSAA Variance [GSAA]", Range(0,1)) = 0.15
+      _GSAAThreshold("- GSAA Threshold [GSAA]", Range(0,1)) = 0.1
+      [ToggleUI]UI_LightmappingHeader("# Lightmapping", Int) = 0
+      _SpecOcclusion("Specular Occlusion", Range(0,1)) = 0
+      _SpecularRoughnessMod("Specular Roughness Mod", Range(0, 1)) = 1
+      [Toggle(BICUBIC_LIGHTMAP)]_Bicubic("Bicubic Sampling", Int) = 0
+      [Toggle(BAKED_SPECULAR)]_BakedSpacular("Baked Specular", Int) = 0
+      [ToggleUI]UI_BakeryHeader("## Bakery Features", Int) = 0
+      [Toggle(BAKERY_ENABLED)]_BakeryEnabled("Enable Bakery Features", Int) = 0
+      [KeywordEnum(None, SH, RNM)]BAKERY("Bakery Mode", Int) = 0
+      //[Toggle(BAKERY_SH)]_BakerySH("Bakery SH Mode", Int) = 0
+      //[Toggle(BAKERY_RNM)]_BakeryRNM("Bakery RNM Mode", Int) = 0
+      [ToggleUI]UI_InternalsHeader("# Internal", Int) = 0
+      _DFG("DFG LUT &", 2D) = "black" {}
+      // BAKERY RNM support
+      _RNM0("RNM0 &", 2D) = "black" {}
+      _RNM1("RNM1 &", 2D) = "black" {}
+      _RNM2("RNM2 &", 2D) = "black" {}
+   }
+   SubShader
+   {
+      Tags { %TAGS% }
+
+      %SUBSHADERTAGS%
+      %PASSFORWARD%
+      %PASSGBUFFER%
+      %PASSFORWARDADD%
+      %PASSSHADOW%
+      %PASSMETA%
+      %CUSTOMPREPASS%
+
+   }
+   %DEPENDENCY%
+   %FALLBACK%
+   %CUSTOMEDITOR%
+}

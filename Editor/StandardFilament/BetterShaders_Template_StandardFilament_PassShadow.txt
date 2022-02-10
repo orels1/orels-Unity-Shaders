@@ -1,0 +1,211 @@
+﻿
+	   Pass {
+		   Name "ShadowCaster"
+		   Tags { "LightMode" = "ShadowCaster" }
+		   ZWrite On ZTest LEqual
+
+         %PASSSHADOW%
+
+         CGPROGRAM
+
+         %PRAGMAS%
+         // compile directives
+         #pragma target %SHADERTARGET%
+         #pragma multi_compile_instancing
+         #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
+         #pragma multi_compile_shadowcaster
+         #include "HLSLSupport.cginc"
+         #define UNITY_INSTANCED_LOD_FADE
+         #define UNITY_INSTANCED_SH
+         #define UNITY_INSTANCED_LIGHTMAPSTS
+         #include "UnityShaderVariables.cginc"
+         #include "UnityShaderUtilities.cginc"
+
+         #include "UnityCG.cginc"
+         #include "Lighting.cginc"
+         #include "UnityPBSLighting.cginc"
+
+         #define _PASSSHADOW 1
+
+         %DEFINES%
+
+         
+
+
+         // data across stages, stripped like the above.
+         struct VertexToPixel
+         {
+            V2F_SHADOW_CASTER;   // this may take texcoord0 with the well named .vec field.
+            float3 worldPos : TEXCOORD1;
+            float3 worldNormal : TEXCOORD2;
+            float4 worldTangent : TEXCOORD3;
+            %V2FUV0% float4 texcoord0 : TEXCOORD4%TEXCOORD0MOD%;
+            %V2FUV1% float4 texcoord1 : TEXCOORD5%TEXCOORD1MOD%;
+            %V2FUV2% float4 texcoord2 : TEXCOORD6%TEXCOORD2MOD%;
+
+            %TEXCOORD3REQUIRE% #if %TEXCOORD3REQUIREKEY%
+            %V2FUV3% float4 texcoord3 : TEXCOORD7%TEXCOORD3MOD%;
+            %TEXCOORD3REQUIRE% #endif
+
+            %SCREENPOSREQUIRE% #if %SCREENPOSREQUIREKEY%
+            %SCREENPOS% float4 screenPos : TEXCOORD8;
+            %SCREENPOSREQUIRE% #endif
+            
+            %VERTEXCOLORREQUIRE% #if %VERTEXCOLORREQUIREKEY%
+            %V2FVERTEXCOLOR% float4 vertexColor : COLOR%VERTEXCOLORMOD%;
+            %VERTEXCOLORREQUIRE% #endif
+
+            %EXTRAV2F0REQUIRE% #if %EXTRAV2F0REQUIREKEY%
+            %EXTRAV2F0% float4 extraV2F0 : TEXCOORD9%EXTRAV2F0MOD%;
+            %EXTRAV2F0REQUIRE% #endif
+
+            %EXTRAV2F1REQUIRE% #if %EXTRAV2F1REQUIREKEY%
+            %EXTRAV2F1% float4 extraV2F1 : TEXCOORD10%EXTRAV2F1MOD%;
+            %EXTRAV2F1REQUIRE% #endif
+
+            %EXTRAV2F2REQUIRE% #if %EXTRAV2F2REQUIREKEY%
+            %EXTRAV2F2% float4 extraV2F2 : TEXCOORD11%EXTRAV2F2MOD%;
+            %EXTRAV2F2REQUIRE% #endif
+
+            %EXTRAV2F3REQUIRE% #if %EXTRAV2F3REQUIREKEY%
+            %EXTRAV2F3% float4 extraV2F3 : TEXCOORD12%EXTRAV2F3MOD%;
+            %EXTRAV2F3REQUIRE% #endif
+
+            %EXTRAV2F4REQUIRE% #if %EXTRAV2F4REQUIREKEY%
+            %EXTRAV2F4% float4 extraV2F4 : TEXCOORD13%EXTRAV2F4MOD%;
+            %EXTRAV2F4REQUIRE% #endif
+
+            %EXTRAV2F5REQUIRE% #if %EXTRAV2F5REQUIREKEY%
+            %EXTRAV2F5% float4 extraV2F5 : TEXCOORD14%EXTRAV2F5MOD%;
+            %EXTRAV2F5REQUIRE% #endif
+
+            %EXTRAV2F6REQUIRE% #if %EXTRAV2F6REQUIREKEY%
+            %EXTRAV2F6% float4 extraV2F6 : TEXCOORD15%EXTRAV2F6MOD%;
+            %EXTRAV2F6REQUIRE% #endif
+
+            %EXTRAV2F7REQUIRE% #if %EXTRAV2F7REQUIREKEY%
+            %EXTRAV2F7% float4 extraV2F7 : TEXCOORD16%EXTRAV2F7MOD%;
+            %EXTRAV2F7REQUIRE% #endif
+
+            UNITY_VERTEX_INPUT_INSTANCE_ID
+            UNITY_VERTEX_OUTPUT_STEREO
+         };
+
+         %TEMPLATE_SHARED%
+            
+         %CBUFFER%
+
+         %CUSTOMCBUFFER%
+
+         %CUSTOMINSTANCEPROPS%
+
+         %CODE%
+
+         %SHADERDESC%
+
+
+         // vertex shader
+         VertexToPixel Vert (VertexData v)
+         {
+            UNITY_SETUP_INSTANCE_ID(v);
+            VertexToPixel o;
+            UNITY_INITIALIZE_OUTPUT(VertexToPixel,o);
+            UNITY_TRANSFER_INSTANCE_ID(v,o);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+#if !_TESSELLATION_ON
+           ChainModifyVertex(v, o, _Time);
+#endif
+
+            %V2FUV0% o.texcoord0 = v.texcoord0;
+            %V2FUV1% o.texcoord1 = v.texcoord1;
+            %V2FUV2% o.texcoord2 = v.texcoord2;
+
+            %TEXCOORD3REQUIRE% #if %TEXCOORD3REQUIREKEY%
+            %V2FUV3% o.texcoord3 = v.texcoord3;
+            %TEXCOORD3REQUIRE% #endif
+
+            %VERTEXCOLORREQUIRE% #if %VERTEXCOLORREQUIREKEY%
+            %V2FVERTEXCOLOR% o.vertexColor = v.vertexColor;
+            %VERTEXCOLORREQUIRE% #endif
+
+            
+
+            o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+            o.worldNormal = UnityObjectToWorldNormal(v.normal);
+            o.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
+            fixed tangentSign = v.tangent.w * unity_WorldTransformParams.w;
+            float3 worldBinormal = cross(o.worldNormal, o.worldTangent.xyz) * tangentSign;
+            o.worldTangent.w = tangentSign;
+
+            // sets o.pos, so do screenpos after.
+            TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)
+
+            %SCREENPOSREQUIRE% #if %SCREENPOSREQUIREKEY%
+            %SCREENPOS% o.screenPos = ComputeScreenPos(o.pos);
+            %SCREENPOSREQUIRE% #endif
+
+            return o;
+         }
+
+         %TESSELLATION%
+
+         // fragment shader
+         fixed4 Frag (VertexToPixel IN
+         #ifdef _DEPTHOFFSET_ON
+              , out float outputDepth : SV_Depth
+         #endif
+         #if NEED_FACING
+            , bool facing : SV_IsFrontFace
+         #endif
+         ) : SV_Target
+         {
+           UNITY_SETUP_INSTANCE_ID(IN);
+           // prepare and unpack data
+
+           #ifdef FOG_COMBINED_WITH_TSPACE
+             UNITY_EXTRACT_FOG_FROM_TSPACE(IN);
+           #elif defined FOG_COMBINED_WITH_WORLD_POS
+             UNITY_EXTRACT_FOG_FROM_WORLD_POS(IN);
+           #else
+             UNITY_EXTRACT_FOG(IN);
+           #endif
+
+           #ifndef USING_DIRECTIONAL_LIGHT
+             fixed3 lightDir = normalize(UnityWorldSpaceLightDir(IN.worldPos));
+           #else
+             fixed3 lightDir = _WorldSpaceLightPos0.xyz;
+           #endif
+
+           
+
+           ShaderData d = CreateShaderData(IN
+              #if NEED_FACING
+                 , facing
+              #endif
+           );
+
+           Surface l = (Surface)0;
+
+           #ifdef _DEPTHOFFSET_ON
+              l.outputDepth = outputDepth;
+           #endif
+
+           l.Albedo = half3(0.5, 0.5, 0.5);
+           l.Normal = float3(0,0,1);
+           l.Occlusion = 1;
+           l.Alpha = 1;
+
+           ChainSurfaceFunction(l, d);
+
+           #ifdef _DEPTHOFFSET_ON
+              outputDepth = l.outputDepth;
+           #endif
+
+           SHADOW_CASTER_FRAGMENT(IN)
+         }
+
+
+         ENDCG
+
+      }

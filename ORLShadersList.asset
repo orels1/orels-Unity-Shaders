@@ -1,0 +1,98 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1edbb5f1fa440d59f4234a2d08bf33f, type: 3}
+  m_Name: ORLShadersList
+  m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects:
+    - {fileID: 2800000, guid: 7aa2275cd0d996a4e8ed0084ae6debc3, type: 3}
+    - {fileID: 2800000, guid: 3dfa270f327777849912f861b4967d17, type: 3}
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: nonModifiableTextures
+      Entry: 7
+      Data: 0|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[UnityEngine.Texture,
+        UnityEngine.CoreModule]], mscorlib
+    - Name: comparer
+      Entry: 7
+      Data: 1|System.Collections.Generic.GenericEqualityComparer`1[[System.String,
+        mscorlib]], mscorlib
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: _DFG
+    - Name: $v
+      Entry: 10
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: _BakedNoiseTex
+    - Name: $v
+      Entry: 10
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+  shadersToBuild:
+  - {fileID: -6465566751694194690, guid: c0e0b72666e747f89c9265d68419e417, type: 3}
+  - {fileID: -6465566751694194690, guid: 8434aca43dfc4cf48d50b6b29e6cefb7, type: 3}
+  - {fileID: -6465566751694194690, guid: eba534e6012042e58741a5e5a7add460, type: 3}
+  - {fileID: -6465566751694194690, guid: d316184f5471454195da2ad2cb6072e0, type: 3}
+  - {fileID: -6465566751694194690, guid: 225062432da94bc780a6f6393ffb0de9, type: 3}
+  - {fileID: -6465566751694194690, guid: 4b62e41f87af46d4b6dcc019f65ca802, type: 3}
+  - {fileID: -6465566751694194690, guid: fda3f41625204e6fbe59e12c6f3c0c53, type: 3}
+  - {fileID: -6465566751694194690, guid: d0689c030f8f4b9da86c3f801c296fd3, type: 3}
+  - {fileID: -6465566751694194690, guid: 4ff9c5ffe10b4e7da46510bec76bdf7e, type: 3}
+  - {fileID: -6465566751694194690, guid: a064c3289d24479a9fcdb7d3cba7739f, type: 3}
+  - {fileID: -6465566751694194690, guid: 6f8e38f1cd6540c287016aecb3af215a, type: 3}
+  - {fileID: -6465566751694194690, guid: 1a67a37c34734939a57449567417efaf, type: 3}
+  - {fileID: -6465566751694194690, guid: 8917059ef50e4176ac373482dcbdbe72, type: 3}
+  - {fileID: -6465566751694194690, guid: 9deeb172e72a4599a97835be79fef0a7, type: 3}
+  - {fileID: -6465566751694194690, guid: 5756eeb54a6041cd9e92dde1b391cdaa, type: 3}
+  - {fileID: -6465566751694194690, guid: 5a0bea19a18f43dd8031feeaaaa6a0b0, type: 3}
+  dependencies:
+  - {fileID: 10900000, guid: 1ec20832dfbb48343b8e0764e0864276, type: 3}
+  sourcePath: Assets/Shaders/Develop/
+  buildPath: Assets/Shaders/orels1/ORL/
+  extraAssetsToInclude: Assets/
+  includeSource: 1
+  extraSources:
+  - Assets/Shaders/Develop/Utility.surfshader
+  createUnityPackage: 1
+  packageExportPath: Assets/Shaders/
+  packageFileName: ORLStandardShaders
+  debugBuild: 0

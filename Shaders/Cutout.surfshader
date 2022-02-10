@@ -1,0 +1,47 @@
+﻿BEGIN_OPTIONS
+  ShaderName "orels1/Internal/Cutout"
+  Tags { "Queue" = "AlphaTest" "RenderType"="TransparentCutout" }
+END_OPTIONS
+
+BEGIN_PROPERTIES
+  [ToggleUI]UI_GlassHeader("# Cutout", Int) = 0
+  _Cutoff("Cutoff", Range(0, 1)) = 0.5
+  [Toggle(_NATIVE_A2C)]_AlphaToMask("Alpha To Coverage (A2C)", Int) = 0
+END_PROPERTIES
+
+BEGIN_DEFINES
+  #pragma shader_feature_local _NATIVE_A2C
+END_DEFINES
+
+BEGIN_CBUFFER
+  half _Cutoff;
+END_CBUFFER
+
+BEGIN_PASS("Forward")
+  AlphaToMask [_AlphaToMask]
+END_PASS
+BEGIN_PASS("ForwardAdd")
+  AlphaToMask [_AlphaToMask]
+END_PASS
+BEGIN_PASS("Depth")
+  AlphaToMask [_AlphaToMask]
+END_PASS
+BEGIN_PASS("Shadow")
+  AlphaToMask [_AlphaToMask]
+END_PASS
+
+BEGIN_CODE
+  
+  void SurfaceFunction(inout Surface o, ShaderData d)
+  {
+    #if !defined(_NATIVE_A2C)
+    if (o.Alpha < _Cutoff)  {
+      clip(-1);
+    }
+    #endif
+  }
+END_CODE
+
+BEGIN_CUSTOM_PASS
+
+END_CUSTOM_PASS

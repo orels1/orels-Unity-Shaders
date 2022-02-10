@@ -1,0 +1,408 @@
+﻿
+	   // ---- deferred shading pass:
+	   Pass
+      {
+		   Name "DEFERRED"
+		   Tags { "LightMode" = "Deferred" }
+
+         %PASSGBUFFER%
+
+         CGPROGRAM
+
+         %PRAGMAS%
+
+         // compile directives
+         #pragma target %SHADERTARGET%
+         #pragma multi_compile_instancing
+         #pragma exclude_renderers nomrt
+         #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
+         #pragma multi_compile_prepassfinal
+         #include "HLSLSupport.cginc"
+         #define UNITY_INSTANCED_LOD_FADE
+         #define UNITY_INSTANCED_SH
+         #define UNITY_INSTANCED_LIGHTMAPSTS
+         #include "UnityShaderVariables.cginc"
+         #include "UnityShaderUtilities.cginc"
+         #include "UnityCG.cginc"
+         #include "Lighting.cginc"
+         #include "UnityPBSLighting.cginc"
+
+         #define _PASSGBUFFER 1
+
+         %DEFINES%
+
+         
+
+         // data across stages, stripped like the above.
+         struct VertexToPixel
+         {
+            UNITY_POSITION(pos);       // must be named pos because Unity does stupid macro stuff
+            float3 worldPos : TEXCOORD0;
+            float3 worldNormal : TEXCOORD1;
+            float4 worldTangent : TEXCOORD2;
+            %V2FUV0% float4 texcoord0 : TEXCOORD3%TEXCOORD0MOD%;
+            %V2FUV1% float4 texcoord1 : TEXCOORD4%TEXCOORD1MOD%;
+            %V2FUV2% float4 texcoord2 : TEXCOORD5%TEXCOORD2MOD%;
+
+            %TEXCOORD3REQUIRE% #if %TEXCOORD3REQUIREKEY%
+            %V2FUV3% float4 texcoord3 : TEXCOORD6%TEXCOORD3MOD%;
+            %TEXCOORD3REQUIRE% #endif
+
+            %SCREENPOSREQUIRE% #if %SCREENPOSREQUIREKEY%
+            %SCREENPOS% float4 screenPos : TEXCOORD7;
+            %SCREENPOSREQUIRE% #endif
+
+            #ifndef DIRLIGHTMAP_OFF
+              float3 viewDir : TEXCOORD8;
+            #endif
+            float4 lmap : TEXCOORD9;
+            #ifndef LIGHTMAP_ON
+              #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
+                half3 sh : TEXCOORD10; // SH
+              #endif
+            #else
+              #ifdef DIRLIGHTMAP_OFF
+                float4 lmapFadePos : TEXCOORD11;
+              #endif
+            #endif
+
+            
+            %VERTEXCOLORREQUIRE% #if %VERTEXCOLORREQUIREKEY%
+            %V2FVERTEXCOLOR% float4 vertexColor : COLOR%VERTEXCOLORMOD%;
+            %VERTEXCOLORREQUIRE% #endif
+
+            %EXTRAV2F0REQUIRE% #if %EXTRAV2F0REQUIREKEY%
+            %EXTRAV2F0% float4 extraV2F0 : TEXCOORD12%EXTRAV2F0MOD%;
+            %EXTRAV2F0REQUIRE% #endif
+
+            %EXTRAV2F1REQUIRE% #if %EXTRAV2F1REQUIREKEY%
+            %EXTRAV2F1% float4 extraV2F1 : TEXCOORD13%EXTRAV2F1MOD%;
+            %EXTRAV2F1REQUIRE% #endif
+
+            %EXTRAV2F2REQUIRE% #if %EXTRAV2F2REQUIREKEY%
+            %EXTRAV2F2% float4 extraV2F2 : TEXCOORD14%EXTRAV2F2MOD%;
+            %EXTRAV2F2REQUIRE% #endif
+
+            %EXTRAV2F3REQUIRE% #if %EXTRAV2F3REQUIREKEY%
+            %EXTRAV2F3% float4 extraV2F3 : TEXCOORD15%EXTRAV2F3MOD%;
+            %EXTRAV2F3REQUIRE% #endif
+
+            %EXTRAV2F4REQUIRE% #if %EXTRAV2F4REQUIREKEY%
+            %EXTRAV2F4% float4 extraV2F4 : TEXCOORD16%EXTRAV2F4MOD%;
+            %EXTRAV2F4REQUIRE% #endif
+
+            %EXTRAV2F5REQUIRE% #if %EXTRAV2F5REQUIREKEY%
+            %EXTRAV2F5% float4 extraV2F5 : TEXCOORD17%EXTRAV2F5MOD%;
+            %EXTRAV2F5REQUIRE% #endif
+
+            %EXTRAV2F6REQUIRE% #if %EXTRAV2F6REQUIREKEY%
+            %EXTRAV2F6% float4 extraV2F6 : TEXCOORD18%EXTRAV2F6MOD%;
+            %EXTRAV2F6REQUIRE% #endif
+
+            %EXTRAV2F7REQUIRE% #if %EXTRAV2F7REQUIREKEY%
+            %EXTRAV2F7% float4 extraV2F7 : TEXCOORD19%EXTRAV2F7MOD%;
+            %EXTRAV2F7REQUIRE% #endif
+
+            UNITY_VERTEX_INPUT_INSTANCE_ID
+            UNITY_VERTEX_OUTPUT_STEREO
+         };
+
+         %TEMPLATE_SHARED%
+            
+         %CBUFFER%
+
+         %CUSTOMCBUFFER%
+
+         %CUSTOMINSTANCEPROPS%
+
+         %CODE%
+
+         %SHADERDESC%
+
+
+         // vertex shader
+         VertexToPixel Vert (VertexData v)
+         {
+            UNITY_SETUP_INSTANCE_ID(v);
+            VertexToPixel o;
+            UNITY_INITIALIZE_OUTPUT(VertexToPixel,o);
+            UNITY_TRANSFER_INSTANCE_ID(v,o);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+#if !_TESSELLATION_ON
+           ChainModifyVertex(v, o, _Time);
+#endif
+
+            o.pos = UnityObjectToClipPos(v.vertex);
+            %V2FUV0% o.texcoord0 = v.texcoord0;
+            %V2FUV1% o.texcoord1 = v.texcoord1;
+            %V2FUV2% o.texcoord2 = v.texcoord2;
+
+            %TEXCOORD3REQUIRE% #if %TEXCOORD3REQUIREKEY%
+            %V2FUV3% o.texcoord3 = v.texcoord3;
+            %TEXCOORD3REQUIRE% #endif
+
+            %VERTEXCOLORREQUIRE% #if %VERTEXCOLORREQUIREKEY%
+            %V2FVERTEXCOLOR% o.vertexColor = v.vertexColor;
+            %VERTEXCOLORREQUIRE% #endif
+
+            %SCREENPOSREQUIRE% #if %SCREENPOSREQUIREKEY%
+            %SCREENPOS% o.screenPos = ComputeScreenPos(o.pos);
+            %SCREENPOSREQUIRE% #endif
+
+            o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+            o.worldNormal = UnityObjectToWorldNormal(v.normal);
+            o.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
+            fixed tangentSign = v.tangent.w * unity_WorldTransformParams.w;
+            float3 worldBinormal = cross(o.worldNormal, o.worldTangent.xyz) * tangentSign;
+            o.worldTangent.w = tangentSign;
+
+            float3 viewDirForLight = UnityWorldSpaceViewDir(o.worldPos);
+            #ifndef DIRLIGHTMAP_OFF
+               o.viewDir.x = dot(viewDirForLight, o.worldTangent.xyz);
+               o.viewDir.y = dot(viewDirForLight, worldBinormal);
+               o.viewDir.z = dot(viewDirForLight, o.worldNormal);
+            #endif
+            #ifdef DYNAMICLIGHTMAP_ON
+               o.lmap.zw = v.texcoord2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+            #else
+               o.lmap.zw = 0;
+            #endif
+            #ifdef LIGHTMAP_ON
+               o.lmap.xy = v.texcoord1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+               #ifdef DIRLIGHTMAP_OFF
+                  o.lmapFadePos.xyz = (mul(unity_ObjectToWorld, v.vertex).xyz - unity_ShadowFadeCenterAndType.xyz) * unity_ShadowFadeCenterAndType.w;
+                  o.lmapFadePos.w = (-UnityObjectToViewPos(v.vertex).z) * (1.0 - unity_ShadowFadeCenterAndType.w);
+               #endif
+            #else
+               o.lmap.xy = 0;
+               #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
+                  o.sh = 0;
+                  o.sh = ShadeSHPerVertex (o.worldNormal, o.sh);
+               #endif
+            #endif
+
+            return o;
+         }
+
+         %TESSELLATION%
+
+         #ifdef LIGHTMAP_ON
+         float4 unity_LightmapFade;
+         #endif
+         fixed4 unity_Ambient;
+
+         
+
+         // fragment shader
+         void Frag (VertexToPixel IN,
+             out half4 outGBuffer0 : SV_Target0,
+             out half4 outGBuffer1 : SV_Target1,
+             out half4 outGBuffer2 : SV_Target2,
+             out half4 outEmission : SV_Target3
+         #if defined(SHADOWS_SHADOWMASK) && (UNITY_ALLOWED_MRT_COUNT > 4)
+             , out half4 outShadowMask : SV_Target4
+         #endif
+         #ifdef _DEPTHOFFSET_ON
+              , out float outputDepth : SV_Depth
+         #endif
+         #if NEED_FACING
+            , bool facing : SV_IsFrontFace
+         #endif
+         )
+         {
+           UNITY_SETUP_INSTANCE_ID(IN);
+           // prepare and unpack data
+
+           #ifdef FOG_COMBINED_WITH_TSPACE
+             UNITY_EXTRACT_FOG_FROM_TSPACE(IN);
+           #elif defined FOG_COMBINED_WITH_WORLD_POS
+             UNITY_EXTRACT_FOG_FROM_WORLD_POS(IN);
+           #else
+             UNITY_EXTRACT_FOG(IN);
+           #endif
+
+           ShaderData d = CreateShaderData(IN
+              #if NEED_FACING
+                 , facing
+              #endif
+           );
+           Surface l = (Surface)0;
+
+           #ifdef _DEPTHOFFSET_ON
+              l.outputDepth = outputDepth;
+           #endif
+
+           l.Albedo = half3(0.5, 0.5, 0.5);
+           l.Normal = float3(0,0,1);
+           l.Occlusion = 1;
+           l.Alpha = 1;
+
+           ChainSurfaceFunction(l, d);
+
+           #ifdef _DEPTHOFFSET_ON
+              outputDepth = l.outputDepth;
+           #endif
+
+           
+
+
+
+           #ifndef USING_DIRECTIONAL_LIGHT
+             fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
+           #else
+             fixed3 lightDir = _WorldSpaceLightPos0.xyz;
+           #endif
+           float3 worldViewDir = normalize(UnityWorldSpaceViewDir(d.worldSpacePosition));
+
+           #if _USESPECULAR || _USESPECULARWORKFLOW || _SPECULARFROMMETALLIC
+              #ifdef UNITY_COMPILER_HLSL
+                 SurfaceOutputStandardSpecular o = (SurfaceOutputStandardSpecular)0;
+              #else
+                 SurfaceOutputStandardSpecular o;
+              #endif
+              o.Specular = l.Specular;
+              o.Occlusion = l.Occlusion;
+              o.Smoothness = l.Smoothness;
+           #elif _BDRFLAMBERT || _BDRF3 || _SIMPLELIT
+              #ifdef UNITY_COMPILER_HLSL
+                 SurfaceOutput o = (SurfaceOutput)0;
+              #else
+                 SurfaceOutput o;
+              #endif
+
+              o.Specular = l.SpecularPower;
+              o.Gloss = l.Smoothness;
+              _SpecColor.rgb = l.Specular; // fucking hell Unity, wtf..
+           #else
+              #ifdef UNITY_COMPILER_HLSL
+                 SurfaceOutputStandard o = (SurfaceOutputStandard)0;
+              #else
+                 SurfaceOutputStandard o;
+              #endif
+              o.Smoothness = l.Smoothness;
+              o.Metallic = l.Metallic;
+              o.Occlusion = l.Occlusion;
+           #endif
+
+
+           
+           o.Albedo = l.Albedo;
+           o.Emission = l.Emission;
+           o.Alpha = l.Alpha;
+
+           #if _WORLDSPACENORMAL
+              o.Normal = l.Normal;
+           #else
+              o.Normal = normalize(TangentToWorldSpace(d, l.Normal));
+           #endif
+
+
+           half atten = 1;
+
+           // Setup lighting environment
+           UnityGI gi;
+           UNITY_INITIALIZE_OUTPUT(UnityGI, gi);
+           gi.indirect.diffuse = 0;
+           gi.indirect.specular = 0;
+           gi.light.color = 0;
+           gi.light.dir = half3(0,1,0);
+           // Call GI (lightmaps/SH/reflections) lighting function
+           UnityGIInput giInput;
+           UNITY_INITIALIZE_OUTPUT(UnityGIInput, giInput);
+           giInput.light = gi.light;
+           giInput.worldPos = d.worldSpacePosition;
+           giInput.worldViewDir = worldViewDir;
+           giInput.atten = atten;
+           #if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
+             giInput.lightmapUV = IN.lmap;
+           #else
+             giInput.lightmapUV = 0.0;
+           #endif
+           #if UNITY_SHOULD_SAMPLE_SH && !UNITY_SAMPLE_FULL_SH_PER_PIXEL
+             giInput.ambient = IN.sh;
+           #else
+             giInput.ambient.rgb = 0.0;
+           #endif
+           giInput.probeHDR[0] = unity_SpecCube0_HDR;
+           giInput.probeHDR[1] = unity_SpecCube1_HDR;
+           #if defined(UNITY_SPECCUBE_BLENDING) || defined(UNITY_SPECCUBE_BOX_PROJECTION)
+             giInput.boxMin[0] = unity_SpecCube0_BoxMin; // .w holds lerp value for blending
+           #endif
+           #ifdef UNITY_SPECCUBE_BOX_PROJECTION
+             giInput.boxMax[0] = unity_SpecCube0_BoxMax;
+             giInput.probePosition[0] = unity_SpecCube0_ProbePosition;
+             giInput.boxMax[1] = unity_SpecCube1_BoxMax;
+             giInput.boxMin[1] = unity_SpecCube1_BoxMin;
+             giInput.probePosition[1] = unity_SpecCube1_ProbePosition;
+           #endif
+
+          
+
+           #if _BDRF3 || _SIMPLELIT
+              
+              LightingBlinnPhong_GI(o, giInput, gi);
+              #if defined(_OVERRIDE_BAKEDGI)
+               gi.indirect.diffuse = l.DiffuseGI;
+               gi.indirect.specular = l.SpecularGI;
+              #endif
+
+              outEmission = LightingBlinnPhong_Deferred(o, worldViewDir, gi, outGBuffer0, outGBuffer1, outGBuffer2);
+              #if defined(SHADOWS_SHADOWMASK) && (UNITY_ALLOWED_MRT_COUNT > 4)
+                outShadowMask = UnityGetRawBakedOcclusions (IN.lmap.xy, d.worldSpacePosition);
+              #endif
+              #ifndef UNITY_HDR_ON
+              outEmission.rgb = exp2(-outEmission.rgb);
+              #endif
+           #elif _USESPECULAR || _USESPECULARWORKFLOW || _SPECULARFROMMETALLIC
+              LightingStandardSpecular_GI(o, giInput, gi);
+              #if defined(_OVERRIDE_BAKEDGI)
+               gi.indirect.diffuse = l.DiffuseGI;
+               gi.indirect.specular = l.SpecularGI;
+              #endif
+              // call lighting function to output g-buffer
+              outEmission = LightingStandardSpecular_Deferred (o, worldViewDir, gi, outGBuffer0, outGBuffer1, outGBuffer2);
+              #if defined(SHADOWS_SHADOWMASK) && (UNITY_ALLOWED_MRT_COUNT > 4)
+                outShadowMask = UnityGetRawBakedOcclusions (IN.lmap.xy, d.worldSpacePosition);
+              #endif
+              #ifndef UNITY_HDR_ON
+              outEmission.rgb = exp2(-outEmission.rgb);
+              #endif
+           #else
+              LightingStandard_GI(o, giInput, gi);
+              #if defined(_OVERRIDE_BAKEDGI)
+               gi.indirect.diffuse = l.DiffuseGI;
+               gi.indirect.specular = l.SpecularGI;
+              #endif
+              // call lighting function to output g-buffer
+              outEmission = LightingStandard_Deferred (o, worldViewDir, gi, outGBuffer0, outGBuffer1, outGBuffer2);
+              #if defined(SHADOWS_SHADOWMASK) && (UNITY_ALLOWED_MRT_COUNT > 4)
+                outShadowMask = UnityGetRawBakedOcclusions (IN.lmap.xy, d.worldSpacePosition);
+              #endif
+              #ifndef UNITY_HDR_ON
+              outEmission.rgb = exp2(-outEmission.rgb);
+              #endif
+           #endif
+
+            #if defined(_OVERRIDE_SHADOWMASK) && defined(SHADOWS_SHADOWMASK) && (UNITY_ALLOWED_MRT_COUNT > 4)
+               float4 mulColor = saturate(dot(l.ShadowMask, unity_OcclusionMaskSelector));
+               outShadowMask = mulColor;
+            #endif
+            
+           #if defined(SHADOWS_SHADOWMASK) && (UNITY_ALLOWED_MRT_COUNT > 4)
+               ChainFinalGBufferStandard(l, d, outGBuffer0, outGBuffer1, outGBuffer2, outEmission, outShadowMask);
+           #else
+               half4 outShadowMask = 0;
+               ChainFinalGBufferStandard(l, d, outGBuffer0, outGBuffer1, outGBuffer2, outEmission, outShadowMask);
+           #endif
+
+           
+         }
+
+
+
+
+         ENDCG
+
+      }
+

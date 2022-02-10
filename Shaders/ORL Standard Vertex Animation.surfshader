@@ -1,0 +1,11 @@
+﻿BEGIN_OPTIONS
+  ShaderName "orels1/Develop/Standard Vertex Animation"
+END_OPTIONS
+
+BEGIN_SUBSHADERS
+  "Base Shader.surfshader"
+  "Vertex Animation.surfshader"
+  "Filament Base/StandardFilament.surfshader"
+END_SUBSHADERS
+
+

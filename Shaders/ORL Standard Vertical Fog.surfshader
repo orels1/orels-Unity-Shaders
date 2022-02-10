@@ -1,0 +1,9 @@
+﻿BEGIN_OPTIONS
+  ShaderName "orels1/Develop/Standard Vertical Fog"
+END_OPTIONS
+
+BEGIN_SUBSHADERS
+  "Base Shader.surfshader"
+  "Vertical Fog.surfshader"
+  "Filament Base/StandardFilament.surfshader"
+END_SUBSHADERS

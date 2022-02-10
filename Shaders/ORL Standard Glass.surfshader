@@ -1,0 +1,9 @@
+﻿BEGIN_OPTIONS
+  ShaderName "orels1/Develop/Standard Glass"
+END_OPTIONS
+
+BEGIN_SUBSHADERS
+  "Base Shader.surfshader"
+  "Glass.surfshader"
+  "Filament Base/StandardFilament.surfshader"
+END_SUBSHADERS

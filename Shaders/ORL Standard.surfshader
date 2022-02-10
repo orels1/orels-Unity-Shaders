@@ -1,0 +1,8 @@
+﻿BEGIN_OPTIONS
+  ShaderName "orels1/Develop/Standard"
+END_OPTIONS
+
+BEGIN_SUBSHADERS
+  "Base Shader.surfshader"
+  "Filament Base/StandardFilament.surfshader"
+END_SUBSHADERS
