@@ -296,7 +296,6 @@
           half occlusion = o.Occlusion;
           half perceptualRoughness = 1 - o.Smoothness;
           
-          // GSAA_ON is a Shadergraph-Markdown powered prop, so we alias here too
           #if defined(GSAA)
             perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness);
           #endif
@@ -337,16 +336,28 @@
             #if defined(BAKERY_SH) && defined(BAKERY_ENABLED)
               half3 L0 = DecodeLightmap(BakeryTex2D(unity_Lightmap, samplerunity_Lightmap, lightmapUV, _RNM0_TexelSize));
               
-              half3 nL1x = BakeryTex2D(_RNM0, lightmapUV, _RNM0_TexelSize) * 2 - 1;
-              half3 nL1y = BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize) * 2 - 1;
-              half3 nL1z = BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize) * 2 - 1;
-              half3 L1x = nL1x * L0 * 2;
-              half3 L1y = nL1y * L0 * 2;
-              half3 L1z = nL1z * L0 * 2;
+              half3 nL1x = BakeryTex2D(_RNM0, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
+              half3 nL1y = BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
+              half3 nL1z = BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
+              half3 L1x = nL1x * L0 * 2.0;
+              half3 L1y = nL1y * L0 * 2.0;
+              half3 L1z = nL1z * L0 * 2.0;
               
-              // non-linear SH goes here
-              
+              // Non-Linear mode
+              #if defined(BAKERY_SHNONLINEAR)
+                half lumaL0 = dot(L0, half(1));
+                half lumaL1x = dot(L1x, half(1));
+                half lumaL1y = dot(L1y, half(1));
+                half lumaL1z = dot(L1z, half(1));
+                half lumaSH = shEvaluateDiffuseL1Geomerics_local(lumaL0, half3(lumaL1x, lumaL1y, lumaL1z), o.Normal);
+                
+                lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+                half regularLumaSH = dot(lightMap, 1.0);
+                lightMap *= lerp(1.0, lumaSH / regularLumaSH, saturate(regularLumaSH * 16.0));
+              #else
               lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+              #endif
+              
             #endif
             
             #if defined(DIRLIGHTMAP_COMBINED) && !defined(SHADER_API_MOBILE)
@@ -485,7 +496,7 @@
           dfg.x *= saturate(pow(dot(indirectDiffuse, 1), _SpecOcclusion));
           indirectSpecular = indirectSpecular * horizon * horizon * energyCompensation * EnvBRDFMultiscatter(dfg, f0);
           
-          #if defined(_MASK_MAP)
+          #if defined(_MASKMAP_SAMPLED)
             indirectSpecular *= computeSpecularAO(NoV, o.Occlusion, perceptualRoughness * perceptualRoughness);
           #endif
            

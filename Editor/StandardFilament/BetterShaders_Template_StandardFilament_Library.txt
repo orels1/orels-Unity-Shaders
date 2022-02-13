@@ -220,3 +220,31 @@ half computeSpecularAO(half NoV, half ao, half roughness)
 {
     return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
 }
+
+half shEvaluateDiffuseL1Geomerics_local(half L0, half3 L1, half3 n)
+{
+    // average energy
+    half R0 = L0;
+    
+    // avg direction of incoming light
+    half3 R1 = 0.5f * L1;
+    
+    // directional brightness
+    half lenR1 = length(R1);
+    
+    // linear angle between normal and direction 0-1
+    //half q = 0.5f * (1.0f + dot(R1 / lenR1, n));
+    //half q = dot(R1 / lenR1, n) * 0.5 + 0.5;
+    half q = dot(normalize(R1), n) * 0.5 + 0.5;
+    q = saturate(q); // Thanks to ScruffyRuffles for the bug identity.
+    
+    // power for q
+    // lerps from 1 (linear) to 3 (cubic) based on directionality
+    half p = 1.0f + 2.0f * lenR1 / R0;
+    
+    // dynamic range constant
+    // should vary between 4 (highly directional) and 0 (ambient)
+    half a = (1.0f - lenR1 / R0) / (1.0f + lenR1 / R0);
+    
+    return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
+}

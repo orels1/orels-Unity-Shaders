@@ -19,6 +19,7 @@
       [KeywordEnum(None, SH, RNM)]BAKERY("Bakery Mode", Int) = 0
       //[Toggle(BAKERY_SH)]_BakerySH("Bakery SH Mode", Int) = 0
       //[Toggle(BAKERY_RNM)]_BakeryRNM("Bakery RNM Mode", Int) = 0
+      [Toggle(BAKERY_SHNONLINEAR)]_BakerySHNonLinear("Bakery Non-Linear SH [BAKERY_ENABLED]", Int) = 0
       [ToggleUI]UI_InternalsHeader("# Internal", Int) = 0
       _DFG("DFG LUT &", 2D) = "black" {}
       // BAKERY RNM support

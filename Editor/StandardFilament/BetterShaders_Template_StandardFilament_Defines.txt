@@ -20,10 +20,6 @@ SAMPLER(sampler_DFG);
 #endif
 
 #if defined(BAKERY_SH) || defined(BAKERY_RNM) || defined(BAKERY_VOLUME)
-    #ifdef BAKERY_SH
-        #define BAKERY_SHNONLINEAR
-    #endif
-    
     #ifdef BAKED_SPECULAR
         #define _BAKERY_LMSPEC
         #define BAKERY_LMSPEC
