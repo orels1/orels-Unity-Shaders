@@ -8,19 +8,23 @@ BEGIN_PROPERTIES
 	[ToggleUI]_DIgnoreMask("Ignore Mask [DETAILS_OVERLAY]", Int) = 0
 	[ToggleUI]UI_IgnoreMaskNote("!NOTE Force-draws the detail effects [DETAILS_OVERLAY]", Int) = 0
 	[KeywordEnum(Packed, Separated)]DETAILS_MODE("Detail Map Mode [DETAILS_OVERLAY]", Int) = 0
-	_DDetailsMap("Details Map [DETAILS_OVERLAY]", 2D) = "gray" {}
+	[HideInInspector]_DDetailsMap("Details Map", 2D) = "gray" {}
+	[ToggleUI]_DDetailsMapRef1("!REF _DDetailsMap [DETAILS_OVERLAY && DETAILS_MODE_PACKED]", Int) = 0
+	[ToggleUI]UI_DetailsMapNote("!NOTE R: Albedo, G: Normal G, B: Smooth, A: Normal R. Uncheck sRGB!", Int) = 0
+	[ToggleUI]_DDetailsMapRef2("!REF _DDetailsMap [DETAILS_OVERLAY && DETAILS_MODE_SEPARATED]", Int) = 0
+	[ToggleUI]UI_DetailsMapNoteSeparate("!NOTE RGB: Albedo, A: Smooth. Uncheck sRGB!", Int) = 0
 	[NoScaleOffset]_DDetailsNormal("Details Normal Map & [DETAILS_OVERLAY && DETAILS_MODE_SEPARATED]", 2D) = "bump" {}
-	[ToggleUI]UI_DetailsMapNote("!NOTE R: Albedo, G: Normal G, B: Smooth, A: Normal R. Uncheck sRGB! [DETAILS_OVERLAY && DETAILS_MODE_PACKED]", Int) = 0
 	[Enum(UV, 0, Local Space, 1, World Space, 2)]_DMappingSpace("Mapping Space [DETAILS_OVERLAY]", Int) = 0
 	[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_DUVChannel("UV Set [_DMappingSpace == 0 && DETAILS_OVERLAY]", Int) = 0
   [ToggleUI]UI_DPlanarAxisSelector("!DRAWER MultiProperty _DPlanarAxisX _DPlanarAxisY [_DMappingSpace > 0 && DETAILS_OVERLAY]", Int) = 0
   [Enum(X, 0, Y, 1, Z, 2)]_DPlanarAxisX("X Axis", Int) = 0
   [Enum(X, 0, Y, 1, Z, 2)]_DPlanarAxisY("Y Axis", Int) = 2
   _DAlbedoScale("Albedo Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) = 1
-  [ToggleUI]UI_DetailAlbedoNote("!NOTE Values < 0.5 - darken, > 0.5 - lighten [DETAILS_OVERLAY && DETAILS_MODE_PACKED]", Int) = 0
+  [ToggleUI]UI_DetailAlbedoNote("!NOTE Values < 0.5 - darken, > 0.5 - lighten [DETAILS_OVERLAY]", Int) = 0
   _DNormalScale("Normal Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) = 1
   [ToggleUI]_DNormalFlipY("Flip Y (UE Mode) [DETAILS_OVERLAY]", Int) = 0
-  _DSmoothScale("Smooth Scale [DETAILS_OVERLAY && DETAILS_MODE_PACKED]", Range(0.0, 2.0)) = 1
+  _DSmoothScale("Smooth Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) = 1
+  [ToggleUI]UI_DetailSmoothNote("!NOTE Values < 0.5 - roughen, > 0.5 - smoothen [DETAILS_OVERLAY]", Int) = 0
 END_PROPERTIES
 
 BEGIN_DEFINES
@@ -106,12 +110,24 @@ BEGIN_CODE
       detailsMap.g = 1 - detailsMap.g;
     }
     detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
+    half detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+    #elif defined(DETAILS_MODE_SEPARATED)
+    half3 detailAlbedo = detailsMap.rgb * 2.0 - 1.0;
+    half detailSmooth = detailsMap.a * 2.0 - 1.0;
+    
+    half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
+        if (_DNormalFlipY) {
+          packedNormal.g = 1 - packedNormal.g;
+        }
+    half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
+    
+    half3 detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+    #endif
     
     // do the albedo details
-    half detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
     half3 albedoOverlay = lerp(sqrt(o.Albedo), (detailAlbedo < 0.0) ? 0.0.xxx : 1.0.xxx, detailAlbedoSpeed * detailAlbedoSpeed);
     albedoOverlay *= albedoOverlay;
-    o.Albedo = lerp(o.Albedo, saturate(albedoOverlay), mask);
+    o.Albedo = lerp(o.Albedo, saturate(albedoOverlay), mask); 
     
     // do the smooth details
     half detailSmoothSpeed = saturate(abs(detailSmooth) * _DSmoothScale);
@@ -119,19 +135,7 @@ BEGIN_CODE
     o.Smoothness = lerp(o.Smoothness, saturate(smoothOverlay), mask);
     
     // do the normal details
-    o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);
-    
-    #elif defined (DETAILS_MODE_SEPARATED)
-    // separated mode uses simple alpha blending
-    o.Albedo = lerp(o.Albedo, detailsMap.rgb, saturate(mask * detailsMap.a * _DAlbedoScale));
-    half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
-    if (_DNormalFlipY) {
-      packedNormal.g = 1 - packedNormal.g;
-    }
-    half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
-    o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);
-    #endif
-    
+    o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);    
     #endif
 	}
 
