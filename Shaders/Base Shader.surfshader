@@ -48,6 +48,8 @@ END_PROPERTIES
 BEGIN_DEFINES
   #pragma shader_feature_local _EMISSION
   #pragma shader_feature_local PARALLAX
+  
+  #define _MASKMAP_SAMPLED
 END_DEFINES
 
 BEGIN_PASS("Forward")
@@ -113,6 +115,7 @@ BEGIN_CODE
   SAMPLER(sampler_Height);
   
   half2 globalUv;
+  half4 GLOBAL_maskMap;
   
 	void SurfaceFunction(inout Surface o, ShaderData d)
 	{
@@ -149,6 +152,7 @@ BEGIN_CODE
 	  half occlusion = masks[_AOChannel];
 	  metal = remap(metal, 0, 1, _MetallicRemap.x, _MetallicRemap.y);
 	  smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
+	  GLOBAL_maskMap = half4(metal, occlusion, detailMask, smooth);
 	  o.Metallic = lerp(_Metallic, metal, hasMasks);
 	  o.Smoothness = lerp(_Smoothness, smooth, hasMasks);
 	  o.Occlusion = lerp(1, occlusion, _OcclusionStrength);

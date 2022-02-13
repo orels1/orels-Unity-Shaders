@@ -4,6 +4,7 @@ END_OPTIONS
 
 BEGIN_SUBSHADERS
   "Base Shader.surfshader"
+  "Details.surfshader"
   "Color Randomisation.surfshader"
   "Filament Base/StandardFilament.surfshader"
 END_SUBSHADERS
