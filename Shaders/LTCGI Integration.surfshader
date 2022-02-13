@@ -31,7 +31,7 @@ BEGIN_CODE
         o.Normal.xyz,
         d.worldSpaceViewDir,
         1 - o.Smoothness,
-        d.texcoord1.zw,
+        d.texcoord1.xy,
         indirectDiffuse,
         indirectSpecular
     );
