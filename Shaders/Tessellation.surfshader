@@ -36,9 +36,6 @@ BEGIN_CODE
       half2 uv = v.texcoord0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
       half height = (SAMPLE_TEXTURE2D_LOD(_VertexHeight, sampler_VertexHeight, uv, 0).r * 2 - 1);
       half3 mainOffset = OffsetVertex(v, v.vertex.xyz, height);
-//      half3 bitangent = cross(v.normal, v.tangent.xyz);
-//      half3 nt = OffsetVertex(v, v.vertex.xyz + v.tangent.xyz * 0.01, height) - mainOffset;
-//      half3 nb = OffsetVertex(v, v.vertex.xyz + bitangent * 0.01, height) - mainOffset;
       v.vertex.xyz = mainOffset;
    }
    

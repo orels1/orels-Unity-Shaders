@@ -124,7 +124,7 @@ BEGIN_CODE
 	    globalUv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
 	    globalUv = globalUv * _MainTex_ST.xy + _MainTex_ST.zw;
 	  }
-	  #if PARALLAX
+	  #if PARALLAX && !defined(PLAT_QUEST)
 	    half customHeight = 0;
 	    globalUv = POM(_Height, sampler_Height, globalUv, ddx(globalUv), ddy(globalUv), d.worldSpaceNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1,1), half2(0,0), 0, customHeight);
 	  #endif

@@ -360,19 +360,19 @@
               
             #endif
             
-            #if defined(DIRLIGHTMAP_COMBINED) && !defined(SHADER_API_MOBILE)
+            #if defined(DIRLIGHTMAP_COMBINED)
                 half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
                 lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
             #endif
             
-            #if defined(DYNAMICLIGHTMAP_ON) && !defined(SHADER_API_MOBILE)
+            #if defined(DYNAMICLIGHTMAP_ON) && !defined(UNITY_PBS_USE_BRDF2)
                 half3 realtimeLightMap = getRealtimeLightmap(IN.lmap.zw, o.Normal);
                 lightMap += realtimeLightMap; 
             #endif
             
             #if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
                 pixelLight = 0;
-                lightMap = SubtractMainLightWithRealtimeAttenuationFromLightmap (lightMap, lightAttenuation, bakedColorTex, o.Normal);
+                lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap (lightMap, lightAttenuation, bakedColorTex, o.Normal);
             #endif
             indirectDiffuse = lightMap;
           #else

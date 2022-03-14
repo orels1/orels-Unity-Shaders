@@ -287,6 +287,11 @@ BEGIN_CODE
     o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer2Color.rgb, mask);
     o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer2Color.a, mask);
     
+    // quest only supports 2 layers
+    #if defined(PLAT_QUEST)
+      return;
+    #endif
+    
     UNITY_BRANCH
     if (_LayeredMatLayersCount < 3) return;
     

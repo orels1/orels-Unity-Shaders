@@ -7,10 +7,12 @@
       [ToggleUI]UI_GSAAHeader("## GSAA", Int) = 0
       [Toggle(GSAA)]_EnableGSAA("GSAA Enabled", Int) = 1
       [ToggleUI]UI_GSAANote("!NOTE GSAA dramatically reduces specular aliasing", Int) = 0
-      _GSAAVariance("- GSAA Variance [GSAA]", Range(0,1)) = 0.15
+      _GSAAVariance("- GSAA Variance [GSAA]", Range(0,1)) = 0.05
       _GSAAThreshold("- GSAA Threshold [GSAA]", Range(0,1)) = 0.1
+      [Toggle(FORCE_BOX_PROJECTION)]_ForceBoxProject("Force Box Projection", Int) = 0
+      [ToggleUI]UI_ForceBoxProjectionNote("!NOTE Forces the shader to use box projection for reflection probes even if its disabled, e.g. for Quest", Int) = 0
       [ToggleUI]UI_LightmappingHeader("# Lightmapping", Int) = 0
-      _SpecOcclusion("Specular Occlusion", Range(0,1)) = 0
+      _SpecOcclusion("Specular Occlusion", Range(0,1)) = 0.5
       _SpecularRoughnessMod("Specular Roughness Mod", Range(0, 1)) = 1
       [Toggle(BICUBIC_LIGHTMAP)]_Bicubic("Bicubic Sampling", Int) = 0
       [Toggle(BAKED_SPECULAR)]_BakedSpacular("Baked Specular", Int) = 0

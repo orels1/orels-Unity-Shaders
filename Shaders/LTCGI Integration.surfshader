@@ -13,31 +13,32 @@ END_CBUFFER
 
 BEGIN_DEFINES
   #pragma multi_compile_local INTEGRATE_LTCGI
-  #define _INTEGRATE_CUSTOMGI 
+  #if !defined(PLAT_QUEST)
+    #define _INTEGRATE_CUSTOMGI
+  #endif 
 END_DEFINES
 
 BEGIN_SUBSHADERS
 END_SUBSHADERS
 
 BEGIN_CODE
-  #if defined(INTEGRATE_LTCGI)
-  #include "Assets/_pi_/_LTCGI/Shaders/LTCGI.cginc"
-  #endif
-  
-  void IntegrateCustomGI(ShaderData d, SurfaceOutputStandard o, inout half3 indirectSpecular, inout half3 indirectDiffuse) {
-    #if defined(INTEGRATE_LTCGI)
-    LTCGI_Contribution(
-        d.worldSpacePosition.xyz,
-        o.Normal.xyz,
-        d.worldSpaceViewDir,
-        1 - o.Smoothness,
-        d.texcoord1.xy,
-        indirectDiffuse,
-        indirectSpecular
-    );
+    #if defined(INTEGRATE_LTCGI) && !defined(PLAT_QUEST)
+    #include "Assets/_pi_/_LTCGI/Shaders/LTCGI.cginc"
     #endif
-  }
-
+  
+    void IntegrateCustomGI(ShaderData d, SurfaceOutputStandard o, inout half3 indirectSpecular, inout half3 indirectDiffuse) {
+      #if defined(INTEGRATE_LTCGI) && !defined(PLAT_QUEST)
+      LTCGI_Contribution(
+          d.worldSpacePosition.xyz,
+          o.Normal.xyz,
+          d.worldSpaceViewDir,
+          1 - o.Smoothness,
+          d.texcoord1.xy,
+          indirectDiffuse,
+          indirectSpecular
+      );
+      #endif
+    }
   void FinalColorForward(Surface o, ShaderData d, inout half4 color) {
   }
 END_CODE

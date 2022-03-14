@@ -68,6 +68,7 @@ namespace JBooth.BetterShaders
          defines.AppendLine("\n   #pragma shader_feature_local BAKERY_ENABLED");
          defines.AppendLine("\n   #pragma shader_feature_local _ BAKERY_RNM BAKERY_SH");
          defines.AppendLine("\n   #pragma shader_feature_local BAKERY_SHNONLINEAR");
+         defines.AppendLine("\n   #pragma shader_feature_local FORCE_BOX_PROJECTION");
 
          var customDefines = new StringBuilder(util.LoadTemplate("BetterShaders_Template_StandardFilament_Defines.txt"));
          customDefines.Append(util.LoadTemplate("BetterShaders_Template_StandardFilament_Bakery.txt"));

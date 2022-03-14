@@ -39,7 +39,7 @@
   
   half3 getBoxProjection (half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
   {
-      #if defined(UNITY_SPECCUBE_BOX_PROJECTION) && !defined(SHADER_API_MOBILE)
+      #if defined(UNITY_SPECCUBE_BOX_PROJECTION) && !defined(UNITY_PBS_USE_BRDF2) || defined(FORCE_BOX_PROJECTION)
           if (cubemapPosition.w > 0)
           {
               half3 factors = ((direction > 0 ? boxMax : boxMin) - position) / direction;
@@ -193,7 +193,7 @@ half3 GetSpecularHighlights(half3 worldNormal, half3 lightColor, half3 lightDire
     half D = D_GGX(NoH, clampedRoughness);
     half V = V_SmithGGXCorrelated(NoV, NoL, clampedRoughness);
 
-    #ifndef SHADER_API_MOBILE
+    #ifndef UNITY_PBS_USE_BRDF2
     F *= energyCompensation;
     #endif
 
