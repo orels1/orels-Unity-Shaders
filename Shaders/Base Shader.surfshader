@@ -4,7 +4,7 @@ END_OPTIONS
 
 BEGIN_PROPERTIES
   [ToggleUI]UI_MainHeader("# Main Settings", Int) = 1
-  [Enum(Off, 0, Front,1, Back, 2)] _Culling ("Culling Mode", Int) = 2
+  [Enum(Off, 0, Front,1, Back, 2)]_Culling ("Culling Mode", Int) = 2
 	_Color ("Main Color", Color) = (1, 1, 1, 1)
 	_MainTex("Albedo", 2D) = "white" {}
 	[Enum(RGB, 0, R, 1, G, 2, B, 3)]_AlbedoChannel("Albedo Channel [_MainTex]", Int) = 0
