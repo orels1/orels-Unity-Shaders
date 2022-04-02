@@ -1,0 +1,42 @@
+#S#Settings
+Name "SHADER NAME"
+Author "Your Name"
+Version "1.0.0"
+Template "ORL PBR Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"self"
+"ORL PBR Module.asset"
+
+#S#Properties
+[ToggleUI]UI_MainHeader("# My Awesome Settings", Int) = 0
+_Level("Level", Range(0,1)) = 0
+_Mask("Mask", 2D) = "black" {}
+
+#T#ShaderFeatures
+#pragma shader_feature_local FANCY_FEATURE
+
+#S#FragmentVariables
+float _Level;
+float4 _Mask_ST;
+
+TEXTURE2D(_Mask);
+SAMPLER(sampler_Mask);
+
+#T#FragmentFunction
+void MyFragment() {
+  half2 uv = d.uv0.xy * _Mask_ST.xy + _Mask_ST.zw;
+  half mask = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, uv);
+
+  o.Albedo = mask * _Level;
+}
+
+#S#VertexVariables
+float _Level;
+
+#T#VertexFunction
+void MyVertex() {
+  vD.vertex.xyz += vD.normal * _Level * 0.1;
+}

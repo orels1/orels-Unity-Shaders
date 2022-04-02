@@ -1,0 +1,18 @@
+{
+    "name": "ORL",
+    "references": [
+        "GUID:ea7564d28e28f657d6bfa3d42bf5a47e",
+        "GUID:6ca005ac1568d4fe3a8036fc405bdad5"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

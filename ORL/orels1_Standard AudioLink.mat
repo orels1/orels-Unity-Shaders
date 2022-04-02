@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: orels1_Standard AudioLink
+  m_Shader: {fileID: 4800000, guid: 8c243098226104fed87ecdda1bc05518, type: 3}
+  m_ShaderKeywords: AL_EFFECT_BAND_SELECTION GSAA
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _ALMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BarColor:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DFG:
+        m_Texture: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PulseTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WVFRMBottomColor:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WVFRMMiddleColor:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WVFRMTopColor:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - AL_EFFECT: 0
+    - UI_AdvancedHeader: 0
+    - UI_AudioLinkHeader: 0
+    - UI_AudioLinkThanksNote: 0
+    - UI_BandNote: 0
+    - UI_BarGrad: 0
+    - UI_ForceBoxProjectionNote: 0
+    - UI_GSAAHeader: 0
+    - UI_GSAANote: 0
+    - UI_GlobalSettingsHeader: 0
+    - UI_InternalsHeader: 0
+    - UI_LightmappingHeader: 0
+    - UI_PulseTextureNote: 0
+    - UI_SelectedEffect: 0
+    - UI_Spacer: 0
+    - UI_UVColorsNote: 0
+    - UI_WVFRMBottomGrad: 0
+    - UI_WVFRMMiddleGrad: 0
+    - UI_WVFRMTopGrad: 0
+    - _ALUVChannel: 0
+    - _BakedSpecular: 0
+    - _BandFrequency: 0
+    - _BandHistoryRange: 128
+    - _BandScrollAxis: 1
+    - _BarAxis: 1
+    - _BarBand: 0
+    - _BarScale: 1
+    - _Bicubic: 0
+    - _CullMode: 2
+    - _EnableGSAA: 1
+    - _ForceBoxPorject: 0
+    - _GSAAThreshold: 0.1
+    - _GSAAVariance: 0.05
+    - _KillEffects: 0
+    - _PulseBand: 0
+    - _PulseEmissionMode: 0
+    - _PulseMode: 0
+    - _PulseStrength: 1
+    - _PulseTextureAdjustment: 0
+    - _SpecOcclusion: 1
+    - _SpecularRoughnessMod: 1
+    - _UVFlipXY: 0
+    - _UVHistoryRange: 128
+    - _UVUseThemeColors: 0
+    - _WVFRMFlip: 0
+    - _WVFRMMiddleLine: 0
+    - _WVFRMMiddleLineWidth: 0
+    - _WVFRMOffset: 0
+    - _WVFRMScale: 0
+    - _ZTest: 4
+    - _ZWrite: 1
+    m_Colors:
+    - _ALTint: {r: 1, g: 1, b: 1, a: 1}
+    - _PulseTextureDirection: {r: 0, g: 1, b: 0, a: 0}

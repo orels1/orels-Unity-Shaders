@@ -1,0 +1,103 @@
+#T#VertexData
+struct VertexData 
+{
+    float4 vertex     : POSITION;
+    float3 normal     : NORMAL;
+    float4 tangent    : TANGENT;
+    float4 color      : COLOR;
+    float2 uv0        : TEXCOORD0;
+    float2 uv1        : TEXCOORD1;
+    float2 uv2        : TEXCOORD2;
+    float2 uv3        : TEXCOORD3;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+};
+
+#T#FragmentData
+struct FragmentData 
+{
+    #if defined(UNITY_PASS_SHADOWCASTER)
+      V2F_SHADOW_CASTER;
+      float2 uv0         : TEXCOORD1;
+      float2 uv1         : TEXCOORD2;
+      float2 uv2         : TEXCOORD3;
+      float2 uv3         : TEXCOORD4;
+      float3 worldPos    : TEXCOORD5;
+      float3 worldNormal : TEXCOORD6;
+      float4 worldTangent: TEXCOORD7;
+    #else
+      float4 pos         : SV_POSITION;
+      float3 normal      : NORMAL;
+      float2 uv0         : TEXCOORD0;
+      float2 uv1         : TEXCOORD1;
+      float2 uv2         : TEXCOORD2;
+      float2 uv3         : TEXCOORD3;
+      float3 worldPos    : TEXCOORD4;
+      float3 worldNormal : TEXCOORD5;
+      float4 worldTangent: TEXCOORD6;
+      float4 lightmapUv  : TEXCOORD7;
+      float4 vertexColor : TEXCOORD8; 
+    
+      #if !defined(UNITY_PASS_META)
+        UNITY_LIGHTING_COORDS(9,10)
+        UNITY_FOG_COORDS(11)
+      #endif
+    #endif
+
+    #ifdef EDITOR_VISUALIZATION
+      float2 vizUV : TEXCOORD9;
+      float4 lightCoord : TEXCOORD10;
+    #endif
+
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
+#T#SurfaceData
+struct SurfaceData {
+  half3 Albedo;
+  half3 Emission;
+  half  Metallic;
+  half  Smoothness;
+  half  Occlusion;
+  half3 Normal;
+  half  Alpha;
+};
+
+#T#MeshData
+struct MeshData {
+  half2 uv0;
+  half2 uv1;
+  half2 uv2;
+  half2 uv3;
+  half3 vertexColor;
+  half3 normal;
+  half3 worldNormal;
+  half3 localSpacePosition;
+  half3 worldSpacePosition;
+  half3 worldSpaceViewDir;
+  half3 tangentSpaceViewDir;
+  float3x3 TBNMatrix;
+};
+
+MeshData CreateMeshData(FragmentData i) {
+  MeshData m = (MeshData) 0;
+  m.uv0 = i.uv0;
+  m.uv1 = i.uv1;
+  m.uv2 = i.uv2;
+  m.uv3 = i.uv3;
+  m.worldNormal = normalize(i.worldNormal);
+  m.localSpacePosition = mul(unity_WorldToObject, float4(i.worldPos, 1)).xyz;
+  m.worldSpacePosition = i.worldPos;
+  m.worldSpaceViewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
+
+  #if !defined(UNITY_PASS_SHADOWCASTER)
+  m.vertexColor = i.vertexColor;
+  m.normal = i.normal;
+  float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
+  m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
+  m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
+  #endif
+
+
+  return m;
+}
