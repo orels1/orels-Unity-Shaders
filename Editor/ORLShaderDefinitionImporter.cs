@@ -58,6 +58,7 @@ namespace ORL
                 case "#S#Properties": type = "properties"; break;
                 case "#S#FragmentVariables": type = "fragVars"; break;
                 case "#S#VertexVariables": type = "vertVars"; break;
+                case "#S#ColorVariables": type = "colorVars"; break;
               }
             }
 
@@ -130,6 +131,60 @@ namespace ORL
         });
       }
 
+      var libraryFunctions = subAsset.Templates.Find(t => t.name == "LibraryFunctions");
+      if (libraryFunctions != null)
+      {
+        module.Templates.Add(new ModuleTemplate()
+        {
+          Queue = 0,
+          Template = libraryFunctions,
+          Keywords = new List<string>() {
+            "LIBRARY_FUNCTIONS"
+          }
+        });
+      }
+
+      var shaderTags = subAsset.Templates.Find(t => t.name == "ShaderTags");
+      if (shaderTags != null)
+      {
+        module.Templates.Add(new ModuleTemplate()
+        {
+          Queue = 0,
+          Template = shaderTags,
+          Keywords = new List<string>() {
+            "SHADER_TAGS"
+          }
+        });
+        subAsset.ShaderTags = shaderTags.Template;
+      }
+
+      var passTags = subAsset.Templates.Find(t => t.name == "PassTags");
+      if (passTags != null)
+      {
+        module.Templates.Add(new ModuleTemplate()
+        {
+          Queue = 0,
+          Template = passTags,
+          Keywords = new List<string>() {
+            "PASS_TAGS"
+          }
+        });
+        subAsset.PassTags = passTags.Template;
+      }
+
+      var passModifiers = subAsset.Templates.Find(t => t.name == "PassModifiers");
+      if (passModifiers != null)
+      {
+        module.Templates.Add(new ModuleTemplate()
+        {
+          Queue = 0,
+          Template = passModifiers,
+          Keywords = new List<string>() {
+            "PASS_MODS"
+          }
+        });
+      }
+
       if (!string.IsNullOrEmpty(subAsset.FragmentFunction))
       {
         module.Functions.Add(new ShaderFunction
@@ -137,7 +192,7 @@ namespace ORL
           AppendAfter = "#K#FRAGMENT_FUNCTION",
           CodeKeywords = new List<string>() { "FRAGMENT_CODE" },
           Name = subAsset.FragmentFunction,
-          Queue = 0,
+          Queue = (short)subAsset.FragmentQueue,
           ShaderFunctionCode = subAsset.Templates.Find(template => template.name == "FragmentFunction"),
           UsedVariables = subAsset.FragmentVariables.Select(variable =>
           {
@@ -192,6 +247,7 @@ namespace ORL
           }).ToList()
         });
       }
+
       if (!string.IsNullOrEmpty(subAsset.VertexFunction))
       {
         module.Functions.Add(new ShaderFunction
@@ -199,7 +255,7 @@ namespace ORL
           AppendAfter = "#K#VERTEX_FUNCTION",
           CodeKeywords = new List<string>() { "VERTEX_CODE" },
           Name = subAsset.VertexFunction,
-          Queue = 0,
+          Queue = (short)subAsset.VertexQueue,
           ShaderFunctionCode = subAsset.Templates.Find(template => template.name == "VertexFunction"),
           UsedVariables = subAsset.VertexVariables.Select(variable =>
           {
@@ -248,6 +304,69 @@ namespace ORL
         });
       }
 
+      if (!string.IsNullOrEmpty(subAsset.ColorFunction))
+      {
+        module.Functions.Add(new ShaderFunction
+        {
+          AppendAfter = "#K#FINAL_COLOR_MOD",
+          CodeKeywords = new List<string>() { "COLOR_CODE" },
+          Name = subAsset.ColorFunction,
+          Queue = (short)subAsset.ColorQueue,
+          ShaderFunctionCode = subAsset.Templates.Find(template => template.name == "ColorFunction"),
+          UsedVariables = subAsset.ColorVariables.Select(variable =>
+          {
+            var converted = new Variable()
+            {
+              Name = variable.Name
+            };
+            if (variable.Type == "Int")
+            {
+              converted.Type = VariableType.Custom;
+              converted.CustomType = variable.Type;
+            }
+            else
+            {
+              switch (variable.Type)
+              {
+                case "half":
+                  converted.Type = VariableType.Half;
+                  break;
+                case "half2":
+                  converted.Type = VariableType.Half2;
+                  break;
+                case "half3":
+                  converted.Type = VariableType.Half3;
+                  break;
+                case "half4":
+                  converted.Type = VariableType.Half4;
+                  break;
+                case "float":
+                  converted.Type = VariableType.Float;
+                  break;
+                case "float2":
+                  converted.Type = VariableType.Float2;
+                  break;
+                case "float3":
+                  converted.Type = VariableType.Float3;
+                  break;
+                case "float4":
+                  converted.Type = VariableType.Float4;
+                  break;
+                case "custom":
+                  converted.Type = VariableType.Custom;
+                  break;
+                default:
+                  converted.Type = VariableType.Custom;
+                  converted.CustomType = variable.Type;
+                  break;
+              }
+            }
+
+            return converted;
+          }).ToList()
+        });
+      }
+
       var shader = ScriptableObject.CreateInstance<ModularShader>();
 
       shader.Name = subAsset.ShaderName;
@@ -274,6 +393,7 @@ namespace ORL
           var subshader =
           AssetDatabase.LoadAssetAtPath<ORLShaderDefinition>(Path.Combine(Path.GetDirectoryName(assetPath), include));
           shader.BaseModules.Add(subshader.GeneratedModule);
+          continue;
         }
         var resolved =
           AssetDatabase.LoadAssetAtPath<ShaderModule>(Path.Combine(Path.GetDirectoryName(assetPath), include));
@@ -319,6 +439,9 @@ namespace ORL
         case "vertVars":
           SaveVertVars(asset, builder);
           break;
+        case "colorVars":
+          SaveColorVars(asset, builder);
+          break;
       }
     }
 
@@ -356,6 +479,16 @@ namespace ORL
             asset.CustomEditor = valueMatch.Value;
             continue;
           }
+          if (line.StartsWith("FragmentQueue"))
+          {
+            asset.FragmentQueue = int.Parse(valueMatch.Value);
+            continue;
+          }
+          if (line.StartsWith("VertexQueue"))
+          {
+            asset.VertexQueue = int.Parse(valueMatch.Value);
+            continue;
+          }
         }
       }
     }
@@ -389,7 +522,7 @@ namespace ORL
           prop.Name = nameMatch.Value;
         }
         // Attributes
-        var attrMatches = Regex.Matches(line, "(?<=\\[)([a-zA-Z()0-9,.\\s]+)(?=\\])");
+        var attrMatches = Regex.Matches(line, "(?<=\\[)([\\w(),.\\s]+)(?=\\])");
         if (attrMatches.Count > 0)
         {
           prop.Attributes = new string[attrMatches.Count];
@@ -486,6 +619,38 @@ namespace ORL
       asset.VertexVariables = vars;
     }
 
+    private static void SaveColorVars(ORLShaderDefinition asset, StringBuilder builder)
+    {
+      var varLines = builder.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+      var vars = new List<ShaderVariable>();
+      foreach (var line in varLines)
+      {
+        if (line.Contains("#S#")) continue;
+        var variable = new ShaderVariable();
+        if (line.Contains("TEXTURE") || line.Contains("SAMPLER"))
+        {
+          variable.Name = line.Trim();
+          variable.Type = "custom";
+          vars.Add(variable);
+          continue;
+        }
+        var typeMatch = Regex.Match(line, "([\\w\\d]+)(?=\\s)");
+        if (typeMatch.Success)
+        {
+          variable.Type = typeMatch.Value.Trim();
+        }
+
+        var nameMatch = Regex.Match(line, "(?<=\\s)([\\w\\d]+)(?=;)");
+        if (nameMatch.Success)
+        {
+          variable.Name = nameMatch.Value.Trim();
+        }
+        vars.Add(variable);
+      }
+
+      asset.ColorVariables = vars;
+    }
+
     private static void SaveTemplateAsset(AssetImportContext ctx, ORLShaderDefinition asset, StringBuilder builder,
       string name)
     {
@@ -507,6 +672,11 @@ namespace ORL
           if (name == "VertexFunction")
           {
             asset.VertexFunction = nameMatch.Value;
+          }
+
+          if (name == "ColorFunction")
+          {
+            asset.ColorFunction = nameMatch.Value;
           }
         }
       }

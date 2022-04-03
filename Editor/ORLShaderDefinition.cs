@@ -18,13 +18,21 @@ namespace ORL
     public string AuthorName;
     public string Version;
     public string Template;
+    public string ShaderTags;
+    public string PassTags;
     public string CustomEditor;
     public List<string> Includes;
     public List<ShaderProp> Props;
     public List<ShaderVariable> FragmentVariables;
     public string FragmentFunction;
+    public int FragmentQueue;
     public List<ShaderVariable> VertexVariables;
     public string VertexFunction;
+    public int VertexQueue;
+    public List<ShaderVariable> ColorVariables;
+    public string ColorFunction;
+    public int ColorQueue;
+
     // this mimics TemplateAssetCollection, as we essentially build on top of it
     public List<TemplateAsset> Templates;
     public List<TemplateAsset> TemplatesList
@@ -41,13 +49,20 @@ namespace ORL
       ShaderName = "New Shader";
       AuthorName = "";
       Version = "1.0";
+      ShaderTags = "";
+      PassTags = "";
       CustomEditor = "";
       Includes = new List<string>();
       Props = new List<ShaderProp>();
       FragmentVariables = new List<ShaderVariable>();
       FragmentFunction = "";
+      FragmentQueue = 0;
       VertexVariables = new List<ShaderVariable>();
       VertexFunction = "";
+      VertexQueue = 0;
+      ColorVariables = new List<ShaderVariable>();
+      ColorFunction = "";
+      ColorQueue = 0;
       Templates = new List<TemplateAsset>();
     }
 
@@ -101,6 +116,7 @@ namespace ORL
     private bool propsOpen = false;
     private bool vertexVarsOpen = false;
     private bool fragVarsOpen = false;
+    private bool colorVarsOpen = false;
     public override void OnInspectorGUI()
     {
       var t = target as ORLShaderDefinition;
@@ -113,6 +129,9 @@ namespace ORL
       EditorGUILayout.TextField("Version", t.Version);
       EditorGUILayout.TextField("CustomEditor", t.CustomEditor);
       EditorGUILayout.TextField("Template", t.Template);
+      EditorGUILayout.TextField("Shader Tags", t.ShaderTags);
+      EditorGUILayout.TextField("Pass Tags", t.PassTags);
+      EditorGUILayout.LabelField("Shader tags apply to the whole shader, while Pass Tags are injected into individual passes Tags block", EditorStyles.helpBox);
       EditorGUILayout.Space();
 
       propsOpen = EditorGUILayout.Foldout(propsOpen, "Properties");
@@ -127,12 +146,11 @@ namespace ORL
         }
       }
       // there is no editing of the fields, so no change checks are needed
-      // EditorGUILayout.LabelField("Properties", EditorStyles.largeLabel);
-
 
       EditorGUILayout.Space();
       EditorGUILayout.LabelField("Vertex Stage", EditorStyles.largeLabel);
       EditorGUILayout.TextField("Vertex Function:", t.VertexFunction);
+      EditorGUILayout.IntField("Vertex Function Queue", t.VertexQueue);
 
       vertexVarsOpen = EditorGUILayout.Foldout(vertexVarsOpen, "Vertex Function Variables");
       if (vertexVarsOpen)
@@ -149,11 +167,29 @@ namespace ORL
       EditorGUILayout.Space();
       EditorGUILayout.LabelField("Fragment Stage", EditorStyles.largeLabel);
       EditorGUILayout.TextField("Fragment Function:", t.FragmentFunction);
+      EditorGUILayout.IntField("Fragment Function Queue", t.FragmentQueue);
 
       fragVarsOpen = EditorGUILayout.Foldout(fragVarsOpen, "Fragment Function Variables");
       if (fragVarsOpen)
       {
         foreach (var prop in t.FragmentVariables)
+        {
+          using (var h = new EditorGUILayout.HorizontalScope(box))
+          {
+            EditorGUILayout.LabelField(prop.Name, prop.Type);
+          }
+        }
+      }
+
+      EditorGUILayout.Space();
+      EditorGUILayout.LabelField("Final Color Mods", EditorStyles.largeLabel);
+      EditorGUILayout.TextField("Color Mod Function:", t.ColorFunction);
+      EditorGUILayout.IntField("Color Mod Function Queue", t.ColorQueue);
+
+      colorVarsOpen = EditorGUILayout.Foldout(colorVarsOpen, "Color Mod Function Variables");
+      if (colorVarsOpen)
+      {
+        foreach (var prop in t.ColorVariables)
         {
           using (var h = new EditorGUILayout.HorizontalScope(box))
           {
