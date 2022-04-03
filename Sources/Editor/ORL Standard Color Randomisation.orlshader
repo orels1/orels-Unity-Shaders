@@ -1,0 +1,57 @@
+#S#Settings
+Name "orels1/Standard Color Randomisation"
+Author "orels1"
+Version "5.0.0"
+Template "ORL PBR Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"ORL Standard.orlshader"
+"Parallax.orlshader"
+"Details.orlshader"
+"self"
+"ORL PBR Module.asset"
+
+#S#Properties
+[ToggleUI]UI_ColorRandomisationHeader("# Color Randomisation", Int) = 0
+_CRColorPalette("Color Palette", 2D) = "white" {}
+[KeywordEnum(Albedo, Mask Texture)]MASK_MODE("Mask By", Int) = 0
+[ToggleUI]UI_AlbedoMaskContrast("!DRAWER MinMaxDrawer _CRAlbedoMaskContrastMin _CRAlbedoMaskContrastMax [MASK_MODE_ALBEDO]", Int) = 0
+_CRAlbedoMaskContrastMin("Mask Contrast Min", Float) = 0
+_CRAlbedoMaskContrastMax("Max", Float) = 1
+_CRMask("Randomisation Mask [MASK_MODE_MASK_TEXTURE]", 2D) = "white" {}
+_CRTintStrength("Tint Strength", Range(0, 1)) = 0.5
+_CRColorBoost("Color Boost", Range(1,40)) = 1
+
+#T#ShaderFeatures
+#pragma shader_feature_local MASK_MODE_ALBEDO MASK_MODE_MASK_TEXTURE
+
+#T#ShaderDefines
+#if !defined(MASK_MODE_MASK_TEXTURE)
+  #define MASK_MODE_ALBEDO
+#endif
+
+#S#FragmentVariables
+half _CRTintStrength;
+half _CRColorBoost;
+half _CRAlbedoMaskContrastMin;
+half _CRAlbedoMaskContrastMax;
+
+TEXTURE2D(_CRColorPalette);
+TEXTURE2D(_CRMask);
+SAMPLER(sampler_CRColorPalette);
+
+#T#FragmentFunction
+void ColorRandomisationFragment() {
+  half3 objPivot = mul(unity_ObjectToWorld, half4(0..xxx, 1)).xyz;
+  half2 uv = half2(((objPivot.x + objPivot.y + objPivot.z) * 100) % 1, 0);
+  half3 color = SAMPLE_TEXTURE2D(_CRColorPalette, sampler_CRColorPalette, uv).rgb;
+  #if defined(MASK_MODE_MASK_TEXTURE)
+    half mask = SAMPLE_TEXTURE2D(_CRMask, sampler_CRColorPalette, d.uv0.xy).rgb;
+    o.Albedo = lerp(o.Albedo, saturate(o.Albedo * color * _CRColorBoost), _CRTintStrength * mask);
+  #else
+    half mask = smoothstep(o.Albedo, _CRAlbedoMaskContrastMin, _CRAlbedoMaskContrastMax);
+    o.Albedo = lerp(o.Albedo, saturate(o.Albedo * color * _CRColorBoost), _CRTintStrength * mask);
+  #endif
+}

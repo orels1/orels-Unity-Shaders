@@ -1,9 +1,46 @@
 // Upgrade NOTE: replaced 'defined FOG_COMBINED_WITH_WORLD_POS' with 'defined (FOG_COMBINED_WITH_WORLD_POS)'
 
-Shader "orels1/Modules/Details"
+Shader "orels1/Standard Color Randomisation"
 {
 	Properties
 	{
+		[ToggleUI] UI_MainHeader("# Main Settings", Int) =  0
+		_Color("Main Color", Color) =  (1, 1, 1, 1)
+		_MainTex("Albedo", 2D) = "white" {}
+		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_MainTex] _AlbedoChannel("Albedo Channel [_MainTex]", Int) =  0
+		[Enum(UV, 0, Local Space, 1, World Space, 2)] _MappingSpace("Mapping Space", Int) =  0
+		[ToggleUI] UI_PlanarAxisSelector("!DRAWER MultiProperty _PlanarAxisX _PlanarAxisY [_MappingSpace > 0]", Int) =  0
+		[Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisX("X Axis", Int) =  0
+		[Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisY("Y Axis", Int) =  2
+		[NoScaleOffset] _MaskMap("Masks &", 2D) = "white" {}
+		[ToggleUI][_MaskMap] UI_ChannelSelector("!DRAWER MultiProperty _MetalChannel _AOChannel _DetailMaskChannel _SmoothChannel [_MaskMap]", Int) =  0
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _MetalChannel("Metal", Int) =  0
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _AOChannel("AO", Int) =  1
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _DetailMaskChannel("Detail", Int) =  2
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _SmoothChannel("Smooth", Int) =  3
+		_Smoothness("Smoothness [!_MaskMap]", Range(0,1)) =  0.5
+		[ToggleUI][_MaskMap] _RoughnessMode("Roughness Mode [_MaskMap]", Int) =  0
+		[ToggleUI][_MaskMap] UI_SmoothnessRemap("!DRAWER MinMax _SmoothnessRemap.x _SmoothnessRemap.y [_MaskMap]", Float) =  0
+		_Metallic("Metallic [!_MaskMap]", Range(0,1)) =  0
+		[ToggleUI][_MaskMap] UI_MetallicRemap("!DRAWER MinMax _MetallicRemap.x _MetallicRemap.y [_MaskMap]", Float) =  0
+		[HideInInspector] _MetallicRemap("Metallic Remap", Vector) =  (0,1,0,1)
+		[HideInInspector] _SmoothnessRemap("Smoothness Remap", Vector) =  (0,1,0,1)
+		[_MaskMap] _OcclusionStrength("AO Strength [_MaskMap]", Range(0,1)) =  1
+		[ToggleUI][_MaskMap] _DetailAsTintMask("Detail as Tint Mask [_MaskMap]", Int) =  0
+		[NoScaleOffset] _BumpMap("Normal Map &&", 2D) = "bump" {}
+		_BumpScale("Normal Map Scale", Float) = 0.0
+		[ToggleUI][_BumpMap] _FlipBumpY("Flip Y (UE Mode) [_BumpMap]", Int) =  0
+		[Toggle(_EMISSION)] _EmissionEnabled("Emission", Int) =  0
+		[_EMISSION] _EmissionMap("Emission Map && [_EMISSION]", 2D) = "white" {}
+		[HDR][_EMISSION] _EmissionColor("Emission Color [_EMISSION]", Color) =  (0,0,0,1)
+		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_EmissionMap] _EmissionChannel("Emission Channel [_EmissionMap]", Int) =  0
+		[ToggleUI] UI_ParallaxHeader("# Parallax", Int) =  0
+		[Toggle(PARALLAX)] _EnableParallax("Enable Parallax", Int) =  0
+		[NoScaleOffset][PARALLAX] _Height("Height && [PARALLAX]", 2D) =  "black" {}
+		[PARALLAX] _HeightScale("Height Scale [PARALLAX]", Float) = 0.0
+		[PARALLAX] _HeightRefPlane("Height Ref Plane [PARALLAX]", Float) = 0.0
+		[PARALLAX] _HeightStepsMin("Steps Min [PARALLAX]", Range(8, 32)) =  8
+		[PARALLAX] _HeightStepsMax("Steps Max [PARALLAX]", Range(8, 32)) =  16
 		[ToggleUI] UI_DetailsHeader("# Details", Int) =  0
 		[Toggle(DETAILS_OVERLAY)] _DetailsOverlay("Enable Details", Int) =  0
 		[ToggleUI][DETAILS_OVERLAY] _DIgnoreMask("Ignore Mask [DETAILS_OVERLAY]", Int) =  0
@@ -26,6 +63,15 @@ Shader "orels1/Modules/Details"
 		[ToggleUI][DETAILS_OVERLAY] _DNormalFlipY("Flip Y (UE Mode) [DETAILS_OVERLAY]", Int) =  0
 		[DETAILS_OVERLAY] _DSmoothScale("Smooth Scale [DETAILS_OVERLAY]", Float) = 0.0
 		[ToggleUI][DETAILS_OVERLAY] UI_DetailSmoothNote("!NOTE Values < 0.5 - roughen, > 0.5 - smoothen [DETAILS_OVERLAY]", Int) =  0
+		[ToggleUI] UI_ColorRandomisationHeader("# Color Randomisation", Int) =  0
+		_CRColorPalette("Color Palette", 2D) =  "white" {}
+		[KeywordEnum(Albedo, Mask Texture)] MASK_MODE("Mask By", Int) =  0
+		[ToggleUI][MASK_MODE_ALBEDO] UI_AlbedoMaskContrast("!DRAWER MinMaxDrawer _CRAlbedoMaskContrastMin _CRAlbedoMaskContrastMax [MASK_MODE_ALBEDO]", Int) =  0
+		_CRAlbedoMaskContrastMin("Mask Contrast Min", Float) =  0
+		_CRAlbedoMaskContrastMax("Max", Float) =  1
+		[MASK_MODE_MASK_TEXTURE] _CRMask("Randomisation Mask [MASK_MODE_MASK_TEXTURE]", 2D) =  "white" {}
+		_CRTintStrength("Tint Strength", Range(0, 1)) =  0.5
+		_CRColorBoost("Color Boost", Range(1,40)) =  1
 		[ToggleUI] UI_AdvancedHeader("# Advanced Features", Float) = 0
 		[Enum(UnityEngine.Rendering.CullMode)] _CullMode("Culling Mode", Int) = 2
 		[Enum(Off, 0, On, 1)] _ZWrite("Depth Write", Int) = 1
@@ -47,6 +93,11 @@ Shader "orels1/Modules/Details"
 	}
 	SubShader
 	{
+		Tags
+		{
+			
+		}
+		
 		ZTest[_ZTest]
 		ZWrite[_ZWrite]
 		Cull[_CullMode]
@@ -66,8 +117,14 @@ Shader "orels1/Modules/Details"
 			#pragma multi_compile_fog
 			#pragma vertex Vertex
 			#pragma fragment Fragment
+			#pragma shader_feature_local _EMISSION
+			
+			#pragma shader_feature_local PARALLAX
+			
 			#pragma shader_feature_local DETAILS_OVERLAY
 			#pragma shader_feature_local _ DETAILS_MODE_PACKED DETAILS_MODE_SEPARATED
+			
+			#pragma shader_feature_local MASK_MODE_ALBEDO MASK_MODE_MASK_TEXTURE
 			
 			#pragma shader_feature_local BICUBIC_LIGHTMAP
 			#pragma shader_feature_local BAKED_SPECULAR
@@ -88,8 +145,16 @@ Shader "orels1/Modules/Details"
 			
 			#define FLT_EPSILON     1.192092896e-07
 			
+			#define _MASKMAP_SAMPLED
+			
+			#define _SET_GLOBAL_UVS
+			
 			#if !defined(DETAILS_MODE_PACKED) && !defined(DETAILS_MODE_SEPARATED)
 			#define DETAILS_MODE_PACKED
+			#endif
+			
+			#if !defined(MASK_MODE_MASK_TEXTURE)
+			#define MASK_MODE_ALBEDO
 			#endif
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
@@ -1559,7 +1624,7 @@ Shader "orels1/Modules/Details"
 			//https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
 			half3 tex2DFastBicubicLightmap(half2 uv, inout half4 bakedColorTex)
 			{
-				#if defined(SHADER_API_D3D11) && defined(BICUBIC_LIGHTMAP)
+				#if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
 				half width;
 				half height;
 				unity_Lightmap.GetDimensions(width, height);
@@ -1766,14 +1831,56 @@ Shader "orels1/Modules/Details"
 			VertexData vD;
 			float4 FinalColor;
 			
+			half _Smoothness;
+			half _Metallic;
+			half _OcclusionStrength;
+			half _BumpScale;
+			half _HeightScale;
+			half _HeightRefPlane;
+			half _HeightStepsMin;
+			half _HeightStepsMax;
 			half _DAlbedoScale;
 			half _DNormalScale;
 			half _DSmoothScale;
+			half _CRTintStrength;
+			half _CRColorBoost;
+			half _CRAlbedoMaskContrastMin;
+			half _CRAlbedoMaskContrastMax;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
+			half2 GLOBAL_uv;
+			half4 _Color;
+			half4 _MainTex_ST;
+			half4 _MetallicRemap;
+			half4 _SmoothnessRemap;
+			half4 _MaskMap_TexelSize;
+			half4 _EmissionColor;
+			half4 GLOBAL_maskMap;
 			half4 _DDetailsMap_ST;
 			float _GSAAVariance;
 			float _GSAAThreshold;
+			int _AlbedoChannel;
+			int _MappingSpace;
+			int _PlanarAxisX;
+			int _PlanarAxisY;
+			int _MetalChannel;
+			int _AOChannel;
+			int _DetailMaskChannel;
+			int _SmoothChannel;
+			int _RoughnessMode;
+			int _DetailAsTintMask;
+			int _FlipBumpY;
+			int _EmissionChannel;
+			TEXTURE2D(_MainTex);;
+			SAMPLER(sampler_MainTex);;
+			TEXTURE2D(_MaskMap);;
+			SAMPLER(sampler_MaskMap);;
+			TEXTURE2D(_BumpMap);;
+			SAMPLER(sampler_BumpMap);;
+			TEXTURE2D(_EmissionMap);;
+			SAMPLER(sampler_EmissionMap);;
+			TEXTURE2D(_Height);;
+			SAMPLER(sampler_Height);;
 			int _DIgnoreMask;
 			int _DMappingSpace;
 			int _DUVChannel;
@@ -1784,8 +1891,67 @@ Shader "orels1/Modules/Details"
 			SAMPLER(sampler_DDetailsMap);;
 			TEXTURE2D(_DDetailsNormal);;
 			SAMPLER(sampler_DDetailsNormal);;
+			TEXTURE2D(_CRColorPalette);;
+			TEXTURE2D(_CRMask);;
+			SAMPLER(sampler_CRColorPalette);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
+			
+			void ParallaxFragment() {
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#if PARALLAX && !defined(PLAT_QUEST)
+				half customHeight = 0;
+				GLOBAL_uv = POM(_Height, sampler_Height, GLOBAL_uv, ddx(GLOBAL_uv), ddy(GLOBAL_uv), d.worldNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1,1), half2(0,0), 0, customHeight);
+				#endif
+			}
+			
+			void BaseFragmentFunction() {
+				#if !defined(_SET_GLOBAL_UVS)
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#endif
+				if (_MappingSpace > 0) {
+					GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
+					GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
+				}
+				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
+				if (_AlbedoChannel > 0) {
+					albedo.rgb = albedo[_AlbedoChannel].xxx;
+				}
+				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
+				if (_FlipBumpY) {
+					normalTex.y = 1-normalTex.y;
+				}
+				half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
+				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
+				if (_EmissionChannel > 0) {
+					emission.rgb = emission[_EmissionChannel].xxx;
+				}
+				int hasMasks = _MaskMap_TexelSize.z > 8;
+				half metal = masks[_MetalChannel];
+				half smooth = masks[_SmoothChannel];
+				if (_RoughnessMode) {
+					smooth = 1 - smooth;
+				}
+				half detailMask = masks[_DetailMaskChannel];
+				half occlusion = masks[_AOChannel];
+				metal = remap(metal, 0, 1, _MetallicRemap.x, _MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
+				GLOBAL_maskMap = half4(metal, occlusion, detailMask, smooth);
+				o.Metallic = lerp(_Metallic, metal, hasMasks);
+				o.Smoothness = lerp(_Smoothness, smooth, hasMasks);
+				o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
+				o.Normal = normal;
+				if (!_DetailAsTintMask) {
+					o.Albedo = albedo.rgb * _Color.rgb;
+				} else {
+					o.Albedo = lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
+				}
+				o.Alpha = albedo.a * _Color.a;
+				#if defined(_EMISSION)
+				o.Emission = emission * _EmissionColor;
+				#endif
+			}
 			
 			void DetailsFragment() {
 				#if defined(DETAILS_OVERLAY)
@@ -1842,6 +2008,19 @@ Shader "orels1/Modules/Details"
 				o.Smoothness = lerp(o.Smoothness, saturate(smoothOverlay), mask);
 				
 				o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);
+				#endif
+			}
+			
+			void ColorRandomisationFragment() {
+				half3 objPivot = mul(unity_ObjectToWorld, half4(0..xxx, 1)).xyz;
+				half2 uv = half2(((objPivot.x + objPivot.y + objPivot.z) * 100) % 1, 0);
+				half3 color = SAMPLE_TEXTURE2D(_CRColorPalette, sampler_CRColorPalette, uv).rgb;
+				#if defined(MASK_MODE_MASK_TEXTURE)
+				half mask = SAMPLE_TEXTURE2D(_CRMask, sampler_CRColorPalette, d.uv0.xy).rgb;
+				o.Albedo = lerp(o.Albedo, saturate(o.Albedo * color * _CRColorBoost), _CRTintStrength * mask);
+				#else
+				half mask = smoothstep(o.Albedo, _CRAlbedoMaskContrastMin, _CRAlbedoMaskContrastMax);
+				o.Albedo = lerp(o.Albedo, saturate(o.Albedo * color * _CRColorBoost), _CRTintStrength * mask);
 				#endif
 			}
 			
@@ -2177,7 +2356,10 @@ Shader "orels1/Modules/Details"
 				o.Alpha = 1;
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
+				ParallaxFragment();
+				BaseFragmentFunction();
 				DetailsFragment();
+				ColorRandomisationFragment();
 				
 				ORLLighting();
 				
@@ -2222,8 +2404,16 @@ Shader "orels1/Modules/Details"
 			
 			#define FLT_EPSILON     1.192092896e-07
 			
+			#define _MASKMAP_SAMPLED
+			
+			#define _SET_GLOBAL_UVS
+			
 			#if !defined(DETAILS_MODE_PACKED) && !defined(DETAILS_MODE_SEPARATED)
 			#define DETAILS_MODE_PACKED
+			#endif
+			
+			#if !defined(MASK_MODE_MASK_TEXTURE)
+			#define MASK_MODE_ALBEDO
 			#endif
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
@@ -3693,7 +3883,7 @@ Shader "orels1/Modules/Details"
 			//https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
 			half3 tex2DFastBicubicLightmap(half2 uv, inout half4 bakedColorTex)
 			{
-				#if defined(SHADER_API_D3D11) && defined(BICUBIC_LIGHTMAP)
+				#if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
 				half width;
 				half height;
 				unity_Lightmap.GetDimensions(width, height);
@@ -3900,14 +4090,56 @@ Shader "orels1/Modules/Details"
 			VertexData vD;
 			float4 FinalColor;
 			
+			half _Smoothness;
+			half _Metallic;
+			half _OcclusionStrength;
+			half _BumpScale;
+			half _HeightScale;
+			half _HeightRefPlane;
+			half _HeightStepsMin;
+			half _HeightStepsMax;
 			half _DAlbedoScale;
 			half _DNormalScale;
 			half _DSmoothScale;
+			half _CRTintStrength;
+			half _CRColorBoost;
+			half _CRAlbedoMaskContrastMin;
+			half _CRAlbedoMaskContrastMax;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
+			half2 GLOBAL_uv;
+			half4 _Color;
+			half4 _MainTex_ST;
+			half4 _MetallicRemap;
+			half4 _SmoothnessRemap;
+			half4 _MaskMap_TexelSize;
+			half4 _EmissionColor;
+			half4 GLOBAL_maskMap;
 			half4 _DDetailsMap_ST;
 			float _GSAAVariance;
 			float _GSAAThreshold;
+			int _AlbedoChannel;
+			int _MappingSpace;
+			int _PlanarAxisX;
+			int _PlanarAxisY;
+			int _MetalChannel;
+			int _AOChannel;
+			int _DetailMaskChannel;
+			int _SmoothChannel;
+			int _RoughnessMode;
+			int _DetailAsTintMask;
+			int _FlipBumpY;
+			int _EmissionChannel;
+			TEXTURE2D(_MainTex);;
+			SAMPLER(sampler_MainTex);;
+			TEXTURE2D(_MaskMap);;
+			SAMPLER(sampler_MaskMap);;
+			TEXTURE2D(_BumpMap);;
+			SAMPLER(sampler_BumpMap);;
+			TEXTURE2D(_EmissionMap);;
+			SAMPLER(sampler_EmissionMap);;
+			TEXTURE2D(_Height);;
+			SAMPLER(sampler_Height);;
 			int _DIgnoreMask;
 			int _DMappingSpace;
 			int _DUVChannel;
@@ -3918,8 +4150,67 @@ Shader "orels1/Modules/Details"
 			SAMPLER(sampler_DDetailsMap);;
 			TEXTURE2D(_DDetailsNormal);;
 			SAMPLER(sampler_DDetailsNormal);;
+			TEXTURE2D(_CRColorPalette);;
+			TEXTURE2D(_CRMask);;
+			SAMPLER(sampler_CRColorPalette);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
+			
+			void ParallaxFragment() {
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#if PARALLAX && !defined(PLAT_QUEST)
+				half customHeight = 0;
+				GLOBAL_uv = POM(_Height, sampler_Height, GLOBAL_uv, ddx(GLOBAL_uv), ddy(GLOBAL_uv), d.worldNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1,1), half2(0,0), 0, customHeight);
+				#endif
+			}
+			
+			void BaseFragmentFunction() {
+				#if !defined(_SET_GLOBAL_UVS)
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#endif
+				if (_MappingSpace > 0) {
+					GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
+					GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
+				}
+				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
+				if (_AlbedoChannel > 0) {
+					albedo.rgb = albedo[_AlbedoChannel].xxx;
+				}
+				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
+				if (_FlipBumpY) {
+					normalTex.y = 1-normalTex.y;
+				}
+				half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
+				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
+				if (_EmissionChannel > 0) {
+					emission.rgb = emission[_EmissionChannel].xxx;
+				}
+				int hasMasks = _MaskMap_TexelSize.z > 8;
+				half metal = masks[_MetalChannel];
+				half smooth = masks[_SmoothChannel];
+				if (_RoughnessMode) {
+					smooth = 1 - smooth;
+				}
+				half detailMask = masks[_DetailMaskChannel];
+				half occlusion = masks[_AOChannel];
+				metal = remap(metal, 0, 1, _MetallicRemap.x, _MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
+				GLOBAL_maskMap = half4(metal, occlusion, detailMask, smooth);
+				o.Metallic = lerp(_Metallic, metal, hasMasks);
+				o.Smoothness = lerp(_Smoothness, smooth, hasMasks);
+				o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
+				o.Normal = normal;
+				if (!_DetailAsTintMask) {
+					o.Albedo = albedo.rgb * _Color.rgb;
+				} else {
+					o.Albedo = lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
+				}
+				o.Alpha = albedo.a * _Color.a;
+				#if defined(_EMISSION)
+				o.Emission = emission * _EmissionColor;
+				#endif
+			}
 			
 			void DetailsFragment() {
 				#if defined(DETAILS_OVERLAY)
@@ -3976,6 +4267,19 @@ Shader "orels1/Modules/Details"
 				o.Smoothness = lerp(o.Smoothness, saturate(smoothOverlay), mask);
 				
 				o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);
+				#endif
+			}
+			
+			void ColorRandomisationFragment() {
+				half3 objPivot = mul(unity_ObjectToWorld, half4(0..xxx, 1)).xyz;
+				half2 uv = half2(((objPivot.x + objPivot.y + objPivot.z) * 100) % 1, 0);
+				half3 color = SAMPLE_TEXTURE2D(_CRColorPalette, sampler_CRColorPalette, uv).rgb;
+				#if defined(MASK_MODE_MASK_TEXTURE)
+				half mask = SAMPLE_TEXTURE2D(_CRMask, sampler_CRColorPalette, d.uv0.xy).rgb;
+				o.Albedo = lerp(o.Albedo, saturate(o.Albedo * color * _CRColorBoost), _CRTintStrength * mask);
+				#else
+				half mask = smoothstep(o.Albedo, _CRAlbedoMaskContrastMin, _CRAlbedoMaskContrastMax);
+				o.Albedo = lerp(o.Albedo, saturate(o.Albedo * color * _CRColorBoost), _CRTintStrength * mask);
 				#endif
 			}
 			
@@ -4311,7 +4615,10 @@ Shader "orels1/Modules/Details"
 				o.Alpha = 1;
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
+				ParallaxFragment();
+				BaseFragmentFunction();
 				DetailsFragment();
+				ColorRandomisationFragment();
 				
 				ORLLighting();
 				
@@ -4357,8 +4664,16 @@ Shader "orels1/Modules/Details"
 			
 			#define FLT_EPSILON     1.192092896e-07
 			
+			#define _MASKMAP_SAMPLED
+			
+			#define _SET_GLOBAL_UVS
+			
 			#if !defined(DETAILS_MODE_PACKED) && !defined(DETAILS_MODE_SEPARATED)
 			#define DETAILS_MODE_PACKED
+			#endif
+			
+			#if !defined(MASK_MODE_MASK_TEXTURE)
+			#define MASK_MODE_ALBEDO
 			#endif
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
@@ -5828,7 +6143,7 @@ Shader "orels1/Modules/Details"
 			//https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
 			half3 tex2DFastBicubicLightmap(half2 uv, inout half4 bakedColorTex)
 			{
-				#if defined(SHADER_API_D3D11) && defined(BICUBIC_LIGHTMAP)
+				#if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
 				half width;
 				half height;
 				unity_Lightmap.GetDimensions(width, height);
@@ -6035,14 +6350,56 @@ Shader "orels1/Modules/Details"
 			VertexData vD;
 			float4 FinalColor;
 			
+			half _Smoothness;
+			half _Metallic;
+			half _OcclusionStrength;
+			half _BumpScale;
+			half _HeightScale;
+			half _HeightRefPlane;
+			half _HeightStepsMin;
+			half _HeightStepsMax;
 			half _DAlbedoScale;
 			half _DNormalScale;
 			half _DSmoothScale;
+			half _CRTintStrength;
+			half _CRColorBoost;
+			half _CRAlbedoMaskContrastMin;
+			half _CRAlbedoMaskContrastMax;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
+			half2 GLOBAL_uv;
+			half4 _Color;
+			half4 _MainTex_ST;
+			half4 _MetallicRemap;
+			half4 _SmoothnessRemap;
+			half4 _MaskMap_TexelSize;
+			half4 _EmissionColor;
+			half4 GLOBAL_maskMap;
 			half4 _DDetailsMap_ST;
 			float _GSAAVariance;
 			float _GSAAThreshold;
+			int _AlbedoChannel;
+			int _MappingSpace;
+			int _PlanarAxisX;
+			int _PlanarAxisY;
+			int _MetalChannel;
+			int _AOChannel;
+			int _DetailMaskChannel;
+			int _SmoothChannel;
+			int _RoughnessMode;
+			int _DetailAsTintMask;
+			int _FlipBumpY;
+			int _EmissionChannel;
+			TEXTURE2D(_MainTex);;
+			SAMPLER(sampler_MainTex);;
+			TEXTURE2D(_MaskMap);;
+			SAMPLER(sampler_MaskMap);;
+			TEXTURE2D(_BumpMap);;
+			SAMPLER(sampler_BumpMap);;
+			TEXTURE2D(_EmissionMap);;
+			SAMPLER(sampler_EmissionMap);;
+			TEXTURE2D(_Height);;
+			SAMPLER(sampler_Height);;
 			int _DIgnoreMask;
 			int _DMappingSpace;
 			int _DUVChannel;
@@ -6053,8 +6410,67 @@ Shader "orels1/Modules/Details"
 			SAMPLER(sampler_DDetailsMap);;
 			TEXTURE2D(_DDetailsNormal);;
 			SAMPLER(sampler_DDetailsNormal);;
+			TEXTURE2D(_CRColorPalette);;
+			TEXTURE2D(_CRMask);;
+			SAMPLER(sampler_CRColorPalette);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
+			
+			void ParallaxFragment() {
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#if PARALLAX && !defined(PLAT_QUEST)
+				half customHeight = 0;
+				GLOBAL_uv = POM(_Height, sampler_Height, GLOBAL_uv, ddx(GLOBAL_uv), ddy(GLOBAL_uv), d.worldNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1,1), half2(0,0), 0, customHeight);
+				#endif
+			}
+			
+			void BaseFragmentFunction() {
+				#if !defined(_SET_GLOBAL_UVS)
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#endif
+				if (_MappingSpace > 0) {
+					GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
+					GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
+				}
+				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
+				if (_AlbedoChannel > 0) {
+					albedo.rgb = albedo[_AlbedoChannel].xxx;
+				}
+				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
+				if (_FlipBumpY) {
+					normalTex.y = 1-normalTex.y;
+				}
+				half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
+				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
+				if (_EmissionChannel > 0) {
+					emission.rgb = emission[_EmissionChannel].xxx;
+				}
+				int hasMasks = _MaskMap_TexelSize.z > 8;
+				half metal = masks[_MetalChannel];
+				half smooth = masks[_SmoothChannel];
+				if (_RoughnessMode) {
+					smooth = 1 - smooth;
+				}
+				half detailMask = masks[_DetailMaskChannel];
+				half occlusion = masks[_AOChannel];
+				metal = remap(metal, 0, 1, _MetallicRemap.x, _MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
+				GLOBAL_maskMap = half4(metal, occlusion, detailMask, smooth);
+				o.Metallic = lerp(_Metallic, metal, hasMasks);
+				o.Smoothness = lerp(_Smoothness, smooth, hasMasks);
+				o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
+				o.Normal = normal;
+				if (!_DetailAsTintMask) {
+					o.Albedo = albedo.rgb * _Color.rgb;
+				} else {
+					o.Albedo = lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
+				}
+				o.Alpha = albedo.a * _Color.a;
+				#if defined(_EMISSION)
+				o.Emission = emission * _EmissionColor;
+				#endif
+			}
 			
 			void DetailsFragment() {
 				#if defined(DETAILS_OVERLAY)
@@ -6111,6 +6527,19 @@ Shader "orels1/Modules/Details"
 				o.Smoothness = lerp(o.Smoothness, saturate(smoothOverlay), mask);
 				
 				o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);
+				#endif
+			}
+			
+			void ColorRandomisationFragment() {
+				half3 objPivot = mul(unity_ObjectToWorld, half4(0..xxx, 1)).xyz;
+				half2 uv = half2(((objPivot.x + objPivot.y + objPivot.z) * 100) % 1, 0);
+				half3 color = SAMPLE_TEXTURE2D(_CRColorPalette, sampler_CRColorPalette, uv).rgb;
+				#if defined(MASK_MODE_MASK_TEXTURE)
+				half mask = SAMPLE_TEXTURE2D(_CRMask, sampler_CRColorPalette, d.uv0.xy).rgb;
+				o.Albedo = lerp(o.Albedo, saturate(o.Albedo * color * _CRColorBoost), _CRTintStrength * mask);
+				#else
+				half mask = smoothstep(o.Albedo, _CRAlbedoMaskContrastMin, _CRAlbedoMaskContrastMax);
+				o.Albedo = lerp(o.Albedo, saturate(o.Albedo * color * _CRColorBoost), _CRTintStrength * mask);
 				#endif
 			}
 			
@@ -6438,7 +6867,10 @@ Shader "orels1/Modules/Details"
 				o.Occlusion = 1;
 				o.Alpha = 1;
 				
+				ParallaxFragment();
+				BaseFragmentFunction();
 				DetailsFragment();
+				ColorRandomisationFragment();
 				
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
@@ -6475,8 +6907,14 @@ Shader "orels1/Modules/Details"
 			#pragma multi_compile_shadowcaster
 			#pragma vertex Vertex
 			#pragma fragment Fragment
+			#pragma shader_feature_local _EMISSION
+			
+			#pragma shader_feature_local PARALLAX
+			
 			#pragma shader_feature_local DETAILS_OVERLAY
 			#pragma shader_feature_local _ DETAILS_MODE_PACKED DETAILS_MODE_SEPARATED
+			
+			#pragma shader_feature_local MASK_MODE_ALBEDO MASK_MODE_MASK_TEXTURE
 			
 			#pragma shader_feature_local BICUBIC_LIGHTMAP
 			#pragma shader_feature_local BAKED_SPECULAR
@@ -6497,8 +6935,16 @@ Shader "orels1/Modules/Details"
 			
 			#define FLT_EPSILON     1.192092896e-07
 			
+			#define _MASKMAP_SAMPLED
+			
+			#define _SET_GLOBAL_UVS
+			
 			#if !defined(DETAILS_MODE_PACKED) && !defined(DETAILS_MODE_SEPARATED)
 			#define DETAILS_MODE_PACKED
+			#endif
+			
+			#if !defined(MASK_MODE_MASK_TEXTURE)
+			#define MASK_MODE_ALBEDO
 			#endif
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
@@ -7968,7 +8414,7 @@ Shader "orels1/Modules/Details"
 			//https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
 			half3 tex2DFastBicubicLightmap(half2 uv, inout half4 bakedColorTex)
 			{
-				#if defined(SHADER_API_D3D11) && defined(BICUBIC_LIGHTMAP)
+				#if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
 				half width;
 				half height;
 				unity_Lightmap.GetDimensions(width, height);
@@ -8173,14 +8619,56 @@ Shader "orels1/Modules/Details"
 			MeshData d;
 			VertexData vD;
 			
+			half _Smoothness;
+			half _Metallic;
+			half _OcclusionStrength;
+			half _BumpScale;
+			half _HeightScale;
+			half _HeightRefPlane;
+			half _HeightStepsMin;
+			half _HeightStepsMax;
 			half _DAlbedoScale;
 			half _DNormalScale;
 			half _DSmoothScale;
+			half _CRTintStrength;
+			half _CRColorBoost;
+			half _CRAlbedoMaskContrastMin;
+			half _CRAlbedoMaskContrastMax;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
+			half2 GLOBAL_uv;
+			half4 _Color;
+			half4 _MainTex_ST;
+			half4 _MetallicRemap;
+			half4 _SmoothnessRemap;
+			half4 _MaskMap_TexelSize;
+			half4 _EmissionColor;
+			half4 GLOBAL_maskMap;
 			half4 _DDetailsMap_ST;
 			float _GSAAVariance;
 			float _GSAAThreshold;
+			int _AlbedoChannel;
+			int _MappingSpace;
+			int _PlanarAxisX;
+			int _PlanarAxisY;
+			int _MetalChannel;
+			int _AOChannel;
+			int _DetailMaskChannel;
+			int _SmoothChannel;
+			int _RoughnessMode;
+			int _DetailAsTintMask;
+			int _FlipBumpY;
+			int _EmissionChannel;
+			TEXTURE2D(_MainTex);;
+			SAMPLER(sampler_MainTex);;
+			TEXTURE2D(_MaskMap);;
+			SAMPLER(sampler_MaskMap);;
+			TEXTURE2D(_BumpMap);;
+			SAMPLER(sampler_BumpMap);;
+			TEXTURE2D(_EmissionMap);;
+			SAMPLER(sampler_EmissionMap);;
+			TEXTURE2D(_Height);;
+			SAMPLER(sampler_Height);;
 			int _DIgnoreMask;
 			int _DMappingSpace;
 			int _DUVChannel;
@@ -8191,6 +8679,9 @@ Shader "orels1/Modules/Details"
 			SAMPLER(sampler_DDetailsMap);;
 			TEXTURE2D(_DDetailsNormal);;
 			SAMPLER(sampler_DDetailsNormal);;
+			TEXTURE2D(_CRColorPalette);;
+			TEXTURE2D(_CRMask);;
+			SAMPLER(sampler_CRColorPalette);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
