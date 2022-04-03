@@ -68,9 +68,7 @@
       return saturate(lerp(a0, a1, f0));
   }
 
-half _GSAAVariance = 0.15;
-half _GSAAThreshold = 0.1;
-half GSAA_Filament(half3 worldNormal, half perceptualRoughness)
+half GSAA_Filament(half3 worldNormal, half perceptualRoughness, half inputVariance, half threshold)
 {
     // Kaplanyan 2016, "Stable specular highlights"
     // Tokuyoshi 2017, "Error Reduction and Simplification for Shading Anti-Aliasing"
@@ -86,10 +84,10 @@ half GSAA_Filament(half3 worldNormal, half perceptualRoughness)
     half3 du = ddx(worldNormal);
     half3 dv = ddy(worldNormal);
 
-    half variance = _GSAAVariance * (dot(du, du) + dot(dv, dv));
+    half variance = inputVariance * (dot(du, du) + dot(dv, dv));
 
     half roughness = perceptualRoughness * perceptualRoughness;
-    half kernelRoughness = min(2.0 * variance, _GSAAThreshold);
+    half kernelRoughness = min(2.0 * variance, threshold);
     half squareRoughness = saturate(roughness * roughness + kernelRoughness);
 
     return sqrt(sqrt(squareRoughness));
@@ -145,7 +143,7 @@ half h1(half a)
 //https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
 half3 tex2DFastBicubicLightmap(half2 uv, inout half4 bakedColorTex)
 {
-    #if defined(SHADER_API_D3D11) && defined(BICUBIC_LIGHTMAP)
+    #if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
     half width;
     half height;
     unity_Lightmap.GetDimensions(width, height);

@@ -6,34 +6,34 @@ Shader "orels1/Standard AudioLink"
 	{
 		[ToggleUI] UI_MainHeader("# Main Settings", Int) =  0
 		_Color("Main Color", Color) =  (1, 1, 1, 1)
-		_MainTex("Albedo", 2D) = "white" {}
-		[Enum(RGB, 0, R, 1, G, 2, B, 3)] _AlbedoChannel("Albedo Channel [_MainTex]", Int) =  0
+		_MainTex("Albedo", 2D) =  "white" {}
+		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_MainTex] _AlbedoChannel("Albedo Channel [_MainTex]", Int) =  0
 		[Enum(UV, 0, Local Space, 1, World Space, 2)] _MappingSpace("Mapping Space", Int) =  0
 		[ToggleUI] UI_PlanarAxisSelector("!DRAWER MultiProperty _PlanarAxisX _PlanarAxisY [_MappingSpace > 0]", Int) =  0
 		[Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisX("X Axis", Int) =  0
 		[Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisY("Y Axis", Int) =  2
-		[NoScaleOffset] _MaskMap("Masks &", 2D) = "white" {}
-		[ToggleUI] UI_ChannelSelector("!DRAWER MultiProperty _MetalChannel _AOChannel _DetailMaskChannel _SmoothChannel [_MaskMap]", Int) =  0
+		[NoScaleOffset] _MaskMap("Masks &", 2D) =  "white" {}
+		[ToggleUI][_MaskMap] UI_ChannelSelector("!DRAWER MultiProperty _MetalChannel _AOChannel _DetailMaskChannel _SmoothChannel [_MaskMap]", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _MetalChannel("Metal", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _AOChannel("AO", Int) =  1
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _DetailMaskChannel("Detail", Int) =  2
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _SmoothChannel("Smooth", Int) =  3
 		_Smoothness("Smoothness [!_MaskMap]", Range(0,1)) =  0.5
-		[ToggleUI] _RoughnessMode("Roughness Mode [_MaskMap]", Int) =  0
-		[ToggleUI] UI_SmoothnessRemap("!DRAWER MinMax _SmoothnessRemap.x _SmoothnessRemap.y [_MaskMap]", Float) =  0
+		[ToggleUI][_MaskMap] _RoughnessMode("Roughness Mode [_MaskMap]", Int) =  0
+		[ToggleUI][_MaskMap] UI_SmoothnessRemap("!DRAWER MinMax _SmoothnessRemap.x _SmoothnessRemap.y [_MaskMap]", Float) =  0
 		_Metallic("Metallic [!_MaskMap]", Range(0,1)) =  0
-		[ToggleUI] UI_MetallicRemap("!DRAWER MinMax _MetallicRemap.x _MetallicRemap.y [_MaskMap]", Float) =  0
+		[ToggleUI][_MaskMap] UI_MetallicRemap("!DRAWER MinMax _MetallicRemap.x _MetallicRemap.y [_MaskMap]", Float) =  0
 		[HideInInspector] _MetallicRemap("Metallic Remap", Vector) =  (0,1,0,1)
 		[HideInInspector] _SmoothnessRemap("Smoothness Remap", Vector) =  (0,1,0,1)
-		_OcclusionStrength("AO Strength [_MaskMap]", Range(0,1)) =  1
-		[ToggleUI] _DetailAsTintMask("Detail as Tint Mask [_MaskMap]", Int) =  0
-		[NoScaleOffset] _BumpMap("Normal Map &&", 2D) = "bump" {}
+		[_MaskMap] _OcclusionStrength("AO Strength [_MaskMap]", Range(0,1)) =  1
+		[ToggleUI][_MaskMap] _DetailAsTintMask("Detail as Tint Mask [_MaskMap]", Int) =  0
+		[NoScaleOffset] _BumpMap("Normal Map &&", 2D) =  "bump" {}
 		_BumpScale("Normal Map Scale", Float) = 0.0
-		[ToggleUI] _FlipBumpY("Flip Y (UE Mode) [_BumpMap]", Int) =  0
-		_EmissionEnabled("Emission", Int) =  0
-		_EmissionMap("Emission Map && [_EMISSION]", 2D) = "white" {}
-		[HDR] _EmissionColor("Emission Color [_EMISSION]", Color) =  (0,0,0,1)
-		[Enum(RGB, 0, R, 1, G, 2, B, 3)] _EmissionChannel("Emission Channel [_EmissionMap]", Int) =  0
+		[ToggleUI][_BumpMap] _FlipBumpY("Flip Y (UE Mode) [_BumpMap]", Int) =  0
+		[Toggle(_EMISSION)] _EmissionEnabled("Emission", Int) =  0
+		[_EMISSION] _EmissionMap("Emission Map && [_EMISSION]", 2D) =  "white" {}
+		[HDR][_EMISSION] _EmissionColor("Emission Color [_EMISSION]", Color) =  (0,0,0,1)
+		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_EmissionMap] _EmissionChannel("Emission Channel [_EmissionMap]", Int) =  0
 		[ToggleUI] UI_AudioLinkHeader("# Audio Link", Int) =  0
 		[ToggleUI] UI_GlobalSettingsHeader("## Global Settings", Int) =  0
 		[NoScaleOffset] _ALMask("Mask &", 2D) =  "white" {}
@@ -139,6 +139,8 @@ Shader "orels1/Standard AudioLink"
 			#include "AutoLight.cginc"
 			
 			#define FLT_EPSILON     1.192092896e-07
+			
+			#define _MASKMAP_SAMPLED
 			
 			#if !defined(AL_EFFECT_BAND_SELECTION) && !defined(AL_EFFECT_UV_BASED) && !defined(AL_EFFECT_WAVEFORM) && !defined(AL_EFFECT_PULSE) && !defined(AL_EFFECT_BAR)
 			#define AL_EFFECT_NONE
@@ -1750,9 +1752,7 @@ Shader "orels1/Standard AudioLink"
 				return saturate(lerp(a0, a1, f0));
 			}
 			
-			half _GSAAVariance = 0.15;
-			half _GSAAThreshold = 0.1;
-			half GSAA_Filament(half3 worldNormal, half perceptualRoughness)
+			half GSAA_Filament(half3 worldNormal, half perceptualRoughness, half inputVariance, half threshold)
 			{
 				// Kaplanyan 2016, "Stable specular highlights"
 				// Tokuyoshi 2017, "Error Reduction and Simplification for Shading Anti-Aliasing"
@@ -1768,10 +1768,10 @@ Shader "orels1/Standard AudioLink"
 				half3 du = ddx(worldNormal);
 				half3 dv = ddy(worldNormal);
 				
-				half variance = _GSAAVariance * (dot(du, du) + dot(dv, dv));
+				half variance = inputVariance * (dot(du, du) + dot(dv, dv));
 				
 				half roughness = perceptualRoughness * perceptualRoughness;
-				half kernelRoughness = min(2.0 * variance, _GSAAThreshold);
+				half kernelRoughness = min(2.0 * variance, threshold);
 				half squareRoughness = saturate(roughness * roughness + kernelRoughness);
 				
 				return sqrt(sqrt(squareRoughness));
@@ -1827,7 +1827,7 @@ Shader "orels1/Standard AudioLink"
 			//https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
 			half3 tex2DFastBicubicLightmap(half2 uv, inout half4 bakedColorTex)
 			{
-				#if defined(SHADER_API_D3D11) && defined(BICUBIC_LIGHTMAP)
+				#if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
 				half width;
 				half height;
 				unity_Lightmap.GetDimensions(width, height);
@@ -2047,7 +2047,7 @@ Shader "orels1/Standard AudioLink"
 			half _BarScale;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
-			half2 globalUv;
+			half2 GLOBAL_uv;
 			half4 _Color;
 			half4 _MainTex_ST;
 			half4 _MetallicRemap;
@@ -2057,6 +2057,8 @@ Shader "orels1/Standard AudioLink"
 			half4 GLOBAL_maskMap;
 			half4 _PulseTextureDirection;
 			half4 _ALTint;
+			float _GSAAVariance;
+			float _GSAAThreshold;
 			int _AlbedoChannel;
 			int _MappingSpace;
 			int _PlanarAxisX;
@@ -2105,22 +2107,24 @@ Shader "orels1/Standard AudioLink"
 			SAMPLER(sampler_DFG);
 			
 			void BaseFragmentFunction() {
-				globalUv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#if !defined(_SET_GLOBAL_UVS)
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#endif
 				if (_MappingSpace > 0) {
-					globalUv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
-					globalUv = globalUv * _MainTex_ST.xy + _MainTex_ST.zw;
+					GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
+					GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
 				}
-				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, globalUv);
+				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
 				if (_AlbedoChannel > 0) {
 					albedo.rgb = albedo[_AlbedoChannel].xxx;
 				}
-				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, globalUv);
-				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, globalUv);
+				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
 				if (_FlipBumpY) {
 					normalTex.y = 1-normalTex.y;
 				}
 				half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
-				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, globalUv).rgb;
+				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
 				if (_EmissionChannel > 0) {
 					emission.rgb = emission[_EmissionChannel].xxx;
 				}
@@ -2245,7 +2249,7 @@ Shader "orels1/Standard AudioLink"
 				#endif
 				
 				#if defined(GSAA)
-				perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness);
+				perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness, _GSAAVariance, _GSAAThreshold);
 				#endif
 				
 				UNITY_LIGHT_ATTENUATION(lightAttenuation, FragData, d.worldSpacePosition);
@@ -2605,6 +2609,8 @@ Shader "orels1/Standard AudioLink"
 			
 			#define FLT_EPSILON     1.192092896e-07
 			
+			#define _MASKMAP_SAMPLED
+			
 			#if !defined(AL_EFFECT_BAND_SELECTION) && !defined(AL_EFFECT_UV_BASED) && !defined(AL_EFFECT_WAVEFORM) && !defined(AL_EFFECT_PULSE) && !defined(AL_EFFECT_BAR)
 			#define AL_EFFECT_NONE
 			#endif
@@ -4215,9 +4221,7 @@ Shader "orels1/Standard AudioLink"
 				return saturate(lerp(a0, a1, f0));
 			}
 			
-			half _GSAAVariance = 0.15;
-			half _GSAAThreshold = 0.1;
-			half GSAA_Filament(half3 worldNormal, half perceptualRoughness)
+			half GSAA_Filament(half3 worldNormal, half perceptualRoughness, half inputVariance, half threshold)
 			{
 				// Kaplanyan 2016, "Stable specular highlights"
 				// Tokuyoshi 2017, "Error Reduction and Simplification for Shading Anti-Aliasing"
@@ -4233,10 +4237,10 @@ Shader "orels1/Standard AudioLink"
 				half3 du = ddx(worldNormal);
 				half3 dv = ddy(worldNormal);
 				
-				half variance = _GSAAVariance * (dot(du, du) + dot(dv, dv));
+				half variance = inputVariance * (dot(du, du) + dot(dv, dv));
 				
 				half roughness = perceptualRoughness * perceptualRoughness;
-				half kernelRoughness = min(2.0 * variance, _GSAAThreshold);
+				half kernelRoughness = min(2.0 * variance, threshold);
 				half squareRoughness = saturate(roughness * roughness + kernelRoughness);
 				
 				return sqrt(sqrt(squareRoughness));
@@ -4292,7 +4296,7 @@ Shader "orels1/Standard AudioLink"
 			//https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
 			half3 tex2DFastBicubicLightmap(half2 uv, inout half4 bakedColorTex)
 			{
-				#if defined(SHADER_API_D3D11) && defined(BICUBIC_LIGHTMAP)
+				#if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
 				half width;
 				half height;
 				unity_Lightmap.GetDimensions(width, height);
@@ -4512,7 +4516,7 @@ Shader "orels1/Standard AudioLink"
 			half _BarScale;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
-			half2 globalUv;
+			half2 GLOBAL_uv;
 			half4 _Color;
 			half4 _MainTex_ST;
 			half4 _MetallicRemap;
@@ -4522,6 +4526,8 @@ Shader "orels1/Standard AudioLink"
 			half4 GLOBAL_maskMap;
 			half4 _PulseTextureDirection;
 			half4 _ALTint;
+			float _GSAAVariance;
+			float _GSAAThreshold;
 			int _AlbedoChannel;
 			int _MappingSpace;
 			int _PlanarAxisX;
@@ -4570,22 +4576,24 @@ Shader "orels1/Standard AudioLink"
 			SAMPLER(sampler_DFG);
 			
 			void BaseFragmentFunction() {
-				globalUv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#if !defined(_SET_GLOBAL_UVS)
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#endif
 				if (_MappingSpace > 0) {
-					globalUv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
-					globalUv = globalUv * _MainTex_ST.xy + _MainTex_ST.zw;
+					GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
+					GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
 				}
-				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, globalUv);
+				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
 				if (_AlbedoChannel > 0) {
 					albedo.rgb = albedo[_AlbedoChannel].xxx;
 				}
-				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, globalUv);
-				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, globalUv);
+				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
 				if (_FlipBumpY) {
 					normalTex.y = 1-normalTex.y;
 				}
 				half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
-				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, globalUv).rgb;
+				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
 				if (_EmissionChannel > 0) {
 					emission.rgb = emission[_EmissionChannel].xxx;
 				}
@@ -4710,7 +4718,7 @@ Shader "orels1/Standard AudioLink"
 				#endif
 				
 				#if defined(GSAA)
-				perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness);
+				perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness, _GSAAVariance, _GSAAThreshold);
 				#endif
 				
 				UNITY_LIGHT_ATTENUATION(lightAttenuation, FragData, d.worldSpacePosition);
@@ -5071,6 +5079,8 @@ Shader "orels1/Standard AudioLink"
 			
 			#define FLT_EPSILON     1.192092896e-07
 			
+			#define _MASKMAP_SAMPLED
+			
 			#if !defined(AL_EFFECT_BAND_SELECTION) && !defined(AL_EFFECT_UV_BASED) && !defined(AL_EFFECT_WAVEFORM) && !defined(AL_EFFECT_PULSE) && !defined(AL_EFFECT_BAR)
 			#define AL_EFFECT_NONE
 			#endif
@@ -6681,9 +6691,7 @@ Shader "orels1/Standard AudioLink"
 				return saturate(lerp(a0, a1, f0));
 			}
 			
-			half _GSAAVariance = 0.15;
-			half _GSAAThreshold = 0.1;
-			half GSAA_Filament(half3 worldNormal, half perceptualRoughness)
+			half GSAA_Filament(half3 worldNormal, half perceptualRoughness, half inputVariance, half threshold)
 			{
 				// Kaplanyan 2016, "Stable specular highlights"
 				// Tokuyoshi 2017, "Error Reduction and Simplification for Shading Anti-Aliasing"
@@ -6699,10 +6707,10 @@ Shader "orels1/Standard AudioLink"
 				half3 du = ddx(worldNormal);
 				half3 dv = ddy(worldNormal);
 				
-				half variance = _GSAAVariance * (dot(du, du) + dot(dv, dv));
+				half variance = inputVariance * (dot(du, du) + dot(dv, dv));
 				
 				half roughness = perceptualRoughness * perceptualRoughness;
-				half kernelRoughness = min(2.0 * variance, _GSAAThreshold);
+				half kernelRoughness = min(2.0 * variance, threshold);
 				half squareRoughness = saturate(roughness * roughness + kernelRoughness);
 				
 				return sqrt(sqrt(squareRoughness));
@@ -6758,7 +6766,7 @@ Shader "orels1/Standard AudioLink"
 			//https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
 			half3 tex2DFastBicubicLightmap(half2 uv, inout half4 bakedColorTex)
 			{
-				#if defined(SHADER_API_D3D11) && defined(BICUBIC_LIGHTMAP)
+				#if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
 				half width;
 				half height;
 				unity_Lightmap.GetDimensions(width, height);
@@ -6978,7 +6986,7 @@ Shader "orels1/Standard AudioLink"
 			half _BarScale;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
-			half2 globalUv;
+			half2 GLOBAL_uv;
 			half4 _Color;
 			half4 _MainTex_ST;
 			half4 _MetallicRemap;
@@ -6988,6 +6996,8 @@ Shader "orels1/Standard AudioLink"
 			half4 GLOBAL_maskMap;
 			half4 _PulseTextureDirection;
 			half4 _ALTint;
+			float _GSAAVariance;
+			float _GSAAThreshold;
 			int _AlbedoChannel;
 			int _MappingSpace;
 			int _PlanarAxisX;
@@ -7036,22 +7046,24 @@ Shader "orels1/Standard AudioLink"
 			SAMPLER(sampler_DFG);
 			
 			void BaseFragmentFunction() {
-				globalUv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#if !defined(_SET_GLOBAL_UVS)
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#endif
 				if (_MappingSpace > 0) {
-					globalUv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
-					globalUv = globalUv * _MainTex_ST.xy + _MainTex_ST.zw;
+					GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
+					GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
 				}
-				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, globalUv);
+				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
 				if (_AlbedoChannel > 0) {
 					albedo.rgb = albedo[_AlbedoChannel].xxx;
 				}
-				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, globalUv);
-				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, globalUv);
+				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
 				if (_FlipBumpY) {
 					normalTex.y = 1-normalTex.y;
 				}
 				half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
-				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, globalUv).rgb;
+				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
 				if (_EmissionChannel > 0) {
 					emission.rgb = emission[_EmissionChannel].xxx;
 				}
@@ -7176,7 +7188,7 @@ Shader "orels1/Standard AudioLink"
 				#endif
 				
 				#if defined(GSAA)
-				perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness);
+				perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness, _GSAAVariance, _GSAAThreshold);
 				#endif
 				
 				UNITY_LIGHT_ATTENUATION(lightAttenuation, FragData, d.worldSpacePosition);
@@ -7543,6 +7555,8 @@ Shader "orels1/Standard AudioLink"
 			
 			#define FLT_EPSILON     1.192092896e-07
 			
+			#define _MASKMAP_SAMPLED
+			
 			#if !defined(AL_EFFECT_BAND_SELECTION) && !defined(AL_EFFECT_UV_BASED) && !defined(AL_EFFECT_WAVEFORM) && !defined(AL_EFFECT_PULSE) && !defined(AL_EFFECT_BAR)
 			#define AL_EFFECT_NONE
 			#endif
@@ -9153,9 +9167,7 @@ Shader "orels1/Standard AudioLink"
 				return saturate(lerp(a0, a1, f0));
 			}
 			
-			half _GSAAVariance = 0.15;
-			half _GSAAThreshold = 0.1;
-			half GSAA_Filament(half3 worldNormal, half perceptualRoughness)
+			half GSAA_Filament(half3 worldNormal, half perceptualRoughness, half inputVariance, half threshold)
 			{
 				// Kaplanyan 2016, "Stable specular highlights"
 				// Tokuyoshi 2017, "Error Reduction and Simplification for Shading Anti-Aliasing"
@@ -9171,10 +9183,10 @@ Shader "orels1/Standard AudioLink"
 				half3 du = ddx(worldNormal);
 				half3 dv = ddy(worldNormal);
 				
-				half variance = _GSAAVariance * (dot(du, du) + dot(dv, dv));
+				half variance = inputVariance * (dot(du, du) + dot(dv, dv));
 				
 				half roughness = perceptualRoughness * perceptualRoughness;
-				half kernelRoughness = min(2.0 * variance, _GSAAThreshold);
+				half kernelRoughness = min(2.0 * variance, threshold);
 				half squareRoughness = saturate(roughness * roughness + kernelRoughness);
 				
 				return sqrt(sqrt(squareRoughness));
@@ -9230,7 +9242,7 @@ Shader "orels1/Standard AudioLink"
 			//https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
 			half3 tex2DFastBicubicLightmap(half2 uv, inout half4 bakedColorTex)
 			{
-				#if defined(SHADER_API_D3D11) && defined(BICUBIC_LIGHTMAP)
+				#if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
 				half width;
 				half height;
 				unity_Lightmap.GetDimensions(width, height);
@@ -9448,7 +9460,7 @@ Shader "orels1/Standard AudioLink"
 			half _BarScale;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
-			half2 globalUv;
+			half2 GLOBAL_uv;
 			half4 _Color;
 			half4 _MainTex_ST;
 			half4 _MetallicRemap;
@@ -9458,6 +9470,8 @@ Shader "orels1/Standard AudioLink"
 			half4 GLOBAL_maskMap;
 			half4 _PulseTextureDirection;
 			half4 _ALTint;
+			float _GSAAVariance;
+			float _GSAAThreshold;
 			int _AlbedoChannel;
 			int _MappingSpace;
 			int _PlanarAxisX;

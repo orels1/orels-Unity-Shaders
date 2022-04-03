@@ -1,6 +1,6 @@
 // Upgrade NOTE: replaced 'defined FOG_COMBINED_WITH_WORLD_POS' with 'defined (FOG_COMBINED_WITH_WORLD_POS)'
 
-Shader "orels1/Standard"
+Shader "orels1/Standard Glass"
 {
 	Properties
 	{
@@ -34,35 +34,16 @@ Shader "orels1/Standard"
 		[_EMISSION] _EmissionMap("Emission Map && [_EMISSION]", 2D) =  "white" {}
 		[HDR][_EMISSION] _EmissionColor("Emission Color [_EMISSION]", Color) =  (0,0,0,1)
 		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_EmissionMap] _EmissionChannel("Emission Channel [_EmissionMap]", Int) =  0
-		[ToggleUI] UI_ParallaxHeader("# Parallax", Int) =  0
-		[Toggle(PARALLAX)] _EnableParallax("Enable Parallax", Int) =  0
-		[NoScaleOffset][PARALLAX] _Height("Height && [PARALLAX]", 2D) =  "black" {}
-		[PARALLAX] _HeightScale("Height Scale [PARALLAX]", Float) = 0.0
-		[PARALLAX] _HeightRefPlane("Height Ref Plane [PARALLAX]", Float) = 0.0
-		[PARALLAX] _HeightStepsMin("Steps Min [PARALLAX]", Range(8, 32)) =  8
-		[PARALLAX] _HeightStepsMax("Steps Max [PARALLAX]", Range(8, 32)) =  16
-		[ToggleUI] UI_DetailsHeader("# Details", Int) =  0
-		[Toggle(DETAILS_OVERLAY)] _DetailsOverlay("Enable Details", Int) =  0
-		[ToggleUI][DETAILS_OVERLAY] _DIgnoreMask("Ignore Mask [DETAILS_OVERLAY]", Int) =  0
-		[ToggleUI][DETAILS_OVERLAY] UI_IgnoreMaskNote("!NOTE Force-draws the detail effects [DETAILS_OVERLAY]", Int) =  0
-		[KeywordEnum(Packed, Separated)][DETAILS_OVERLAY] DETAILS_MODE("Detail Map Mode [DETAILS_OVERLAY]", Int) =  0
-		[HideInInspector] _DDetailsMap("Details Map", 2D) =  "gray" {}
-		[ToggleUI] _DDetailsMapRef1("!REF _DDetailsMap [DETAILS_OVERLAY && DETAILS_MODE_PACKED]", Int) =  0
-		[ToggleUI] UI_DetailsMapNote("!NOTE R: Albedo, G: Normal G, B: Smooth, A: Normal R. Uncheck sRGB!", Int) =  0
-		[ToggleUI] _DDetailsMapRef2("!REF _DDetailsMap [DETAILS_OVERLAY && DETAILS_MODE_SEPARATED]", Int) =  0
-		[ToggleUI] UI_DetailsMapNoteSeparate("!NOTE RGB: Albedo, A: Smooth. Uncheck sRGB!", Int) =  0
-		[NoScaleOffset] _DDetailsNormal("Details Normal Map & [DETAILS_OVERLAY && DETAILS_MODE_SEPARATED]", 2D) =  "bump" {}
-		[Enum(UV, 0, Local Space, 1, World Space, 2)][DETAILS_OVERLAY] _DMappingSpace("Mapping Space [DETAILS_OVERLAY]", Int) =  0
-		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _DUVChannel("UV Set [_DMappingSpace == 0 && DETAILS_OVERLAY]", Int) =  0
-		[ToggleUI] UI_DPlanarAxisSelector("!DRAWER MultiProperty _DPlanarAxisX _DPlanarAxisY [_DMappingSpace > 0 && DETAILS_OVERLAY]", Int) =  0
-		[Enum(X, 0, Y, 1, Z, 2)] _DPlanarAxisX("X Axis", Int) =  0
-		[Enum(X, 0, Y, 1, Z, 2)] _DPlanarAxisY("Y Axis", Int) =  2
-		[DETAILS_OVERLAY] _DAlbedoScale("Albedo Scale [DETAILS_OVERLAY]", Float) = 0.0
-		[ToggleUI][DETAILS_OVERLAY] UI_DetailAlbedoNote("!NOTE Values < 0.5 - darken, > 0.5 - lighten [DETAILS_OVERLAY]", Int) =  0
-		[DETAILS_OVERLAY] _DNormalScale("Normal Scale [DETAILS_OVERLAY]", Float) = 0.0
-		[ToggleUI][DETAILS_OVERLAY] _DNormalFlipY("Flip Y (UE Mode) [DETAILS_OVERLAY]", Int) =  0
-		[DETAILS_OVERLAY] _DSmoothScale("Smooth Scale [DETAILS_OVERLAY]", Float) = 0.0
-		[ToggleUI][DETAILS_OVERLAY] UI_DetailSmoothNote("!NOTE Values < 0.5 - roughen, > 0.5 - smoothen [DETAILS_OVERLAY]", Int) =  0
+		[ToggleUI] UI_GlassHeader("# Glass", Int) =  0
+		_GlassRimTint("Shadow Tint", Color) =  (0.2,0.2,0.2,0.3)
+		_GlassRimPower("Rim Power", Float) =  1
+		_GlassRimStrength("Rim Strength", Float) =  1
+		[ToggleUI] UI_GlassRimSmoothing("!DRAWER MinMax _GlassRimSmoothing.x _GlassRimSmoothing.y", Int) =  0
+		_GlassRimSmoothing("Rim Smoothing", Vector) =  (0, 1, 0, 0)
+		_GlassAlphaMod("Rim Alpha Mod", Float) =  0
+		[Toggle(BLURRY_GLASS)] _GlassBlurry("Blurry Glass Mode", Int) =  0
+		[BLURRY_GLASS] _GlassBlurryAmount("Blur Level [BLURRY_GLASS]", Range(0, 1)) =  0.5
+		[BLURRY_GLASS] _GlassBlurryMask("Blur Mask [BLURRY_GLASS]", 2D) =  "white" {}
 		[ToggleUI] UI_AdvancedHeader("# Advanced Features", Float) = 0
 		[Enum(UnityEngine.Rendering.CullMode)] _CullMode("Culling Mode", Int) = 2
 		[Enum(Off, 0, On, 1)] _ZWrite("Depth Write", Int) = 1
@@ -84,6 +65,12 @@ Shader "orels1/Standard"
 	}
 	SubShader
 	{
+		Tags
+		{
+			"Queue" = "Transparent" "RenderType" = "Transparent"
+			
+		}
+		
 		ZTest[_ZTest]
 		ZWrite[_ZWrite]
 		Cull[_CullMode]
@@ -94,6 +81,7 @@ Shader "orels1/Standard"
 			{
 				"LightMode" = "ForwardBase"
 			}
+			Blend SrcAlpha OneMinusSrcAlpha
 			
 			// ForwardBase Pass Start
 			CGPROGRAM
@@ -105,10 +93,7 @@ Shader "orels1/Standard"
 			#pragma fragment Fragment
 			#pragma shader_feature_local _EMISSION
 			
-			#pragma shader_feature_local PARALLAX
-			
-			#pragma shader_feature_local DETAILS_OVERLAY
-			#pragma shader_feature_local _ DETAILS_MODE_PACKED DETAILS_MODE_SEPARATED
+			#pragma shader_feature_local BLURRY_GLASS
 			
 			#pragma shader_feature_local BICUBIC_LIGHTMAP
 			#pragma shader_feature_local BAKED_SPECULAR
@@ -130,12 +115,6 @@ Shader "orels1/Standard"
 			#define FLT_EPSILON     1.192092896e-07
 			
 			#define _MASKMAP_SAMPLED
-			
-			#define _SET_GLOBAL_UVS
-			
-			#if !defined(DETAILS_MODE_PACKED) && !defined(DETAILS_MODE_SEPARATED)
-			#define DETAILS_MODE_PACKED
-			#endif
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
 			#define PLAT_QUEST
@@ -1449,16 +1428,6 @@ Shader "orels1/Standard"
 				return mul( finalMatrix, original ) + center;
 			}
 			
-			half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
-			{
-				half3 normal;
-				normal.xy = packedNormal.ag * 2.0 - 1.0;
-				normal.z = max(1.0e-16, sqrt(1.0 - saturate(dot(normal.xy, normal.xy))));
-				
-				normal.xy *= scale;
-				return normal;
-			}
-			
 			half D_GGX(half NoH, half roughness) {
 				half a = NoH * roughness;
 				half k = roughness / (1.0 - NoH * NoH + a * a);
@@ -1815,13 +1784,10 @@ Shader "orels1/Standard"
 			half _Metallic;
 			half _OcclusionStrength;
 			half _BumpScale;
-			half _HeightScale;
-			half _HeightRefPlane;
-			half _HeightStepsMin;
-			half _HeightStepsMax;
-			half _DAlbedoScale;
-			half _DNormalScale;
-			half _DSmoothScale;
+			half _GlassRimPower;
+			half _GlassRimStrength;
+			half _GlassAlphaMod;
+			half _GlassBlurryAmount;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
 			half2 GLOBAL_uv;
@@ -1832,7 +1798,8 @@ Shader "orels1/Standard"
 			half4 _MaskMap_TexelSize;
 			half4 _EmissionColor;
 			half4 GLOBAL_maskMap;
-			half4 _DDetailsMap_ST;
+			half4 _GlassRimTint;
+			half4 _GlassRimSmoothing;
 			float _GSAAVariance;
 			float _GSAAThreshold;
 			int _AlbedoChannel;
@@ -1855,28 +1822,10 @@ Shader "orels1/Standard"
 			SAMPLER(sampler_BumpMap);;
 			TEXTURE2D(_EmissionMap);;
 			SAMPLER(sampler_EmissionMap);;
-			TEXTURE2D(_Height);;
-			SAMPLER(sampler_Height);;
-			int _DIgnoreMask;
-			int _DMappingSpace;
-			int _DUVChannel;
-			int _DPlanarAxisX;
-			int _DPlanarAxisY;
-			int _DNormalFlipY;
-			TEXTURE2D(_DDetailsMap);;
-			SAMPLER(sampler_DDetailsMap);;
-			TEXTURE2D(_DDetailsNormal);;
-			SAMPLER(sampler_DDetailsNormal);;
+			TEXTURE2D(_GlassBlurryMask);;
+			SAMPLER(sampler_GlassBlurryMask);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
-			
-			void ParallaxFragment() {
-				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
-				#if PARALLAX && !defined(PLAT_QUEST)
-				half customHeight = 0;
-				GLOBAL_uv = POM(_Height, sampler_Height, GLOBAL_uv, ddx(GLOBAL_uv), ddy(GLOBAL_uv), d.worldNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1,1), half2(0,0), 0, customHeight);
-				#endif
-			}
 			
 			void BaseFragmentFunction() {
 				#if !defined(_SET_GLOBAL_UVS)
@@ -1926,62 +1875,15 @@ Shader "orels1/Standard"
 				#endif
 			}
 			
-			void DetailsFragment() {
-				#if defined(DETAILS_OVERLAY)
-				half masks = 0;
-				#if defined(_MASKMAP_SAMPLED)
-				masks = GLOBAL_maskMap.b;
-				#else
-				masks = 1;
-				#endif
-				half mask = lerp(masks, 1, _DIgnoreMask);
-				half2 uv = d.uv0.xy;
-				switch (_DUVChannel) {
-					case 1: uv = d.uv1.xy; break;
-					case 2: uv = d.uv2.xy; break;
-					case 3: uv = d.uv3.xy; break;
-					default: uv = d.uv0.xy; break;
-				}
-				uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
-				if (_DMappingSpace > 0) {
-					uv = (_DMappingSpace - 1) ? half2(d.worldSpacePosition[_DPlanarAxisX], d.worldSpacePosition[_DPlanarAxisY]) : half2(d.localSpacePosition[_DPlanarAxisX], d.localSpacePosition[_DPlanarAxisY]);
-					uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
-				}
-				
-				half4 detailsMap = SAMPLE_TEXTURE2D(_DDetailsMap, sampler_DDetailsMap, uv);
-				
-				#if defined(DETAILS_MODE_PACKED)
-				half detailAlbedo = detailsMap.r * 2.0 - 1.0;
-				half detailSmooth = detailsMap.b * 2.0 - 1.0;
-				half3 detailNormal = 0;
-				if (_DNormalFlipY) {
-					detailsMap.g = 1 - detailsMap.g;
-				}
-				detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
-				half detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
-				#elif defined(DETAILS_MODE_SEPARATED)
-				half3 detailAlbedo = detailsMap.rgb * 2.0 - 1.0;
-				half detailSmooth = detailsMap.a * 2.0 - 1.0;
-				
-				half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
-				if (_DNormalFlipY) {
-					packedNormal.g = 1 - packedNormal.g;
-				}
-				half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
-				
-				half3 detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
-				#endif
-				
-				half3 albedoOverlay = lerp(sqrt(o.Albedo), (detailAlbedo < 0.0) ? 0.0.xxx : 1.0.xxx, detailAlbedoSpeed * detailAlbedoSpeed);
-				albedoOverlay *= albedoOverlay;
-				o.Albedo = lerp(o.Albedo, saturate(albedoOverlay), mask);
-				
-				half detailSmoothSpeed = saturate(abs(detailSmooth) * _DSmoothScale);
-				half smoothOverlay = lerp(o.Smoothness, (detailSmooth < 0.0) ? 0.0 : 1.0, detailSmoothSpeed * detailSmoothSpeed);
-				o.Smoothness = lerp(o.Smoothness, saturate(smoothOverlay), mask);
-				
-				o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);
-				#endif
+			void GlassFragment() {
+				half NdV = dot(d.worldNormal, d.worldSpaceViewDir);
+				NdV = saturate(abs(NdV));
+				NdV *= _GlassRimStrength;
+				NdV = saturate(pow(saturate(NdV), _GlassRimPower));
+				NdV = smoothstep(_GlassRimSmoothing.x, _GlassRimSmoothing.y, NdV);
+				o.Occlusion =  NdV;
+				o.Albedo *= NdV * _GlassRimTint;
+				o.Alpha = saturate(o.Alpha + (1 - NdV) * _GlassAlphaMod);
 			}
 			
 			void ORLLighting() {
@@ -2214,6 +2116,24 @@ Shader "orels1/Standard"
 				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
 				
 				FinalColor.rgb += o.Emission;
+			}
+			
+			void GlassColor() {
+				#if defined(BLURRY_GLASS)
+				float3 viewDir = d.worldSpaceViewDir;
+				half3 wNormal = normalize(d.worldNormal);
+				half3 reflDir = reflect(-viewDir, reflect(half3(0,0,0), wNormal));
+				half glassBlurMask = SAMPLE_TEXTURE2D(_GlassBlurryMask, sampler_GlassBlurryMask, d.uv0).r;
+				half rough = _GlassBlurryAmount * o.Smoothness * glassBlurMask;
+				reflDir = lerp(reflDir, wNormal, rough * rough);
+				
+				Unity_GlossyEnvironmentData envData;
+				envData.roughness = rough;
+				envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
+				
+				half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+				FinalColor.rgb += probe0 * o.Albedo;
+				#endif
 			}
 			
 			// ForwardBase Vertex
@@ -2316,11 +2236,12 @@ Shader "orels1/Standard"
 				o.Alpha = 1;
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
-				ParallaxFragment();
 				BaseFragmentFunction();
-				DetailsFragment();
+				GlassFragment();
 				
 				ORLLighting();
+				
+				GlassColor();
 				
 				UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
 				
@@ -2364,12 +2285,6 @@ Shader "orels1/Standard"
 			#define FLT_EPSILON     1.192092896e-07
 			
 			#define _MASKMAP_SAMPLED
-			
-			#define _SET_GLOBAL_UVS
-			
-			#if !defined(DETAILS_MODE_PACKED) && !defined(DETAILS_MODE_SEPARATED)
-			#define DETAILS_MODE_PACKED
-			#endif
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
 			#define PLAT_QUEST
@@ -3683,16 +3598,6 @@ Shader "orels1/Standard"
 				return mul( finalMatrix, original ) + center;
 			}
 			
-			half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
-			{
-				half3 normal;
-				normal.xy = packedNormal.ag * 2.0 - 1.0;
-				normal.z = max(1.0e-16, sqrt(1.0 - saturate(dot(normal.xy, normal.xy))));
-				
-				normal.xy *= scale;
-				return normal;
-			}
-			
 			half D_GGX(half NoH, half roughness) {
 				half a = NoH * roughness;
 				half k = roughness / (1.0 - NoH * NoH + a * a);
@@ -4049,13 +3954,10 @@ Shader "orels1/Standard"
 			half _Metallic;
 			half _OcclusionStrength;
 			half _BumpScale;
-			half _HeightScale;
-			half _HeightRefPlane;
-			half _HeightStepsMin;
-			half _HeightStepsMax;
-			half _DAlbedoScale;
-			half _DNormalScale;
-			half _DSmoothScale;
+			half _GlassRimPower;
+			half _GlassRimStrength;
+			half _GlassAlphaMod;
+			half _GlassBlurryAmount;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
 			half2 GLOBAL_uv;
@@ -4066,7 +3968,8 @@ Shader "orels1/Standard"
 			half4 _MaskMap_TexelSize;
 			half4 _EmissionColor;
 			half4 GLOBAL_maskMap;
-			half4 _DDetailsMap_ST;
+			half4 _GlassRimTint;
+			half4 _GlassRimSmoothing;
 			float _GSAAVariance;
 			float _GSAAThreshold;
 			int _AlbedoChannel;
@@ -4089,28 +3992,10 @@ Shader "orels1/Standard"
 			SAMPLER(sampler_BumpMap);;
 			TEXTURE2D(_EmissionMap);;
 			SAMPLER(sampler_EmissionMap);;
-			TEXTURE2D(_Height);;
-			SAMPLER(sampler_Height);;
-			int _DIgnoreMask;
-			int _DMappingSpace;
-			int _DUVChannel;
-			int _DPlanarAxisX;
-			int _DPlanarAxisY;
-			int _DNormalFlipY;
-			TEXTURE2D(_DDetailsMap);;
-			SAMPLER(sampler_DDetailsMap);;
-			TEXTURE2D(_DDetailsNormal);;
-			SAMPLER(sampler_DDetailsNormal);;
+			TEXTURE2D(_GlassBlurryMask);;
+			SAMPLER(sampler_GlassBlurryMask);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
-			
-			void ParallaxFragment() {
-				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
-				#if PARALLAX && !defined(PLAT_QUEST)
-				half customHeight = 0;
-				GLOBAL_uv = POM(_Height, sampler_Height, GLOBAL_uv, ddx(GLOBAL_uv), ddy(GLOBAL_uv), d.worldNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1,1), half2(0,0), 0, customHeight);
-				#endif
-			}
 			
 			void BaseFragmentFunction() {
 				#if !defined(_SET_GLOBAL_UVS)
@@ -4160,62 +4045,15 @@ Shader "orels1/Standard"
 				#endif
 			}
 			
-			void DetailsFragment() {
-				#if defined(DETAILS_OVERLAY)
-				half masks = 0;
-				#if defined(_MASKMAP_SAMPLED)
-				masks = GLOBAL_maskMap.b;
-				#else
-				masks = 1;
-				#endif
-				half mask = lerp(masks, 1, _DIgnoreMask);
-				half2 uv = d.uv0.xy;
-				switch (_DUVChannel) {
-					case 1: uv = d.uv1.xy; break;
-					case 2: uv = d.uv2.xy; break;
-					case 3: uv = d.uv3.xy; break;
-					default: uv = d.uv0.xy; break;
-				}
-				uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
-				if (_DMappingSpace > 0) {
-					uv = (_DMappingSpace - 1) ? half2(d.worldSpacePosition[_DPlanarAxisX], d.worldSpacePosition[_DPlanarAxisY]) : half2(d.localSpacePosition[_DPlanarAxisX], d.localSpacePosition[_DPlanarAxisY]);
-					uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
-				}
-				
-				half4 detailsMap = SAMPLE_TEXTURE2D(_DDetailsMap, sampler_DDetailsMap, uv);
-				
-				#if defined(DETAILS_MODE_PACKED)
-				half detailAlbedo = detailsMap.r * 2.0 - 1.0;
-				half detailSmooth = detailsMap.b * 2.0 - 1.0;
-				half3 detailNormal = 0;
-				if (_DNormalFlipY) {
-					detailsMap.g = 1 - detailsMap.g;
-				}
-				detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
-				half detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
-				#elif defined(DETAILS_MODE_SEPARATED)
-				half3 detailAlbedo = detailsMap.rgb * 2.0 - 1.0;
-				half detailSmooth = detailsMap.a * 2.0 - 1.0;
-				
-				half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
-				if (_DNormalFlipY) {
-					packedNormal.g = 1 - packedNormal.g;
-				}
-				half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
-				
-				half3 detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
-				#endif
-				
-				half3 albedoOverlay = lerp(sqrt(o.Albedo), (detailAlbedo < 0.0) ? 0.0.xxx : 1.0.xxx, detailAlbedoSpeed * detailAlbedoSpeed);
-				albedoOverlay *= albedoOverlay;
-				o.Albedo = lerp(o.Albedo, saturate(albedoOverlay), mask);
-				
-				half detailSmoothSpeed = saturate(abs(detailSmooth) * _DSmoothScale);
-				half smoothOverlay = lerp(o.Smoothness, (detailSmooth < 0.0) ? 0.0 : 1.0, detailSmoothSpeed * detailSmoothSpeed);
-				o.Smoothness = lerp(o.Smoothness, saturate(smoothOverlay), mask);
-				
-				o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);
-				#endif
+			void GlassFragment() {
+				half NdV = dot(d.worldNormal, d.worldSpaceViewDir);
+				NdV = saturate(abs(NdV));
+				NdV *= _GlassRimStrength;
+				NdV = saturate(pow(saturate(NdV), _GlassRimPower));
+				NdV = smoothstep(_GlassRimSmoothing.x, _GlassRimSmoothing.y, NdV);
+				o.Occlusion =  NdV;
+				o.Albedo *= NdV * _GlassRimTint;
+				o.Alpha = saturate(o.Alpha + (1 - NdV) * _GlassAlphaMod);
 			}
 			
 			void ORLLighting() {
@@ -4448,6 +4286,24 @@ Shader "orels1/Standard"
 				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
 				
 				FinalColor.rgb += o.Emission;
+			}
+			
+			void GlassColor() {
+				#if defined(BLURRY_GLASS)
+				float3 viewDir = d.worldSpaceViewDir;
+				half3 wNormal = normalize(d.worldNormal);
+				half3 reflDir = reflect(-viewDir, reflect(half3(0,0,0), wNormal));
+				half glassBlurMask = SAMPLE_TEXTURE2D(_GlassBlurryMask, sampler_GlassBlurryMask, d.uv0).r;
+				half rough = _GlassBlurryAmount * o.Smoothness * glassBlurMask;
+				reflDir = lerp(reflDir, wNormal, rough * rough);
+				
+				Unity_GlossyEnvironmentData envData;
+				envData.roughness = rough;
+				envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
+				
+				half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+				FinalColor.rgb += probe0 * o.Albedo;
+				#endif
 			}
 			
 			// ForwardAdd Vertex
@@ -4550,11 +4406,12 @@ Shader "orels1/Standard"
 				o.Alpha = 1;
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
-				ParallaxFragment();
 				BaseFragmentFunction();
-				DetailsFragment();
+				GlassFragment();
 				
 				ORLLighting();
+				
+				GlassColor();
 				
 				UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
 				
@@ -4599,12 +4456,6 @@ Shader "orels1/Standard"
 			#define FLT_EPSILON     1.192092896e-07
 			
 			#define _MASKMAP_SAMPLED
-			
-			#define _SET_GLOBAL_UVS
-			
-			#if !defined(DETAILS_MODE_PACKED) && !defined(DETAILS_MODE_SEPARATED)
-			#define DETAILS_MODE_PACKED
-			#endif
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
 			#define PLAT_QUEST
@@ -5916,16 +5767,6 @@ Shader "orels1/Standard"
 				float m22 = t * u.z * u.z + C;
 				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
 				return mul( finalMatrix, original ) + center;
-			}
-			
-			half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
-			{
-				half3 normal;
-				normal.xy = packedNormal.ag * 2.0 - 1.0;
-				normal.z = max(1.0e-16, sqrt(1.0 - saturate(dot(normal.xy, normal.xy))));
-				
-				normal.xy *= scale;
-				return normal;
 			}
 			
 			half D_GGX(half NoH, half roughness) {
@@ -6284,13 +6125,10 @@ Shader "orels1/Standard"
 			half _Metallic;
 			half _OcclusionStrength;
 			half _BumpScale;
-			half _HeightScale;
-			half _HeightRefPlane;
-			half _HeightStepsMin;
-			half _HeightStepsMax;
-			half _DAlbedoScale;
-			half _DNormalScale;
-			half _DSmoothScale;
+			half _GlassRimPower;
+			half _GlassRimStrength;
+			half _GlassAlphaMod;
+			half _GlassBlurryAmount;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
 			half2 GLOBAL_uv;
@@ -6301,7 +6139,8 @@ Shader "orels1/Standard"
 			half4 _MaskMap_TexelSize;
 			half4 _EmissionColor;
 			half4 GLOBAL_maskMap;
-			half4 _DDetailsMap_ST;
+			half4 _GlassRimTint;
+			half4 _GlassRimSmoothing;
 			float _GSAAVariance;
 			float _GSAAThreshold;
 			int _AlbedoChannel;
@@ -6324,28 +6163,10 @@ Shader "orels1/Standard"
 			SAMPLER(sampler_BumpMap);;
 			TEXTURE2D(_EmissionMap);;
 			SAMPLER(sampler_EmissionMap);;
-			TEXTURE2D(_Height);;
-			SAMPLER(sampler_Height);;
-			int _DIgnoreMask;
-			int _DMappingSpace;
-			int _DUVChannel;
-			int _DPlanarAxisX;
-			int _DPlanarAxisY;
-			int _DNormalFlipY;
-			TEXTURE2D(_DDetailsMap);;
-			SAMPLER(sampler_DDetailsMap);;
-			TEXTURE2D(_DDetailsNormal);;
-			SAMPLER(sampler_DDetailsNormal);;
+			TEXTURE2D(_GlassBlurryMask);;
+			SAMPLER(sampler_GlassBlurryMask);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
-			
-			void ParallaxFragment() {
-				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
-				#if PARALLAX && !defined(PLAT_QUEST)
-				half customHeight = 0;
-				GLOBAL_uv = POM(_Height, sampler_Height, GLOBAL_uv, ddx(GLOBAL_uv), ddy(GLOBAL_uv), d.worldNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1,1), half2(0,0), 0, customHeight);
-				#endif
-			}
 			
 			void BaseFragmentFunction() {
 				#if !defined(_SET_GLOBAL_UVS)
@@ -6395,62 +6216,15 @@ Shader "orels1/Standard"
 				#endif
 			}
 			
-			void DetailsFragment() {
-				#if defined(DETAILS_OVERLAY)
-				half masks = 0;
-				#if defined(_MASKMAP_SAMPLED)
-				masks = GLOBAL_maskMap.b;
-				#else
-				masks = 1;
-				#endif
-				half mask = lerp(masks, 1, _DIgnoreMask);
-				half2 uv = d.uv0.xy;
-				switch (_DUVChannel) {
-					case 1: uv = d.uv1.xy; break;
-					case 2: uv = d.uv2.xy; break;
-					case 3: uv = d.uv3.xy; break;
-					default: uv = d.uv0.xy; break;
-				}
-				uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
-				if (_DMappingSpace > 0) {
-					uv = (_DMappingSpace - 1) ? half2(d.worldSpacePosition[_DPlanarAxisX], d.worldSpacePosition[_DPlanarAxisY]) : half2(d.localSpacePosition[_DPlanarAxisX], d.localSpacePosition[_DPlanarAxisY]);
-					uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
-				}
-				
-				half4 detailsMap = SAMPLE_TEXTURE2D(_DDetailsMap, sampler_DDetailsMap, uv);
-				
-				#if defined(DETAILS_MODE_PACKED)
-				half detailAlbedo = detailsMap.r * 2.0 - 1.0;
-				half detailSmooth = detailsMap.b * 2.0 - 1.0;
-				half3 detailNormal = 0;
-				if (_DNormalFlipY) {
-					detailsMap.g = 1 - detailsMap.g;
-				}
-				detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
-				half detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
-				#elif defined(DETAILS_MODE_SEPARATED)
-				half3 detailAlbedo = detailsMap.rgb * 2.0 - 1.0;
-				half detailSmooth = detailsMap.a * 2.0 - 1.0;
-				
-				half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
-				if (_DNormalFlipY) {
-					packedNormal.g = 1 - packedNormal.g;
-				}
-				half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
-				
-				half3 detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
-				#endif
-				
-				half3 albedoOverlay = lerp(sqrt(o.Albedo), (detailAlbedo < 0.0) ? 0.0.xxx : 1.0.xxx, detailAlbedoSpeed * detailAlbedoSpeed);
-				albedoOverlay *= albedoOverlay;
-				o.Albedo = lerp(o.Albedo, saturate(albedoOverlay), mask);
-				
-				half detailSmoothSpeed = saturate(abs(detailSmooth) * _DSmoothScale);
-				half smoothOverlay = lerp(o.Smoothness, (detailSmooth < 0.0) ? 0.0 : 1.0, detailSmoothSpeed * detailSmoothSpeed);
-				o.Smoothness = lerp(o.Smoothness, saturate(smoothOverlay), mask);
-				
-				o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);
-				#endif
+			void GlassFragment() {
+				half NdV = dot(d.worldNormal, d.worldSpaceViewDir);
+				NdV = saturate(abs(NdV));
+				NdV *= _GlassRimStrength;
+				NdV = saturate(pow(saturate(NdV), _GlassRimPower));
+				NdV = smoothstep(_GlassRimSmoothing.x, _GlassRimSmoothing.y, NdV);
+				o.Occlusion =  NdV;
+				o.Albedo *= NdV * _GlassRimTint;
+				o.Alpha = saturate(o.Alpha + (1 - NdV) * _GlassAlphaMod);
 			}
 			
 			void ORLLighting() {
@@ -6685,6 +6459,24 @@ Shader "orels1/Standard"
 				FinalColor.rgb += o.Emission;
 			}
 			
+			void GlassColor() {
+				#if defined(BLURRY_GLASS)
+				float3 viewDir = d.worldSpaceViewDir;
+				half3 wNormal = normalize(d.worldNormal);
+				half3 reflDir = reflect(-viewDir, reflect(half3(0,0,0), wNormal));
+				half glassBlurMask = SAMPLE_TEXTURE2D(_GlassBlurryMask, sampler_GlassBlurryMask, d.uv0).r;
+				half rough = _GlassBlurryAmount * o.Smoothness * glassBlurMask;
+				reflDir = lerp(reflDir, wNormal, rough * rough);
+				
+				Unity_GlossyEnvironmentData envData;
+				envData.roughness = rough;
+				envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
+				
+				half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+				FinalColor.rgb += probe0 * o.Albedo;
+				#endif
+			}
+			
 			// Meta Vertex
 			FragmentData Vertex (VertexData v)
 			{
@@ -6777,14 +6569,14 @@ Shader "orels1/Standard"
 				o.Occlusion = 1;
 				o.Alpha = 1;
 				
-				ParallaxFragment();
 				BaseFragmentFunction();
-				DetailsFragment();
+				GlassFragment();
 				
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
 				UnityMetaInput metaIN;
 				UNITY_INITIALIZE_OUTPUT(UnityMetaInput, metaIN);
+				GlassColor();
 				
 				metaIN.Albedo = FinalColor;
 				metaIN.Emission = o.Emission;
@@ -6807,6 +6599,7 @@ Shader "orels1/Standard"
 			{
 				"LightMode" = "ShadowCaster"
 			}
+			Blend SrcAlpha OneMinusSrcAlpha
 			
 			// Shadow Pass Start
 			CGPROGRAM
@@ -6818,10 +6611,7 @@ Shader "orels1/Standard"
 			#pragma fragment Fragment
 			#pragma shader_feature_local _EMISSION
 			
-			#pragma shader_feature_local PARALLAX
-			
-			#pragma shader_feature_local DETAILS_OVERLAY
-			#pragma shader_feature_local _ DETAILS_MODE_PACKED DETAILS_MODE_SEPARATED
+			#pragma shader_feature_local BLURRY_GLASS
 			
 			#pragma shader_feature_local BICUBIC_LIGHTMAP
 			#pragma shader_feature_local BAKED_SPECULAR
@@ -6843,12 +6633,6 @@ Shader "orels1/Standard"
 			#define FLT_EPSILON     1.192092896e-07
 			
 			#define _MASKMAP_SAMPLED
-			
-			#define _SET_GLOBAL_UVS
-			
-			#if !defined(DETAILS_MODE_PACKED) && !defined(DETAILS_MODE_SEPARATED)
-			#define DETAILS_MODE_PACKED
-			#endif
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
 			#define PLAT_QUEST
@@ -8162,16 +7946,6 @@ Shader "orels1/Standard"
 				return mul( finalMatrix, original ) + center;
 			}
 			
-			half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
-			{
-				half3 normal;
-				normal.xy = packedNormal.ag * 2.0 - 1.0;
-				normal.z = max(1.0e-16, sqrt(1.0 - saturate(dot(normal.xy, normal.xy))));
-				
-				normal.xy *= scale;
-				return normal;
-			}
-			
 			half D_GGX(half NoH, half roughness) {
 				half a = NoH * roughness;
 				half k = roughness / (1.0 - NoH * NoH + a * a);
@@ -8526,13 +8300,10 @@ Shader "orels1/Standard"
 			half _Metallic;
 			half _OcclusionStrength;
 			half _BumpScale;
-			half _HeightScale;
-			half _HeightRefPlane;
-			half _HeightStepsMin;
-			half _HeightStepsMax;
-			half _DAlbedoScale;
-			half _DNormalScale;
-			half _DSmoothScale;
+			half _GlassRimPower;
+			half _GlassRimStrength;
+			half _GlassAlphaMod;
+			half _GlassBlurryAmount;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
 			half2 GLOBAL_uv;
@@ -8543,7 +8314,8 @@ Shader "orels1/Standard"
 			half4 _MaskMap_TexelSize;
 			half4 _EmissionColor;
 			half4 GLOBAL_maskMap;
-			half4 _DDetailsMap_ST;
+			half4 _GlassRimTint;
+			half4 _GlassRimSmoothing;
 			float _GSAAVariance;
 			float _GSAAThreshold;
 			int _AlbedoChannel;
@@ -8566,18 +8338,8 @@ Shader "orels1/Standard"
 			SAMPLER(sampler_BumpMap);;
 			TEXTURE2D(_EmissionMap);;
 			SAMPLER(sampler_EmissionMap);;
-			TEXTURE2D(_Height);;
-			SAMPLER(sampler_Height);;
-			int _DIgnoreMask;
-			int _DMappingSpace;
-			int _DUVChannel;
-			int _DPlanarAxisX;
-			int _DPlanarAxisY;
-			int _DNormalFlipY;
-			TEXTURE2D(_DDetailsMap);;
-			SAMPLER(sampler_DDetailsMap);;
-			TEXTURE2D(_DDetailsNormal);;
-			SAMPLER(sampler_DDetailsNormal);;
+			TEXTURE2D(_GlassBlurryMask);;
+			SAMPLER(sampler_GlassBlurryMask);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			

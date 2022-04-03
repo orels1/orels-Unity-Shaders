@@ -1,0 +1,77 @@
+#S#Settings
+Name "orels1/Standard Glass"
+Author "orels1"
+Version "5.0.0"
+Template "ORL PBR Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"ORL Standard.orlshader"
+"self"
+"ORL PBR Module.asset"
+
+#T#ShaderTags
+"Queue" = "Transparent" "RenderType" = "Transparent"
+
+#T#PassModifiers
+Blend SrcAlpha OneMinusSrcAlpha
+
+#S#Properties
+[ToggleUI]UI_GlassHeader("# Glass", Int) = 0
+_GlassRimTint("Shadow Tint", Color) = (0.2,0.2,0.2,0.3)
+_GlassRimPower("Rim Power", Float) = 1
+_GlassRimStrength("Rim Strength", Float) = 1
+[ToggleUI]UI_GlassRimSmoothing("!DRAWER MinMax _GlassRimSmoothing.x _GlassRimSmoothing.y", Int) = 0
+_GlassRimSmoothing("Rim Smoothing", Vector) = (0, 1, 0, 0)
+_GlassAlphaMod("Rim Alpha Mod", Float) = 0
+[Toggle(BLURRY_GLASS)]_GlassBlurry("Blurry Glass Mode", Int) = 0
+_GlassBlurryAmount("Blur Level [BLURRY_GLASS]", Range(0, 1)) = 0.5
+_GlassBlurryMask("Blur Mask [BLURRY_GLASS]", 2D) = "white" {}
+
+#T#ShaderFeatures
+#pragma shader_feature_local BLURRY_GLASS
+
+#S#FragmentVariables
+half4 _GlassRimTint;
+half _GlassRimPower;
+half _GlassRimStrength;
+half4 _GlassRimSmoothing;
+half _GlassAlphaMod;
+
+#T#FragmentFunction
+void GlassFragment() {
+  half NdV = dot(d.worldNormal, d.worldSpaceViewDir);
+  NdV = saturate(abs(NdV));
+  NdV *= _GlassRimStrength;
+  NdV = saturate(pow(saturate(NdV), _GlassRimPower));
+  NdV = smoothstep(_GlassRimSmoothing.x, _GlassRimSmoothing.y, NdV);
+  o.Occlusion =  NdV;
+  o.Albedo *= NdV * _GlassRimTint;
+  o.Alpha = saturate(o.Alpha + (1 - NdV) * _GlassAlphaMod);
+}
+
+#S#ColorVariables
+half _GlassBlurryAmount;
+
+TEXTURE2D(_GlassBlurryMask);
+SAMPLER(sampler_GlassBlurryMask);
+
+#T#ColorFunction
+void GlassColor() {
+  #if defined(BLURRY_GLASS)
+    float3 viewDir = d.worldSpaceViewDir;
+    half3 wNormal = normalize(d.worldNormal);
+    half3 reflDir = reflect(-viewDir, reflect(half3(0,0,0), wNormal));
+    half glassBlurMask = SAMPLE_TEXTURE2D(_GlassBlurryMask, sampler_GlassBlurryMask, d.uv0).r;
+    half rough = _GlassBlurryAmount * o.Smoothness * glassBlurMask;
+    reflDir = lerp(reflDir, wNormal, rough * rough);
+        
+    Unity_GlossyEnvironmentData envData;
+    envData.roughness = rough;
+    envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
+        
+    half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+    FinalColor.rgb += probe0 * o.Albedo;
+  #endif
+}

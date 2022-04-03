@@ -1,0 +1,48 @@
+#S#Settings
+Name "orels1/Modules/Parallax"
+Author "orels1"
+Version "5.0.0"
+Template "ORL PBR Template.stemplate"
+FragmentQueue "-100"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"self"
+"ORL PBR Module.asset"
+
+#S#Properties
+[ToggleUI]UI_ParallaxHeader("# Parallax", Int) = 0
+[Toggle(PARALLAX)]_EnableParallax("Enable Parallax", Int) = 0
+[NoScaleOffset]_Height("Height && [PARALLAX]", 2D) = "black" {}
+_HeightScale("Height Scale [PARALLAX]", Range(0, 0.1)) = 0.006
+_HeightRefPlane("Height Ref Plane [PARALLAX]", Range(-1, 1)) = 0.5
+_HeightStepsMin("Steps Min [PARALLAX]", Range(8, 32)) = 8
+_HeightStepsMax("Steps Max [PARALLAX]", Range(8, 32)) = 16
+
+#T#ShaderFeatures
+#pragma shader_feature_local PARALLAX
+
+#T#ShaderDefines
+#define _SET_GLOBAL_UVS
+
+#S#FragmentVariables
+half _HeightScale;
+half _HeightRefPlane;
+half _HeightStepsMin;
+half _HeightStepsMax;
+
+TEXTURE2D(_Height);
+SAMPLER(sampler_Height);
+
+#T#FragmentFunction
+void ParallaxFragment() {
+  // this is a bit "magical" but basically we just push to global UVs
+  // and then any other module will read from them
+  // we use FragmentQueue to push the actual function call above the other modules
+  GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+  #if PARALLAX && !defined(PLAT_QUEST)
+    half customHeight = 0;
+    GLOBAL_uv = POM(_Height, sampler_Height, GLOBAL_uv, ddx(GLOBAL_uv), ddy(GLOBAL_uv), d.worldNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1,1), half2(0,0), 0, customHeight);
+  #endif
+}

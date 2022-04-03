@@ -8,6 +8,8 @@ CustomEditor "Needle.MarkdownShaderGUI"
 #S#Includes
 "ORL Utility Functions.asset"
 "self"
+"Parallax.orlshader"
+"Details.orlshader"
 "ORL PBR Module.asset"
 
 #S#Properties
@@ -45,6 +47,9 @@ _EmissionMap("Emission Map && [_EMISSION]", 2D) = "white" {}
 #T#ShaderFeatures
 #pragma shader_feature_local _EMISSION
 
+#T#ShaderDefines
+#define _MASKMAP_SAMPLED
+
 #S#FragmentVariables
 half4 _Color;
 half4 _MainTex_ST;
@@ -80,27 +85,30 @@ SAMPLER(sampler_BumpMap);
 TEXTURE2D(_EmissionMap);
 SAMPLER(sampler_EmissionMap);
 
-half2 globalUv;
+half2 GLOBAL_uv;
 half4 GLOBAL_maskMap;
 
 #T#FragmentFunction
 void BaseFragmentFunction() {
-  globalUv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+  // this allows us to handle things like parallax nicely
+  #if !defined(_SET_GLOBAL_UVS)
+    GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+  #endif
   if (_MappingSpace > 0) {
-	    globalUv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
-	    globalUv = globalUv * _MainTex_ST.xy + _MainTex_ST.zw;
+	    GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
+	    GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
   }
-  half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, globalUv);
+  half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
   if (_AlbedoChannel > 0) {
     albedo.rgb = albedo[_AlbedoChannel].xxx;
   }
-  half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, globalUv);
-  half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, globalUv);
+  half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
+  half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
   if (_FlipBumpY) {
     normalTex.y = 1-normalTex.y;
   }
   half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
-  half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, globalUv).rgb;
+  half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
   if (_EmissionChannel > 0) {
     emission.rgb = emission[_EmissionChannel].xxx;
   }

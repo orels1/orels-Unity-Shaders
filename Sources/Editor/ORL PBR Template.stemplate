@@ -1,3 +1,8 @@
+Tags
+{
+    #K#SHADER_TAGS
+}
+
 ZTest[_ZTest]
 ZWrite[_ZWrite]
 Cull[_CullMode]
@@ -6,7 +11,7 @@ Pass
 {
     Tags 
     {
-        "LightMode" = "ForwardBase" #K#SHADER_TAGS
+        "LightMode" = "ForwardBase" #K#PASS_TAGS
     }
     #K#PASS_MODS
 
@@ -53,6 +58,7 @@ Pass
     #K#DEFAULT_CODE
     #K#VERTEX_CODE
     #K#FRAGMENT_CODE
+    #K#COLOR_CODE
     
     // ForwardBase Vertex
     FragmentData Vertex (VertexData v)
@@ -112,7 +118,7 @@ Pass
 {
     Tags 
     {
-        "LightMode" = "ForwardAdd" #K#SHADER_TAGS
+        "LightMode" = "ForwardAdd" #K#PASS_TAGS
     }
     ZWrite Off
     Blend One One
@@ -159,6 +165,7 @@ Pass
     #K#DEFAULT_CODE
     #K#VERTEX_CODE
     #K#FRAGMENT_CODE
+    #K#COLOR_CODE
     
     // ForwardAdd Vertex
     FragmentData Vertex (VertexData v)
@@ -266,6 +273,7 @@ Pass
     #K#DEFAULT_CODE
     #K#VERTEX_CODE
     #K#FRAGMENT_CODE
+    #K#COLOR_CODE
     
     // Meta Vertex
     FragmentData Vertex (VertexData v)
@@ -326,8 +334,9 @@ Pass
 {
     Tags 
     {
-        "LightMode" = "ShadowCaster" #K#SHADER_TAGS
+        "LightMode" = "ShadowCaster" #K#PASS_TAGS
     }
+    #K#PASS_MODS
 
     // Shadow Pass Start
     CGPROGRAM

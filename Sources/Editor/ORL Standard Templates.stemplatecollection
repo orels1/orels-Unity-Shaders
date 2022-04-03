@@ -96,7 +96,7 @@ void ORLLighting() {
   #endif
   
   #if defined(GSAA)
-    perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness);
+    perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness, _GSAAVariance, _GSAAThreshold);
   #endif
       
   UNITY_LIGHT_ATTENUATION(lightAttenuation, FragData, d.worldSpacePosition);

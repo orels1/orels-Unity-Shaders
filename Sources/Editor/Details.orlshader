@@ -1,0 +1,144 @@
+#S#Settings
+Name "orels1/Modules/Details"
+Author "orels1"
+Version "5.0.0"
+Template "ORL PBR Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"self"
+"ORL PBR Module.asset"
+
+#S#Properties
+[ToggleUI]UI_DetailsHeader("# Details", Int) = 0
+[Toggle(DETAILS_OVERLAY)]_DetailsOverlay("Enable Details", Int) = 0
+[ToggleUI]_DIgnoreMask("Ignore Mask [DETAILS_OVERLAY]", Int) = 0
+[ToggleUI]UI_IgnoreMaskNote("!NOTE Force-draws the detail effects [DETAILS_OVERLAY]", Int) = 0
+[KeywordEnum(Packed, Separated)]DETAILS_MODE("Detail Map Mode [DETAILS_OVERLAY]", Int) = 0
+[HideInInspector]_DDetailsMap("Details Map", 2D) = "gray" {}
+[ToggleUI]_DDetailsMapRef1("!REF _DDetailsMap [DETAILS_OVERLAY && DETAILS_MODE_PACKED]", Int) = 0
+[ToggleUI]UI_DetailsMapNote("!NOTE R: Albedo, G: Normal G, B: Smooth, A: Normal R. Uncheck sRGB!", Int) = 0
+[ToggleUI]_DDetailsMapRef2("!REF _DDetailsMap [DETAILS_OVERLAY && DETAILS_MODE_SEPARATED]", Int) = 0
+[ToggleUI]UI_DetailsMapNoteSeparate("!NOTE RGB: Albedo, A: Smooth. Uncheck sRGB!", Int) = 0
+[NoScaleOffset]_DDetailsNormal("Details Normal Map & [DETAILS_OVERLAY && DETAILS_MODE_SEPARATED]", 2D) = "bump" {}
+[Enum(UV, 0, Local Space, 1, World Space, 2)]_DMappingSpace("Mapping Space [DETAILS_OVERLAY]", Int) = 0
+[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_DUVChannel("UV Set [_DMappingSpace == 0 && DETAILS_OVERLAY]", Int) = 0
+[ToggleUI]UI_DPlanarAxisSelector("!DRAWER MultiProperty _DPlanarAxisX _DPlanarAxisY [_DMappingSpace > 0 && DETAILS_OVERLAY]", Int) = 0
+[Enum(X, 0, Y, 1, Z, 2)]_DPlanarAxisX("X Axis", Int) = 0
+[Enum(X, 0, Y, 1, Z, 2)]_DPlanarAxisY("Y Axis", Int) = 2
+_DAlbedoScale("Albedo Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) = 1
+[ToggleUI]UI_DetailAlbedoNote("!NOTE Values < 0.5 - darken, > 0.5 - lighten [DETAILS_OVERLAY]", Int) = 0
+_DNormalScale("Normal Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) = 1
+[ToggleUI]_DNormalFlipY("Flip Y (UE Mode) [DETAILS_OVERLAY]", Int) = 0
+_DSmoothScale("Smooth Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) = 1
+[ToggleUI]UI_DetailSmoothNote("!NOTE Values < 0.5 - roughen, > 0.5 - smoothen [DETAILS_OVERLAY]", Int) = 0
+
+#T#ShaderFeatures
+#pragma shader_feature_local DETAILS_OVERLAY
+#pragma shader_feature_local _ DETAILS_MODE_PACKED DETAILS_MODE_SEPARATED
+
+#T#ShaderDefines
+#if !defined(DETAILS_MODE_PACKED) && !defined(DETAILS_MODE_SEPARATED)
+  #define DETAILS_MODE_PACKED
+#endif
+
+#S#FragmentVariables
+int _DIgnoreMask;
+half4 _DDetailsMap_ST;
+int _DMappingSpace;
+int _DUVChannel;
+int _DPlanarAxisX;
+int _DPlanarAxisY;
+half _DAlbedoScale;
+half _DNormalScale;
+int _DNormalFlipY;
+half _DSmoothScale;
+
+TEXTURE2D(_DDetailsMap);
+SAMPLER(sampler_DDetailsMap);
+TEXTURE2D(_DDetailsNormal);
+SAMPLER(sampler_DDetailsNormal);
+
+#T#LibraryFunctions
+// from CoreRP Packing.hlsl
+half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
+{
+    half3 normal;
+    normal.xy = packedNormal.ag * 2.0 - 1.0;
+    normal.z = max(1.0e-16, sqrt(1.0 - saturate(dot(normal.xy, normal.xy))));
+
+    // must scale after reconstruction of normal.z which also
+    // mirrors UnpackNormalRGB(). This does imply normal is not returned
+    // as a unit length vector but doesn't need it since it will get normalized after TBN transformation.
+    // If we ever need to blend contributions with built-in shaders for URP
+    // then we should consider using UnpackDerivativeNormalAG() instead like
+    // HDRP does since derivatives do not use renormalization and unlike tangent space
+    // normals allow you to blend, accumulate and scale contributions correctly.
+    normal.xy *= scale;
+    return normal;
+}
+
+#T#FragmentFunction
+void DetailsFragment() {
+  #if defined(DETAILS_OVERLAY)
+  half masks = 0;
+  // we can grab the mask map from the Base Shader if it was present
+  #if defined(_MASKMAP_SAMPLED)
+  masks = GLOBAL_maskMap.b;
+  #else
+  masks = 1;
+  #endif
+  half mask = lerp(masks, 1, _DIgnoreMask);
+  half2 uv = d.uv0.xy;
+  switch (_DUVChannel) {
+    case 1: uv = d.uv1.xy; break;
+    case 2: uv = d.uv2.xy; break;
+    case 3: uv = d.uv3.xy; break;
+    default: uv = d.uv0.xy; break;
+  }
+  uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
+  if (_DMappingSpace > 0) {
+    uv = (_DMappingSpace - 1) ? half2(d.worldSpacePosition[_DPlanarAxisX], d.worldSpacePosition[_DPlanarAxisY]) : half2(d.localSpacePosition[_DPlanarAxisX], d.localSpacePosition[_DPlanarAxisY]);
+    uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
+  }
+  
+  half4 detailsMap = SAMPLE_TEXTURE2D(_DDetailsMap, sampler_DDetailsMap, uv);
+  
+  #if defined(DETAILS_MODE_PACKED)
+  // 0.5 is the neutral value
+  half detailAlbedo = detailsMap.r * 2.0 - 1.0;
+  half detailSmooth = detailsMap.b * 2.0 - 1.0;
+  half3 detailNormal = 0;
+  if (_DNormalFlipY) {
+    detailsMap.g = 1 - detailsMap.g;
+  }
+  detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
+  half detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+  #elif defined(DETAILS_MODE_SEPARATED)
+  half3 detailAlbedo = detailsMap.rgb * 2.0 - 1.0;
+  half detailSmooth = detailsMap.a * 2.0 - 1.0;
+  
+  half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
+      if (_DNormalFlipY) {
+        packedNormal.g = 1 - packedNormal.g;
+      }
+  half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
+  
+  half3 detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+  #endif
+  
+  // do the albedo details
+  half3 albedoOverlay = lerp(sqrt(o.Albedo), (detailAlbedo < 0.0) ? 0.0.xxx : 1.0.xxx, detailAlbedoSpeed * detailAlbedoSpeed);
+  albedoOverlay *= albedoOverlay;
+  o.Albedo = lerp(o.Albedo, saturate(albedoOverlay), mask); 
+  
+  // do the smooth details
+  half detailSmoothSpeed = saturate(abs(detailSmooth) * _DSmoothScale);
+  half smoothOverlay = lerp(o.Smoothness, (detailSmooth < 0.0) ? 0.0 : 1.0, detailSmoothSpeed * detailSmoothSpeed);
+  o.Smoothness = lerp(o.Smoothness, saturate(smoothOverlay), mask);
+  
+  // do the normal details
+  o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);    
+  #endif
+}

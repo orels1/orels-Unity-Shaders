@@ -156,55 +156,55 @@ MonoBehaviour:
     Keywords:
     - VERTEX_BASE
     NeedsVariant: 0
-    Queue: 100
+    Queue: 0
   - Template: {fileID: -3735074904893084285, guid: 46224ac53ff644b4ab396d02e3155fe1,
       type: 3}
     Keywords:
     - SHADER_FEATURES
     NeedsVariant: 0
-    Queue: 100
+    Queue: 0
   - Template: {fileID: -796163221951580872, guid: 4b96e1386ff024c37a39f27e6ad667f6,
       type: 3}
     Keywords:
     - MESH_DATA_STRUCT
     NeedsVariant: 0
-    Queue: 100
+    Queue: 0
   - Template: {fileID: 3730235994735770938, guid: 4b96e1386ff024c37a39f27e6ad667f6,
       type: 3}
     Keywords:
     - SURFACE_DATA_STRUCT
     NeedsVariant: 0
-    Queue: 100
+    Queue: 10
   - Template: {fileID: -544282384758852595, guid: 81007e1598f664b7b91bb9baf4b1bcde,
       type: 3}
     Keywords:
     - SAMPLING_LIB
     NeedsVariant: 0
-    Queue: 100
+    Queue: 0
   - Template: {fileID: -544282384758852595, guid: d9d90fad235e24b51ab1c2cdb3db5cc0,
       type: 3}
     Keywords:
     - LIBRARY_FUNCTIONS
     NeedsVariant: 0
-    Queue: 100
+    Queue: 0
   - Template: {fileID: 61160338002701077, guid: 4b96e1386ff024c37a39f27e6ad667f6,
       type: 3}
     Keywords:
     - VERTEX_DATA_STRUCT
     NeedsVariant: 0
-    Queue: 100
+    Queue: 0
   - Template: {fileID: -7537978936044009380, guid: 4b96e1386ff024c37a39f27e6ad667f6,
       type: 3}
     Keywords:
     - FRAGMENT_DATA_STRUCT
     NeedsVariant: 0
-    Queue: 100
+    Queue: 0
   - Template: {fileID: -9184432099131695101, guid: 46224ac53ff644b4ab396d02e3155fe1,
       type: 3}
     Keywords:
     - SHADER_DEFINES
     NeedsVariant: 0
-    Queue: 100
+    Queue: 0
   Functions:
   - Name: ORLLighting
     AppendAfter: '#K#LIGHTING_FUNCTION'
@@ -223,6 +223,12 @@ MonoBehaviour:
       CustomType: 
     - Name: SAMPLER(sampler_DFG)
       Type: 999
+      CustomType: 
+    - Name: _GSAAVariance
+      Type: 4
+      CustomType: 
+    - Name: _GSAAThreshold
+      Type: 4
       CustomType: 
     VariableKeywords: []
     CodeKeywords:
