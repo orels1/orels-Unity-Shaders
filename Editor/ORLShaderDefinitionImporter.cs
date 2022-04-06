@@ -516,10 +516,10 @@ namespace ORL
         if (line.Contains("#S#")) continue;
         var prop = new ShaderProp();
         // Name
-        var nameMatch = Regex.Match(line, "(?<!\\[)([\\w\\d_]+)(?=\\(\")");
+        var nameMatch = Regex.Match(line, "(?<!\\[)([\\w\\d_\\s]+)(?=\\(\")");
         if (nameMatch.Success)
         {
-          prop.Name = nameMatch.Value;
+          prop.Name = nameMatch.Value.Trim();
         }
         // Attributes
         var attrMatches = Regex.Matches(line, "(?<=\\[)([\\w(),.\\s]+)(?=\\])");
