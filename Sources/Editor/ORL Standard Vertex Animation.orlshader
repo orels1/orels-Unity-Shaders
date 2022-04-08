@@ -1,0 +1,13 @@
+#S#Settings
+Name "orels1/Standard Vertex Animation"
+Author "orels1"
+Version "5.0.0"
+Template "ORL PBR Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"ORL Standard.orlshader"
+"Vertex Animation.orlshader"
+"self"
+"ORL PBR Module.asset"

@@ -544,7 +544,7 @@ namespace ORL
           prop.Type = typeMatch.Value.Trim();
         }
         // Default Value
-        var defaultMatch = Regex.Match(line, "(?<==)(?:\\s*)([\\w\\d\\(\\),.\"{}\\s]+)(?:\\s*)$");
+        var defaultMatch = Regex.Match(line, "(?<==)(?:\\s*)([\\w\\d\\(\\)\\-,.\"{}\\s]+)(?:\\s*)$");
         if (defaultMatch.Success)
         {
           prop.DefaultValue = defaultMatch.Value;
