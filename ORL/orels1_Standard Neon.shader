@@ -6,13 +6,13 @@ Shader "orels1/Standard Neon"
 	{
 		[ToggleUI] UI_MainHeader("# Main Settings", Int) =  0
 		_Color("Main Color", Color) =  (1, 1, 1, 1)
-		_MainTex("Albedo", 2D) = "white" {}
+		_MainTex("Albedo", 2D) =  "white" {}
 		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_MainTex] _AlbedoChannel("Albedo Channel [_MainTex]", Int) =  0
 		[Enum(UV, 0, Local Space, 1, World Space, 2)] _MappingSpace("Mapping Space", Int) =  0
 		[ToggleUI] UI_PlanarAxisSelector("!DRAWER MultiProperty _PlanarAxisX _PlanarAxisY [_MappingSpace > 0]", Int) =  0
 		[Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisX("X Axis", Int) =  0
 		[Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisY("Y Axis", Int) =  2
-		[NoScaleOffset] _MaskMap("Masks &", 2D) = "white" {}
+		[NoScaleOffset] _MaskMap("Masks &", 2D) =  "white" {}
 		[ToggleUI][_MaskMap] UI_ChannelSelector("!DRAWER MultiProperty _MetalChannel _AOChannel _DetailMaskChannel _SmoothChannel [_MaskMap]", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _MetalChannel("Metal", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _AOChannel("AO", Int) =  1
@@ -27,11 +27,11 @@ Shader "orels1/Standard Neon"
 		[HideInInspector] _SmoothnessRemap("Smoothness Remap", Vector) =  (0,1,0,1)
 		[_MaskMap] _OcclusionStrength("AO Strength [_MaskMap]", Range(0,1)) =  1
 		[ToggleUI][_MaskMap] _DetailAsTintMask("Detail as Tint Mask [_MaskMap]", Int) =  0
-		[NoScaleOffset] _BumpMap("Normal Map &&", 2D) = "bump" {}
+		[NoScaleOffset] _BumpMap("Normal Map &&", 2D) =  "bump" {}
 		_BumpScale("Normal Map Scale", Float) = 0.0
 		[ToggleUI][_BumpMap] _FlipBumpY("Flip Y (UE Mode) [_BumpMap]", Int) =  0
 		[Toggle(_EMISSION)] _EmissionEnabled("Emission", Int) =  0
-		[_EMISSION] _EmissionMap("Emission Map && [_EMISSION]", 2D) = "white" {}
+		[_EMISSION] _EmissionMap("Emission Map && [_EMISSION]", 2D) =  "white" {}
 		[HDR][_EMISSION] _EmissionColor("Emission Color [_EMISSION]", Color) =  (0,0,0,1)
 		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_EmissionMap] _EmissionChannel("Emission Channel [_EmissionMap]", Int) =  0
 		UI_NeonHeader("# Neon Light", Int) =  0
@@ -1196,6 +1196,10 @@ Shader "orels1/Standard Neon"
 				return lerp(p.x, p.y, p.z);
 			}
 			
+			half3 TransformObjectToWorld(half3 pos) {
+				return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
+			};
+			
 			// mostly taken from the Amplify shader reference
 			half2 POM(Texture2D heightMap, SamplerState heightSampler, half2 uvs, half2 dx, half2 dy, half3 normalWorld, half3 viewWorld, half3 viewDirTan, int minSamples, int maxSamples, half parallax, half refPlane, half2 tilling, half2 curv, int index, inout half finalHeight)
 			{
@@ -1728,9 +1732,55 @@ Shader "orels1/Standard Neon"
 				#endif
 				#endif
 				
-				#ifdef EDITOR_VISUALIZATION
+				#if defined(EDITOR_VISUALIZATION)
 				float2 vizUV : TEXCOORD9;
 				float4 lightCoord : TEXCOORD10;
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F0 : TEXCOORD8;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F0 : TEXCOORD12;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F0 : TEXCOORD11;
+				#else
+				float4 extraV2F0 : TEXCOORD9;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_1)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F1 : TEXCOORD9;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F1 : TEXCOORD13;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F1 : TEXCOORD14;
+				#else
+				float4 extraV2F1 : TEXCOORD15;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_2)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F2 : TEXCOORD10;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F2 : TEXCOORD14;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F2 : TEXCOORD15
+				#else
+				float4 extraV2F2 : TEXCOORD16;
+				#endif
+				#endif
+				#endif
 				#endif
 				
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -1750,6 +1800,9 @@ Shader "orels1/Standard Neon"
 				half3 worldSpaceViewDir;
 				half3 tangentSpaceViewDir;
 				float3x3 TBNMatrix;
+				float4 extraV2F0;
+				float4 extraV2F1;
+				float4 extraV2F2;
 			};
 			
 			MeshData CreateMeshData(FragmentData i) {
@@ -1769,6 +1822,16 @@ Shader "orels1/Standard Neon"
 				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
 				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
 				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				m.extraV2F0 = i.extraV2F0;
+				#endif
+				#if defined(EXTRA_V2F_1)
+				m.extraV2F1 = i.extraV2F1;
+				#endif
+				#if defined(EXTRA_V2F_2)
+				m.extraV2F2 = i.extraV2F2;
 				#endif
 				
 				return m;
@@ -3397,6 +3460,10 @@ Shader "orels1/Standard Neon"
 				return lerp(p.x, p.y, p.z);
 			}
 			
+			half3 TransformObjectToWorld(half3 pos) {
+				return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
+			};
+			
 			// mostly taken from the Amplify shader reference
 			half2 POM(Texture2D heightMap, SamplerState heightSampler, half2 uvs, half2 dx, half2 dy, half3 normalWorld, half3 viewWorld, half3 viewDirTan, int minSamples, int maxSamples, half parallax, half refPlane, half2 tilling, half2 curv, int index, inout half finalHeight)
 			{
@@ -3929,9 +3996,55 @@ Shader "orels1/Standard Neon"
 				#endif
 				#endif
 				
-				#ifdef EDITOR_VISUALIZATION
+				#if defined(EDITOR_VISUALIZATION)
 				float2 vizUV : TEXCOORD9;
 				float4 lightCoord : TEXCOORD10;
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F0 : TEXCOORD8;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F0 : TEXCOORD12;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F0 : TEXCOORD11;
+				#else
+				float4 extraV2F0 : TEXCOORD9;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_1)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F1 : TEXCOORD9;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F1 : TEXCOORD13;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F1 : TEXCOORD14;
+				#else
+				float4 extraV2F1 : TEXCOORD15;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_2)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F2 : TEXCOORD10;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F2 : TEXCOORD14;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F2 : TEXCOORD15
+				#else
+				float4 extraV2F2 : TEXCOORD16;
+				#endif
+				#endif
+				#endif
 				#endif
 				
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -3951,6 +4064,9 @@ Shader "orels1/Standard Neon"
 				half3 worldSpaceViewDir;
 				half3 tangentSpaceViewDir;
 				float3x3 TBNMatrix;
+				float4 extraV2F0;
+				float4 extraV2F1;
+				float4 extraV2F2;
 			};
 			
 			MeshData CreateMeshData(FragmentData i) {
@@ -3970,6 +4086,16 @@ Shader "orels1/Standard Neon"
 				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
 				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
 				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				m.extraV2F0 = i.extraV2F0;
+				#endif
+				#if defined(EXTRA_V2F_1)
+				m.extraV2F1 = i.extraV2F1;
+				#endif
+				#if defined(EXTRA_V2F_2)
+				m.extraV2F2 = i.extraV2F2;
 				#endif
 				
 				return m;
@@ -5599,6 +5725,10 @@ Shader "orels1/Standard Neon"
 				return lerp(p.x, p.y, p.z);
 			}
 			
+			half3 TransformObjectToWorld(half3 pos) {
+				return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
+			};
+			
 			// mostly taken from the Amplify shader reference
 			half2 POM(Texture2D heightMap, SamplerState heightSampler, half2 uvs, half2 dx, half2 dy, half3 normalWorld, half3 viewWorld, half3 viewDirTan, int minSamples, int maxSamples, half parallax, half refPlane, half2 tilling, half2 curv, int index, inout half finalHeight)
 			{
@@ -6131,9 +6261,55 @@ Shader "orels1/Standard Neon"
 				#endif
 				#endif
 				
-				#ifdef EDITOR_VISUALIZATION
+				#if defined(EDITOR_VISUALIZATION)
 				float2 vizUV : TEXCOORD9;
 				float4 lightCoord : TEXCOORD10;
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F0 : TEXCOORD8;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F0 : TEXCOORD12;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F0 : TEXCOORD11;
+				#else
+				float4 extraV2F0 : TEXCOORD9;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_1)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F1 : TEXCOORD9;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F1 : TEXCOORD13;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F1 : TEXCOORD14;
+				#else
+				float4 extraV2F1 : TEXCOORD15;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_2)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F2 : TEXCOORD10;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F2 : TEXCOORD14;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F2 : TEXCOORD15
+				#else
+				float4 extraV2F2 : TEXCOORD16;
+				#endif
+				#endif
+				#endif
 				#endif
 				
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -6153,6 +6329,9 @@ Shader "orels1/Standard Neon"
 				half3 worldSpaceViewDir;
 				half3 tangentSpaceViewDir;
 				float3x3 TBNMatrix;
+				float4 extraV2F0;
+				float4 extraV2F1;
+				float4 extraV2F2;
 			};
 			
 			MeshData CreateMeshData(FragmentData i) {
@@ -6172,6 +6351,16 @@ Shader "orels1/Standard Neon"
 				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
 				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
 				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				m.extraV2F0 = i.extraV2F0;
+				#endif
+				#if defined(EXTRA_V2F_1)
+				m.extraV2F1 = i.extraV2F1;
+				#endif
+				#if defined(EXTRA_V2F_2)
+				m.extraV2F2 = i.extraV2F2;
 				#endif
 				
 				return m;
@@ -7805,6 +7994,10 @@ Shader "orels1/Standard Neon"
 				return lerp(p.x, p.y, p.z);
 			}
 			
+			half3 TransformObjectToWorld(half3 pos) {
+				return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
+			};
+			
 			// mostly taken from the Amplify shader reference
 			half2 POM(Texture2D heightMap, SamplerState heightSampler, half2 uvs, half2 dx, half2 dy, half3 normalWorld, half3 viewWorld, half3 viewDirTan, int minSamples, int maxSamples, half parallax, half refPlane, half2 tilling, half2 curv, int index, inout half finalHeight)
 			{
@@ -8337,9 +8530,55 @@ Shader "orels1/Standard Neon"
 				#endif
 				#endif
 				
-				#ifdef EDITOR_VISUALIZATION
+				#if defined(EDITOR_VISUALIZATION)
 				float2 vizUV : TEXCOORD9;
 				float4 lightCoord : TEXCOORD10;
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F0 : TEXCOORD8;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F0 : TEXCOORD12;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F0 : TEXCOORD11;
+				#else
+				float4 extraV2F0 : TEXCOORD9;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_1)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F1 : TEXCOORD9;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F1 : TEXCOORD13;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F1 : TEXCOORD14;
+				#else
+				float4 extraV2F1 : TEXCOORD15;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_2)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F2 : TEXCOORD10;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F2 : TEXCOORD14;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F2 : TEXCOORD15
+				#else
+				float4 extraV2F2 : TEXCOORD16;
+				#endif
+				#endif
+				#endif
 				#endif
 				
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -8359,6 +8598,9 @@ Shader "orels1/Standard Neon"
 				half3 worldSpaceViewDir;
 				half3 tangentSpaceViewDir;
 				float3x3 TBNMatrix;
+				float4 extraV2F0;
+				float4 extraV2F1;
+				float4 extraV2F2;
 			};
 			
 			MeshData CreateMeshData(FragmentData i) {
@@ -8378,6 +8620,16 @@ Shader "orels1/Standard Neon"
 				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
 				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
 				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				m.extraV2F0 = i.extraV2F0;
+				#endif
+				#if defined(EXTRA_V2F_1)
+				m.extraV2F1 = i.extraV2F1;
+				#endif
+				#if defined(EXTRA_V2F_2)
+				m.extraV2F2 = i.extraV2F2;
 				#endif
 				
 				return m;
