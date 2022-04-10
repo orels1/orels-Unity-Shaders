@@ -1,0 +1,100 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94ed51d9b58df46b1a6bcd5e12ab3e38, type: 3}
+  m_Name: ORL VFX Module
+  m_EditorClassIdentifier: 
+  Id: ORL.VFX
+  Name: VFX Module
+  Version: 0.1
+  Author: orels1
+  Description: This is the base VFX module. Its an unlit, ForwardBase only module
+    with no Lighting Funtion
+  EnableProperties: []
+  Properties:
+  - Name: UI_AdvancedHeader
+    DisplayName: '# Advanced Features'
+    Type: Float
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 0}
+    Attributes:
+    - ToggleUI
+  - Name: _CullMode
+    DisplayName: Culling Mode
+    Type: Int
+    DefaultValue: 2
+    DefaultTextureAsset: {fileID: 2800000, guid: ff0962e622d174a258105d546cd2a578,
+      type: 3}
+    Attributes:
+    - Enum(UnityEngine.Rendering.CullMode)
+  - Name: _ZWrite
+    DisplayName: Depth Write
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 2800000, guid: ff0962e622d174a258105d546cd2a578,
+      type: 3}
+    Attributes:
+    - Enum(Off, 0, On, 1)
+  - Name: _ZTest
+    DisplayName: Depth Test
+    Type: Int
+    DefaultValue: 4
+    DefaultTextureAsset: {fileID: 2800000, guid: ff0962e622d174a258105d546cd2a578,
+      type: 3}
+    Attributes:
+    - Enum(UnityEngine.Rendering.CompareFunction)
+  ModuleDependencies: []
+  IncompatibleWith: []
+  Templates:
+  - Template: {fileID: -4916903605919031817, guid: 46224ac53ff644b4ab396d02e3155fe1,
+      type: 3}
+    Keywords:
+    - VERTEX_BASE
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -796163221951580872, guid: 4b96e1386ff024c37a39f27e6ad667f6,
+      type: 3}
+    Keywords:
+    - MESH_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: 3730235994735770938, guid: 4b96e1386ff024c37a39f27e6ad667f6,
+      type: 3}
+    Keywords:
+    - SURFACE_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 10
+  - Template: {fileID: -544282384758852595, guid: 81007e1598f664b7b91bb9baf4b1bcde,
+      type: 3}
+    Keywords:
+    - SAMPLING_LIB
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: 61160338002701077, guid: 4b96e1386ff024c37a39f27e6ad667f6,
+      type: 3}
+    Keywords:
+    - VERTEX_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -7537978936044009380, guid: 4b96e1386ff024c37a39f27e6ad667f6,
+      type: 3}
+    Keywords:
+    - FRAGMENT_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -9184432099131695101, guid: 46224ac53ff644b4ab396d02e3155fe1,
+      type: 3}
+    Keywords:
+    - SHADER_DEFINES
+    NeedsVariant: 0
+    Queue: 0
+  Functions: []
+  AdditionalSerializedData: 

@@ -43,9 +43,55 @@ struct FragmentData
       #endif
     #endif
 
-    #ifdef EDITOR_VISUALIZATION
+    #if defined(EDITOR_VISUALIZATION)
       float2 vizUV : TEXCOORD9;
       float4 lightCoord : TEXCOORD10;
+    #endif
+
+    #if defined(EXTRA_V2F_0)
+      #if defined(UNITY_PASS_SHADOWCASTER)
+        float4 extraV2F0 : TEXCOORD8;
+      #else
+        #if !defined(UNITY_PASS_META)
+          float4 extraV2F0 : TEXCOORD12;  
+        #else
+          #if defined(EDITOR_VISUALIZATION)
+            float4 extraV2F0 : TEXCOORD11; 
+          #else
+            float4 extraV2F0 : TEXCOORD9;
+          #endif
+        #endif
+      #endif
+    #endif
+    #if defined(EXTRA_V2F_1)
+      #if defined(UNITY_PASS_SHADOWCASTER)
+        float4 extraV2F1 : TEXCOORD9;
+      #else
+        #if !defined(UNITY_PASS_META)
+          float4 extraV2F1 : TEXCOORD13;
+        #else
+          #if defined(EDITOR_VISUALIZATION)
+            float4 extraV2F1 : TEXCOORD14; 
+          #else
+            float4 extraV2F1 : TEXCOORD15;
+          #endif
+        #endif
+      #endif
+    #endif
+    #if defined(EXTRA_V2F_2)
+      #if defined(UNITY_PASS_SHADOWCASTER)
+        float4 extraV2F2 : TEXCOORD10;
+      #else
+        #if !defined(UNITY_PASS_META)
+          float4 extraV2F2 : TEXCOORD14;
+        #else
+          #if defined(EDITOR_VISUALIZATION)
+            float4 extraV2F2 : TEXCOORD15 
+          #else
+            float4 extraV2F2 : TEXCOORD16;
+          #endif
+        #endif
+      #endif
     #endif
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -77,6 +123,9 @@ struct MeshData {
   half3 worldSpaceViewDir;
   half3 tangentSpaceViewDir;
   float3x3 TBNMatrix;
+  float4 extraV2F0;
+  float4 extraV2F1;
+  float4 extraV2F2;
 };
 
 MeshData CreateMeshData(FragmentData i) {
@@ -96,6 +145,16 @@ MeshData CreateMeshData(FragmentData i) {
   float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
   m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
   m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
+  #endif
+
+  #if defined(EXTRA_V2F_0)
+    m.extraV2F0 = i.extraV2F0;
+  #endif
+  #if defined(EXTRA_V2F_1)
+    m.extraV2F1 = i.extraV2F1;
+  #endif
+  #if defined(EXTRA_V2F_2)
+    m.extraV2F2 = i.extraV2F2;
   #endif
 
 
