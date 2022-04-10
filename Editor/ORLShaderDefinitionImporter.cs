@@ -296,6 +296,13 @@ namespace ORL
                 case "float4":
                   converted.Type = VariableType.Float4;
                   break;
+                case "custom":
+                  converted.Type = VariableType.Custom;
+                  break;
+                default:
+                  converted.Type = VariableType.Custom;
+                  converted.CustomType = variable.Type;
+                  break;
               }
             }
 
@@ -598,6 +605,7 @@ namespace ORL
         if (line.Contains("TEXTURE") || line.Contains("SAMPLER"))
         {
           variable.Name = line.Trim();
+          variable.Name = variable.Name.Replace(";", "");
           variable.Type = "custom";
           vars.Add(variable);
           continue;
