@@ -11,36 +11,36 @@ CustomEditor "Needle.MarkdownShaderGUI"
 "ORL VFX Module.asset"
 
 #T#ShaderTags
-"Queue" = "Transparent" "RenderType"="Transparent" "IgnoreProjector"="True"
+"Queue" = "Transparent" "RenderType" = "Transparent" "IgnoreProjector" = "True"
 
 #T#PassModifiers
 Blend SrcAlpha OneMinusSrcAlpha
 
 #S#Properties
-[NonModifiableTextureData][NoScaleOffset]_BakedNoiseTex("Noise Tex &", 2D) = "white" {}
-_DepthTransp("Depth Transparency", Float) = 36
-_ColorBottom("Color Bottom", Color) = (0.5680403,0.5980207,0.6509434,1)
-_ColorTop("Color Top", Color) = (0.8066038,0.9495488,1,1)
-_HeightBottom("Height Bottom", Float) = 0.12
-_HeightTop("Height Top", Float) = 1
-[Enum(Normal, 0, World Space, 1)]_ExtrusionMode("Extrusion Mode", Int) = 0
-_ExtrusionDirection("Extrusion Direction [_ExtrusionMode > 0]", Vector) = (0,1,0,1)
-[Toggle(ONLY_TOP)]_OnlyTop("Only Top [_ExtrusionMode > 0]", Int) = 0
+[NonModifiableTextureData][NoScaleOffset]_BakedNoiseTex ("Noise Tex &", 2D) = "white" { }
+_DepthTransp ("Depth Transparency", Float) = 36
+_ColorBottom ("Color Bottom", Color) = (0.5680403, 0.5980207, 0.6509434, 1)
+_ColorTop ("Color Top", Color) = (0.8066038, 0.9495488, 1, 1)
+_HeightBottom ("Height Bottom", Float) = 0.12
+_HeightTop ("Height Top", Float) = 1
+[Enum(Normal, 0, World Space, 1)]_ExtrusionMode ("Extrusion Mode", Int) = 0
+_ExtrusionDirection ("Extrusion Direction [_ExtrusionMode > 0]", Vector) = (0, 1, 0, 1)
+[Toggle(ONLY_TOP)]_OnlyTop ("Only Top [_ExtrusionMode > 0]", Int) = 0
 
-[ToggleUI]UI_Level1Header("## Level 1", Int) = 0
-_L1NoiseScale("Noise Scale", Float) = 1.7
-_L1NoiseStrength("Noise Strength", Float) = 0.67
-_L1NoiseDirection("Noise Direction", Vector) = (-23.98, 0, 24.37, 0)
+[ToggleUI]UI_Level1Header ("## Level 1", Int) = 0
+_L1NoiseScale ("Noise Scale", Float) = 1.7
+_L1NoiseStrength ("Noise Strength", Float) = 0.67
+_L1NoiseDirection ("Noise Direction", Vector) = (-23.98, 0, 24.37, 0)
 
-[ToggleUI]UI_Level2Header("## Level 2", Int) = 0
-_L2NoiseScale("Noise Scale", Float) = 3.2
-_L2NoiseStrength("Noise Strength", Float) = 0.7
-_L2NoiseDirection("Noise Direction", Vector) = (-40, 0, -10, 0)
+[ToggleUI]UI_Level2Header ("## Level 2", Int) = 0
+_L2NoiseScale ("Noise Scale", Float) = 3.2
+_L2NoiseStrength ("Noise Strength", Float) = 0.7
+_L2NoiseDirection ("Noise Direction", Vector) = (-40, 0, -10, 0)
 
-[ToggleUI]UI_Level3Header("## Level 3", Int) = 0
-_L3NoiseScale("Noise Scale", Float) = 35.51
-_L3NoiseStrength("Noise Strength", Float) = 0.1
-_L3NoiseDirection("Noise Direction", Vector) = (80, 0, 0, 0)
+[ToggleUI]UI_Level3Header ("## Level 3", Int) = 0
+_L3NoiseScale ("Noise Scale", Float) = 35.51
+_L3NoiseStrength ("Noise Strength", Float) = 0.1
+_L3NoiseDirection ("Noise Direction", Vector) = (80, 0, 0, 0)
 
 #T#ShaderFeatures
 #pragma shader_feature_local ONLY_TOP
@@ -65,9 +65,10 @@ TEXTURE2D(_BakedNoiseTex);
 SAMPLER(sampler_BakedNoiseTex);
 
 #T#VertexFunction
-void CloudsVertex() {
+void CloudsVertex()
+{
   half4 wPos = mul(unity_ObjectToWorld, vD.vertex);
-  half3 wNormal = mul(unity_ObjectToWorld, float4( vD.normal, 0.0 ) ).xyz;
+  half3 wNormal = mul(unity_ObjectToWorld, float4(vD.normal, 0.0)).xyz;
   half3 pos = wPos.xyz / 100;
   half3 exDir = _ExtrusionMode == 0 ? vD.normal.xyz : _ExtrusionDirection;
   #if ONLY_TOP
@@ -107,8 +108,9 @@ half _HeightBottom;
 half _HeightTop;
 
 #T#FragmentFunction
-void CloudsFragment() {
-  float sceneZ = LinearEyeDepth (SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(d.extraV2F0)));
+void CloudsFragment()
+{
+  float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(d.extraV2F0)));
   float depth = sceneZ - d.extraV2F0.z;
   
   depth = saturate(invLerp(0, _DepthTransp, depth));

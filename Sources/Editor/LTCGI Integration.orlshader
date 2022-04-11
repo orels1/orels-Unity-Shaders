@@ -14,8 +14,8 @@ CustomEditor "Needle.MarkdownShaderGUI"
 "LTCGI" = "Always"
 
 #S#Properties
-[ToggleUI]UI_LTCGIHeader("# LTCGI", Int) = 0
-[Toggle(INTEGRATE_LTCGI)]_IntegrateLTCGI("Integrate LTCGI", Int) = 0
+[ToggleUI]UI_LTCGIHeader ("# LTCGI", Int) = 0
+[Toggle(INTEGRATE_LTCGI)]_IntegrateLTCGI ("Integrate LTCGI", Int) = 0
 
 #T#ShaderFeatures
 #pragma multi_compile_local INTEGRATE_LTCGI
@@ -23,15 +23,16 @@ CustomEditor "Needle.MarkdownShaderGUI"
 #T#ShaderDefines
 #if !defined(PLAT_QUEST)
   #define _INTEGRATE_CUSTOMGI
-#endif 
+#endif
 
 #include "Assets/_pi_/_LTCGI/Shaders/LTCGI.cginc"
 
 #T#LibraryFunctions
-void IntegrateCustomGI(MeshData d, SurfaceData o, inout half3 indirectSpecular, inout half3 indirectDiffuse) {
+void IntegrateCustomGI(MeshData d, SurfaceData o, inout half3 indirectSpecular, inout half3 indirectDiffuse)
+{
   // this function MUST be named IntegrateCustomGI as its called from the Lighting code
   #if defined(INTEGRATE_LTCGI) && !defined(PLAT_QUEST)
-  LTCGI_Contribution(
+    LTCGI_Contribution(
       d.worldSpacePosition.xyz,
       o.Normal.xyz,
       d.worldSpaceViewDir,
@@ -39,6 +40,6 @@ void IntegrateCustomGI(MeshData d, SurfaceData o, inout half3 indirectSpecular, 
       d.uv1.xy,
       indirectDiffuse,
       indirectSpecular
-  );
+    );
   #endif
 }

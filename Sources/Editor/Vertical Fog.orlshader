@@ -11,12 +11,12 @@ CustomEditor "Needle.MarkdownShaderGUI"
 "ORL PBR Module.asset"
 
 #S#Properties
-[ToggleUI]UI_VerticalFogHeader("# Vertical Fog", Int) = 0
-_VFBottomColor("Bottom Color", Color) = (1,1,1,1)
-_VFTopColor("Top Color", Color) = (1,1,1,0)
-_VFStart("Start Height", Float) = -100
-_VFEnd("End Height", Float) = 0
-_VFGlobalTint("Tint", Color) = (1,1,1,1)
+[ToggleUI]UI_VerticalFogHeader ("# Vertical Fog", Int) = 0
+_VFBottomColor ("Bottom Color", Color) = (1, 1, 1, 1)
+_VFTopColor ("Top Color", Color) = (1, 1, 1, 0)
+_VFStart ("Start Height", Float) = -100
+_VFEnd ("End Height", Float) = 0
+_VFGlobalTint ("Tint", Color) = (1, 1, 1, 1)
 
 #S#ColorVariables
 half4 _VFBottomColor;
@@ -26,7 +26,8 @@ half _VFEnd;
 half4 _VFGlobalTint;
 
 #T#ColorFunction
-void VerticalFogColor() {
+void VerticalFogColor()
+{
   half mask = saturate(remap(d.worldSpacePosition.y, _VFStart, _VFEnd, 0, 1));
   // mask = saturate(pow(mask, 0.8));
   half4 col = lerp(_VFBottomColor, _VFTopColor, mask);

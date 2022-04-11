@@ -1,61 +1,43 @@
-Shader "orels1/Standard Layered Parallax"
+Shader "orels1/Standard Vertical Fog"
 {
 	Properties
 	{
-		[ToggleUI] UI_LPHeader("# Layered Parallax (Posters)", Float) =  0
-		[ToggleUI] UI_GeneralHeader("## General Settings", Int) =  0
-		_LPBackground("Background", 2D) =  "black" { }
-		_LPOverlay("Overlay", 2D) =  "black" { }
-		[IntRange] _LPLayerCount("Layer Count", Range(1, 5)) =  3
-		[ToggleUI] UI_LPLayer1Header("## Layer 1", Int) =  0
-		[ToggleUI] _LPLayer2UVControls("!DRAWER MultiProperty _LPLayer1UV _LPLayer1UVMode", Int) =  0
-		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _LPLayer1UV("UV Set", Int) =  0
-		[Enum(Repeat, 0, Clamped, 1)] _LPLayer1UVMode("UV Mode", Int) =  0
-		_LPLayer1("Texture", 2D) =  "white" { }
-		[HDR] _LPLayer1Color("Tint", Color) =  (1, 1, 1, 1)
-		_LPLayer1Depth("Layer Depth", Range(0, 1)) =  0.2
-		[Enum(None, 0, Float, 1, Scroll, 2)] _LPLayer1Mode("Movement Mode", Int) =  0
-		_LPLayer1Speed("Movement Speed [_LPLayer1Mode > 0]", Float) =  1
-		_LPLayer1Direction("Movement Direction [_LPLayer1Mode > 0]", Vector) =  (0, 1, 0, 0)
-		[ToggleUI] UI_LPLayer2Header("## Layer 2 [_LPLayerCount > 1]", Int) =  0
-		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _LPLayer2UV("UV Set", Int) =  0
-		[Enum(Repeat, 0, Clamped, 1)] _LPLayer2UVMode("UV Mode", Int) =  0
-		_LPLayer2("Texture [_LPLayerCount > 1]", 2D) =  "black" { }
-		[HDR] _LPLayer2Color("Tint [_LPLayerCount > 1]", Color) =  (1, 1, 1, 1)
-		_LPLayer2Depth("Layer Depth [_LPLayerCount > 1]", Range(0, 1)) =  0.2
-		[Enum(None, 0, Float, 1, Scroll, 2)] _LPLayer2Mode("Movement Mode [_LPLayerCount > 1]", Int) =  0
-		_LPLayer2Speed("Movement Speed [_LPLayer2Mode > 0 && _LPLayerCount > 1]", Float) =  1
-		_LPLayer2Direction("Movement Direction [_LPLayer2Mode > 0 && _LPLayerCount > 1]", Vector) =  (0, 1, 0, 0)
-		[ToggleUI] UI_LPLayer3Header("## Layer 3 [_LPLayerCount > 2]", Int) =  0
-		[ToggleUI] _LPLayer3UVControls("!DRAWER MultiProperty _LPLayer3UV _LPLayer3UVMode [_LPLayerCount > 2]", Int) =  0
-		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _LPLayer3UV("UV Set", Int) =  0
-		[Enum(Repeat, 0, Clamped, 1)] _LPLayer3UVMode("UV Mode", Int) =  0
-		_LPLayer3("Texture [_LPLayerCount > 2]", 2D) =  "black" { }
-		[HDR] _LPLayer3Color("Tint [_LPLayerCount > 2]", Color) =  (1, 1, 1, 1)
-		_LPLayer3Depth("Layer Depth [_LPLayerCount > 2]", Range(0, 1)) =  0.2
-		[Enum(None, 0, Float, 1, Scroll, 2)] _LPLayer3Mode("Movement Mode [_LPLayerCount > 2]", Int) =  0
-		_LPLayer3Speed("Movement Speed [_LPLayer3Mode > 0 && _LPLayerCount > 2]", Float) =  1
-		_LPLayer3Direction("Movement Direction [_LPLayer3Mode > 0 && _LPLayerCount > 2]", Vector) =  (0, 1, 0, 0)
-		[ToggleUI] UI_LPLayer4Header("## Layer 4 [_LPLayerCount > 3]", Int) =  0
-		[ToggleUI] _LPLayer4UVControls("!DRAWER MultiProperty _LPLayer4UV _LPLayer4UVMode [_LPLayerCount > 3]", Int) =  0
-		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _LPLayer4UV("UV Set", Int) =  0
-		[Enum(Repeat, 0, Clamped, 1)] _LPLayer4UVMode("UV Mode", Int) =  0
-		_LPLayer4("Texture [_LPLayerCount > 3]", 2D) =  "black" { }
-		[HDR] _LPLayer4Color("Tint [_LPLayerCount > 3]", Color) =  (1, 1, 1, 1)
-		_LPLayer4Depth("Layer Depth [_LPLayerCount > 3]", Range(0, 1)) =  0.2
-		[Enum(None, 0, Float, 1, Scroll, 2)] _LPLayer4Mode("Movement Mode [_LPLayerCount > 3]", Int) =  0
-		_LPLayer4Speed("Movement Speed [_LPLayer4Mode > 0 && _LPLayerCount > 3]", Float) =  1
-		_LPLayer4Direction("Movement Direction [_LPLayer4Mode > 0 && _LPLayerCount > 3]", Vector) =  (0, 1, 0, 0)
-		[ToggleUI] UI_LPLayer5Header("## Layer 4 [_LPLayerCount > 4]", Int) =  0
-		[ToggleUI] _LPLayer5UVControls("!DRAWER MultiProperty _LPLayer5UV _LPLayer5UVMode [_LPLayerCount > 4]", Int) =  0
-		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _LPLayer5UV("UV Set", Int) =  0
-		[Enum(Repeat, 0, Clamped, 1)] _LPLayer5UVMode("UV Mode", Int) =  0
-		_LPLayer5("Texture [_LPLayerCount > 4]", 2D) =  "black" { }
-		[HDR] _LPLayer5Color("Tint [_LPLayerCount > 4]", Color) =  (1, 1, 1, 1)
-		_LPLayer5Depth("Layer Depth [_LPLayerCount > 4]", Range(0, 1)) =  0.2
-		[Enum(None, 0, Float, 1, Scroll, 2)] _LPLayer5Mode("Movement Mode [_LPLayerCount > 4]", Int) =  0
-		_LPLayer5Speed("Movement Speed [_LPLayer5Mode > 0 && _LPLayerCount > 4]", Float) =  1
-		_LPLayer5Direction("Movement Direction [_LPLayer5Mode > 0 && _LPLayerCount > 4]", Vector) =  (0, 1, 0, 0)
+		[ToggleUI] UI_MainHeader("# Main Settings", Int) =  0
+		_Color("Main Color", Color) =  (1, 1, 1, 1)
+		_MainTex("Albedo", 2D) =  "white" { }
+		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_MainTex] _AlbedoChannel("Albedo Channel [_MainTex]", Int) =  0
+		[Enum(UV, 0, Local Space, 1, World Space, 2)] _MappingSpace("Mapping Space", Int) =  0
+		[ToggleUI] UI_PlanarAxisSelector("!DRAWER MultiProperty _PlanarAxisX _PlanarAxisY [_MappingSpace > 0]", Int) =  0
+		[Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisX("X Axis", Int) =  0
+		[Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisY("Y Axis", Int) =  2
+		[NoScaleOffset] _MaskMap("Masks &", 2D) =  "white" { }
+		[ToggleUI][_MaskMap] UI_ChannelSelector("!DRAWER MultiProperty _MetalChannel _AOChannel _DetailMaskChannel _SmoothChannel [_MaskMap]", Int) =  0
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _MetalChannel("Metal", Int) =  0
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _AOChannel("AO", Int) =  1
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _DetailMaskChannel("Detail", Int) =  2
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _SmoothChannel("Smooth", Int) =  3
+		_Smoothness("Smoothness [!_MaskMap]", Range(0, 1)) =  0.5
+		[ToggleUI][_MaskMap] _RoughnessMode("Roughness Mode [_MaskMap]", Int) =  0
+		[ToggleUI][_MaskMap] UI_SmoothnessRemap("!DRAWER MinMax _SmoothnessRemap.x _SmoothnessRemap.y [_MaskMap]", Float) =  0
+		_Metallic("Metallic [!_MaskMap]", Range(0, 1)) =  0
+		[ToggleUI][_MaskMap] UI_MetallicRemap("!DRAWER MinMax _MetallicRemap.x _MetallicRemap.y [_MaskMap]", Float) =  0
+		[HideInInspector] _MetallicRemap("Metallic Remap", Vector) =  (0, 1, 0, 1)
+		[HideInInspector] _SmoothnessRemap("Smoothness Remap", Vector) =  (0, 1, 0, 1)
+		[_MaskMap] _OcclusionStrength("AO Strength [_MaskMap]", Range(0, 1)) =  1
+		[ToggleUI][_MaskMap] _DetailAsTintMask("Detail as Tint Mask [_MaskMap]", Int) =  0
+		[NoScaleOffset] _BumpMap("Normal Map &&", 2D) =  "bump" { }
+		_BumpScale("Normal Map Scale", Float) = 0.0
+		[ToggleUI][_BumpMap] _FlipBumpY("Flip Y (UE Mode) [_BumpMap]", Int) =  0
+		[Toggle(_EMISSION)] _EmissionEnabled("Emission", Int) =  0
+		[_EMISSION] _EmissionMap("Emission Map && [_EMISSION]", 2D) =  "white" { }
+		[HDR][_EMISSION] _EmissionColor("Emission Color [_EMISSION]", Color) =  (0, 0, 0, 1)
+		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_EmissionMap] _EmissionChannel("Emission Channel [_EmissionMap]", Int) =  0
+		[ToggleUI] UI_VerticalFogHeader("# Vertical Fog", Int) =  0
+		_VFBottomColor("Bottom Color", Color) =  (1, 1, 1, 1)
+		_VFTopColor("Top Color", Color) =  (1, 1, 1, 0)
+		_VFStart("Start Height", Float) =  -100
+		_VFEnd("End Height", Float) =  0
+		_VFGlobalTint("Tint", Color) =  (1, 1, 1, 1)
 		[ToggleUI] UI_AdvancedHeader("# Advanced Features", Float) = 0
 		[Enum(UnityEngine.Rendering.CullMode)] _CullMode("Culling Mode", Int) = 2
 		[Enum(Off, 0, On, 1)] _ZWrite("Depth Write", Int) = 1
@@ -95,6 +77,8 @@ Shader "orels1/Standard Layered Parallax"
 			#pragma multi_compile_fog
 			#pragma vertex Vertex
 			#pragma fragment Fragment
+			#pragma shader_feature_local _EMISSION
+			
 			#pragma shader_feature_local BICUBIC_LIGHTMAP
 			#pragma shader_feature_local BAKED_SPECULAR
 			#pragma shader_feature_local GSAA
@@ -113,6 +97,8 @@ Shader "orels1/Standard Layered Parallax"
 			#include "AutoLight.cginc"
 			
 			#define FLT_EPSILON     1.192092896e-07
+			
+			#define _MASKMAP_SAMPLED
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
 			#define PLAT_QUEST
@@ -1856,223 +1842,105 @@ Shader "orels1/Standard Layered Parallax"
 				return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 			}
 			
-			half _LPLayer1Depth;
-			half _LPLayer1Speed;
-			half _LPLayer2Depth;
-			half _LPLayer2Speed;
-			half _LPLayer3Depth;
-			half _LPLayer3Speed;
-			half _LPLayer4Depth;
-			half _LPLayer4Speed;
-			half _LPLayer5Depth;
-			half _LPLayer5Speed;
+			half _Smoothness;
+			half _Metallic;
+			half _OcclusionStrength;
+			half _BumpScale;
+			half _VFStart;
+			half _VFEnd;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
-			half4 _LPBackground_ST;
-			half4 _LPOverlay_ST;
-			half4 _LPLayer1_ST;
-			half4 _LPLayer1Color;
-			half4 _LPLayer1Direction;
-			half4 _LPLayer2_ST;
-			half4 _LPLayer2Color;
-			half4 _LPLayer2Direction;
-			half4 _LPLayer3_ST;
-			half4 _LPLayer3Color;
-			half4 _LPLayer3Direction;
-			half4 _LPLayer4_ST;
-			half4 _LPLayer4Color;
-			half4 _LPLayer4Direction;
-			half4 _LPLayer5_ST;
-			half4 _LPLayer5Color;
-			half4 _LPLayer5Direction;
+			half2 GLOBAL_uv;
+			half4 _Color;
+			half4 _MainTex_ST;
+			half4 _MetallicRemap;
+			half4 _SmoothnessRemap;
+			half4 _MaskMap_TexelSize;
+			half4 _EmissionColor;
+			half4 GLOBAL_maskMap;
+			half4 _VFBottomColor;
+			half4 _VFTopColor;
+			half4 _VFGlobalTint;
 			float _GSAAVariance;
 			float _GSAAThreshold;
-			int _LPLayerCount;
-			int _LPLayer1UV;
-			int _LPLayer1UVMode;
-			int _LPLayer1Mode;
-			int _LPLayer2UV;
-			int _LPLayer2UVMode;
-			int _LPLayer2Mode;
-			int _LPLayer3UV;
-			int _LPLayer3UVMode;
-			int _LPLayer3Mode;
-			int _LPLayer4UV;
-			int _LPLayer4UVMode;
-			int _LPLayer4Mode;
-			int _LPLayer5UV;
-			int _LPLayer5UVMode;
-			int _LPLayer5Mode;
-			TEXTURE2D(_LPBackground);;
-			TEXTURE2D(_LPOverlay);;
-			SAMPLER(sampler_LPBackground);;
-			TEXTURE2D(_LPLayer1);;
-			TEXTURE2D(_LPLayer2);;
-			TEXTURE2D(_LPLayer3);;
-			TEXTURE2D(_LPLayer4);;
-			TEXTURE2D(_LPLayer5);;
-			SAMPLER(sampler_LPLayer1);;
+			int _AlbedoChannel;
+			int _MappingSpace;
+			int _PlanarAxisX;
+			int _PlanarAxisY;
+			int _MetalChannel;
+			int _AOChannel;
+			int _DetailMaskChannel;
+			int _SmoothChannel;
+			int _RoughnessMode;
+			int _DetailAsTintMask;
+			int _FlipBumpY;
+			int _EmissionChannel;
+			TEXTURE2D(_MainTex);;
+			SAMPLER(sampler_MainTex);;
+			TEXTURE2D(_MaskMap);;
+			SAMPLER(sampler_MaskMap);;
+			TEXTURE2D(_BumpMap);;
+			SAMPLER(sampler_BumpMap);;
+			TEXTURE2D(_EmissionMap);;
+			SAMPLER(sampler_EmissionMap);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
-			void LayeredParallaxFragment()
+			void BaseFragmentFunction()
 			{
-				half2 bgUv = d.uv0.xy * _LPBackground_ST.xy + _LPBackground_ST.zw;
-				half4 bg = SAMPLE_TEXTURE2D(_LPBackground, sampler_LPBackground, bgUv);
-				o.Albedo = bg.rgb;
-				
-				half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer1UV - 2)), saturate(_LPLayer1UV - 1)), saturate(_LPLayer1UV));
-				_LPLayer1Direction = _LPLayer1Direction / 10.0;
-				layerUv = layerUv * _LPLayer1_ST.xy + _LPLayer1_ST.zw;
-				half2 offset = ParallaxOffset(-1, _LPLayer1Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer1Mode)
+				#if !defined(_SET_GLOBAL_UVS)
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#endif
+				if (_MappingSpace > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer1Speed) * _LPLayer1Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					break;
-					case 2:
-					layerUv = lerp(layerUv % 1.0, clamp(layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					layerUv += offset;
-					layerUv += _Time.y * _LPLayer1Speed * _LPLayer1Direction.xy;
-					break;
+					GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
+					GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
 				}
-				half4 layerColor = SAMPLE_TEXTURE2D(_LPLayer1, sampler_LPLayer1, layerUv);
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer1Color, layerColor.a * _LPLayer1Color.a);
-				
-				UNITY_BRANCH
-				if (_LPLayerCount < 2)
+				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
+				if (_AlbedoChannel > 0)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer2UV - 2)), saturate(_LPLayer2UV - 1)), saturate(_LPLayer2UV));
-				_LPLayer2Direction = _LPLayer2Direction / 10.0;
-				layerUv = layerUv * _LPLayer2_ST.xy + _LPLayer2_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer2Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer2Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer2Speed) * _LPLayer2Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					layerUv += _Time.y * _LPLayer2Speed * _LPLayer2Direction.xy;
-					break;
+					albedo.rgb = albedo[_AlbedoChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer2, sampler_LPLayer1, layerUv);
-				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer2Color, layerColor.a * _LPLayer2Color.a);
-				
-				UNITY_BRANCH
-				if (_LPLayerCount < 3)
+				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
+				if (_FlipBumpY)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer3UV - 2)), saturate(_LPLayer3UV - 1)), saturate(_LPLayer3UV));
-				_LPLayer3Direction = _LPLayer3Direction / 10.0;
-				layerUv = layerUv * _LPLayer3_ST.xy + _LPLayer3_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer3Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer3Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer3Speed) * _LPLayer3Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					layerUv += _Time.y * _LPLayer3Speed * _LPLayer3Direction.xy;
-					break;
+					normalTex.y = 1 - normalTex.y;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer3, sampler_LPLayer1, layerUv);
-				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer3Color, layerColor.a * _LPLayer3Color.a);
-				
-				UNITY_BRANCH
-				if (_LPLayerCount < 4)
+				half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
+				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
+				if (_EmissionChannel > 0)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer4UV - 2)), saturate(_LPLayer4UV - 1)), saturate(_LPLayer4UV));
-				_LPLayer4Direction = _LPLayer4Direction / 10.0;
-				layerUv = layerUv * _LPLayer4_ST.xy + _LPLayer4_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer4Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer4Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer4Speed) * _LPLayer4Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					layerUv += _Time.y * _LPLayer4Speed * _LPLayer4Direction.xy;
-					break;
+					emission.rgb = emission[_EmissionChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer4, sampler_LPLayer1, layerUv);
-				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer4Color, layerColor.a * _LPLayer4Color.a);
-				
-				UNITY_BRANCH
-				if (_LPLayerCount < 4)
+				int hasMasks = _MaskMap_TexelSize.z > 8;
+				half metal = masks[_MetalChannel];
+				half smooth = masks[_SmoothChannel];
+				if (_RoughnessMode)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer5UV - 2)), saturate(_LPLayer5UV - 1)), saturate(_LPLayer5UV));
-				_LPLayer5Direction = _LPLayer5Direction / 10.0;
-				layerUv = layerUv * _LPLayer5_ST.xy + _LPLayer5_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer5Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer5Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer5Speed) * _LPLayer5Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					layerUv += _Time.y * _LPLayer5Speed * _LPLayer5Direction.xy;
-					break;
+					smooth = 1 - smooth;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer5, sampler_LPLayer1, layerUv);
-				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer5Color, layerColor.a * _LPLayer5Color.a);
-				half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-				half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-				o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+				half detailMask = masks[_DetailMaskChannel];
+				half occlusion = masks[_AOChannel];
+				metal = remap(metal, 0, 1, _MetallicRemap.x, _MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
+				GLOBAL_maskMap = half4(metal, occlusion, detailMask, smooth);
+				o.Metallic = lerp(_Metallic, metal, hasMasks);
+				o.Smoothness = lerp(_Smoothness, smooth, hasMasks);
+				o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
+				o.Normal = normal;
+				if (!_DetailAsTintMask)
+				{
+					o.Albedo = albedo.rgb * _Color.rgb;
+				}
+				else
+				{
+					o.Albedo = lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
+				}
+				o.Alpha = albedo.a * _Color.a;
+				#if defined(_EMISSION)
+				o.Emission = emission * _EmissionColor;
+				#endif
 			}
 			
 			void ORLLighting()
@@ -2309,6 +2177,14 @@ Shader "orels1/Standard Layered Parallax"
 				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
 				
 				FinalColor.rgb += o.Emission;
+			}
+			
+			void VerticalFogColor()
+			{
+				half mask = saturate(remap(d.worldSpacePosition.y, _VFStart, _VFEnd, 0, 1));
+				half4 col = lerp(_VFBottomColor, _VFTopColor, mask);
+				FinalColor *= _VFGlobalTint;
+				FinalColor.rgb = lerp(FinalColor.rgb, col.rgb, col.a);
 			}
 			
 			// ForwardBase Vertex
@@ -2411,9 +2287,11 @@ Shader "orels1/Standard Layered Parallax"
 				o.Alpha = 1;
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
-				LayeredParallaxFragment();
+				BaseFragmentFunction();
 				
 				ORLLighting();
+				
+				VerticalFogColor();
 				
 				UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
 				
@@ -2453,6 +2331,8 @@ Shader "orels1/Standard Layered Parallax"
 			#include "AutoLight.cginc"
 			
 			#define FLT_EPSILON     1.192092896e-07
+			
+			#define _MASKMAP_SAMPLED
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
 			#define PLAT_QUEST
@@ -4196,223 +4076,105 @@ Shader "orels1/Standard Layered Parallax"
 				return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 			}
 			
-			half _LPLayer1Depth;
-			half _LPLayer1Speed;
-			half _LPLayer2Depth;
-			half _LPLayer2Speed;
-			half _LPLayer3Depth;
-			half _LPLayer3Speed;
-			half _LPLayer4Depth;
-			half _LPLayer4Speed;
-			half _LPLayer5Depth;
-			half _LPLayer5Speed;
+			half _Smoothness;
+			half _Metallic;
+			half _OcclusionStrength;
+			half _BumpScale;
+			half _VFStart;
+			half _VFEnd;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
-			half4 _LPBackground_ST;
-			half4 _LPOverlay_ST;
-			half4 _LPLayer1_ST;
-			half4 _LPLayer1Color;
-			half4 _LPLayer1Direction;
-			half4 _LPLayer2_ST;
-			half4 _LPLayer2Color;
-			half4 _LPLayer2Direction;
-			half4 _LPLayer3_ST;
-			half4 _LPLayer3Color;
-			half4 _LPLayer3Direction;
-			half4 _LPLayer4_ST;
-			half4 _LPLayer4Color;
-			half4 _LPLayer4Direction;
-			half4 _LPLayer5_ST;
-			half4 _LPLayer5Color;
-			half4 _LPLayer5Direction;
+			half2 GLOBAL_uv;
+			half4 _Color;
+			half4 _MainTex_ST;
+			half4 _MetallicRemap;
+			half4 _SmoothnessRemap;
+			half4 _MaskMap_TexelSize;
+			half4 _EmissionColor;
+			half4 GLOBAL_maskMap;
+			half4 _VFBottomColor;
+			half4 _VFTopColor;
+			half4 _VFGlobalTint;
 			float _GSAAVariance;
 			float _GSAAThreshold;
-			int _LPLayerCount;
-			int _LPLayer1UV;
-			int _LPLayer1UVMode;
-			int _LPLayer1Mode;
-			int _LPLayer2UV;
-			int _LPLayer2UVMode;
-			int _LPLayer2Mode;
-			int _LPLayer3UV;
-			int _LPLayer3UVMode;
-			int _LPLayer3Mode;
-			int _LPLayer4UV;
-			int _LPLayer4UVMode;
-			int _LPLayer4Mode;
-			int _LPLayer5UV;
-			int _LPLayer5UVMode;
-			int _LPLayer5Mode;
-			TEXTURE2D(_LPBackground);;
-			TEXTURE2D(_LPOverlay);;
-			SAMPLER(sampler_LPBackground);;
-			TEXTURE2D(_LPLayer1);;
-			TEXTURE2D(_LPLayer2);;
-			TEXTURE2D(_LPLayer3);;
-			TEXTURE2D(_LPLayer4);;
-			TEXTURE2D(_LPLayer5);;
-			SAMPLER(sampler_LPLayer1);;
+			int _AlbedoChannel;
+			int _MappingSpace;
+			int _PlanarAxisX;
+			int _PlanarAxisY;
+			int _MetalChannel;
+			int _AOChannel;
+			int _DetailMaskChannel;
+			int _SmoothChannel;
+			int _RoughnessMode;
+			int _DetailAsTintMask;
+			int _FlipBumpY;
+			int _EmissionChannel;
+			TEXTURE2D(_MainTex);;
+			SAMPLER(sampler_MainTex);;
+			TEXTURE2D(_MaskMap);;
+			SAMPLER(sampler_MaskMap);;
+			TEXTURE2D(_BumpMap);;
+			SAMPLER(sampler_BumpMap);;
+			TEXTURE2D(_EmissionMap);;
+			SAMPLER(sampler_EmissionMap);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
-			void LayeredParallaxFragment()
+			void BaseFragmentFunction()
 			{
-				half2 bgUv = d.uv0.xy * _LPBackground_ST.xy + _LPBackground_ST.zw;
-				half4 bg = SAMPLE_TEXTURE2D(_LPBackground, sampler_LPBackground, bgUv);
-				o.Albedo = bg.rgb;
-				
-				half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer1UV - 2)), saturate(_LPLayer1UV - 1)), saturate(_LPLayer1UV));
-				_LPLayer1Direction = _LPLayer1Direction / 10.0;
-				layerUv = layerUv * _LPLayer1_ST.xy + _LPLayer1_ST.zw;
-				half2 offset = ParallaxOffset(-1, _LPLayer1Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer1Mode)
+				#if !defined(_SET_GLOBAL_UVS)
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#endif
+				if (_MappingSpace > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer1Speed) * _LPLayer1Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					break;
-					case 2:
-					layerUv = lerp(layerUv % 1.0, clamp(layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					layerUv += offset;
-					layerUv += _Time.y * _LPLayer1Speed * _LPLayer1Direction.xy;
-					break;
+					GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
+					GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
 				}
-				half4 layerColor = SAMPLE_TEXTURE2D(_LPLayer1, sampler_LPLayer1, layerUv);
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer1Color, layerColor.a * _LPLayer1Color.a);
-				
-				UNITY_BRANCH
-				if (_LPLayerCount < 2)
+				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
+				if (_AlbedoChannel > 0)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer2UV - 2)), saturate(_LPLayer2UV - 1)), saturate(_LPLayer2UV));
-				_LPLayer2Direction = _LPLayer2Direction / 10.0;
-				layerUv = layerUv * _LPLayer2_ST.xy + _LPLayer2_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer2Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer2Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer2Speed) * _LPLayer2Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					layerUv += _Time.y * _LPLayer2Speed * _LPLayer2Direction.xy;
-					break;
+					albedo.rgb = albedo[_AlbedoChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer2, sampler_LPLayer1, layerUv);
-				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer2Color, layerColor.a * _LPLayer2Color.a);
-				
-				UNITY_BRANCH
-				if (_LPLayerCount < 3)
+				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
+				if (_FlipBumpY)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer3UV - 2)), saturate(_LPLayer3UV - 1)), saturate(_LPLayer3UV));
-				_LPLayer3Direction = _LPLayer3Direction / 10.0;
-				layerUv = layerUv * _LPLayer3_ST.xy + _LPLayer3_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer3Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer3Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer3Speed) * _LPLayer3Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					layerUv += _Time.y * _LPLayer3Speed * _LPLayer3Direction.xy;
-					break;
+					normalTex.y = 1 - normalTex.y;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer3, sampler_LPLayer1, layerUv);
-				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer3Color, layerColor.a * _LPLayer3Color.a);
-				
-				UNITY_BRANCH
-				if (_LPLayerCount < 4)
+				half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
+				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
+				if (_EmissionChannel > 0)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer4UV - 2)), saturate(_LPLayer4UV - 1)), saturate(_LPLayer4UV));
-				_LPLayer4Direction = _LPLayer4Direction / 10.0;
-				layerUv = layerUv * _LPLayer4_ST.xy + _LPLayer4_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer4Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer4Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer4Speed) * _LPLayer4Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					layerUv += _Time.y * _LPLayer4Speed * _LPLayer4Direction.xy;
-					break;
+					emission.rgb = emission[_EmissionChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer4, sampler_LPLayer1, layerUv);
-				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer4Color, layerColor.a * _LPLayer4Color.a);
-				
-				UNITY_BRANCH
-				if (_LPLayerCount < 4)
+				int hasMasks = _MaskMap_TexelSize.z > 8;
+				half metal = masks[_MetalChannel];
+				half smooth = masks[_SmoothChannel];
+				if (_RoughnessMode)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer5UV - 2)), saturate(_LPLayer5UV - 1)), saturate(_LPLayer5UV));
-				_LPLayer5Direction = _LPLayer5Direction / 10.0;
-				layerUv = layerUv * _LPLayer5_ST.xy + _LPLayer5_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer5Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer5Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer5Speed) * _LPLayer5Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					layerUv += _Time.y * _LPLayer5Speed * _LPLayer5Direction.xy;
-					break;
+					smooth = 1 - smooth;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer5, sampler_LPLayer1, layerUv);
-				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer5Color, layerColor.a * _LPLayer5Color.a);
-				half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-				half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-				o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+				half detailMask = masks[_DetailMaskChannel];
+				half occlusion = masks[_AOChannel];
+				metal = remap(metal, 0, 1, _MetallicRemap.x, _MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
+				GLOBAL_maskMap = half4(metal, occlusion, detailMask, smooth);
+				o.Metallic = lerp(_Metallic, metal, hasMasks);
+				o.Smoothness = lerp(_Smoothness, smooth, hasMasks);
+				o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
+				o.Normal = normal;
+				if (!_DetailAsTintMask)
+				{
+					o.Albedo = albedo.rgb * _Color.rgb;
+				}
+				else
+				{
+					o.Albedo = lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
+				}
+				o.Alpha = albedo.a * _Color.a;
+				#if defined(_EMISSION)
+				o.Emission = emission * _EmissionColor;
+				#endif
 			}
 			
 			void ORLLighting()
@@ -4649,6 +4411,14 @@ Shader "orels1/Standard Layered Parallax"
 				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
 				
 				FinalColor.rgb += o.Emission;
+			}
+			
+			void VerticalFogColor()
+			{
+				half mask = saturate(remap(d.worldSpacePosition.y, _VFStart, _VFEnd, 0, 1));
+				half4 col = lerp(_VFBottomColor, _VFTopColor, mask);
+				FinalColor *= _VFGlobalTint;
+				FinalColor.rgb = lerp(FinalColor.rgb, col.rgb, col.a);
 			}
 			
 			// ForwardAdd Vertex
@@ -4751,9 +4521,11 @@ Shader "orels1/Standard Layered Parallax"
 				o.Alpha = 1;
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
-				LayeredParallaxFragment();
+				BaseFragmentFunction();
 				
 				ORLLighting();
+				
+				VerticalFogColor();
 				
 				UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
 				
@@ -4794,6 +4566,8 @@ Shader "orels1/Standard Layered Parallax"
 			#include "UnityMetaPass.cginc"
 			
 			#define FLT_EPSILON     1.192092896e-07
+			
+			#define _MASKMAP_SAMPLED
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
 			#define PLAT_QUEST
@@ -6537,223 +6311,105 @@ Shader "orels1/Standard Layered Parallax"
 				return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 			}
 			
-			half _LPLayer1Depth;
-			half _LPLayer1Speed;
-			half _LPLayer2Depth;
-			half _LPLayer2Speed;
-			half _LPLayer3Depth;
-			half _LPLayer3Speed;
-			half _LPLayer4Depth;
-			half _LPLayer4Speed;
-			half _LPLayer5Depth;
-			half _LPLayer5Speed;
+			half _Smoothness;
+			half _Metallic;
+			half _OcclusionStrength;
+			half _BumpScale;
+			half _VFStart;
+			half _VFEnd;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
-			half4 _LPBackground_ST;
-			half4 _LPOverlay_ST;
-			half4 _LPLayer1_ST;
-			half4 _LPLayer1Color;
-			half4 _LPLayer1Direction;
-			half4 _LPLayer2_ST;
-			half4 _LPLayer2Color;
-			half4 _LPLayer2Direction;
-			half4 _LPLayer3_ST;
-			half4 _LPLayer3Color;
-			half4 _LPLayer3Direction;
-			half4 _LPLayer4_ST;
-			half4 _LPLayer4Color;
-			half4 _LPLayer4Direction;
-			half4 _LPLayer5_ST;
-			half4 _LPLayer5Color;
-			half4 _LPLayer5Direction;
+			half2 GLOBAL_uv;
+			half4 _Color;
+			half4 _MainTex_ST;
+			half4 _MetallicRemap;
+			half4 _SmoothnessRemap;
+			half4 _MaskMap_TexelSize;
+			half4 _EmissionColor;
+			half4 GLOBAL_maskMap;
+			half4 _VFBottomColor;
+			half4 _VFTopColor;
+			half4 _VFGlobalTint;
 			float _GSAAVariance;
 			float _GSAAThreshold;
-			int _LPLayerCount;
-			int _LPLayer1UV;
-			int _LPLayer1UVMode;
-			int _LPLayer1Mode;
-			int _LPLayer2UV;
-			int _LPLayer2UVMode;
-			int _LPLayer2Mode;
-			int _LPLayer3UV;
-			int _LPLayer3UVMode;
-			int _LPLayer3Mode;
-			int _LPLayer4UV;
-			int _LPLayer4UVMode;
-			int _LPLayer4Mode;
-			int _LPLayer5UV;
-			int _LPLayer5UVMode;
-			int _LPLayer5Mode;
-			TEXTURE2D(_LPBackground);;
-			TEXTURE2D(_LPOverlay);;
-			SAMPLER(sampler_LPBackground);;
-			TEXTURE2D(_LPLayer1);;
-			TEXTURE2D(_LPLayer2);;
-			TEXTURE2D(_LPLayer3);;
-			TEXTURE2D(_LPLayer4);;
-			TEXTURE2D(_LPLayer5);;
-			SAMPLER(sampler_LPLayer1);;
+			int _AlbedoChannel;
+			int _MappingSpace;
+			int _PlanarAxisX;
+			int _PlanarAxisY;
+			int _MetalChannel;
+			int _AOChannel;
+			int _DetailMaskChannel;
+			int _SmoothChannel;
+			int _RoughnessMode;
+			int _DetailAsTintMask;
+			int _FlipBumpY;
+			int _EmissionChannel;
+			TEXTURE2D(_MainTex);;
+			SAMPLER(sampler_MainTex);;
+			TEXTURE2D(_MaskMap);;
+			SAMPLER(sampler_MaskMap);;
+			TEXTURE2D(_BumpMap);;
+			SAMPLER(sampler_BumpMap);;
+			TEXTURE2D(_EmissionMap);;
+			SAMPLER(sampler_EmissionMap);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
-			void LayeredParallaxFragment()
+			void BaseFragmentFunction()
 			{
-				half2 bgUv = d.uv0.xy * _LPBackground_ST.xy + _LPBackground_ST.zw;
-				half4 bg = SAMPLE_TEXTURE2D(_LPBackground, sampler_LPBackground, bgUv);
-				o.Albedo = bg.rgb;
-				
-				half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer1UV - 2)), saturate(_LPLayer1UV - 1)), saturate(_LPLayer1UV));
-				_LPLayer1Direction = _LPLayer1Direction / 10.0;
-				layerUv = layerUv * _LPLayer1_ST.xy + _LPLayer1_ST.zw;
-				half2 offset = ParallaxOffset(-1, _LPLayer1Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer1Mode)
+				#if !defined(_SET_GLOBAL_UVS)
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#endif
+				if (_MappingSpace > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer1Speed) * _LPLayer1Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					break;
-					case 2:
-					layerUv = lerp(layerUv % 1.0, clamp(layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					layerUv += offset;
-					layerUv += _Time.y * _LPLayer1Speed * _LPLayer1Direction.xy;
-					break;
+					GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
+					GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
 				}
-				half4 layerColor = SAMPLE_TEXTURE2D(_LPLayer1, sampler_LPLayer1, layerUv);
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer1Color, layerColor.a * _LPLayer1Color.a);
-				
-				UNITY_BRANCH
-				if (_LPLayerCount < 2)
+				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
+				if (_AlbedoChannel > 0)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer2UV - 2)), saturate(_LPLayer2UV - 1)), saturate(_LPLayer2UV));
-				_LPLayer2Direction = _LPLayer2Direction / 10.0;
-				layerUv = layerUv * _LPLayer2_ST.xy + _LPLayer2_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer2Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer2Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer2Speed) * _LPLayer2Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					layerUv += _Time.y * _LPLayer2Speed * _LPLayer2Direction.xy;
-					break;
+					albedo.rgb = albedo[_AlbedoChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer2, sampler_LPLayer1, layerUv);
-				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer2Color, layerColor.a * _LPLayer2Color.a);
-				
-				UNITY_BRANCH
-				if (_LPLayerCount < 3)
+				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
+				if (_FlipBumpY)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer3UV - 2)), saturate(_LPLayer3UV - 1)), saturate(_LPLayer3UV));
-				_LPLayer3Direction = _LPLayer3Direction / 10.0;
-				layerUv = layerUv * _LPLayer3_ST.xy + _LPLayer3_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer3Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer3Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer3Speed) * _LPLayer3Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					layerUv += _Time.y * _LPLayer3Speed * _LPLayer3Direction.xy;
-					break;
+					normalTex.y = 1 - normalTex.y;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer3, sampler_LPLayer1, layerUv);
-				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer3Color, layerColor.a * _LPLayer3Color.a);
-				
-				UNITY_BRANCH
-				if (_LPLayerCount < 4)
+				half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
+				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
+				if (_EmissionChannel > 0)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer4UV - 2)), saturate(_LPLayer4UV - 1)), saturate(_LPLayer4UV));
-				_LPLayer4Direction = _LPLayer4Direction / 10.0;
-				layerUv = layerUv * _LPLayer4_ST.xy + _LPLayer4_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer4Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer4Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer4Speed) * _LPLayer4Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					layerUv += _Time.y * _LPLayer4Speed * _LPLayer4Direction.xy;
-					break;
+					emission.rgb = emission[_EmissionChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer4, sampler_LPLayer1, layerUv);
-				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer4Color, layerColor.a * _LPLayer4Color.a);
-				
-				UNITY_BRANCH
-				if (_LPLayerCount < 4)
+				int hasMasks = _MaskMap_TexelSize.z > 8;
+				half metal = masks[_MetalChannel];
+				half smooth = masks[_SmoothChannel];
+				if (_RoughnessMode)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer5UV - 2)), saturate(_LPLayer5UV - 1)), saturate(_LPLayer5UV));
-				_LPLayer5Direction = _LPLayer5Direction / 10.0;
-				layerUv = layerUv * _LPLayer5_ST.xy + _LPLayer5_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer5Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer5Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer5Speed) * _LPLayer5Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					layerUv += _Time.y * _LPLayer5Speed * _LPLayer5Direction.xy;
-					break;
+					smooth = 1 - smooth;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer5, sampler_LPLayer1, layerUv);
-				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer5Color, layerColor.a * _LPLayer5Color.a);
-				half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-				half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-				o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+				half detailMask = masks[_DetailMaskChannel];
+				half occlusion = masks[_AOChannel];
+				metal = remap(metal, 0, 1, _MetallicRemap.x, _MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
+				GLOBAL_maskMap = half4(metal, occlusion, detailMask, smooth);
+				o.Metallic = lerp(_Metallic, metal, hasMasks);
+				o.Smoothness = lerp(_Smoothness, smooth, hasMasks);
+				o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
+				o.Normal = normal;
+				if (!_DetailAsTintMask)
+				{
+					o.Albedo = albedo.rgb * _Color.rgb;
+				}
+				else
+				{
+					o.Albedo = lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
+				}
+				o.Alpha = albedo.a * _Color.a;
+				#if defined(_EMISSION)
+				o.Emission = emission * _EmissionColor;
+				#endif
 			}
 			
 			void ORLLighting()
@@ -6992,6 +6648,14 @@ Shader "orels1/Standard Layered Parallax"
 				FinalColor.rgb += o.Emission;
 			}
 			
+			void VerticalFogColor()
+			{
+				half mask = saturate(remap(d.worldSpacePosition.y, _VFStart, _VFEnd, 0, 1));
+				half4 col = lerp(_VFBottomColor, _VFTopColor, mask);
+				FinalColor *= _VFGlobalTint;
+				FinalColor.rgb = lerp(FinalColor.rgb, col.rgb, col.a);
+			}
+			
 			// Meta Vertex
 			FragmentData Vertex(VertexData v)
 			{
@@ -7084,12 +6748,13 @@ Shader "orels1/Standard Layered Parallax"
 				o.Occlusion = 1;
 				o.Alpha = 1;
 				
-				LayeredParallaxFragment();
+				BaseFragmentFunction();
 				
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
 				UnityMetaInput metaIN;
 				UNITY_INITIALIZE_OUTPUT(UnityMetaInput, metaIN);
+				VerticalFogColor();
 				
 				metaIN.Albedo = FinalColor;
 				metaIN.Emission = o.Emission;
@@ -7119,6 +6784,8 @@ Shader "orels1/Standard Layered Parallax"
 			#pragma multi_compile_shadowcaster
 			#pragma vertex Vertex
 			#pragma fragment Fragment
+			#pragma shader_feature_local _EMISSION
+			
 			#pragma shader_feature_local BICUBIC_LIGHTMAP
 			#pragma shader_feature_local BAKED_SPECULAR
 			#pragma shader_feature_local GSAA
@@ -7137,6 +6804,8 @@ Shader "orels1/Standard Layered Parallax"
 			#include "UnityPBSLighting.cginc"
 			
 			#define FLT_EPSILON     1.192092896e-07
+			
+			#define _MASKMAP_SAMPLED
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
 			#define PLAT_QUEST
@@ -8878,62 +8547,47 @@ Shader "orels1/Standard Layered Parallax"
 				return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 			}
 			
-			half _LPLayer1Depth;
-			half _LPLayer1Speed;
-			half _LPLayer2Depth;
-			half _LPLayer2Speed;
-			half _LPLayer3Depth;
-			half _LPLayer3Speed;
-			half _LPLayer4Depth;
-			half _LPLayer4Speed;
-			half _LPLayer5Depth;
-			half _LPLayer5Speed;
+			half _Smoothness;
+			half _Metallic;
+			half _OcclusionStrength;
+			half _BumpScale;
+			half _VFStart;
+			half _VFEnd;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
-			half4 _LPBackground_ST;
-			half4 _LPOverlay_ST;
-			half4 _LPLayer1_ST;
-			half4 _LPLayer1Color;
-			half4 _LPLayer1Direction;
-			half4 _LPLayer2_ST;
-			half4 _LPLayer2Color;
-			half4 _LPLayer2Direction;
-			half4 _LPLayer3_ST;
-			half4 _LPLayer3Color;
-			half4 _LPLayer3Direction;
-			half4 _LPLayer4_ST;
-			half4 _LPLayer4Color;
-			half4 _LPLayer4Direction;
-			half4 _LPLayer5_ST;
-			half4 _LPLayer5Color;
-			half4 _LPLayer5Direction;
+			half2 GLOBAL_uv;
+			half4 _Color;
+			half4 _MainTex_ST;
+			half4 _MetallicRemap;
+			half4 _SmoothnessRemap;
+			half4 _MaskMap_TexelSize;
+			half4 _EmissionColor;
+			half4 GLOBAL_maskMap;
+			half4 _VFBottomColor;
+			half4 _VFTopColor;
+			half4 _VFGlobalTint;
 			float _GSAAVariance;
 			float _GSAAThreshold;
-			int _LPLayerCount;
-			int _LPLayer1UV;
-			int _LPLayer1UVMode;
-			int _LPLayer1Mode;
-			int _LPLayer2UV;
-			int _LPLayer2UVMode;
-			int _LPLayer2Mode;
-			int _LPLayer3UV;
-			int _LPLayer3UVMode;
-			int _LPLayer3Mode;
-			int _LPLayer4UV;
-			int _LPLayer4UVMode;
-			int _LPLayer4Mode;
-			int _LPLayer5UV;
-			int _LPLayer5UVMode;
-			int _LPLayer5Mode;
-			TEXTURE2D(_LPBackground);;
-			TEXTURE2D(_LPOverlay);;
-			SAMPLER(sampler_LPBackground);;
-			TEXTURE2D(_LPLayer1);;
-			TEXTURE2D(_LPLayer2);;
-			TEXTURE2D(_LPLayer3);;
-			TEXTURE2D(_LPLayer4);;
-			TEXTURE2D(_LPLayer5);;
-			SAMPLER(sampler_LPLayer1);;
+			int _AlbedoChannel;
+			int _MappingSpace;
+			int _PlanarAxisX;
+			int _PlanarAxisY;
+			int _MetalChannel;
+			int _AOChannel;
+			int _DetailMaskChannel;
+			int _SmoothChannel;
+			int _RoughnessMode;
+			int _DetailAsTintMask;
+			int _FlipBumpY;
+			int _EmissionChannel;
+			TEXTURE2D(_MainTex);;
+			SAMPLER(sampler_MainTex);;
+			TEXTURE2D(_MaskMap);;
+			SAMPLER(sampler_MaskMap);;
+			TEXTURE2D(_BumpMap);;
+			SAMPLER(sampler_BumpMap);;
+			TEXTURE2D(_EmissionMap);;
+			SAMPLER(sampler_EmissionMap);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			

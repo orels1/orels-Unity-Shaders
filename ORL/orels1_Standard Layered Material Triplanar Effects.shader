@@ -1,61 +1,125 @@
-Shader "orels1/Standard Layered Parallax"
+Shader "orels1/Standard Layered Material Triplanar Effects"
 {
 	Properties
 	{
-		[ToggleUI] UI_LPHeader("# Layered Parallax (Posters)", Float) =  0
-		[ToggleUI] UI_GeneralHeader("## General Settings", Int) =  0
-		_LPBackground("Background", 2D) =  "black" { }
-		_LPOverlay("Overlay", 2D) =  "black" { }
-		[IntRange] _LPLayerCount("Layer Count", Range(1, 5)) =  3
-		[ToggleUI] UI_LPLayer1Header("## Layer 1", Int) =  0
-		[ToggleUI] _LPLayer2UVControls("!DRAWER MultiProperty _LPLayer1UV _LPLayer1UVMode", Int) =  0
-		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _LPLayer1UV("UV Set", Int) =  0
-		[Enum(Repeat, 0, Clamped, 1)] _LPLayer1UVMode("UV Mode", Int) =  0
-		_LPLayer1("Texture", 2D) =  "white" { }
-		[HDR] _LPLayer1Color("Tint", Color) =  (1, 1, 1, 1)
-		_LPLayer1Depth("Layer Depth", Range(0, 1)) =  0.2
-		[Enum(None, 0, Float, 1, Scroll, 2)] _LPLayer1Mode("Movement Mode", Int) =  0
-		_LPLayer1Speed("Movement Speed [_LPLayer1Mode > 0]", Float) =  1
-		_LPLayer1Direction("Movement Direction [_LPLayer1Mode > 0]", Vector) =  (0, 1, 0, 0)
-		[ToggleUI] UI_LPLayer2Header("## Layer 2 [_LPLayerCount > 1]", Int) =  0
-		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _LPLayer2UV("UV Set", Int) =  0
-		[Enum(Repeat, 0, Clamped, 1)] _LPLayer2UVMode("UV Mode", Int) =  0
-		_LPLayer2("Texture [_LPLayerCount > 1]", 2D) =  "black" { }
-		[HDR] _LPLayer2Color("Tint [_LPLayerCount > 1]", Color) =  (1, 1, 1, 1)
-		_LPLayer2Depth("Layer Depth [_LPLayerCount > 1]", Range(0, 1)) =  0.2
-		[Enum(None, 0, Float, 1, Scroll, 2)] _LPLayer2Mode("Movement Mode [_LPLayerCount > 1]", Int) =  0
-		_LPLayer2Speed("Movement Speed [_LPLayer2Mode > 0 && _LPLayerCount > 1]", Float) =  1
-		_LPLayer2Direction("Movement Direction [_LPLayer2Mode > 0 && _LPLayerCount > 1]", Vector) =  (0, 1, 0, 0)
-		[ToggleUI] UI_LPLayer3Header("## Layer 3 [_LPLayerCount > 2]", Int) =  0
-		[ToggleUI] _LPLayer3UVControls("!DRAWER MultiProperty _LPLayer3UV _LPLayer3UVMode [_LPLayerCount > 2]", Int) =  0
-		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _LPLayer3UV("UV Set", Int) =  0
-		[Enum(Repeat, 0, Clamped, 1)] _LPLayer3UVMode("UV Mode", Int) =  0
-		_LPLayer3("Texture [_LPLayerCount > 2]", 2D) =  "black" { }
-		[HDR] _LPLayer3Color("Tint [_LPLayerCount > 2]", Color) =  (1, 1, 1, 1)
-		_LPLayer3Depth("Layer Depth [_LPLayerCount > 2]", Range(0, 1)) =  0.2
-		[Enum(None, 0, Float, 1, Scroll, 2)] _LPLayer3Mode("Movement Mode [_LPLayerCount > 2]", Int) =  0
-		_LPLayer3Speed("Movement Speed [_LPLayer3Mode > 0 && _LPLayerCount > 2]", Float) =  1
-		_LPLayer3Direction("Movement Direction [_LPLayer3Mode > 0 && _LPLayerCount > 2]", Vector) =  (0, 1, 0, 0)
-		[ToggleUI] UI_LPLayer4Header("## Layer 4 [_LPLayerCount > 3]", Int) =  0
-		[ToggleUI] _LPLayer4UVControls("!DRAWER MultiProperty _LPLayer4UV _LPLayer4UVMode [_LPLayerCount > 3]", Int) =  0
-		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _LPLayer4UV("UV Set", Int) =  0
-		[Enum(Repeat, 0, Clamped, 1)] _LPLayer4UVMode("UV Mode", Int) =  0
-		_LPLayer4("Texture [_LPLayerCount > 3]", 2D) =  "black" { }
-		[HDR] _LPLayer4Color("Tint [_LPLayerCount > 3]", Color) =  (1, 1, 1, 1)
-		_LPLayer4Depth("Layer Depth [_LPLayerCount > 3]", Range(0, 1)) =  0.2
-		[Enum(None, 0, Float, 1, Scroll, 2)] _LPLayer4Mode("Movement Mode [_LPLayerCount > 3]", Int) =  0
-		_LPLayer4Speed("Movement Speed [_LPLayer4Mode > 0 && _LPLayerCount > 3]", Float) =  1
-		_LPLayer4Direction("Movement Direction [_LPLayer4Mode > 0 && _LPLayerCount > 3]", Vector) =  (0, 1, 0, 0)
-		[ToggleUI] UI_LPLayer5Header("## Layer 4 [_LPLayerCount > 4]", Int) =  0
-		[ToggleUI] _LPLayer5UVControls("!DRAWER MultiProperty _LPLayer5UV _LPLayer5UVMode [_LPLayerCount > 4]", Int) =  0
-		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _LPLayer5UV("UV Set", Int) =  0
-		[Enum(Repeat, 0, Clamped, 1)] _LPLayer5UVMode("UV Mode", Int) =  0
-		_LPLayer5("Texture [_LPLayerCount > 4]", 2D) =  "black" { }
-		[HDR] _LPLayer5Color("Tint [_LPLayerCount > 4]", Color) =  (1, 1, 1, 1)
-		_LPLayer5Depth("Layer Depth [_LPLayerCount > 4]", Range(0, 1)) =  0.2
-		[Enum(None, 0, Float, 1, Scroll, 2)] _LPLayer5Mode("Movement Mode [_LPLayerCount > 4]", Int) =  0
-		_LPLayer5Speed("Movement Speed [_LPLayer5Mode > 0 && _LPLayerCount > 4]", Float) =  1
-		_LPLayer5Direction("Movement Direction [_LPLayer5Mode > 0 && _LPLayerCount > 4]", Vector) =  (0, 1, 0, 0)
+		[ToggleUI] UI_LayeredMatHeader("# Layers", Int) =  0
+		[ToggleUI] UI_LayeredMatLayersCount("!REF _LayeredMatLayersCount", Int) =  0
+		[IntRange] _LayeredMatLayersCount("Layer Count", Range(1, 4)) =  2
+		[Toggle(_VERTEX_DEBUGGING)] _LMVertexColorDebugging("Vertex Color Debugging", Int) =  0
+		[ToggleUI] UI_LMLayer1Header("## Layer 1", Int) =  0
+		[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)] _LMLayer1VertexColor("Vertex Color Mask", Int) =  0
+		_LMLayer1Color("Main Color", Color) =  (1, 1, 1, 1)
+		_LMLayer1MainTex("Albedo", 2D) =  "white" { }
+		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_LMLayer1MainTex] _LMLayer1AlbedoChannel("Albedo Channel [_LMLayer1MainTex]", Int) =  0
+		[NoScaleOffset] _LMLayer1MaskMap("Masks &", 2D) =  "white" { }
+		[ToggleUI][_LMLayer1MaskMap] UI_LMLayer1ChannelSelector("!DRAWER MultiProperty _LMLayer1MetalChannel _LMLayer1AOChannel _LMLayer1DetailMaskChannel _LMLayer1SmoothChannel [_LMLayer1MaskMap]", Int) =  0
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer1MetalChannel("Metal", Int) =  0
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer1AOChannel("AO", Int) =  1
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer1DetailMaskChannel("Detail", Int) =  2
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer1SmoothChannel("Smooth", Int) =  3
+		_LMLayer1Smoothness("Smoothness [!_LMLayer1MaskMap]", Range(0, 1)) =  0.5
+		[ToggleUI][_LMLayer1MaskMap] _LMLayer1RoughnessMode("Roughness Mode [_LMLayer1MaskMap]", Int) =  0
+		[ToggleUI][_LMLayer1MaskMap] UI_LMLayer1SmoothnessRemap("!DRAWER MinMax _LMLayer1SmoothnessRemap.x _LMLayer1SmoothnessRemap.y [_LMLayer1MaskMap]", Float) =  0
+		_LMLayer1Metallic("Metallic [!_LMLayer1MaskMap]", Range(0, 1)) =  0
+		[ToggleUI][_LMLayer1MaskMap] UI_LMLayer1MetallicRemap("!DRAWER MinMax _LMLayer1MetallicRemap.x _LMLayer1MetallicRemap.y [_LMLayer1MaskMap]", Float) =  0
+		[HideInInspector] _LMLayer1MetallicRemap("Metallic Remap", Vector) =  (0, 1, 0, 1)
+		[HideInInspector] _LMLayer1SmoothnessRemap("Smoothness Remap", Vector) =  (0, 1, 0, 1)
+		_LMLayer1OcclusionStrength("AO Strength", Range(0, 1)) =  1
+		[NoScaleOffset] _LMLayer1BumpMap("Normal Map &&", 2D) =  "bump" { }
+		_LMLayer1BumpScale("Normal Map Scale", Float) = 0.0
+		[ToggleUI][_LMLayer1BumpMap] _LMLayer1FlipBumpY("Flip Y (UE Mode) [_LMLayer1BumpMap]", Int) =  0
+		[ToggleUI] UI_LMLayer2Header("## Layer 2 [_LayeredMatLayersCount > 1]", Int) =  0
+		[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)] _LMLayer2VertexColor("Vertex Color Mask", Int) =  1
+		_LMLayer2Color("Main Color [_LayeredMatLayersCount > 1]", Color) =  (1, 1, 1, 1)
+		_LMLayer2MainTex("Albedo [_LayeredMatLayersCount > 1]", 2D) =  "white" { }
+		[Enum(RGB, 0, R, 1, G, 2, B, 3)] _LMLayer2AlbedoChannel("Albedo Channel [_LMLayer2MainTex && _LayeredMatLayersCount > 1]", Int) =  0
+		[NoScaleOffset] _LMLayer2MaskMap("Masks & [_LayeredMatLayersCount > 1]", 2D) =  "white" { }
+		[ToggleUI] UI_LMLayer2ChannelSelector("!DRAWER MultiProperty _LMLayer2MetalChannel _LMLayer2AOChannel _LMLayer2DetailMaskChannel _LMLayer2SmoothChannel [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Int) =  0
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer2MetalChannel("Metal", Int) =  0
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer2AOChannel("AO", Int) =  1
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer2DetailMaskChannel("Detail", Int) =  2
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer2SmoothChannel("Smooth", Int) =  3
+		_LMLayer2Smoothness("Smoothness [!_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Range(0, 1)) =  0.5
+		[ToggleUI] _LMLayer2RoughnessMode("Roughness Mode [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Int) =  0
+		[ToggleUI] UI_LMLayer2SmoothnessRemap("!DRAWER MinMax _LMLayer2SmoothnessRemap.x _LMLayer2SmoothnessRemap.y [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Float) =  0
+		_LMLayer2Metallic("Metallic [!_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Range(0, 1)) =  0
+		[ToggleUI] UI_LMLayer2MetallicRemap("!DRAWER MinMax _LMLayer2MetallicRemap.x _LMLayer2MetallicRemap.y [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Float) =  0
+		[HideInInspector] _LMLayer2MetallicRemap("Metallic Remap", Vector) =  (0, 1, 0, 1)
+		[HideInInspector] _LMLayer2SmoothnessRemap("Smoothness Remap", Vector) =  (0, 1, 0, 1)
+		_LMLayer2OcclusionStrength("AO Strength [_LayeredMatLayersCount > 1]", Range(0, 1)) =  1
+		[NoScaleOffset] _LMLayer2BumpMap("Normal Map && [_LayeredMatLayersCount > 1]", 2D) =  "bump" { }
+		_LMLayer2BumpScale("Normal Map Scale [_LayeredMatLayersCount > 1]", Float) = 0.0
+		[ToggleUI] _LMLayer2FlipBumpY("Flip Y (UE Mode) [_LMLayer2BumpMap && _LayeredMatLayersCount > 1]", Int) =  0
+		[ToggleUI] UI_LMLayer3Header("## Layer 3 [_LayeredMatLayersCount > 2]", Int) =  0
+		[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)] _LMLayer3VertexColor("Vertex Color Mask", Int) =  2
+		_LMLayer3Color("Main Color [_LayeredMatLayersCount > 2]", Color) =  (1, 1, 1, 1)
+		_LMLayer3MainTex("Albedo [_LayeredMatLayersCount > 2]", 2D) =  "white" { }
+		[Enum(RGB, 0, R, 1, G, 2, B, 3)] _LMLayer3AlbedoChannel("Albedo Channel [_LMLayer3MainTex && _LayeredMatLayersCount > 2]", Int) =  0
+		[NoScaleOffset] _LMLayer3MaskMap("Masks & [_LayeredMatLayersCount > 2]", 2D) =  "white" { }
+		[ToggleUI] UI_LMLayer3ChannelSelector("!DRAWER MultiProperty _LMLayer3MetalChannel _LMLayer3AOChannel _LMLayer3DetailMaskChannel _LMLayer3SmoothChannel [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Int) =  0
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer3MetalChannel("Metal", Int) =  0
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer3AOChannel("AO", Int) =  1
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer3DetailMaskChannel("Detail", Int) =  2
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer3SmoothChannel("Smooth", Int) =  3
+		_LMLayer3Smoothness("Smoothness [!_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Range(0, 1)) =  0.5
+		[ToggleUI] _LMLayer3RoughnessMode("Roughness Mode [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Int) =  0
+		[ToggleUI] UI_LMLayer3SmoothnessRemap("!DRAWER MinMax _LMLayer3SmoothnessRemap.x _LMLayer3SmoothnessRemap.y [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Float) =  0
+		_LMLayer3Metallic("Metallic [!_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Range(0, 1)) =  0
+		[ToggleUI] UI_LMLayer3MetallicRemap("!DRAWER MinMax _LMLayer3MetallicRemap.x _LMLayer3MetallicRemap.y [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Float) =  0
+		[HideInInspector] _LMLayer3MetallicRemap("Metallic Remap", Vector) =  (0, 1, 0, 1)
+		[HideInInspector] _LMLayer3SmoothnessRemap("Smoothness Remap", Vector) =  (0, 1, 0, 1)
+		_LMLayer3OcclusionStrength("AO Strength [_LayeredMatLayersCount > 2]", Range(0, 1)) =  1
+		[NoScaleOffset] _LMLayer3BumpMap("Normal Map && [_LayeredMatLayersCount > 2]", 2D) =  "bump" { }
+		_LMLayer3BumpScale("Normal Map Scale [_LayeredMatLayersCount > 2]", Float) = 0.0
+		[ToggleUI] _LMLayer3FlipBumpY("Flip Y (UE Mode) [_LMLayer3BumpMap && _LayeredMatLayersCount > 2]", Int) =  0
+		[ToggleUI] UI_LMLayer4Header("## Layer 4 [_LayeredMatLayersCount > 3]", Int) =  0
+		[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)] _LMLayer4VertexColor("Vertex Color Mask", Int) =  3
+		_LMLayer4Color("Main Color [_LayeredMatLayersCount > 3]", Color) =  (1, 1, 1, 1)
+		_LMLayer4MainTex("Albedo [_LayeredMatLayersCount > 3]", 2D) =  "white" { }
+		[Enum(RGB, 0, R, 1, G, 2, B, 3)] _LMLayer4AlbedoChannel("Albedo Channel [_LMLayer4MainTex && _LayeredMatLayersCount > 3]", Int) =  0
+		[NoScaleOffset] _LMLayer4MaskMap("Masks & [_LayeredMatLayersCount > 3]", 2D) =  "white" { }
+		[ToggleUI] UI_LMLayer4ChannelSelector("!DRAWER MultiProperty _LMLayer4MetalChannel _LMLayer4AOChannel _LMLayer4DetailMaskChannel _LMLayer4SmoothChannel [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Int) =  0
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer4MetalChannel("Metal", Int) =  0
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer4AOChannel("AO", Int) =  1
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer4DetailMaskChannel("Detail", Int) =  2
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer4SmoothChannel("Smooth", Int) =  3
+		_LMLayer4Smoothness("Smoothness [!_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Range(0, 1)) =  0.5
+		[ToggleUI] _LMLayer4RoughnessMode("Roughness Mode [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Int) =  0
+		[ToggleUI] UI_LMLayer4SmoothnessRemap("!DRAWER MinMax _LMLayer4SmoothnessRemap.x _LMLayer4SmoothnessRemap.y [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Float) =  0
+		_LMLayer4Metallic("Metallic [!_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Range(0, 1)) =  0
+		[ToggleUI] UI_LMLayer4MetallicRemap("!DRAWER MinMax _LMLayer4MetallicRemap.x _LMLayer4MetallicRemap.y [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Float) =  0
+		[HideInInspector] _LMLayer4MetallicRemap("Metallic Remap", Vector) =  (0, 1, 0, 1)
+		[HideInInspector] _LMLayer4SmoothnessRemap("Smoothness Remap", Vector) =  (0, 1, 0, 1)
+		_LMLayer4OcclusionStrength("AO Strength [_LayeredMatLayersCount > 3]", Range(0, 1)) =  1
+		[NoScaleOffset] _LMLayer4BumpMap("Normal Map && [_LayeredMatLayersCount > 3]", 2D) =  "bump" { }
+		_LMLayer4BumpScale("Normal Map Scale [_LayeredMatLayersCount > 3]", Float) = 0.0
+		[ToggleUI] _LMLayer4FlipBumpY("Flip Y (UE Mode) [_LMLayer4BumpMap && _LayeredMatLayersCount > 3]", Int) =  0
+		[ToggleUI] UI_TriplanarEffectsHeader("# Triplanar Effects (Dirt, Damage, Puddles)", Int) =  0
+		[NoScaleOffset] _TriplanarMask("Triplanar Masks &&", 2D) =  "white" { }
+		_TriplanarMaskTiling("Tiling", Float) =  50
+		[ToggleUI] UI_DirtHeader("## Dirt", Int) =  0
+		[KeywordEnum(None, Local Space, World Space)] DIRT_MODE("Dirt Mode", Int) =  0
+		_DirtMaskPower("Dirt Mask Power [!DIRT_MODE_NONE]", Float) =  1
+		_DirtColor("Dirt Color [!DIRT_MODE_NONE]", Color) =  (0.0365, 0.0211, 0.00893, 1)
+		_DirtSmooth("Dirt Smoothness [!DIRT_MODE_NONE]", Range(0, 1)) =  0.25
+		[DIRT_MODE_LOCAL_SPACE] _DirtGradPower("Dirt Gradient Power [DIRT_MODE_LOCAL_SPACE]", Float) =  3
+		[DIRT_MODE_LOCAL_SPACE] _DirtGradPosition("Dirt Gradient position [DIRT_MODE_LOCAL_SPACE]", Range(0, 1)) =  0.5
+		_DirtGradientMin("Dirt Gradient Min [!DIRT_MODE_NONE]", Float) =  0
+		_DirtGradientMax("Dirt Gradient Max [!DIRT_MODE_NONE]", Float) =  10
+		_DirtOpacity("Dirt Opacity [!DIRT_MODE_NONE]", Float) =  0.3
+		[ToggleUI] _DirtPlanarMask("Use Planar Mask [!DIRT_MODE_NONE]", Int) =  1
+		[ToggleUI] UI_DamageHeader("## Damage", Int) =  0
+		[KeywordEnum(None, Enabled)] DAMAGE_MODE("Damage Mode", Int) =  0
+		[NoScaleOffset][DAMAGE_MODE_ENABLED] _DamageAlbedo("Damage Albedo && [DAMAGE_MODE_ENABLED]", 2D) =  "gray" { }
+		[DAMAGE_MODE_ENABLED] _DamageAlbedoTiling("Tiling [DAMAGE_MODE_ENABLED]", Float) =  1
+		[DAMAGE_MODE_ENABLED] _DamageColor("Damage Color [DAMAGE_MODE_ENABLED]", Color) =  (0.562, 0.441, 0.378, 1)
+		[ToggleUI][DAMAGE_MODE_ENABLED] UI_DamageSmoothSlider("!DRAWER MinMax _DamageSmoothMin _DamageSmoothMax [DAMAGE_MODE_ENABLED]", Int) =  0
+		_DamageSmoothMin("Smoothness Min", Float) =  0
+		_DamageSmoothMax("Max", Float) =  1
+		[DAMAGE_MODE_ENABLED] _DamageNormal("Damage Normal && [DAMAGE_MODE_ENABLED]", 2D) =  "bump" { }
+		[DAMAGE_MODE_ENABLED] _DamageNormalScale("Normal Scale [DAMAGE_MODE_ENABLED]", Float) = 0.0
+		[ToggleUI][DAMAGE_MODE_ENABLED] _DamageNormalFlipY("Flip Y (UE Mode) [DAMAGE_MODE_ENABLED]", Int) =  0
+		[DAMAGE_MODE_ENABLED] _DamageAmount("Damage Amount [DAMAGE_MODE_ENABLED]", Range(0, 1)) =  0.5
 		[ToggleUI] UI_AdvancedHeader("# Advanced Features", Float) = 0
 		[Enum(UnityEngine.Rendering.CullMode)] _CullMode("Culling Mode", Int) = 2
 		[Enum(Off, 0, On, 1)] _ZWrite("Depth Write", Int) = 1
@@ -95,6 +159,11 @@ Shader "orels1/Standard Layered Parallax"
 			#pragma multi_compile_fog
 			#pragma vertex Vertex
 			#pragma fragment Fragment
+			#pragma shader_feature_local _VERTEX_DEBUGGING
+			
+			#pragma shader_feature_local DIRT_MODE_NONE DIRT_MODE_LOCAL_SPACE DIRT_MODE_WORLD_SPACE
+			#pragma shader_feature_local DAMAGE_MODE_NONE DAMAGE_MODE_ENABLED
+			
 			#pragma shader_feature_local BICUBIC_LIGHTMAP
 			#pragma shader_feature_local BAKED_SPECULAR
 			#pragma shader_feature_local GSAA
@@ -113,6 +182,14 @@ Shader "orels1/Standard Layered Parallax"
 			#include "AutoLight.cginc"
 			
 			#define FLT_EPSILON     1.192092896e-07
+			
+			#if !defined(DIRT_MODE_LOCAL_SPACE) && !defined(DIRT_MODE_WORLD_SPACE)
+			#define DIRT_MODE_NONE
+			#endif
+			
+			#if !defined(DAMAGE_MODE_ENABLED)
+			#define DAMAGE_MODE_NONE
+			#endif
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
 			#define PLAT_QUEST
@@ -1856,223 +1933,356 @@ Shader "orels1/Standard Layered Parallax"
 				return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 			}
 			
-			half _LPLayer1Depth;
-			half _LPLayer1Speed;
-			half _LPLayer2Depth;
-			half _LPLayer2Speed;
-			half _LPLayer3Depth;
-			half _LPLayer3Speed;
-			half _LPLayer4Depth;
-			half _LPLayer4Speed;
-			half _LPLayer5Depth;
-			half _LPLayer5Speed;
+			half _LMLayer1Smoothness;
+			half _LMLayer1Metallic;
+			half _LMLayer1OcclusionStrength;
+			half _LMLayer1BumpScale;
+			half _LMLayer2Smoothness;
+			half _LMLayer2Metallic;
+			half _LMLayer2OcclusionStrength;
+			half _LMLayer2BumpScale;
+			half _LMLayer3Smoothness;
+			half _LMLayer3Metallic;
+			half _LMLayer3OcclusionStrength;
+			half _LMLayer3BumpScale;
+			half _LMLayer4Smoothness;
+			half _LMLayer4Metallic;
+			half _LMLayer4OcclusionStrength;
+			half _LMLayer4BumpScale;
+			half _TriplanarMaskTiling;
+			half _DirtMaskPower;
+			half _DirtSmooth;
+			half _DirtGradPower;
+			half _DirtGradPosition;
+			half _DirtGradientMin;
+			half _DirtGradientMax;
+			half _DirtOpacity;
+			half _DamageAlbedoTiling;
+			half _DamageSmoothMin;
+			half _DamageSmoothMax;
+			half _DamageNormalScale;
+			half _DamageAmount;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
-			half4 _LPBackground_ST;
-			half4 _LPOverlay_ST;
-			half4 _LPLayer1_ST;
-			half4 _LPLayer1Color;
-			half4 _LPLayer1Direction;
-			half4 _LPLayer2_ST;
-			half4 _LPLayer2Color;
-			half4 _LPLayer2Direction;
-			half4 _LPLayer3_ST;
-			half4 _LPLayer3Color;
-			half4 _LPLayer3Direction;
-			half4 _LPLayer4_ST;
-			half4 _LPLayer4Color;
-			half4 _LPLayer4Direction;
-			half4 _LPLayer5_ST;
-			half4 _LPLayer5Color;
-			half4 _LPLayer5Direction;
+			half4 _LMLayer1Color;
+			half4 _LMLayer1MainTex_ST;
+			half4 _LMLayer1MetallicRemap;
+			half4 _LMLayer1SmoothnessRemap;
+			half4 _LMLayer1MaskMap_TexelSize;
+			half4 _LMLayer2Color;
+			half4 _LMLayer2MainTex_ST;
+			half4 _LMLayer2MetallicRemap;
+			half4 _LMLayer2SmoothnessRemap;
+			half4 _LMLayer2MaskMap_TexelSize;
+			half4 _LMLayer3Color;
+			half4 _LMLayer3MainTex_ST;
+			half4 _LMLayer3MetallicRemap;
+			half4 _LMLayer3SmoothnessRemap;
+			half4 _LMLayer3MaskMap_TexelSize;
+			half4 _LMLayer4Color;
+			half4 _LMLayer4MainTex_ST;
+			half4 _LMLayer4MetallicRemap;
+			half4 _LMLayer4SmoothnessRemap;
+			half4 _LMLayer4MaskMap_TexelSize;
+			half4 _DirtColor;
+			half4 _DamageAlbedo_TexelSize;
+			half4 _DamageColor;
 			float _GSAAVariance;
 			float _GSAAThreshold;
-			int _LPLayerCount;
-			int _LPLayer1UV;
-			int _LPLayer1UVMode;
-			int _LPLayer1Mode;
-			int _LPLayer2UV;
-			int _LPLayer2UVMode;
-			int _LPLayer2Mode;
-			int _LPLayer3UV;
-			int _LPLayer3UVMode;
-			int _LPLayer3Mode;
-			int _LPLayer4UV;
-			int _LPLayer4UVMode;
-			int _LPLayer4Mode;
-			int _LPLayer5UV;
-			int _LPLayer5UVMode;
-			int _LPLayer5Mode;
-			TEXTURE2D(_LPBackground);;
-			TEXTURE2D(_LPOverlay);;
-			SAMPLER(sampler_LPBackground);;
-			TEXTURE2D(_LPLayer1);;
-			TEXTURE2D(_LPLayer2);;
-			TEXTURE2D(_LPLayer3);;
-			TEXTURE2D(_LPLayer4);;
-			TEXTURE2D(_LPLayer5);;
-			SAMPLER(sampler_LPLayer1);;
+			int _LayeredMatLayersCount;
+			int _LMLayer1VertexColor;
+			int _LMLayer1AlbedoChannel;
+			int _LMLayer1MetalChannel;
+			int _LMLayer1AOChannel;
+			int _LMLayer1DetailMaskChannel;
+			int _LMLayer1SmoothChannel;
+			int _LMLayer1RoughnessMode;
+			int _LMLayer1FlipBumpY;
+			int _LMLayer2VertexColor;
+			int _LMLayer2AlbedoChannel;
+			int _LMLayer2MetalChannel;
+			int _LMLayer2AOChannel;
+			int _LMLayer2DetailMaskChannel;
+			int _LMLayer2SmoothChannel;
+			int _LMLayer2RoughnessMode;
+			int _LMLayer2FlipBumpY;
+			int _LMLayer3VertexColor;
+			int _LMLayer3AlbedoChannel;
+			int _LMLayer3MetalChannel;
+			int _LMLayer3AOChannel;
+			int _LMLayer3DetailMaskChannel;
+			int _LMLayer3SmoothChannel;
+			int _LMLayer3RoughnessMode;
+			int _LMLayer3FlipBumpY;
+			int _LMLayer4VertexColor;
+			int _LMLayer4AlbedoChannel;
+			int _LMLayer4MetalChannel;
+			int _LMLayer4AOChannel;
+			int _LMLayer4DetailMaskChannel;
+			int _LMLayer4SmoothChannel;
+			int _LMLayer4RoughnessMode;
+			int _LMLayer4FlipBumpY;
+			TEXTURE2D(_LMLayer1MainTex);;
+			TEXTURE2D(_LMLayer1MaskMap);;
+			TEXTURE2D(_LMLayer1BumpMap);;
+			TEXTURE2D(_LMLayer2MainTex);;
+			TEXTURE2D(_LMLayer2MaskMap);;
+			TEXTURE2D(_LMLayer2BumpMap);;
+			TEXTURE2D(_LMLayer3MainTex);;
+			TEXTURE2D(_LMLayer3MaskMap);;
+			TEXTURE2D(_LMLayer3BumpMap);;
+			TEXTURE2D(_LMLayer4MainTex);;
+			TEXTURE2D(_LMLayer4MaskMap);;
+			TEXTURE2D(_LMLayer4BumpMap);;
+			SAMPLER(sampler_LMLayer1MainTex);;
+			SAMPLER(sampler_LMLayer1MaskMap);;
+			SAMPLER(sampler_LMLayer1BumpMap);;
+			int _DirtPlanarMask;
+			int _DamageNormalFlipY;
+			TEXTURE2D(_TriplanarMask);;
+			SAMPLER(sampler_TriplanarMask);;
+			TEXTURE2D(_DamageAlbedo);;
+			TEXTURE2D(_DamageNormal);;
+			SAMPLER(sampler_DamageNormal);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
-			void LayeredParallaxFragment()
+			void LayeredMaterialFragment()
 			{
-				half2 bgUv = d.uv0.xy * _LPBackground_ST.xy + _LPBackground_ST.zw;
-				half4 bg = SAMPLE_TEXTURE2D(_LPBackground, sampler_LPBackground, bgUv);
-				o.Albedo = bg.rgb;
+				#if defined(_VERTEX_DEBUGGING)
+				o.Albedo = d.vertexColor.rgb;
+				o.Emission = d.vertexColor.rgb * 0.2;
+				#else
+				half2 uv = d.uv0.xy * _LMLayer1MainTex_ST.xy + _LMLayer1MainTex_ST.zw;
 				
-				half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer1UV - 2)), saturate(_LPLayer1UV - 1)), saturate(_LPLayer1UV));
-				_LPLayer1Direction = _LPLayer1Direction / 10.0;
-				layerUv = layerUv * _LPLayer1_ST.xy + _LPLayer1_ST.zw;
-				half2 offset = ParallaxOffset(-1, _LPLayer1Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer1Mode)
+				half mask = _LMLayer1VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer1VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer1VertexColor - 1];
+				
+				half4 albedo = SAMPLE_TEXTURE2D(_LMLayer1MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer1AlbedoChannel > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer1Speed) * _LPLayer1Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					break;
-					case 2:
-					layerUv = lerp(layerUv % 1.0, clamp(layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					layerUv += offset;
-					layerUv += _Time.y * _LPLayer1Speed * _LPLayer1Direction.xy;
-					break;
+					albedo.rgb = albedo[_LMLayer1AlbedoChannel].xxx;
 				}
-				half4 layerColor = SAMPLE_TEXTURE2D(_LPLayer1, sampler_LPLayer1, layerUv);
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer1Color, layerColor.a * _LPLayer1Color.a);
+				half4 masks = SAMPLE_TEXTURE2D(_LMLayer1MaskMap, sampler_LMLayer1MaskMap, uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_LMLayer1BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer1FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				half3 normal = UnpackScaleNormal(normalTex, _LMLayer1BumpScale);
+				int hasMasks = _LMLayer1MaskMap_TexelSize.z > 8;
+				half metal = masks[_LMLayer1MetalChannel];
+				half smooth = masks[_LMLayer1SmoothChannel];
+				if (_LMLayer1RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				half detailMask = masks[_LMLayer1DetailMaskChannel];
+				half occlusion = masks[_LMLayer1AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer1MetallicRemap.x, _LMLayer1MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer1SmoothnessRemap.x, _LMLayer1SmoothnessRemap.y);
+				
+				o.Metallic = lerp(_LMLayer1Metallic, metal, hasMasks);
+				o.Smoothness = lerp(_LMLayer1Smoothness, smooth, hasMasks);
+				o.Occlusion = lerp(1, occlusion, _LMLayer1OcclusionStrength);
+				o.Normal = normal;
+				o.Albedo = albedo.rgb * _LMLayer1Color.rgb;
+				o.Alpha = albedo.a * _LMLayer1Color.a;
 				
 				UNITY_BRANCH
-				if (_LPLayerCount < 2)
-				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
+				if (_LayeredMatLayersCount < 2) return;
 				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer2UV - 2)), saturate(_LPLayer2UV - 1)), saturate(_LPLayer2UV));
-				_LPLayer2Direction = _LPLayer2Direction / 10.0;
-				layerUv = layerUv * _LPLayer2_ST.xy + _LPLayer2_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer2Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer2Mode)
+				uv = d.uv0.xy * _LMLayer2MainTex_ST.xy + _LMLayer2MainTex_ST.zw;
+				mask = mask = _LMLayer2VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer2VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer2VertexColor - 1];
+				
+				albedo = SAMPLE_TEXTURE2D(_LMLayer2MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer2AlbedoChannel > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer2Speed) * _LPLayer2Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					layerUv += _Time.y * _LPLayer2Speed * _LPLayer2Direction.xy;
-					break;
+					albedo.rgb = albedo[_LMLayer2AlbedoChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer2, sampler_LPLayer1, layerUv);
+				masks = SAMPLE_TEXTURE2D(_LMLayer2MaskMap, sampler_LMLayer1MaskMap, uv);
+				normalTex = SAMPLE_TEXTURE2D(_LMLayer2BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer2FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				normal = UnpackScaleNormal(normalTex, _LMLayer2BumpScale * mask);
+				hasMasks = _LMLayer2MaskMap_TexelSize.z > 8;
+				metal = masks[_LMLayer2MetalChannel];
+				smooth = masks[_LMLayer2SmoothChannel];
+				if (_LMLayer2RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				detailMask = masks[_LMLayer2DetailMaskChannel];
+				occlusion = masks[_LMLayer2AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer2MetallicRemap.x, _LMLayer2MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer2SmoothnessRemap.x, _LMLayer2SmoothnessRemap.y);
 				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer2Color, layerColor.a * _LPLayer2Color.a);
+				o.Metallic = lerp(o.Metallic, lerp(_LMLayer2Metallic, metal, hasMasks), mask);
+				o.Smoothness = lerp(o.Smoothness, lerp(_LMLayer2Smoothness, smooth, hasMasks), mask);
+				o.Occlusion = lerp(o.Occlusion, lerp(1, occlusion, _LMLayer2OcclusionStrength), mask);
+				o.Normal = BlendNormals(o.Normal, normal);
+				o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer2Color.rgb, mask);
+				o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer2Color.a, mask);
+				
+				#if defined(PLAT_QUEST)
+				return;
+				#endif
 				
 				UNITY_BRANCH
-				if (_LPLayerCount < 3)
-				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
+				if (_LayeredMatLayersCount < 3) return;
 				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer3UV - 2)), saturate(_LPLayer3UV - 1)), saturate(_LPLayer3UV));
-				_LPLayer3Direction = _LPLayer3Direction / 10.0;
-				layerUv = layerUv * _LPLayer3_ST.xy + _LPLayer3_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer3Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer3Mode)
+				uv = d.uv0.xy * _LMLayer3MainTex_ST.xy + _LMLayer3MainTex_ST.zw;
+				mask = mask = _LMLayer3VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer3VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer3VertexColor - 1];
+				
+				albedo = SAMPLE_TEXTURE2D(_LMLayer3MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer3AlbedoChannel > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer3Speed) * _LPLayer3Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					layerUv += _Time.y * _LPLayer3Speed * _LPLayer3Direction.xy;
-					break;
+					albedo.rgb = albedo[_LMLayer3AlbedoChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer3, sampler_LPLayer1, layerUv);
+				masks = SAMPLE_TEXTURE2D(_LMLayer3MaskMap, sampler_LMLayer1MaskMap, uv);
+				normalTex = SAMPLE_TEXTURE2D(_LMLayer3BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer3FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				normal = UnpackScaleNormal(normalTex, _LMLayer3BumpScale * mask);
+				hasMasks = _LMLayer3MaskMap_TexelSize.z > 8;
+				metal = masks[_LMLayer3MetalChannel];
+				smooth = masks[_LMLayer3SmoothChannel];
+				if (_LMLayer3RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				detailMask = masks[_LMLayer3DetailMaskChannel];
+				occlusion = masks[_LMLayer3AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer3MetallicRemap.x, _LMLayer3MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer3SmoothnessRemap.x, _LMLayer3SmoothnessRemap.y);
 				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer3Color, layerColor.a * _LPLayer3Color.a);
+				o.Metallic = lerp(o.Metallic, lerp(_LMLayer3Metallic, metal, hasMasks), mask);
+				o.Smoothness = lerp(o.Smoothness, lerp(_LMLayer3Smoothness, smooth, hasMasks), mask);
+				o.Occlusion = lerp(o.Occlusion, lerp(1, occlusion, _LMLayer3OcclusionStrength), mask);
+				o.Normal = BlendNormals(o.Normal, normal);
+				o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer3Color.rgb, mask);
+				o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer3Color.a, mask);
 				
 				UNITY_BRANCH
-				if (_LPLayerCount < 4)
-				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
+				if (_LayeredMatLayersCount < 4) return;
 				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer4UV - 2)), saturate(_LPLayer4UV - 1)), saturate(_LPLayer4UV));
-				_LPLayer4Direction = _LPLayer4Direction / 10.0;
-				layerUv = layerUv * _LPLayer4_ST.xy + _LPLayer4_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer4Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer4Mode)
+				uv = d.uv0.xy * _LMLayer4MainTex_ST.xy + _LMLayer4MainTex_ST.zw;
+				mask = mask = _LMLayer4VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer4VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer4VertexColor - 1];
+				
+				albedo = SAMPLE_TEXTURE2D(_LMLayer4MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer4AlbedoChannel > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer4Speed) * _LPLayer4Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					layerUv += _Time.y * _LPLayer4Speed * _LPLayer4Direction.xy;
-					break;
+					albedo.rgb = albedo[_LMLayer4AlbedoChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer4, sampler_LPLayer1, layerUv);
+				masks = SAMPLE_TEXTURE2D(_LMLayer4MaskMap, sampler_LMLayer1MaskMap, uv);
+				normalTex = SAMPLE_TEXTURE2D(_LMLayer4BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer4FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				normal = UnpackScaleNormal(normalTex, _LMLayer4BumpScale * mask);
+				hasMasks = _LMLayer4MaskMap_TexelSize.z > 8;
+				metal = masks[_LMLayer4MetalChannel];
+				smooth = masks[_LMLayer4SmoothChannel];
+				if (_LMLayer4RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				detailMask = masks[_LMLayer4DetailMaskChannel];
+				occlusion = masks[_LMLayer4AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer4MetallicRemap.x, _LMLayer4MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer4SmoothnessRemap.x, _LMLayer4SmoothnessRemap.y);
 				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer4Color, layerColor.a * _LPLayer4Color.a);
+				o.Metallic = lerp(o.Metallic, lerp(_LMLayer4Metallic, metal, hasMasks), mask);
+				o.Smoothness = lerp(o.Smoothness, lerp(_LMLayer4Smoothness, smooth, hasMasks), mask);
+				o.Occlusion = lerp(o.Occlusion, lerp(1, occlusion, _LMLayer4OcclusionStrength), mask);
+				o.Normal = BlendNormals(o.Normal, normal);
+				o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer4Color.rgb, mask);
+				o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer4Color.a, mask);
+				#endif
+			}
+			
+			void TriplanarFragment()
+			{
+				#if defined(DIRT_MODE_NONE) && defined(DAMAGE_MODE_NONE)
+				return;
+				#else
+				half3 wsAligned = (d.worldSpacePosition / - _TriplanarMaskTiling);
 				
+				half3 xySample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xy).rgb;
+				half3 yzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.yz).rgb;
+				half3 xzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xz).rgb;
+				
+				half xNormalMask = saturate(lerp(-1, 1, abs(d.worldNormal.x)));
+				half zNormalMask = saturate(lerp(-1, 1, abs(d.worldNormal.z)));
+				
+				half3 triplanarMask = lerp(lerp(xzSample, yzSample, xNormalMask), xySample, zNormalMask);
+				
+				half damageMask = triplanarMask.g;
+				half dirtMask = triplanarMask.b;
+				
+				#if defined(DAMAGE_MODE_ENABLED)
+				damageMask *= _DamageAmount;
+				half2 damageUV = d.uv0.xy * _DamageAlbedoTiling;
 				UNITY_BRANCH
-				if (_LPLayerCount < 4)
+				if (_DamageAlbedo_TexelSize.w > 8)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer5UV - 2)), saturate(_LPLayer5UV - 1)), saturate(_LPLayer5UV));
-				_LPLayer5Direction = _LPLayer5Direction / 10.0;
-				layerUv = layerUv * _LPLayer5_ST.xy + _LPLayer5_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer5Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer5Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer5Speed) * _LPLayer5Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					layerUv += _Time.y * _LPLayer5Speed * _LPLayer5Direction.xy;
-					break;
+					half3 damageAlbedo = SAMPLE_TEXTURE2D(_DamageAlbedo, sampler_TriplanarMask, damageUV).rgb;
+					o.Albedo = lerp(o.Albedo, damageAlbedo, damageMask);
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer5, sampler_LPLayer1, layerUv);
+				else
+				{
+					o.Albedo = lerp(o.Albedo, o.Albedo * _DamageColor, damageMask);
+				}
 				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer5Color, layerColor.a * _LPLayer5Color.a);
-				half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-				half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-				o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+				half4 damageNormalPacked = SAMPLE_TEXTURE2D(_DamageNormal, sampler_DamageNormal, damageUV);
+				if (_DamageNormalFlipY)
+				{
+					damageNormalPacked.y = 1 - damageNormalPacked.y;
+				}
+				half3 damageNormal = UnpackScaleNormal(damageNormalPacked, _DamageNormalScale * damageMask);
+				o.Normal = BlendNormals(o.Normal, damageNormal);
+				
+				o.Smoothness = lerp(o.Smoothness, clamp(o.Smoothness, _DamageSmoothMin, _DamageSmoothMax), damageMask);
+				#endif
+				
+				#if !defined(DIRT_MODE_NONE)
+				dirtMask = pow(dirtMask, _DirtMaskPower);
+				
+				#if defined(DIRT_MODE_LOCAL_SPACE)
+				half gradMask = (d.localSpacePosition).y;
+				gradMask += _DirtGradPosition;
+				gradMask = 1 - gradMask;
+				gradMask = pow(gradMask, _DirtGradPower);
+				dirtMask *= saturate(gradMask);
+				#endif
+				#if defined(DIRT_MODE_WORLD_SPACE)
+				half gradMask = (d.worldSpacePosition - TransformObjectToWorld(half3(0, 0, 0))).y;
+				gradMask = (gradMask - _DirtGradientMax) / (_DirtGradientMin - _DirtGradientMax);
+				gradMask = saturate(gradMask);
+				dirtMask *= gradMask;
+				#endif
+				
+				dirtMask = clamp(dirtMask, 0, saturate(_DirtOpacity));
+				
+				if (_DirtPlanarMask)
+				{
+					half planarMask = dot(d.worldNormal, half3(0, -1, 0));
+					planarMask = pow(planarMask, 0.5);
+					planarMask = lerp(-1, 1, planarMask);
+					planarMask = saturate(planarMask);
+					dirtMask *= planarMask;
+				}
+				
+				o.Albedo = lerp(o.Albedo, _DirtColor, dirtMask);
+				o.Metallic = lerp(o.Metallic, 0, dirtMask);
+				o.Smoothness = lerp(o.Smoothness, _DirtSmooth, dirtMask);
+				#endif
+				
+				#endif
 			}
 			
 			void ORLLighting()
@@ -2411,7 +2621,8 @@ Shader "orels1/Standard Layered Parallax"
 				o.Alpha = 1;
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
-				LayeredParallaxFragment();
+				LayeredMaterialFragment();
+				TriplanarFragment();
 				
 				ORLLighting();
 				
@@ -2453,6 +2664,14 @@ Shader "orels1/Standard Layered Parallax"
 			#include "AutoLight.cginc"
 			
 			#define FLT_EPSILON     1.192092896e-07
+			
+			#if !defined(DIRT_MODE_LOCAL_SPACE) && !defined(DIRT_MODE_WORLD_SPACE)
+			#define DIRT_MODE_NONE
+			#endif
+			
+			#if !defined(DAMAGE_MODE_ENABLED)
+			#define DAMAGE_MODE_NONE
+			#endif
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
 			#define PLAT_QUEST
@@ -4196,223 +4415,356 @@ Shader "orels1/Standard Layered Parallax"
 				return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 			}
 			
-			half _LPLayer1Depth;
-			half _LPLayer1Speed;
-			half _LPLayer2Depth;
-			half _LPLayer2Speed;
-			half _LPLayer3Depth;
-			half _LPLayer3Speed;
-			half _LPLayer4Depth;
-			half _LPLayer4Speed;
-			half _LPLayer5Depth;
-			half _LPLayer5Speed;
+			half _LMLayer1Smoothness;
+			half _LMLayer1Metallic;
+			half _LMLayer1OcclusionStrength;
+			half _LMLayer1BumpScale;
+			half _LMLayer2Smoothness;
+			half _LMLayer2Metallic;
+			half _LMLayer2OcclusionStrength;
+			half _LMLayer2BumpScale;
+			half _LMLayer3Smoothness;
+			half _LMLayer3Metallic;
+			half _LMLayer3OcclusionStrength;
+			half _LMLayer3BumpScale;
+			half _LMLayer4Smoothness;
+			half _LMLayer4Metallic;
+			half _LMLayer4OcclusionStrength;
+			half _LMLayer4BumpScale;
+			half _TriplanarMaskTiling;
+			half _DirtMaskPower;
+			half _DirtSmooth;
+			half _DirtGradPower;
+			half _DirtGradPosition;
+			half _DirtGradientMin;
+			half _DirtGradientMax;
+			half _DirtOpacity;
+			half _DamageAlbedoTiling;
+			half _DamageSmoothMin;
+			half _DamageSmoothMax;
+			half _DamageNormalScale;
+			half _DamageAmount;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
-			half4 _LPBackground_ST;
-			half4 _LPOverlay_ST;
-			half4 _LPLayer1_ST;
-			half4 _LPLayer1Color;
-			half4 _LPLayer1Direction;
-			half4 _LPLayer2_ST;
-			half4 _LPLayer2Color;
-			half4 _LPLayer2Direction;
-			half4 _LPLayer3_ST;
-			half4 _LPLayer3Color;
-			half4 _LPLayer3Direction;
-			half4 _LPLayer4_ST;
-			half4 _LPLayer4Color;
-			half4 _LPLayer4Direction;
-			half4 _LPLayer5_ST;
-			half4 _LPLayer5Color;
-			half4 _LPLayer5Direction;
+			half4 _LMLayer1Color;
+			half4 _LMLayer1MainTex_ST;
+			half4 _LMLayer1MetallicRemap;
+			half4 _LMLayer1SmoothnessRemap;
+			half4 _LMLayer1MaskMap_TexelSize;
+			half4 _LMLayer2Color;
+			half4 _LMLayer2MainTex_ST;
+			half4 _LMLayer2MetallicRemap;
+			half4 _LMLayer2SmoothnessRemap;
+			half4 _LMLayer2MaskMap_TexelSize;
+			half4 _LMLayer3Color;
+			half4 _LMLayer3MainTex_ST;
+			half4 _LMLayer3MetallicRemap;
+			half4 _LMLayer3SmoothnessRemap;
+			half4 _LMLayer3MaskMap_TexelSize;
+			half4 _LMLayer4Color;
+			half4 _LMLayer4MainTex_ST;
+			half4 _LMLayer4MetallicRemap;
+			half4 _LMLayer4SmoothnessRemap;
+			half4 _LMLayer4MaskMap_TexelSize;
+			half4 _DirtColor;
+			half4 _DamageAlbedo_TexelSize;
+			half4 _DamageColor;
 			float _GSAAVariance;
 			float _GSAAThreshold;
-			int _LPLayerCount;
-			int _LPLayer1UV;
-			int _LPLayer1UVMode;
-			int _LPLayer1Mode;
-			int _LPLayer2UV;
-			int _LPLayer2UVMode;
-			int _LPLayer2Mode;
-			int _LPLayer3UV;
-			int _LPLayer3UVMode;
-			int _LPLayer3Mode;
-			int _LPLayer4UV;
-			int _LPLayer4UVMode;
-			int _LPLayer4Mode;
-			int _LPLayer5UV;
-			int _LPLayer5UVMode;
-			int _LPLayer5Mode;
-			TEXTURE2D(_LPBackground);;
-			TEXTURE2D(_LPOverlay);;
-			SAMPLER(sampler_LPBackground);;
-			TEXTURE2D(_LPLayer1);;
-			TEXTURE2D(_LPLayer2);;
-			TEXTURE2D(_LPLayer3);;
-			TEXTURE2D(_LPLayer4);;
-			TEXTURE2D(_LPLayer5);;
-			SAMPLER(sampler_LPLayer1);;
+			int _LayeredMatLayersCount;
+			int _LMLayer1VertexColor;
+			int _LMLayer1AlbedoChannel;
+			int _LMLayer1MetalChannel;
+			int _LMLayer1AOChannel;
+			int _LMLayer1DetailMaskChannel;
+			int _LMLayer1SmoothChannel;
+			int _LMLayer1RoughnessMode;
+			int _LMLayer1FlipBumpY;
+			int _LMLayer2VertexColor;
+			int _LMLayer2AlbedoChannel;
+			int _LMLayer2MetalChannel;
+			int _LMLayer2AOChannel;
+			int _LMLayer2DetailMaskChannel;
+			int _LMLayer2SmoothChannel;
+			int _LMLayer2RoughnessMode;
+			int _LMLayer2FlipBumpY;
+			int _LMLayer3VertexColor;
+			int _LMLayer3AlbedoChannel;
+			int _LMLayer3MetalChannel;
+			int _LMLayer3AOChannel;
+			int _LMLayer3DetailMaskChannel;
+			int _LMLayer3SmoothChannel;
+			int _LMLayer3RoughnessMode;
+			int _LMLayer3FlipBumpY;
+			int _LMLayer4VertexColor;
+			int _LMLayer4AlbedoChannel;
+			int _LMLayer4MetalChannel;
+			int _LMLayer4AOChannel;
+			int _LMLayer4DetailMaskChannel;
+			int _LMLayer4SmoothChannel;
+			int _LMLayer4RoughnessMode;
+			int _LMLayer4FlipBumpY;
+			TEXTURE2D(_LMLayer1MainTex);;
+			TEXTURE2D(_LMLayer1MaskMap);;
+			TEXTURE2D(_LMLayer1BumpMap);;
+			TEXTURE2D(_LMLayer2MainTex);;
+			TEXTURE2D(_LMLayer2MaskMap);;
+			TEXTURE2D(_LMLayer2BumpMap);;
+			TEXTURE2D(_LMLayer3MainTex);;
+			TEXTURE2D(_LMLayer3MaskMap);;
+			TEXTURE2D(_LMLayer3BumpMap);;
+			TEXTURE2D(_LMLayer4MainTex);;
+			TEXTURE2D(_LMLayer4MaskMap);;
+			TEXTURE2D(_LMLayer4BumpMap);;
+			SAMPLER(sampler_LMLayer1MainTex);;
+			SAMPLER(sampler_LMLayer1MaskMap);;
+			SAMPLER(sampler_LMLayer1BumpMap);;
+			int _DirtPlanarMask;
+			int _DamageNormalFlipY;
+			TEXTURE2D(_TriplanarMask);;
+			SAMPLER(sampler_TriplanarMask);;
+			TEXTURE2D(_DamageAlbedo);;
+			TEXTURE2D(_DamageNormal);;
+			SAMPLER(sampler_DamageNormal);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
-			void LayeredParallaxFragment()
+			void LayeredMaterialFragment()
 			{
-				half2 bgUv = d.uv0.xy * _LPBackground_ST.xy + _LPBackground_ST.zw;
-				half4 bg = SAMPLE_TEXTURE2D(_LPBackground, sampler_LPBackground, bgUv);
-				o.Albedo = bg.rgb;
+				#if defined(_VERTEX_DEBUGGING)
+				o.Albedo = d.vertexColor.rgb;
+				o.Emission = d.vertexColor.rgb * 0.2;
+				#else
+				half2 uv = d.uv0.xy * _LMLayer1MainTex_ST.xy + _LMLayer1MainTex_ST.zw;
 				
-				half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer1UV - 2)), saturate(_LPLayer1UV - 1)), saturate(_LPLayer1UV));
-				_LPLayer1Direction = _LPLayer1Direction / 10.0;
-				layerUv = layerUv * _LPLayer1_ST.xy + _LPLayer1_ST.zw;
-				half2 offset = ParallaxOffset(-1, _LPLayer1Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer1Mode)
+				half mask = _LMLayer1VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer1VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer1VertexColor - 1];
+				
+				half4 albedo = SAMPLE_TEXTURE2D(_LMLayer1MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer1AlbedoChannel > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer1Speed) * _LPLayer1Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					break;
-					case 2:
-					layerUv = lerp(layerUv % 1.0, clamp(layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					layerUv += offset;
-					layerUv += _Time.y * _LPLayer1Speed * _LPLayer1Direction.xy;
-					break;
+					albedo.rgb = albedo[_LMLayer1AlbedoChannel].xxx;
 				}
-				half4 layerColor = SAMPLE_TEXTURE2D(_LPLayer1, sampler_LPLayer1, layerUv);
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer1Color, layerColor.a * _LPLayer1Color.a);
+				half4 masks = SAMPLE_TEXTURE2D(_LMLayer1MaskMap, sampler_LMLayer1MaskMap, uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_LMLayer1BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer1FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				half3 normal = UnpackScaleNormal(normalTex, _LMLayer1BumpScale);
+				int hasMasks = _LMLayer1MaskMap_TexelSize.z > 8;
+				half metal = masks[_LMLayer1MetalChannel];
+				half smooth = masks[_LMLayer1SmoothChannel];
+				if (_LMLayer1RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				half detailMask = masks[_LMLayer1DetailMaskChannel];
+				half occlusion = masks[_LMLayer1AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer1MetallicRemap.x, _LMLayer1MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer1SmoothnessRemap.x, _LMLayer1SmoothnessRemap.y);
+				
+				o.Metallic = lerp(_LMLayer1Metallic, metal, hasMasks);
+				o.Smoothness = lerp(_LMLayer1Smoothness, smooth, hasMasks);
+				o.Occlusion = lerp(1, occlusion, _LMLayer1OcclusionStrength);
+				o.Normal = normal;
+				o.Albedo = albedo.rgb * _LMLayer1Color.rgb;
+				o.Alpha = albedo.a * _LMLayer1Color.a;
 				
 				UNITY_BRANCH
-				if (_LPLayerCount < 2)
-				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
+				if (_LayeredMatLayersCount < 2) return;
 				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer2UV - 2)), saturate(_LPLayer2UV - 1)), saturate(_LPLayer2UV));
-				_LPLayer2Direction = _LPLayer2Direction / 10.0;
-				layerUv = layerUv * _LPLayer2_ST.xy + _LPLayer2_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer2Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer2Mode)
+				uv = d.uv0.xy * _LMLayer2MainTex_ST.xy + _LMLayer2MainTex_ST.zw;
+				mask = mask = _LMLayer2VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer2VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer2VertexColor - 1];
+				
+				albedo = SAMPLE_TEXTURE2D(_LMLayer2MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer2AlbedoChannel > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer2Speed) * _LPLayer2Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					layerUv += _Time.y * _LPLayer2Speed * _LPLayer2Direction.xy;
-					break;
+					albedo.rgb = albedo[_LMLayer2AlbedoChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer2, sampler_LPLayer1, layerUv);
+				masks = SAMPLE_TEXTURE2D(_LMLayer2MaskMap, sampler_LMLayer1MaskMap, uv);
+				normalTex = SAMPLE_TEXTURE2D(_LMLayer2BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer2FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				normal = UnpackScaleNormal(normalTex, _LMLayer2BumpScale * mask);
+				hasMasks = _LMLayer2MaskMap_TexelSize.z > 8;
+				metal = masks[_LMLayer2MetalChannel];
+				smooth = masks[_LMLayer2SmoothChannel];
+				if (_LMLayer2RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				detailMask = masks[_LMLayer2DetailMaskChannel];
+				occlusion = masks[_LMLayer2AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer2MetallicRemap.x, _LMLayer2MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer2SmoothnessRemap.x, _LMLayer2SmoothnessRemap.y);
 				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer2Color, layerColor.a * _LPLayer2Color.a);
+				o.Metallic = lerp(o.Metallic, lerp(_LMLayer2Metallic, metal, hasMasks), mask);
+				o.Smoothness = lerp(o.Smoothness, lerp(_LMLayer2Smoothness, smooth, hasMasks), mask);
+				o.Occlusion = lerp(o.Occlusion, lerp(1, occlusion, _LMLayer2OcclusionStrength), mask);
+				o.Normal = BlendNormals(o.Normal, normal);
+				o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer2Color.rgb, mask);
+				o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer2Color.a, mask);
+				
+				#if defined(PLAT_QUEST)
+				return;
+				#endif
 				
 				UNITY_BRANCH
-				if (_LPLayerCount < 3)
-				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
+				if (_LayeredMatLayersCount < 3) return;
 				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer3UV - 2)), saturate(_LPLayer3UV - 1)), saturate(_LPLayer3UV));
-				_LPLayer3Direction = _LPLayer3Direction / 10.0;
-				layerUv = layerUv * _LPLayer3_ST.xy + _LPLayer3_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer3Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer3Mode)
+				uv = d.uv0.xy * _LMLayer3MainTex_ST.xy + _LMLayer3MainTex_ST.zw;
+				mask = mask = _LMLayer3VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer3VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer3VertexColor - 1];
+				
+				albedo = SAMPLE_TEXTURE2D(_LMLayer3MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer3AlbedoChannel > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer3Speed) * _LPLayer3Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					layerUv += _Time.y * _LPLayer3Speed * _LPLayer3Direction.xy;
-					break;
+					albedo.rgb = albedo[_LMLayer3AlbedoChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer3, sampler_LPLayer1, layerUv);
+				masks = SAMPLE_TEXTURE2D(_LMLayer3MaskMap, sampler_LMLayer1MaskMap, uv);
+				normalTex = SAMPLE_TEXTURE2D(_LMLayer3BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer3FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				normal = UnpackScaleNormal(normalTex, _LMLayer3BumpScale * mask);
+				hasMasks = _LMLayer3MaskMap_TexelSize.z > 8;
+				metal = masks[_LMLayer3MetalChannel];
+				smooth = masks[_LMLayer3SmoothChannel];
+				if (_LMLayer3RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				detailMask = masks[_LMLayer3DetailMaskChannel];
+				occlusion = masks[_LMLayer3AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer3MetallicRemap.x, _LMLayer3MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer3SmoothnessRemap.x, _LMLayer3SmoothnessRemap.y);
 				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer3Color, layerColor.a * _LPLayer3Color.a);
+				o.Metallic = lerp(o.Metallic, lerp(_LMLayer3Metallic, metal, hasMasks), mask);
+				o.Smoothness = lerp(o.Smoothness, lerp(_LMLayer3Smoothness, smooth, hasMasks), mask);
+				o.Occlusion = lerp(o.Occlusion, lerp(1, occlusion, _LMLayer3OcclusionStrength), mask);
+				o.Normal = BlendNormals(o.Normal, normal);
+				o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer3Color.rgb, mask);
+				o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer3Color.a, mask);
 				
 				UNITY_BRANCH
-				if (_LPLayerCount < 4)
-				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
+				if (_LayeredMatLayersCount < 4) return;
 				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer4UV - 2)), saturate(_LPLayer4UV - 1)), saturate(_LPLayer4UV));
-				_LPLayer4Direction = _LPLayer4Direction / 10.0;
-				layerUv = layerUv * _LPLayer4_ST.xy + _LPLayer4_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer4Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer4Mode)
+				uv = d.uv0.xy * _LMLayer4MainTex_ST.xy + _LMLayer4MainTex_ST.zw;
+				mask = mask = _LMLayer4VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer4VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer4VertexColor - 1];
+				
+				albedo = SAMPLE_TEXTURE2D(_LMLayer4MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer4AlbedoChannel > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer4Speed) * _LPLayer4Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					layerUv += _Time.y * _LPLayer4Speed * _LPLayer4Direction.xy;
-					break;
+					albedo.rgb = albedo[_LMLayer4AlbedoChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer4, sampler_LPLayer1, layerUv);
+				masks = SAMPLE_TEXTURE2D(_LMLayer4MaskMap, sampler_LMLayer1MaskMap, uv);
+				normalTex = SAMPLE_TEXTURE2D(_LMLayer4BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer4FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				normal = UnpackScaleNormal(normalTex, _LMLayer4BumpScale * mask);
+				hasMasks = _LMLayer4MaskMap_TexelSize.z > 8;
+				metal = masks[_LMLayer4MetalChannel];
+				smooth = masks[_LMLayer4SmoothChannel];
+				if (_LMLayer4RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				detailMask = masks[_LMLayer4DetailMaskChannel];
+				occlusion = masks[_LMLayer4AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer4MetallicRemap.x, _LMLayer4MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer4SmoothnessRemap.x, _LMLayer4SmoothnessRemap.y);
 				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer4Color, layerColor.a * _LPLayer4Color.a);
+				o.Metallic = lerp(o.Metallic, lerp(_LMLayer4Metallic, metal, hasMasks), mask);
+				o.Smoothness = lerp(o.Smoothness, lerp(_LMLayer4Smoothness, smooth, hasMasks), mask);
+				o.Occlusion = lerp(o.Occlusion, lerp(1, occlusion, _LMLayer4OcclusionStrength), mask);
+				o.Normal = BlendNormals(o.Normal, normal);
+				o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer4Color.rgb, mask);
+				o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer4Color.a, mask);
+				#endif
+			}
+			
+			void TriplanarFragment()
+			{
+				#if defined(DIRT_MODE_NONE) && defined(DAMAGE_MODE_NONE)
+				return;
+				#else
+				half3 wsAligned = (d.worldSpacePosition / - _TriplanarMaskTiling);
 				
+				half3 xySample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xy).rgb;
+				half3 yzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.yz).rgb;
+				half3 xzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xz).rgb;
+				
+				half xNormalMask = saturate(lerp(-1, 1, abs(d.worldNormal.x)));
+				half zNormalMask = saturate(lerp(-1, 1, abs(d.worldNormal.z)));
+				
+				half3 triplanarMask = lerp(lerp(xzSample, yzSample, xNormalMask), xySample, zNormalMask);
+				
+				half damageMask = triplanarMask.g;
+				half dirtMask = triplanarMask.b;
+				
+				#if defined(DAMAGE_MODE_ENABLED)
+				damageMask *= _DamageAmount;
+				half2 damageUV = d.uv0.xy * _DamageAlbedoTiling;
 				UNITY_BRANCH
-				if (_LPLayerCount < 4)
+				if (_DamageAlbedo_TexelSize.w > 8)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer5UV - 2)), saturate(_LPLayer5UV - 1)), saturate(_LPLayer5UV));
-				_LPLayer5Direction = _LPLayer5Direction / 10.0;
-				layerUv = layerUv * _LPLayer5_ST.xy + _LPLayer5_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer5Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer5Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer5Speed) * _LPLayer5Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					layerUv += _Time.y * _LPLayer5Speed * _LPLayer5Direction.xy;
-					break;
+					half3 damageAlbedo = SAMPLE_TEXTURE2D(_DamageAlbedo, sampler_TriplanarMask, damageUV).rgb;
+					o.Albedo = lerp(o.Albedo, damageAlbedo, damageMask);
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer5, sampler_LPLayer1, layerUv);
+				else
+				{
+					o.Albedo = lerp(o.Albedo, o.Albedo * _DamageColor, damageMask);
+				}
 				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer5Color, layerColor.a * _LPLayer5Color.a);
-				half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-				half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-				o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+				half4 damageNormalPacked = SAMPLE_TEXTURE2D(_DamageNormal, sampler_DamageNormal, damageUV);
+				if (_DamageNormalFlipY)
+				{
+					damageNormalPacked.y = 1 - damageNormalPacked.y;
+				}
+				half3 damageNormal = UnpackScaleNormal(damageNormalPacked, _DamageNormalScale * damageMask);
+				o.Normal = BlendNormals(o.Normal, damageNormal);
+				
+				o.Smoothness = lerp(o.Smoothness, clamp(o.Smoothness, _DamageSmoothMin, _DamageSmoothMax), damageMask);
+				#endif
+				
+				#if !defined(DIRT_MODE_NONE)
+				dirtMask = pow(dirtMask, _DirtMaskPower);
+				
+				#if defined(DIRT_MODE_LOCAL_SPACE)
+				half gradMask = (d.localSpacePosition).y;
+				gradMask += _DirtGradPosition;
+				gradMask = 1 - gradMask;
+				gradMask = pow(gradMask, _DirtGradPower);
+				dirtMask *= saturate(gradMask);
+				#endif
+				#if defined(DIRT_MODE_WORLD_SPACE)
+				half gradMask = (d.worldSpacePosition - TransformObjectToWorld(half3(0, 0, 0))).y;
+				gradMask = (gradMask - _DirtGradientMax) / (_DirtGradientMin - _DirtGradientMax);
+				gradMask = saturate(gradMask);
+				dirtMask *= gradMask;
+				#endif
+				
+				dirtMask = clamp(dirtMask, 0, saturate(_DirtOpacity));
+				
+				if (_DirtPlanarMask)
+				{
+					half planarMask = dot(d.worldNormal, half3(0, -1, 0));
+					planarMask = pow(planarMask, 0.5);
+					planarMask = lerp(-1, 1, planarMask);
+					planarMask = saturate(planarMask);
+					dirtMask *= planarMask;
+				}
+				
+				o.Albedo = lerp(o.Albedo, _DirtColor, dirtMask);
+				o.Metallic = lerp(o.Metallic, 0, dirtMask);
+				o.Smoothness = lerp(o.Smoothness, _DirtSmooth, dirtMask);
+				#endif
+				
+				#endif
 			}
 			
 			void ORLLighting()
@@ -4751,7 +5103,8 @@ Shader "orels1/Standard Layered Parallax"
 				o.Alpha = 1;
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
-				LayeredParallaxFragment();
+				LayeredMaterialFragment();
+				TriplanarFragment();
 				
 				ORLLighting();
 				
@@ -4794,6 +5147,14 @@ Shader "orels1/Standard Layered Parallax"
 			#include "UnityMetaPass.cginc"
 			
 			#define FLT_EPSILON     1.192092896e-07
+			
+			#if !defined(DIRT_MODE_LOCAL_SPACE) && !defined(DIRT_MODE_WORLD_SPACE)
+			#define DIRT_MODE_NONE
+			#endif
+			
+			#if !defined(DAMAGE_MODE_ENABLED)
+			#define DAMAGE_MODE_NONE
+			#endif
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
 			#define PLAT_QUEST
@@ -6537,223 +6898,356 @@ Shader "orels1/Standard Layered Parallax"
 				return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 			}
 			
-			half _LPLayer1Depth;
-			half _LPLayer1Speed;
-			half _LPLayer2Depth;
-			half _LPLayer2Speed;
-			half _LPLayer3Depth;
-			half _LPLayer3Speed;
-			half _LPLayer4Depth;
-			half _LPLayer4Speed;
-			half _LPLayer5Depth;
-			half _LPLayer5Speed;
+			half _LMLayer1Smoothness;
+			half _LMLayer1Metallic;
+			half _LMLayer1OcclusionStrength;
+			half _LMLayer1BumpScale;
+			half _LMLayer2Smoothness;
+			half _LMLayer2Metallic;
+			half _LMLayer2OcclusionStrength;
+			half _LMLayer2BumpScale;
+			half _LMLayer3Smoothness;
+			half _LMLayer3Metallic;
+			half _LMLayer3OcclusionStrength;
+			half _LMLayer3BumpScale;
+			half _LMLayer4Smoothness;
+			half _LMLayer4Metallic;
+			half _LMLayer4OcclusionStrength;
+			half _LMLayer4BumpScale;
+			half _TriplanarMaskTiling;
+			half _DirtMaskPower;
+			half _DirtSmooth;
+			half _DirtGradPower;
+			half _DirtGradPosition;
+			half _DirtGradientMin;
+			half _DirtGradientMax;
+			half _DirtOpacity;
+			half _DamageAlbedoTiling;
+			half _DamageSmoothMin;
+			half _DamageSmoothMax;
+			half _DamageNormalScale;
+			half _DamageAmount;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
-			half4 _LPBackground_ST;
-			half4 _LPOverlay_ST;
-			half4 _LPLayer1_ST;
-			half4 _LPLayer1Color;
-			half4 _LPLayer1Direction;
-			half4 _LPLayer2_ST;
-			half4 _LPLayer2Color;
-			half4 _LPLayer2Direction;
-			half4 _LPLayer3_ST;
-			half4 _LPLayer3Color;
-			half4 _LPLayer3Direction;
-			half4 _LPLayer4_ST;
-			half4 _LPLayer4Color;
-			half4 _LPLayer4Direction;
-			half4 _LPLayer5_ST;
-			half4 _LPLayer5Color;
-			half4 _LPLayer5Direction;
+			half4 _LMLayer1Color;
+			half4 _LMLayer1MainTex_ST;
+			half4 _LMLayer1MetallicRemap;
+			half4 _LMLayer1SmoothnessRemap;
+			half4 _LMLayer1MaskMap_TexelSize;
+			half4 _LMLayer2Color;
+			half4 _LMLayer2MainTex_ST;
+			half4 _LMLayer2MetallicRemap;
+			half4 _LMLayer2SmoothnessRemap;
+			half4 _LMLayer2MaskMap_TexelSize;
+			half4 _LMLayer3Color;
+			half4 _LMLayer3MainTex_ST;
+			half4 _LMLayer3MetallicRemap;
+			half4 _LMLayer3SmoothnessRemap;
+			half4 _LMLayer3MaskMap_TexelSize;
+			half4 _LMLayer4Color;
+			half4 _LMLayer4MainTex_ST;
+			half4 _LMLayer4MetallicRemap;
+			half4 _LMLayer4SmoothnessRemap;
+			half4 _LMLayer4MaskMap_TexelSize;
+			half4 _DirtColor;
+			half4 _DamageAlbedo_TexelSize;
+			half4 _DamageColor;
 			float _GSAAVariance;
 			float _GSAAThreshold;
-			int _LPLayerCount;
-			int _LPLayer1UV;
-			int _LPLayer1UVMode;
-			int _LPLayer1Mode;
-			int _LPLayer2UV;
-			int _LPLayer2UVMode;
-			int _LPLayer2Mode;
-			int _LPLayer3UV;
-			int _LPLayer3UVMode;
-			int _LPLayer3Mode;
-			int _LPLayer4UV;
-			int _LPLayer4UVMode;
-			int _LPLayer4Mode;
-			int _LPLayer5UV;
-			int _LPLayer5UVMode;
-			int _LPLayer5Mode;
-			TEXTURE2D(_LPBackground);;
-			TEXTURE2D(_LPOverlay);;
-			SAMPLER(sampler_LPBackground);;
-			TEXTURE2D(_LPLayer1);;
-			TEXTURE2D(_LPLayer2);;
-			TEXTURE2D(_LPLayer3);;
-			TEXTURE2D(_LPLayer4);;
-			TEXTURE2D(_LPLayer5);;
-			SAMPLER(sampler_LPLayer1);;
+			int _LayeredMatLayersCount;
+			int _LMLayer1VertexColor;
+			int _LMLayer1AlbedoChannel;
+			int _LMLayer1MetalChannel;
+			int _LMLayer1AOChannel;
+			int _LMLayer1DetailMaskChannel;
+			int _LMLayer1SmoothChannel;
+			int _LMLayer1RoughnessMode;
+			int _LMLayer1FlipBumpY;
+			int _LMLayer2VertexColor;
+			int _LMLayer2AlbedoChannel;
+			int _LMLayer2MetalChannel;
+			int _LMLayer2AOChannel;
+			int _LMLayer2DetailMaskChannel;
+			int _LMLayer2SmoothChannel;
+			int _LMLayer2RoughnessMode;
+			int _LMLayer2FlipBumpY;
+			int _LMLayer3VertexColor;
+			int _LMLayer3AlbedoChannel;
+			int _LMLayer3MetalChannel;
+			int _LMLayer3AOChannel;
+			int _LMLayer3DetailMaskChannel;
+			int _LMLayer3SmoothChannel;
+			int _LMLayer3RoughnessMode;
+			int _LMLayer3FlipBumpY;
+			int _LMLayer4VertexColor;
+			int _LMLayer4AlbedoChannel;
+			int _LMLayer4MetalChannel;
+			int _LMLayer4AOChannel;
+			int _LMLayer4DetailMaskChannel;
+			int _LMLayer4SmoothChannel;
+			int _LMLayer4RoughnessMode;
+			int _LMLayer4FlipBumpY;
+			TEXTURE2D(_LMLayer1MainTex);;
+			TEXTURE2D(_LMLayer1MaskMap);;
+			TEXTURE2D(_LMLayer1BumpMap);;
+			TEXTURE2D(_LMLayer2MainTex);;
+			TEXTURE2D(_LMLayer2MaskMap);;
+			TEXTURE2D(_LMLayer2BumpMap);;
+			TEXTURE2D(_LMLayer3MainTex);;
+			TEXTURE2D(_LMLayer3MaskMap);;
+			TEXTURE2D(_LMLayer3BumpMap);;
+			TEXTURE2D(_LMLayer4MainTex);;
+			TEXTURE2D(_LMLayer4MaskMap);;
+			TEXTURE2D(_LMLayer4BumpMap);;
+			SAMPLER(sampler_LMLayer1MainTex);;
+			SAMPLER(sampler_LMLayer1MaskMap);;
+			SAMPLER(sampler_LMLayer1BumpMap);;
+			int _DirtPlanarMask;
+			int _DamageNormalFlipY;
+			TEXTURE2D(_TriplanarMask);;
+			SAMPLER(sampler_TriplanarMask);;
+			TEXTURE2D(_DamageAlbedo);;
+			TEXTURE2D(_DamageNormal);;
+			SAMPLER(sampler_DamageNormal);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
-			void LayeredParallaxFragment()
+			void LayeredMaterialFragment()
 			{
-				half2 bgUv = d.uv0.xy * _LPBackground_ST.xy + _LPBackground_ST.zw;
-				half4 bg = SAMPLE_TEXTURE2D(_LPBackground, sampler_LPBackground, bgUv);
-				o.Albedo = bg.rgb;
+				#if defined(_VERTEX_DEBUGGING)
+				o.Albedo = d.vertexColor.rgb;
+				o.Emission = d.vertexColor.rgb * 0.2;
+				#else
+				half2 uv = d.uv0.xy * _LMLayer1MainTex_ST.xy + _LMLayer1MainTex_ST.zw;
 				
-				half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer1UV - 2)), saturate(_LPLayer1UV - 1)), saturate(_LPLayer1UV));
-				_LPLayer1Direction = _LPLayer1Direction / 10.0;
-				layerUv = layerUv * _LPLayer1_ST.xy + _LPLayer1_ST.zw;
-				half2 offset = ParallaxOffset(-1, _LPLayer1Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer1Mode)
+				half mask = _LMLayer1VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer1VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer1VertexColor - 1];
+				
+				half4 albedo = SAMPLE_TEXTURE2D(_LMLayer1MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer1AlbedoChannel > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer1Speed) * _LPLayer1Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					break;
-					case 2:
-					layerUv = lerp(layerUv % 1.0, clamp(layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
-					layerUv += offset;
-					layerUv += _Time.y * _LPLayer1Speed * _LPLayer1Direction.xy;
-					break;
+					albedo.rgb = albedo[_LMLayer1AlbedoChannel].xxx;
 				}
-				half4 layerColor = SAMPLE_TEXTURE2D(_LPLayer1, sampler_LPLayer1, layerUv);
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer1Color, layerColor.a * _LPLayer1Color.a);
+				half4 masks = SAMPLE_TEXTURE2D(_LMLayer1MaskMap, sampler_LMLayer1MaskMap, uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_LMLayer1BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer1FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				half3 normal = UnpackScaleNormal(normalTex, _LMLayer1BumpScale);
+				int hasMasks = _LMLayer1MaskMap_TexelSize.z > 8;
+				half metal = masks[_LMLayer1MetalChannel];
+				half smooth = masks[_LMLayer1SmoothChannel];
+				if (_LMLayer1RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				half detailMask = masks[_LMLayer1DetailMaskChannel];
+				half occlusion = masks[_LMLayer1AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer1MetallicRemap.x, _LMLayer1MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer1SmoothnessRemap.x, _LMLayer1SmoothnessRemap.y);
+				
+				o.Metallic = lerp(_LMLayer1Metallic, metal, hasMasks);
+				o.Smoothness = lerp(_LMLayer1Smoothness, smooth, hasMasks);
+				o.Occlusion = lerp(1, occlusion, _LMLayer1OcclusionStrength);
+				o.Normal = normal;
+				o.Albedo = albedo.rgb * _LMLayer1Color.rgb;
+				o.Alpha = albedo.a * _LMLayer1Color.a;
 				
 				UNITY_BRANCH
-				if (_LPLayerCount < 2)
-				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
+				if (_LayeredMatLayersCount < 2) return;
 				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer2UV - 2)), saturate(_LPLayer2UV - 1)), saturate(_LPLayer2UV));
-				_LPLayer2Direction = _LPLayer2Direction / 10.0;
-				layerUv = layerUv * _LPLayer2_ST.xy + _LPLayer2_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer2Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer2Mode)
+				uv = d.uv0.xy * _LMLayer2MainTex_ST.xy + _LMLayer2MainTex_ST.zw;
+				mask = mask = _LMLayer2VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer2VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer2VertexColor - 1];
+				
+				albedo = SAMPLE_TEXTURE2D(_LMLayer2MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer2AlbedoChannel > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer2Speed) * _LPLayer2Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
-					layerUv += _Time.y * _LPLayer2Speed * _LPLayer2Direction.xy;
-					break;
+					albedo.rgb = albedo[_LMLayer2AlbedoChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer2, sampler_LPLayer1, layerUv);
+				masks = SAMPLE_TEXTURE2D(_LMLayer2MaskMap, sampler_LMLayer1MaskMap, uv);
+				normalTex = SAMPLE_TEXTURE2D(_LMLayer2BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer2FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				normal = UnpackScaleNormal(normalTex, _LMLayer2BumpScale * mask);
+				hasMasks = _LMLayer2MaskMap_TexelSize.z > 8;
+				metal = masks[_LMLayer2MetalChannel];
+				smooth = masks[_LMLayer2SmoothChannel];
+				if (_LMLayer2RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				detailMask = masks[_LMLayer2DetailMaskChannel];
+				occlusion = masks[_LMLayer2AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer2MetallicRemap.x, _LMLayer2MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer2SmoothnessRemap.x, _LMLayer2SmoothnessRemap.y);
 				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer2Color, layerColor.a * _LPLayer2Color.a);
+				o.Metallic = lerp(o.Metallic, lerp(_LMLayer2Metallic, metal, hasMasks), mask);
+				o.Smoothness = lerp(o.Smoothness, lerp(_LMLayer2Smoothness, smooth, hasMasks), mask);
+				o.Occlusion = lerp(o.Occlusion, lerp(1, occlusion, _LMLayer2OcclusionStrength), mask);
+				o.Normal = BlendNormals(o.Normal, normal);
+				o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer2Color.rgb, mask);
+				o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer2Color.a, mask);
+				
+				#if defined(PLAT_QUEST)
+				return;
+				#endif
 				
 				UNITY_BRANCH
-				if (_LPLayerCount < 3)
-				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
+				if (_LayeredMatLayersCount < 3) return;
 				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer3UV - 2)), saturate(_LPLayer3UV - 1)), saturate(_LPLayer3UV));
-				_LPLayer3Direction = _LPLayer3Direction / 10.0;
-				layerUv = layerUv * _LPLayer3_ST.xy + _LPLayer3_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer3Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer3Mode)
+				uv = d.uv0.xy * _LMLayer3MainTex_ST.xy + _LMLayer3MainTex_ST.zw;
+				mask = mask = _LMLayer3VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer3VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer3VertexColor - 1];
+				
+				albedo = SAMPLE_TEXTURE2D(_LMLayer3MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer3AlbedoChannel > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer3Speed) * _LPLayer3Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
-					layerUv += _Time.y * _LPLayer3Speed * _LPLayer3Direction.xy;
-					break;
+					albedo.rgb = albedo[_LMLayer3AlbedoChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer3, sampler_LPLayer1, layerUv);
+				masks = SAMPLE_TEXTURE2D(_LMLayer3MaskMap, sampler_LMLayer1MaskMap, uv);
+				normalTex = SAMPLE_TEXTURE2D(_LMLayer3BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer3FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				normal = UnpackScaleNormal(normalTex, _LMLayer3BumpScale * mask);
+				hasMasks = _LMLayer3MaskMap_TexelSize.z > 8;
+				metal = masks[_LMLayer3MetalChannel];
+				smooth = masks[_LMLayer3SmoothChannel];
+				if (_LMLayer3RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				detailMask = masks[_LMLayer3DetailMaskChannel];
+				occlusion = masks[_LMLayer3AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer3MetallicRemap.x, _LMLayer3MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer3SmoothnessRemap.x, _LMLayer3SmoothnessRemap.y);
 				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer3Color, layerColor.a * _LPLayer3Color.a);
+				o.Metallic = lerp(o.Metallic, lerp(_LMLayer3Metallic, metal, hasMasks), mask);
+				o.Smoothness = lerp(o.Smoothness, lerp(_LMLayer3Smoothness, smooth, hasMasks), mask);
+				o.Occlusion = lerp(o.Occlusion, lerp(1, occlusion, _LMLayer3OcclusionStrength), mask);
+				o.Normal = BlendNormals(o.Normal, normal);
+				o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer3Color.rgb, mask);
+				o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer3Color.a, mask);
 				
 				UNITY_BRANCH
-				if (_LPLayerCount < 4)
-				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
+				if (_LayeredMatLayersCount < 4) return;
 				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer4UV - 2)), saturate(_LPLayer4UV - 1)), saturate(_LPLayer4UV));
-				_LPLayer4Direction = _LPLayer4Direction / 10.0;
-				layerUv = layerUv * _LPLayer4_ST.xy + _LPLayer4_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer4Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer4Mode)
+				uv = d.uv0.xy * _LMLayer4MainTex_ST.xy + _LMLayer4MainTex_ST.zw;
+				mask = mask = _LMLayer4VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer4VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer4VertexColor - 1];
+				
+				albedo = SAMPLE_TEXTURE2D(_LMLayer4MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer4AlbedoChannel > 0)
 				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer4Speed) * _LPLayer4Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
-					layerUv += _Time.y * _LPLayer4Speed * _LPLayer4Direction.xy;
-					break;
+					albedo.rgb = albedo[_LMLayer4AlbedoChannel].xxx;
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer4, sampler_LPLayer1, layerUv);
+				masks = SAMPLE_TEXTURE2D(_LMLayer4MaskMap, sampler_LMLayer1MaskMap, uv);
+				normalTex = SAMPLE_TEXTURE2D(_LMLayer4BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer4FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				normal = UnpackScaleNormal(normalTex, _LMLayer4BumpScale * mask);
+				hasMasks = _LMLayer4MaskMap_TexelSize.z > 8;
+				metal = masks[_LMLayer4MetalChannel];
+				smooth = masks[_LMLayer4SmoothChannel];
+				if (_LMLayer4RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				detailMask = masks[_LMLayer4DetailMaskChannel];
+				occlusion = masks[_LMLayer4AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer4MetallicRemap.x, _LMLayer4MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer4SmoothnessRemap.x, _LMLayer4SmoothnessRemap.y);
 				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer4Color, layerColor.a * _LPLayer4Color.a);
+				o.Metallic = lerp(o.Metallic, lerp(_LMLayer4Metallic, metal, hasMasks), mask);
+				o.Smoothness = lerp(o.Smoothness, lerp(_LMLayer4Smoothness, smooth, hasMasks), mask);
+				o.Occlusion = lerp(o.Occlusion, lerp(1, occlusion, _LMLayer4OcclusionStrength), mask);
+				o.Normal = BlendNormals(o.Normal, normal);
+				o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer4Color.rgb, mask);
+				o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer4Color.a, mask);
+				#endif
+			}
+			
+			void TriplanarFragment()
+			{
+				#if defined(DIRT_MODE_NONE) && defined(DAMAGE_MODE_NONE)
+				return;
+				#else
+				half3 wsAligned = (d.worldSpacePosition / - _TriplanarMaskTiling);
 				
+				half3 xySample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xy).rgb;
+				half3 yzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.yz).rgb;
+				half3 xzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xz).rgb;
+				
+				half xNormalMask = saturate(lerp(-1, 1, abs(d.worldNormal.x)));
+				half zNormalMask = saturate(lerp(-1, 1, abs(d.worldNormal.z)));
+				
+				half3 triplanarMask = lerp(lerp(xzSample, yzSample, xNormalMask), xySample, zNormalMask);
+				
+				half damageMask = triplanarMask.g;
+				half dirtMask = triplanarMask.b;
+				
+				#if defined(DAMAGE_MODE_ENABLED)
+				damageMask *= _DamageAmount;
+				half2 damageUV = d.uv0.xy * _DamageAlbedoTiling;
 				UNITY_BRANCH
-				if (_LPLayerCount < 4)
+				if (_DamageAlbedo_TexelSize.w > 8)
 				{
-					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
-					return;
-				};
-				
-				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer5UV - 2)), saturate(_LPLayer5UV - 1)), saturate(_LPLayer5UV));
-				_LPLayer5Direction = _LPLayer5Direction / 10.0;
-				layerUv = layerUv * _LPLayer5_ST.xy + _LPLayer5_ST.zw;
-				offset = ParallaxOffset(-1, _LPLayer5Depth, d.tangentSpaceViewDir);
-				switch(_LPLayer5Mode)
-				{
-					case 0:
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					break;
-					case 1:
-					layerUv += sin(_Time.y * _LPLayer5Speed) * _LPLayer5Direction.xy;
-					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					break;
-					case 2:
-					layerUv += offset;
-					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
-					layerUv += _Time.y * _LPLayer5Speed * _LPLayer5Direction.xy;
-					break;
+					half3 damageAlbedo = SAMPLE_TEXTURE2D(_DamageAlbedo, sampler_TriplanarMask, damageUV).rgb;
+					o.Albedo = lerp(o.Albedo, damageAlbedo, damageMask);
 				}
-				layerColor = SAMPLE_TEXTURE2D(_LPLayer5, sampler_LPLayer1, layerUv);
+				else
+				{
+					o.Albedo = lerp(o.Albedo, o.Albedo * _DamageColor, damageMask);
+				}
 				
-				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer5Color, layerColor.a * _LPLayer5Color.a);
-				half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
-				half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
-				o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+				half4 damageNormalPacked = SAMPLE_TEXTURE2D(_DamageNormal, sampler_DamageNormal, damageUV);
+				if (_DamageNormalFlipY)
+				{
+					damageNormalPacked.y = 1 - damageNormalPacked.y;
+				}
+				half3 damageNormal = UnpackScaleNormal(damageNormalPacked, _DamageNormalScale * damageMask);
+				o.Normal = BlendNormals(o.Normal, damageNormal);
+				
+				o.Smoothness = lerp(o.Smoothness, clamp(o.Smoothness, _DamageSmoothMin, _DamageSmoothMax), damageMask);
+				#endif
+				
+				#if !defined(DIRT_MODE_NONE)
+				dirtMask = pow(dirtMask, _DirtMaskPower);
+				
+				#if defined(DIRT_MODE_LOCAL_SPACE)
+				half gradMask = (d.localSpacePosition).y;
+				gradMask += _DirtGradPosition;
+				gradMask = 1 - gradMask;
+				gradMask = pow(gradMask, _DirtGradPower);
+				dirtMask *= saturate(gradMask);
+				#endif
+				#if defined(DIRT_MODE_WORLD_SPACE)
+				half gradMask = (d.worldSpacePosition - TransformObjectToWorld(half3(0, 0, 0))).y;
+				gradMask = (gradMask - _DirtGradientMax) / (_DirtGradientMin - _DirtGradientMax);
+				gradMask = saturate(gradMask);
+				dirtMask *= gradMask;
+				#endif
+				
+				dirtMask = clamp(dirtMask, 0, saturate(_DirtOpacity));
+				
+				if (_DirtPlanarMask)
+				{
+					half planarMask = dot(d.worldNormal, half3(0, -1, 0));
+					planarMask = pow(planarMask, 0.5);
+					planarMask = lerp(-1, 1, planarMask);
+					planarMask = saturate(planarMask);
+					dirtMask *= planarMask;
+				}
+				
+				o.Albedo = lerp(o.Albedo, _DirtColor, dirtMask);
+				o.Metallic = lerp(o.Metallic, 0, dirtMask);
+				o.Smoothness = lerp(o.Smoothness, _DirtSmooth, dirtMask);
+				#endif
+				
+				#endif
 			}
 			
 			void ORLLighting()
@@ -7084,7 +7578,8 @@ Shader "orels1/Standard Layered Parallax"
 				o.Occlusion = 1;
 				o.Alpha = 1;
 				
-				LayeredParallaxFragment();
+				LayeredMaterialFragment();
+				TriplanarFragment();
 				
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
@@ -7119,6 +7614,11 @@ Shader "orels1/Standard Layered Parallax"
 			#pragma multi_compile_shadowcaster
 			#pragma vertex Vertex
 			#pragma fragment Fragment
+			#pragma shader_feature_local _VERTEX_DEBUGGING
+			
+			#pragma shader_feature_local DIRT_MODE_NONE DIRT_MODE_LOCAL_SPACE DIRT_MODE_WORLD_SPACE
+			#pragma shader_feature_local DAMAGE_MODE_NONE DAMAGE_MODE_ENABLED
+			
 			#pragma shader_feature_local BICUBIC_LIGHTMAP
 			#pragma shader_feature_local BAKED_SPECULAR
 			#pragma shader_feature_local GSAA
@@ -7137,6 +7637,14 @@ Shader "orels1/Standard Layered Parallax"
 			#include "UnityPBSLighting.cginc"
 			
 			#define FLT_EPSILON     1.192092896e-07
+			
+			#if !defined(DIRT_MODE_LOCAL_SPACE) && !defined(DIRT_MODE_WORLD_SPACE)
+			#define DIRT_MODE_NONE
+			#endif
+			
+			#if !defined(DAMAGE_MODE_ENABLED)
+			#define DAMAGE_MODE_NONE
+			#endif
 			
 			#if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
 			#define PLAT_QUEST
@@ -8878,62 +9386,117 @@ Shader "orels1/Standard Layered Parallax"
 				return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 			}
 			
-			half _LPLayer1Depth;
-			half _LPLayer1Speed;
-			half _LPLayer2Depth;
-			half _LPLayer2Speed;
-			half _LPLayer3Depth;
-			half _LPLayer3Speed;
-			half _LPLayer4Depth;
-			half _LPLayer4Speed;
-			half _LPLayer5Depth;
-			half _LPLayer5Speed;
+			half _LMLayer1Smoothness;
+			half _LMLayer1Metallic;
+			half _LMLayer1OcclusionStrength;
+			half _LMLayer1BumpScale;
+			half _LMLayer2Smoothness;
+			half _LMLayer2Metallic;
+			half _LMLayer2OcclusionStrength;
+			half _LMLayer2BumpScale;
+			half _LMLayer3Smoothness;
+			half _LMLayer3Metallic;
+			half _LMLayer3OcclusionStrength;
+			half _LMLayer3BumpScale;
+			half _LMLayer4Smoothness;
+			half _LMLayer4Metallic;
+			half _LMLayer4OcclusionStrength;
+			half _LMLayer4BumpScale;
+			half _TriplanarMaskTiling;
+			half _DirtMaskPower;
+			half _DirtSmooth;
+			half _DirtGradPower;
+			half _DirtGradPosition;
+			half _DirtGradientMin;
+			half _DirtGradientMax;
+			half _DirtOpacity;
+			half _DamageAlbedoTiling;
+			half _DamageSmoothMin;
+			half _DamageSmoothMax;
+			half _DamageNormalScale;
+			half _DamageAmount;
 			half _SpecOcclusion;
 			half _SpecularRoughnessMod;
-			half4 _LPBackground_ST;
-			half4 _LPOverlay_ST;
-			half4 _LPLayer1_ST;
-			half4 _LPLayer1Color;
-			half4 _LPLayer1Direction;
-			half4 _LPLayer2_ST;
-			half4 _LPLayer2Color;
-			half4 _LPLayer2Direction;
-			half4 _LPLayer3_ST;
-			half4 _LPLayer3Color;
-			half4 _LPLayer3Direction;
-			half4 _LPLayer4_ST;
-			half4 _LPLayer4Color;
-			half4 _LPLayer4Direction;
-			half4 _LPLayer5_ST;
-			half4 _LPLayer5Color;
-			half4 _LPLayer5Direction;
+			half4 _LMLayer1Color;
+			half4 _LMLayer1MainTex_ST;
+			half4 _LMLayer1MetallicRemap;
+			half4 _LMLayer1SmoothnessRemap;
+			half4 _LMLayer1MaskMap_TexelSize;
+			half4 _LMLayer2Color;
+			half4 _LMLayer2MainTex_ST;
+			half4 _LMLayer2MetallicRemap;
+			half4 _LMLayer2SmoothnessRemap;
+			half4 _LMLayer2MaskMap_TexelSize;
+			half4 _LMLayer3Color;
+			half4 _LMLayer3MainTex_ST;
+			half4 _LMLayer3MetallicRemap;
+			half4 _LMLayer3SmoothnessRemap;
+			half4 _LMLayer3MaskMap_TexelSize;
+			half4 _LMLayer4Color;
+			half4 _LMLayer4MainTex_ST;
+			half4 _LMLayer4MetallicRemap;
+			half4 _LMLayer4SmoothnessRemap;
+			half4 _LMLayer4MaskMap_TexelSize;
+			half4 _DirtColor;
+			half4 _DamageAlbedo_TexelSize;
+			half4 _DamageColor;
 			float _GSAAVariance;
 			float _GSAAThreshold;
-			int _LPLayerCount;
-			int _LPLayer1UV;
-			int _LPLayer1UVMode;
-			int _LPLayer1Mode;
-			int _LPLayer2UV;
-			int _LPLayer2UVMode;
-			int _LPLayer2Mode;
-			int _LPLayer3UV;
-			int _LPLayer3UVMode;
-			int _LPLayer3Mode;
-			int _LPLayer4UV;
-			int _LPLayer4UVMode;
-			int _LPLayer4Mode;
-			int _LPLayer5UV;
-			int _LPLayer5UVMode;
-			int _LPLayer5Mode;
-			TEXTURE2D(_LPBackground);;
-			TEXTURE2D(_LPOverlay);;
-			SAMPLER(sampler_LPBackground);;
-			TEXTURE2D(_LPLayer1);;
-			TEXTURE2D(_LPLayer2);;
-			TEXTURE2D(_LPLayer3);;
-			TEXTURE2D(_LPLayer4);;
-			TEXTURE2D(_LPLayer5);;
-			SAMPLER(sampler_LPLayer1);;
+			int _LayeredMatLayersCount;
+			int _LMLayer1VertexColor;
+			int _LMLayer1AlbedoChannel;
+			int _LMLayer1MetalChannel;
+			int _LMLayer1AOChannel;
+			int _LMLayer1DetailMaskChannel;
+			int _LMLayer1SmoothChannel;
+			int _LMLayer1RoughnessMode;
+			int _LMLayer1FlipBumpY;
+			int _LMLayer2VertexColor;
+			int _LMLayer2AlbedoChannel;
+			int _LMLayer2MetalChannel;
+			int _LMLayer2AOChannel;
+			int _LMLayer2DetailMaskChannel;
+			int _LMLayer2SmoothChannel;
+			int _LMLayer2RoughnessMode;
+			int _LMLayer2FlipBumpY;
+			int _LMLayer3VertexColor;
+			int _LMLayer3AlbedoChannel;
+			int _LMLayer3MetalChannel;
+			int _LMLayer3AOChannel;
+			int _LMLayer3DetailMaskChannel;
+			int _LMLayer3SmoothChannel;
+			int _LMLayer3RoughnessMode;
+			int _LMLayer3FlipBumpY;
+			int _LMLayer4VertexColor;
+			int _LMLayer4AlbedoChannel;
+			int _LMLayer4MetalChannel;
+			int _LMLayer4AOChannel;
+			int _LMLayer4DetailMaskChannel;
+			int _LMLayer4SmoothChannel;
+			int _LMLayer4RoughnessMode;
+			int _LMLayer4FlipBumpY;
+			TEXTURE2D(_LMLayer1MainTex);;
+			TEXTURE2D(_LMLayer1MaskMap);;
+			TEXTURE2D(_LMLayer1BumpMap);;
+			TEXTURE2D(_LMLayer2MainTex);;
+			TEXTURE2D(_LMLayer2MaskMap);;
+			TEXTURE2D(_LMLayer2BumpMap);;
+			TEXTURE2D(_LMLayer3MainTex);;
+			TEXTURE2D(_LMLayer3MaskMap);;
+			TEXTURE2D(_LMLayer3BumpMap);;
+			TEXTURE2D(_LMLayer4MainTex);;
+			TEXTURE2D(_LMLayer4MaskMap);;
+			TEXTURE2D(_LMLayer4BumpMap);;
+			SAMPLER(sampler_LMLayer1MainTex);;
+			SAMPLER(sampler_LMLayer1MaskMap);;
+			SAMPLER(sampler_LMLayer1BumpMap);;
+			int _DirtPlanarMask;
+			int _DamageNormalFlipY;
+			TEXTURE2D(_TriplanarMask);;
+			SAMPLER(sampler_TriplanarMask);;
+			TEXTURE2D(_DamageAlbedo);;
+			TEXTURE2D(_DamageNormal);;
+			SAMPLER(sampler_DamageNormal);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			

@@ -1,116 +1,118 @@
 #T#VertexData
-struct VertexData 
+struct VertexData
 {
-    float4 vertex     : POSITION;
-    float3 normal     : NORMAL;
-    float4 tangent    : TANGENT;
-    float4 color      : COLOR;
-    float2 uv0        : TEXCOORD0;
-    float2 uv1        : TEXCOORD1;
-    float2 uv2        : TEXCOORD2;
-    float2 uv3        : TEXCOORD3;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
+  float4 vertex : POSITION;
+  float3 normal : NORMAL;
+  float4 tangent : TANGENT;
+  float4 color : COLOR;
+  float2 uv0 : TEXCOORD0;
+  float2 uv1 : TEXCOORD1;
+  float2 uv2 : TEXCOORD2;
+  float2 uv3 : TEXCOORD3;
+  UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 #T#FragmentData
-struct FragmentData 
+struct FragmentData
 {
-    #if defined(UNITY_PASS_SHADOWCASTER)
-      V2F_SHADOW_CASTER;
-      float2 uv0         : TEXCOORD1;
-      float2 uv1         : TEXCOORD2;
-      float2 uv2         : TEXCOORD3;
-      float2 uv3         : TEXCOORD4;
-      float3 worldPos    : TEXCOORD5;
-      float3 worldNormal : TEXCOORD6;
-      float4 worldTangent: TEXCOORD7;
-    #else
-      float4 pos         : SV_POSITION;
-      float3 normal      : NORMAL;
-      float2 uv0         : TEXCOORD0;
-      float2 uv1         : TEXCOORD1;
-      float2 uv2         : TEXCOORD2;
-      float2 uv3         : TEXCOORD3;
-      float3 worldPos    : TEXCOORD4;
-      float3 worldNormal : TEXCOORD5;
-      float4 worldTangent: TEXCOORD6;
-      float4 lightmapUv  : TEXCOORD7;
-      float4 vertexColor : TEXCOORD8; 
+  #if defined(UNITY_PASS_SHADOWCASTER)
+    V2F_SHADOW_CASTER;
+    float2 uv0 : TEXCOORD1;
+    float2 uv1 : TEXCOORD2;
+    float2 uv2 : TEXCOORD3;
+    float2 uv3 : TEXCOORD4;
+    float3 worldPos : TEXCOORD5;
+    float3 worldNormal : TEXCOORD6;
+    float4 worldTangent : TEXCOORD7;
+  #else
+    float4 pos : SV_POSITION;
+    float3 normal : NORMAL;
+    float2 uv0 : TEXCOORD0;
+    float2 uv1 : TEXCOORD1;
+    float2 uv2 : TEXCOORD2;
+    float2 uv3 : TEXCOORD3;
+    float3 worldPos : TEXCOORD4;
+    float3 worldNormal : TEXCOORD5;
+    float4 worldTangent : TEXCOORD6;
+    float4 lightmapUv : TEXCOORD7;
+    float4 vertexColor : TEXCOORD8;
     
+    #if !defined(UNITY_PASS_META)
+      UNITY_LIGHTING_COORDS(9, 10)
+      UNITY_FOG_COORDS(11)
+    #endif
+  #endif
+
+  #if defined(EDITOR_VISUALIZATION)
+    float2 vizUV : TEXCOORD9;
+    float4 lightCoord : TEXCOORD10;
+  #endif
+
+  #if defined(EXTRA_V2F_0)
+    #if defined(UNITY_PASS_SHADOWCASTER)
+      float4 extraV2F0 : TEXCOORD8;
+    #else
       #if !defined(UNITY_PASS_META)
-        UNITY_LIGHTING_COORDS(9,10)
-        UNITY_FOG_COORDS(11)
-      #endif
-    #endif
-
-    #if defined(EDITOR_VISUALIZATION)
-      float2 vizUV : TEXCOORD9;
-      float4 lightCoord : TEXCOORD10;
-    #endif
-
-    #if defined(EXTRA_V2F_0)
-      #if defined(UNITY_PASS_SHADOWCASTER)
-        float4 extraV2F0 : TEXCOORD8;
+        float4 extraV2F0 : TEXCOORD12;
       #else
-        #if !defined(UNITY_PASS_META)
-          float4 extraV2F0 : TEXCOORD12;  
+        #if defined(EDITOR_VISUALIZATION)
+          float4 extraV2F0 : TEXCOORD11;
         #else
-          #if defined(EDITOR_VISUALIZATION)
-            float4 extraV2F0 : TEXCOORD11; 
-          #else
-            float4 extraV2F0 : TEXCOORD9;
-          #endif
+          float4 extraV2F0 : TEXCOORD9;
         #endif
       #endif
     #endif
-    #if defined(EXTRA_V2F_1)
-      #if defined(UNITY_PASS_SHADOWCASTER)
-        float4 extraV2F1 : TEXCOORD9;
+  #endif
+  #if defined(EXTRA_V2F_1)
+    #if defined(UNITY_PASS_SHADOWCASTER)
+      float4 extraV2F1 : TEXCOORD9;
+    #else
+      #if !defined(UNITY_PASS_META)
+        float4 extraV2F1 : TEXCOORD13;
       #else
-        #if !defined(UNITY_PASS_META)
-          float4 extraV2F1 : TEXCOORD13;
+        #if defined(EDITOR_VISUALIZATION)
+          float4 extraV2F1 : TEXCOORD14;
         #else
-          #if defined(EDITOR_VISUALIZATION)
-            float4 extraV2F1 : TEXCOORD14; 
-          #else
-            float4 extraV2F1 : TEXCOORD15;
-          #endif
+          float4 extraV2F1 : TEXCOORD15;
         #endif
       #endif
     #endif
-    #if defined(EXTRA_V2F_2)
-      #if defined(UNITY_PASS_SHADOWCASTER)
-        float4 extraV2F2 : TEXCOORD10;
+  #endif
+  #if defined(EXTRA_V2F_2)
+    #if defined(UNITY_PASS_SHADOWCASTER)
+      float4 extraV2F2 : TEXCOORD10;
+    #else
+      #if !defined(UNITY_PASS_META)
+        float4 extraV2F2 : TEXCOORD14;
       #else
-        #if !defined(UNITY_PASS_META)
-          float4 extraV2F2 : TEXCOORD14;
+        #if defined(EDITOR_VISUALIZATION)
+          float4 extraV2F2 : TEXCOORD15
         #else
-          #if defined(EDITOR_VISUALIZATION)
-            float4 extraV2F2 : TEXCOORD15 
-          #else
-            float4 extraV2F2 : TEXCOORD16;
-          #endif
+          float4 extraV2F2 : TEXCOORD16;
         #endif
       #endif
     #endif
+  #endif
 
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-    UNITY_VERTEX_OUTPUT_STEREO
+  UNITY_VERTEX_INPUT_INSTANCE_ID
+  UNITY_VERTEX_OUTPUT_STEREO
 };
 
 #T#SurfaceData
-struct SurfaceData {
+struct SurfaceData
+{
   half3 Albedo;
   half3 Emission;
-  half  Metallic;
-  half  Smoothness;
-  half  Occlusion;
+  half Metallic;
+  half Smoothness;
+  half Occlusion;
   half3 Normal;
-  half  Alpha;
+  half Alpha;
 };
 
 #T#MeshData
-struct MeshData {
+struct MeshData
+{
   half2 uv0;
   half2 uv1;
   half2 uv2;
@@ -128,7 +130,8 @@ struct MeshData {
   float4 extraV2F2;
 };
 
-MeshData CreateMeshData(FragmentData i) {
+MeshData CreateMeshData(FragmentData i)
+{
   MeshData m = (MeshData) 0;
   m.uv0 = i.uv0;
   m.uv1 = i.uv1;
@@ -140,11 +143,11 @@ MeshData CreateMeshData(FragmentData i) {
   m.worldSpaceViewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
 
   #if !defined(UNITY_PASS_SHADOWCASTER)
-  m.vertexColor = i.vertexColor;
-  m.normal = i.normal;
-  float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
-  m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
-  m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
+    m.vertexColor = i.vertexColor;
+    m.normal = i.normal;
+    float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * - 1;
+    m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
+    m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
   #endif
 
   #if defined(EXTRA_V2F_0)

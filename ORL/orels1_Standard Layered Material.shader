@@ -1,5 +1,3 @@
-// Upgrade NOTE: replaced 'defined FOG_COMBINED_WITH_WORLD_POS' with 'defined (FOG_COMBINED_WITH_WORLD_POS)'
-
 Shader "orels1/Standard Layered Material"
 {
 	Properties
@@ -11,89 +9,89 @@ Shader "orels1/Standard Layered Material"
 		[ToggleUI] UI_LMLayer1Header("## Layer 1", Int) =  0
 		[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)] _LMLayer1VertexColor("Vertex Color Mask", Int) =  0
 		_LMLayer1Color("Main Color", Color) =  (1, 1, 1, 1)
-		_LMLayer1MainTex("Albedo", 2D) =  "white" {}
+		_LMLayer1MainTex("Albedo", 2D) =  "white" { }
 		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_LMLayer1MainTex] _LMLayer1AlbedoChannel("Albedo Channel [_LMLayer1MainTex]", Int) =  0
-		[NoScaleOffset] _LMLayer1MaskMap("Masks &", 2D) =  "white" {}
+		[NoScaleOffset] _LMLayer1MaskMap("Masks &", 2D) =  "white" { }
 		[ToggleUI][_LMLayer1MaskMap] UI_LMLayer1ChannelSelector("!DRAWER MultiProperty _LMLayer1MetalChannel _LMLayer1AOChannel _LMLayer1DetailMaskChannel _LMLayer1SmoothChannel [_LMLayer1MaskMap]", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer1MetalChannel("Metal", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer1AOChannel("AO", Int) =  1
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer1DetailMaskChannel("Detail", Int) =  2
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer1SmoothChannel("Smooth", Int) =  3
-		_LMLayer1Smoothness("Smoothness [!_LMLayer1MaskMap]", Range(0,1)) =  0.5
+		_LMLayer1Smoothness("Smoothness [!_LMLayer1MaskMap]", Range(0, 1)) =  0.5
 		[ToggleUI][_LMLayer1MaskMap] _LMLayer1RoughnessMode("Roughness Mode [_LMLayer1MaskMap]", Int) =  0
 		[ToggleUI][_LMLayer1MaskMap] UI_LMLayer1SmoothnessRemap("!DRAWER MinMax _LMLayer1SmoothnessRemap.x _LMLayer1SmoothnessRemap.y [_LMLayer1MaskMap]", Float) =  0
-		_LMLayer1Metallic("Metallic [!_LMLayer1MaskMap]", Range(0,1)) =  0
+		_LMLayer1Metallic("Metallic [!_LMLayer1MaskMap]", Range(0, 1)) =  0
 		[ToggleUI][_LMLayer1MaskMap] UI_LMLayer1MetallicRemap("!DRAWER MinMax _LMLayer1MetallicRemap.x _LMLayer1MetallicRemap.y [_LMLayer1MaskMap]", Float) =  0
-		[HideInInspector] _LMLayer1MetallicRemap("Metallic Remap", Vector) =  (0,1,0,1)
-		[HideInInspector] _LMLayer1SmoothnessRemap("Smoothness Remap", Vector) =  (0,1,0,1)
-		_LMLayer1OcclusionStrength("AO Strength", Range(0,1)) =  1
-		[NoScaleOffset] _LMLayer1BumpMap("Normal Map &&", 2D) =  "bump" {}
+		[HideInInspector] _LMLayer1MetallicRemap("Metallic Remap", Vector) =  (0, 1, 0, 1)
+		[HideInInspector] _LMLayer1SmoothnessRemap("Smoothness Remap", Vector) =  (0, 1, 0, 1)
+		_LMLayer1OcclusionStrength("AO Strength", Range(0, 1)) =  1
+		[NoScaleOffset] _LMLayer1BumpMap("Normal Map &&", 2D) =  "bump" { }
 		_LMLayer1BumpScale("Normal Map Scale", Float) = 0.0
 		[ToggleUI][_LMLayer1BumpMap] _LMLayer1FlipBumpY("Flip Y (UE Mode) [_LMLayer1BumpMap]", Int) =  0
 		[ToggleUI] UI_LMLayer2Header("## Layer 2 [_LayeredMatLayersCount > 1]", Int) =  0
 		[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)] _LMLayer2VertexColor("Vertex Color Mask", Int) =  1
 		_LMLayer2Color("Main Color [_LayeredMatLayersCount > 1]", Color) =  (1, 1, 1, 1)
-		_LMLayer2MainTex("Albedo [_LayeredMatLayersCount > 1]", 2D) =  "white" {}
+		_LMLayer2MainTex("Albedo [_LayeredMatLayersCount > 1]", 2D) =  "white" { }
 		[Enum(RGB, 0, R, 1, G, 2, B, 3)] _LMLayer2AlbedoChannel("Albedo Channel [_LMLayer2MainTex && _LayeredMatLayersCount > 1]", Int) =  0
-		[NoScaleOffset] _LMLayer2MaskMap("Masks & [_LayeredMatLayersCount > 1]", 2D) =  "white" {}
+		[NoScaleOffset] _LMLayer2MaskMap("Masks & [_LayeredMatLayersCount > 1]", 2D) =  "white" { }
 		[ToggleUI] UI_LMLayer2ChannelSelector("!DRAWER MultiProperty _LMLayer2MetalChannel _LMLayer2AOChannel _LMLayer2DetailMaskChannel _LMLayer2SmoothChannel [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer2MetalChannel("Metal", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer2AOChannel("AO", Int) =  1
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer2DetailMaskChannel("Detail", Int) =  2
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer2SmoothChannel("Smooth", Int) =  3
-		_LMLayer2Smoothness("Smoothness [!_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Range(0,1)) =  0.5
+		_LMLayer2Smoothness("Smoothness [!_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Range(0, 1)) =  0.5
 		[ToggleUI] _LMLayer2RoughnessMode("Roughness Mode [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Int) =  0
 		[ToggleUI] UI_LMLayer2SmoothnessRemap("!DRAWER MinMax _LMLayer2SmoothnessRemap.x _LMLayer2SmoothnessRemap.y [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Float) =  0
-		_LMLayer2Metallic("Metallic [!_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Range(0,1)) =  0
+		_LMLayer2Metallic("Metallic [!_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Range(0, 1)) =  0
 		[ToggleUI] UI_LMLayer2MetallicRemap("!DRAWER MinMax _LMLayer2MetallicRemap.x _LMLayer2MetallicRemap.y [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Float) =  0
-		[HideInInspector] _LMLayer2MetallicRemap("Metallic Remap", Vector) =  (0,1,0,1)
-		[HideInInspector] _LMLayer2SmoothnessRemap("Smoothness Remap", Vector) =  (0,1,0,1)
-		_LMLayer2OcclusionStrength("AO Strength [_LayeredMatLayersCount > 1]", Range(0,1)) =  1
-		[NoScaleOffset] _LMLayer2BumpMap("Normal Map && [_LayeredMatLayersCount > 1]", 2D) =  "bump" {}
+		[HideInInspector] _LMLayer2MetallicRemap("Metallic Remap", Vector) =  (0, 1, 0, 1)
+		[HideInInspector] _LMLayer2SmoothnessRemap("Smoothness Remap", Vector) =  (0, 1, 0, 1)
+		_LMLayer2OcclusionStrength("AO Strength [_LayeredMatLayersCount > 1]", Range(0, 1)) =  1
+		[NoScaleOffset] _LMLayer2BumpMap("Normal Map && [_LayeredMatLayersCount > 1]", 2D) =  "bump" { }
 		_LMLayer2BumpScale("Normal Map Scale [_LayeredMatLayersCount > 1]", Float) = 0.0
 		[ToggleUI] _LMLayer2FlipBumpY("Flip Y (UE Mode) [_LMLayer2BumpMap && _LayeredMatLayersCount > 1]", Int) =  0
 		[ToggleUI] UI_LMLayer3Header("## Layer 3 [_LayeredMatLayersCount > 2]", Int) =  0
 		[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)] _LMLayer3VertexColor("Vertex Color Mask", Int) =  2
 		_LMLayer3Color("Main Color [_LayeredMatLayersCount > 2]", Color) =  (1, 1, 1, 1)
-		_LMLayer3MainTex("Albedo [_LayeredMatLayersCount > 2]", 2D) =  "white" {}
+		_LMLayer3MainTex("Albedo [_LayeredMatLayersCount > 2]", 2D) =  "white" { }
 		[Enum(RGB, 0, R, 1, G, 2, B, 3)] _LMLayer3AlbedoChannel("Albedo Channel [_LMLayer3MainTex && _LayeredMatLayersCount > 2]", Int) =  0
-		[NoScaleOffset] _LMLayer3MaskMap("Masks & [_LayeredMatLayersCount > 2]", 2D) =  "white" {}
+		[NoScaleOffset] _LMLayer3MaskMap("Masks & [_LayeredMatLayersCount > 2]", 2D) =  "white" { }
 		[ToggleUI] UI_LMLayer3ChannelSelector("!DRAWER MultiProperty _LMLayer3MetalChannel _LMLayer3AOChannel _LMLayer3DetailMaskChannel _LMLayer3SmoothChannel [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer3MetalChannel("Metal", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer3AOChannel("AO", Int) =  1
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer3DetailMaskChannel("Detail", Int) =  2
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer3SmoothChannel("Smooth", Int) =  3
-		_LMLayer3Smoothness("Smoothness [!_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Range(0,1)) =  0.5
+		_LMLayer3Smoothness("Smoothness [!_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Range(0, 1)) =  0.5
 		[ToggleUI] _LMLayer3RoughnessMode("Roughness Mode [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Int) =  0
 		[ToggleUI] UI_LMLayer3SmoothnessRemap("!DRAWER MinMax _LMLayer3SmoothnessRemap.x _LMLayer3SmoothnessRemap.y [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Float) =  0
-		_LMLayer3Metallic("Metallic [!_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Range(0,1)) =  0
+		_LMLayer3Metallic("Metallic [!_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Range(0, 1)) =  0
 		[ToggleUI] UI_LMLayer3MetallicRemap("!DRAWER MinMax _LMLayer3MetallicRemap.x _LMLayer3MetallicRemap.y [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Float) =  0
-		[HideInInspector] _LMLayer3MetallicRemap("Metallic Remap", Vector) =  (0,1,0,1)
-		[HideInInspector] _LMLayer3SmoothnessRemap("Smoothness Remap", Vector) =  (0,1,0,1)
-		_LMLayer3OcclusionStrength("AO Strength [_LayeredMatLayersCount > 2]", Range(0,1)) =  1
-		[NoScaleOffset] _LMLayer3BumpMap("Normal Map && [_LayeredMatLayersCount > 2]", 2D) =  "bump" {}
+		[HideInInspector] _LMLayer3MetallicRemap("Metallic Remap", Vector) =  (0, 1, 0, 1)
+		[HideInInspector] _LMLayer3SmoothnessRemap("Smoothness Remap", Vector) =  (0, 1, 0, 1)
+		_LMLayer3OcclusionStrength("AO Strength [_LayeredMatLayersCount > 2]", Range(0, 1)) =  1
+		[NoScaleOffset] _LMLayer3BumpMap("Normal Map && [_LayeredMatLayersCount > 2]", 2D) =  "bump" { }
 		_LMLayer3BumpScale("Normal Map Scale [_LayeredMatLayersCount > 2]", Float) = 0.0
 		[ToggleUI] _LMLayer3FlipBumpY("Flip Y (UE Mode) [_LMLayer3BumpMap && _LayeredMatLayersCount > 2]", Int) =  0
 		[ToggleUI] UI_LMLayer4Header("## Layer 4 [_LayeredMatLayersCount > 3]", Int) =  0
 		[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)] _LMLayer4VertexColor("Vertex Color Mask", Int) =  3
 		_LMLayer4Color("Main Color [_LayeredMatLayersCount > 3]", Color) =  (1, 1, 1, 1)
-		_LMLayer4MainTex("Albedo [_LayeredMatLayersCount > 3]", 2D) =  "white" {}
+		_LMLayer4MainTex("Albedo [_LayeredMatLayersCount > 3]", 2D) =  "white" { }
 		[Enum(RGB, 0, R, 1, G, 2, B, 3)] _LMLayer4AlbedoChannel("Albedo Channel [_LMLayer4MainTex && _LayeredMatLayersCount > 3]", Int) =  0
-		[NoScaleOffset] _LMLayer4MaskMap("Masks & [_LayeredMatLayersCount > 3]", 2D) =  "white" {}
+		[NoScaleOffset] _LMLayer4MaskMap("Masks & [_LayeredMatLayersCount > 3]", 2D) =  "white" { }
 		[ToggleUI] UI_LMLayer4ChannelSelector("!DRAWER MultiProperty _LMLayer4MetalChannel _LMLayer4AOChannel _LMLayer4DetailMaskChannel _LMLayer4SmoothChannel [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer4MetalChannel("Metal", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer4AOChannel("AO", Int) =  1
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer4DetailMaskChannel("Detail", Int) =  2
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _LMLayer4SmoothChannel("Smooth", Int) =  3
-		_LMLayer4Smoothness("Smoothness [!_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Range(0,1)) =  0.5
+		_LMLayer4Smoothness("Smoothness [!_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Range(0, 1)) =  0.5
 		[ToggleUI] _LMLayer4RoughnessMode("Roughness Mode [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Int) =  0
 		[ToggleUI] UI_LMLayer4SmoothnessRemap("!DRAWER MinMax _LMLayer4SmoothnessRemap.x _LMLayer4SmoothnessRemap.y [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Float) =  0
-		_LMLayer4Metallic("Metallic [!_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Range(0,1)) =  0
+		_LMLayer4Metallic("Metallic [!_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Range(0, 1)) =  0
 		[ToggleUI] UI_LMLayer4MetallicRemap("!DRAWER MinMax _LMLayer4MetallicRemap.x _LMLayer4MetallicRemap.y [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Float) =  0
-		[HideInInspector] _LMLayer4MetallicRemap("Metallic Remap", Vector) =  (0,1,0,1)
-		[HideInInspector] _LMLayer4SmoothnessRemap("Smoothness Remap", Vector) =  (0,1,0,1)
-		_LMLayer4OcclusionStrength("AO Strength [_LayeredMatLayersCount > 3]", Range(0,1)) =  1
-		[NoScaleOffset] _LMLayer4BumpMap("Normal Map && [_LayeredMatLayersCount > 3]", 2D) =  "bump" {}
+		[HideInInspector] _LMLayer4MetallicRemap("Metallic Remap", Vector) =  (0, 1, 0, 1)
+		[HideInInspector] _LMLayer4SmoothnessRemap("Smoothness Remap", Vector) =  (0, 1, 0, 1)
+		_LMLayer4OcclusionStrength("AO Strength [_LayeredMatLayersCount > 3]", Range(0, 1)) =  1
+		[NoScaleOffset] _LMLayer4BumpMap("Normal Map && [_LayeredMatLayersCount > 3]", 2D) =  "bump" { }
 		_LMLayer4BumpScale("Normal Map Scale [_LayeredMatLayersCount > 3]", Float) = 0.0
 		[ToggleUI] _LMLayer4FlipBumpY("Flip Y (UE Mode) [_LMLayer4BumpMap && _LayeredMatLayersCount > 3]", Int) =  0
 		[ToggleUI] UI_AdvancedHeader("# Advanced Features", Float) = 0
@@ -117,10 +115,7 @@ Shader "orels1/Standard Layered Material"
 	}
 	SubShader
 	{
-		Tags
-		{
-			
-		}
+		Tags {  }
 		
 		ZTest[_ZTest]
 		ZWrite[_ZWrite]
@@ -128,10 +123,7 @@ Shader "orels1/Standard Layered Material"
 		
 		Pass
 		{
-			Tags
-			{
-				"LightMode" = "ForwardBase"
-			}
+			Tags { "LightMode" = "ForwardBase"  }
 			
 			// ForwardBase Pass Start
 			CGPROGRAM
@@ -171,6 +163,7 @@ Shader "orels1/Standard Layered Material"
 			#endif
 			
 			// Credit to Jason Booth for digging this all up
+			// This originally comes from CoreRP, see Jason's comment below
 			
 			// If your looking in here and thinking WTF, yeah, I know. These are taken from the SRPs, to allow us to use the same
 			// texturing library they use. However, since they are not included in the standard pipeline by default, there is no
@@ -222,15 +215,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -328,15 +321,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -434,15 +427,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -540,15 +533,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -648,15 +641,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -755,15 +748,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -867,15 +860,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -993,15 +986,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -1219,27 +1212,200 @@ Shader "orels1/Standard Layered Material"
 			#   define UNITY_LOOP
 			#endif
 			
+			struct VertexData
+			{
+				float4 vertex : POSITION;
+				float3 normal : NORMAL;
+				float4 tangent : TANGENT;
+				float4 color : COLOR;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+			};
+			
+			struct FragmentData
+			{
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				V2F_SHADOW_CASTER;
+				float2 uv0 : TEXCOORD1;
+				float2 uv1 : TEXCOORD2;
+				float2 uv2 : TEXCOORD3;
+				float2 uv3 : TEXCOORD4;
+				float3 worldPos : TEXCOORD5;
+				float3 worldNormal : TEXCOORD6;
+				float4 worldTangent : TEXCOORD7;
+				#else
+				float4 pos : SV_POSITION;
+				float3 normal : NORMAL;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
+				float3 worldPos : TEXCOORD4;
+				float3 worldNormal : TEXCOORD5;
+				float4 worldTangent : TEXCOORD6;
+				float4 lightmapUv : TEXCOORD7;
+				float4 vertexColor : TEXCOORD8;
+				
+				#if !defined(UNITY_PASS_META)
+				UNITY_LIGHTING_COORDS(9, 10)
+				UNITY_FOG_COORDS(11)
+				#endif
+				#endif
+				
+				#if defined(EDITOR_VISUALIZATION)
+				float2 vizUV : TEXCOORD9;
+				float4 lightCoord : TEXCOORD10;
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F0 : TEXCOORD8;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F0 : TEXCOORD12;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F0 : TEXCOORD11;
+				#else
+				float4 extraV2F0 : TEXCOORD9;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_1)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F1 : TEXCOORD9;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F1 : TEXCOORD13;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F1 : TEXCOORD14;
+				#else
+				float4 extraV2F1 : TEXCOORD15;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_2)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F2 : TEXCOORD10;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F2 : TEXCOORD14;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F2 : TEXCOORD15
+				#else
+				float4 extraV2F2 : TEXCOORD16;
+				#endif
+				#endif
+				#endif
+				#endif
+				
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+				UNITY_VERTEX_OUTPUT_STEREO
+			};
+			
+			struct MeshData
+			{
+				half2 uv0;
+				half2 uv1;
+				half2 uv2;
+				half2 uv3;
+				half3 vertexColor;
+				half3 normal;
+				half3 worldNormal;
+				half3 localSpacePosition;
+				half3 worldSpacePosition;
+				half3 worldSpaceViewDir;
+				half3 tangentSpaceViewDir;
+				float3x3 TBNMatrix;
+				float4 extraV2F0;
+				float4 extraV2F1;
+				float4 extraV2F2;
+			};
+			
+			MeshData CreateMeshData(FragmentData i)
+			{
+				MeshData m = (MeshData) 0;
+				m.uv0 = i.uv0;
+				m.uv1 = i.uv1;
+				m.uv2 = i.uv2;
+				m.uv3 = i.uv3;
+				m.worldNormal = normalize(i.worldNormal);
+				m.localSpacePosition = mul(unity_WorldToObject, float4(i.worldPos, 1)).xyz;
+				m.worldSpacePosition = i.worldPos;
+				m.worldSpaceViewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
+				
+				#if !defined(UNITY_PASS_SHADOWCASTER)
+				m.vertexColor = i.vertexColor;
+				m.normal = i.normal;
+				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * - 1;
+				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
+				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				m.extraV2F0 = i.extraV2F0;
+				#endif
+				#if defined(EXTRA_V2F_1)
+				m.extraV2F1 = i.extraV2F1;
+				#endif
+				#if defined(EXTRA_V2F_2)
+				m.extraV2F2 = i.extraV2F2;
+				#endif
+				
+				return m;
+			}
+			
+			struct SurfaceData
+			{
+				half3 Albedo;
+				half3 Emission;
+				half Metallic;
+				half Smoothness;
+				half Occlusion;
+				half3 Normal;
+				half Alpha;
+			};
+			
+			FragmentData FragData;
+			SurfaceData o;
+			MeshData d;
+			VertexData vD;
+			float4 FinalColor;
+			
 			half invLerp(half a, half b, half v)
 			{
 				return (v - a) / (b - a);
 			}
 			
-			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p ){
-				half3 i = floor(p); p -= i; p *= p*(3. - 2.*p);
-				half2 uv = (p.xy + i.xy + half2(37, 17)*i.z + .5)/256.;
+			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+			{
+				half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+				half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
 				uv.y *= -1;
 				p.xy = noiseTex.SampleLevel(noiseTexSampler, uv, 0).yx;
 				return lerp(p.x, p.y, p.z);
 			}
+			
+			half3 TransformObjectToWorld(half3 pos)
+			{
+				return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
+			};
 			
 			// mostly taken from the Amplify shader reference
 			half2 POM(Texture2D heightMap, SamplerState heightSampler, half2 uvs, half2 dx, half2 dy, half3 normalWorld, half3 viewWorld, half3 viewDirTan, int minSamples, int maxSamples, half parallax, half refPlane, half2 tilling, half2 curv, int index, inout half finalHeight)
 			{
 				half3 result = 0;
 				int stepIndex = 0;
-				int numSteps = ( int )lerp( (half)maxSamples, (half)minSamples, saturate( dot( normalWorld, viewWorld ) ) );
+				int numSteps = (int)lerp((half)maxSamples, (half)minSamples, saturate(dot(normalWorld, viewWorld)));
 				half layerHeight = 1.0 / numSteps;
-				half2 plane = parallax * ( viewDirTan.xy / viewDirTan.z );
+				half2 plane = parallax * (viewDirTan.xy / viewDirTan.z);
 				uvs.xy += refPlane * plane;
 				half2 deltaTex = -plane * layerHeight;
 				half2 prevTexOffset = 0;
@@ -1250,10 +1416,10 @@ Shader "orels1/Standard Layered Material"
 				half currHeight = 0.0f;
 				half intersection = 0;
 				half2 finalTexOffset = 0;
-				while ( stepIndex < numSteps + 1 )
+				while (stepIndex < numSteps + 1)
 				{
-					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy ).r;
-					if ( currHeight > currRayZ )
+					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy).r;
+					if (currHeight > currRayZ)
 					{
 						stepIndex = numSteps + 1;
 					}
@@ -1271,13 +1437,13 @@ Shader "orels1/Standard Layered Material"
 				int sectionIndex = 0;
 				half newZ = 0;
 				half newHeight = 0;
-				while ( sectionIndex < sectionSteps )
+				while (sectionIndex < sectionSteps)
 				{
-					intersection = ( prevHeight - prevRayZ ) / ( prevHeight - currHeight + currRayZ - prevRayZ );
-					finalTexOffset = prevTexOffset + intersection * deltaTex;
+					intersection = (prevHeight - prevRayZ) / (prevHeight - currHeight + currRayZ - prevRayZ);
+					finalTexOffset = prevTexOffset +intersection * deltaTex;
 					newZ = prevRayZ - intersection * layerHeight;
-					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy ).r;
-					if ( newHeight > newZ )
+					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy).r;
+					if (newHeight > newZ)
 					{
 						currTexOffset = finalTexOffset;
 						currHeight = newHeight;
@@ -1290,8 +1456,8 @@ Shader "orels1/Standard Layered Material"
 						prevTexOffset = finalTexOffset;
 						prevHeight = newHeight;
 						prevRayZ = newZ;
-						deltaTex = ( 1 - intersection ) * deltaTex;
-						layerHeight = ( 1 - intersection ) * layerHeight;
+						deltaTex = (1 - intersection) * deltaTex;
+						layerHeight = (1 - intersection) * layerHeight;
 					}
 					sectionIndex++;
 				}
@@ -1301,7 +1467,7 @@ Shader "orels1/Standard Layered Material"
 			
 			half remap(half s, half a1, half a2, half b1, half b2)
 			{
-				return b1 + (s-a1)*(b2-b1)/(a2-a1);
+				return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
 			}
 			
 			half3 ApplyLut2D(Texture2D LUT2D, SamplerState lutSampler, half3 uvw)
@@ -1320,18 +1486,21 @@ Shader "orels1/Standard Layered Material"
 				return uvw;
 			}
 			
-			half3 AdjustContrast(half3 color, half contrast) {
+			half3 AdjustContrast(half3 color, half contrast)
+			{
 				color = saturate(lerp(half3(0.5, 0.5, 0.5), color, contrast));
 				return color;
 			}
 			
-			half3 AdjustSaturation(half3 color, half saturation) {
-				half3 intensity = dot(color.rgb, half3(0.299,0.587,0.114));
+			half3 AdjustSaturation(half3 color, half saturation)
+			{
+				half3 intensity = dot(color.rgb, half3(0.299, 0.587, 0.114));
 				color = lerp(intensity, color.rgb, saturation);
 				return color;
 			}
 			
-			half3 AdjustBrightness(half3 color, half brightness) {
+			half3 AdjustBrightness(half3 color, half brightness)
+			{
 				color += brightness;
 				return color;
 			}
@@ -1342,8 +1511,7 @@ Shader "orels1/Standard Layered Material"
 				half a, b, c, d, e, f;
 			};
 			
-			static const ParamsLogC LogC =
-			{
+			static const ParamsLogC LogC = {
 				0.011361, // cut
 				5.555556, // a
 				0.047996, // b
@@ -1351,6 +1519,7 @@ Shader "orels1/Standard Layered Material"
 				0.386036, // d
 				5.301883, // e
 				0.092819  // f
+				
 			};
 			
 			half LinearToLogC_Precise(half x)
@@ -1373,15 +1542,18 @@ Shader "orels1/Standard Layered Material"
 				return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
 			}
 			
-			half3 LinerToSRGB(half3 c) {
+			half3 LinerToSRGB(half3 c)
+			{
 				return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
 			}
 			
-			half3 SRGBToLiner(half3 c) {
+			half3 SRGBToLiner(half3 c)
+			{
 				return max(1.055 * PositivePow(c, 0.416666667) - 0.055, 0.0);
 			}
 			
-			half3 LogCToLinear(half3 c) {
+			half3 LogCToLinear(half3 c)
+			{
 				return (pow(10.0, (c - LogC.d) / LogC.c) - LogC.b) / LogC.a;
 			}
 			
@@ -1433,13 +1605,13 @@ Shader "orels1/Standard Layered Material"
 				return g;
 			}
 			
-			half4 SampleGradient( Gradient gradient, half time )
+			half4 SampleGradient(Gradient gradient, half time)
 			{
 				half3 color = gradient.colors[0].rgb;
 				UNITY_UNROLL
 				for (int c = 1; c < 8; c++)
 				{
-					half colorPos = saturate((time - gradient.colors[c-1].w) / ( 0.00001 + (gradient.colors[c].w - gradient.colors[c-1].w)) * step(c, (half)gradient.colorsLength-1));
+					half colorPos = saturate((time - gradient.colors[c - 1].w) / (0.00001 + (gradient.colors[c].w - gradient.colors[c - 1].w)) * step(c, (half)gradient.colorsLength - 1));
 					color = lerp(color, gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), gradient.type));
 				}
 				#ifndef UNITY_COLORSPACE_GAMMA
@@ -1449,17 +1621,17 @@ Shader "orels1/Standard Layered Material"
 				UNITY_UNROLL
 				for (int a = 1; a < 8; a++)
 				{
-					half alphaPos = saturate((time - gradient.alphas[a-1].y) / ( 0.00001 + (gradient.alphas[a].y - gradient.alphas[a-1].y)) * step(a, (half)gradient.alphasLength-1));
+					half alphaPos = saturate((time - gradient.alphas[a - 1].y) / (0.00001 + (gradient.alphas[a].y - gradient.alphas[a - 1].y)) * step(a, (half)gradient.alphasLength - 1));
 					alpha = lerp(alpha, gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), gradient.type));
 				}
 				return half4(color, alpha);
 			}
 			
-			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			float3 RotateAroundAxis(float3 center, float3 original, float3 u, float angle)
 			{
 				original -= center;
-				float C = cos( angle );
-				float S = sin( angle );
+				float C = cos(angle);
+				float S = sin(angle);
 				float t = 1 - C;
 				float m00 = t * u.x * u.x + C;
 				float m01 = t * u.x * u.y - S * u.z;
@@ -1470,17 +1642,19 @@ Shader "orels1/Standard Layered Material"
 				float m20 = t * u.x * u.z - S * u.y;
 				float m21 = t * u.y * u.z + S * u.x;
 				float m22 = t * u.z * u.z + C;
-				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
-				return mul( finalMatrix, original ) + center;
+				float3x3 finalMatrix = float3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
+				return mul(finalMatrix, original) + center;
 			}
 			
-			half D_GGX(half NoH, half roughness) {
+			half D_GGX(half NoH, half roughness)
+			{
 				half a = NoH * roughness;
 				half k = roughness / (1.0 - NoH * NoH + a * a);
 				return k * k * (1.0 / UNITY_PI);
 			}
 			
-			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness) {
+			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness)
+			{
 				half a2 = roughness * roughness;
 				half GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
 				half GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
@@ -1513,7 +1687,7 @@ Shader "orels1/Standard Layered Material"
 				return lightScatter * viewScatter;
 			}
 			
-			half3 getBoxProjection (half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
+			half3 getBoxProjection(half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
 			{
 				#if defined(UNITY_SPECCUBE_BOX_PROJECTION) && !defined(UNITY_PBS_USE_BRDF2) || defined(FORCE_BOX_PROJECTION)
 				if (cubemapPosition.w > 0)
@@ -1573,24 +1747,25 @@ Shader "orels1/Standard Layered Material"
 			half w0(half a)
 			{
 				//    return (1.0f/6.0f)*(-a*a*a + 3.0f*a*a - 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				return (1.0f / 6.0f) * (a * (a * (-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				
 			}
 			
 			half w1(half a)
 			{
 				//    return (1.0f/6.0f)*(3.0f*a*a*a - 6.0f*a*a + 4.0f);
-				return (1.0f/6.0f)*(a*a*(3.0f*a - 6.0f) + 4.0f);
+				return (1.0f / 6.0f) * (a * a * (3.0f * a - 6.0f) + 4.0f);
 			}
 			
 			half w2(half a)
 			{
 				//    return (1.0f/6.0f)*(-3.0f*a*a*a + 3.0f*a*a + 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-3.0f*a + 3.0f) + 3.0f) + 1.0f);
+				return (1.0f / 6.0f) * (a * (a * (-3.0f * a + 3.0f) + 3.0f) + 1.0f);
 			}
 			
 			half w3(half a)
 			{
-				return (1.0f/6.0f)*(a*a*a);
+				return (1.0f / 6.0f) * (a * a * a);
 			}
 			
 			// g0 and g1 are the two amplitude functions
@@ -1641,10 +1816,10 @@ Shader "orels1/Standard Layered Material"
 				half h0y = h0(fy);
 				half h1y = h1(fy);
 				
-				half4 r = g0(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f/width))) +
-				g1(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f/width)));
+				half4 r = g0(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+				g1(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f / width)));
 				bakedColorTex = r;
 				return DecodeLightmap(r);
 				#else
@@ -1681,7 +1856,7 @@ Shader "orels1/Standard Layered Material"
 				
 				#ifdef DIRLIGHTMAP_COMBINED
 				half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
-				realtimeLightmap += DecodeDirectionalLightmap (realtimeLightmap, realtimeDirTex, worldNormal);
+				realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
 				#endif
 				
 				return realtimeLightmap;
@@ -1720,111 +1895,6 @@ Shader "orels1/Standard Layered Material"
 				
 				return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 			}
-			
-			struct VertexData
-			{
-				float4 vertex     : POSITION;
-				float3 normal     : NORMAL;
-				float4 tangent    : TANGENT;
-				float4 color      : COLOR;
-				float2 uv0        : TEXCOORD0;
-				float2 uv1        : TEXCOORD1;
-				float2 uv2        : TEXCOORD2;
-				float2 uv3        : TEXCOORD3;
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-			};
-			
-			struct FragmentData
-			{
-				#if defined(UNITY_PASS_SHADOWCASTER)
-				V2F_SHADOW_CASTER;
-				float2 uv0         : TEXCOORD1;
-				float2 uv1         : TEXCOORD2;
-				float2 uv2         : TEXCOORD3;
-				float2 uv3         : TEXCOORD4;
-				float3 worldPos    : TEXCOORD5;
-				float3 worldNormal : TEXCOORD6;
-				float4 worldTangent: TEXCOORD7;
-				#else
-				float4 pos         : SV_POSITION;
-				float3 normal      : NORMAL;
-				float2 uv0         : TEXCOORD0;
-				float2 uv1         : TEXCOORD1;
-				float2 uv2         : TEXCOORD2;
-				float2 uv3         : TEXCOORD3;
-				float3 worldPos    : TEXCOORD4;
-				float3 worldNormal : TEXCOORD5;
-				float4 worldTangent: TEXCOORD6;
-				float4 lightmapUv  : TEXCOORD7;
-				float4 vertexColor : TEXCOORD8;
-				
-				#if !defined(UNITY_PASS_META)
-				UNITY_LIGHTING_COORDS(9,10)
-				UNITY_FOG_COORDS(11)
-				#endif
-				#endif
-				
-				#ifdef EDITOR_VISUALIZATION
-				float2 vizUV : TEXCOORD9;
-				float4 lightCoord : TEXCOORD10;
-				#endif
-				
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-				UNITY_VERTEX_OUTPUT_STEREO
-			};
-			
-			struct MeshData {
-				half2 uv0;
-				half2 uv1;
-				half2 uv2;
-				half2 uv3;
-				half3 vertexColor;
-				half3 normal;
-				half3 worldNormal;
-				half3 localSpacePosition;
-				half3 worldSpacePosition;
-				half3 worldSpaceViewDir;
-				half3 tangentSpaceViewDir;
-				float3x3 TBNMatrix;
-			};
-			
-			MeshData CreateMeshData(FragmentData i) {
-				MeshData m = (MeshData) 0;
-				m.uv0 = i.uv0;
-				m.uv1 = i.uv1;
-				m.uv2 = i.uv2;
-				m.uv3 = i.uv3;
-				m.worldNormal = normalize(i.worldNormal);
-				m.localSpacePosition = mul(unity_WorldToObject, float4(i.worldPos, 1)).xyz;
-				m.worldSpacePosition = i.worldPos;
-				m.worldSpaceViewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
-				
-				#if !defined(UNITY_PASS_SHADOWCASTER)
-				m.vertexColor = i.vertexColor;
-				m.normal = i.normal;
-				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
-				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
-				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
-				#endif
-				
-				return m;
-			}
-			
-			struct SurfaceData {
-				half3 Albedo;
-				half3 Emission;
-				half  Metallic;
-				half  Smoothness;
-				half  Occlusion;
-				half3 Normal;
-				half  Alpha;
-			};
-			
-			FragmentData FragData;
-			SurfaceData o;
-			MeshData d;
-			VertexData vD;
-			float4 FinalColor;
 			
 			half _LMLayer1Smoothness;
 			half _LMLayer1Metallic;
@@ -1917,7 +1987,8 @@ Shader "orels1/Standard Layered Material"
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
-			void LayeredMaterialFragment() {
+			void LayeredMaterialFragment()
+			{
 				#if defined(_VERTEX_DEBUGGING)
 				o.Albedo = d.vertexColor.rgb;
 				o.Emission = d.vertexColor.rgb * 0.2;
@@ -1927,19 +1998,22 @@ Shader "orels1/Standard Layered Material"
 				half mask = _LMLayer1VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer1VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer1VertexColor - 1];
 				
 				half4 albedo = SAMPLE_TEXTURE2D(_LMLayer1MainTex, sampler_LMLayer1MainTex, uv);
-				if (_LMLayer1AlbedoChannel > 0) {
+				if (_LMLayer1AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_LMLayer1AlbedoChannel].xxx;
 				}
 				half4 masks = SAMPLE_TEXTURE2D(_LMLayer1MaskMap, sampler_LMLayer1MaskMap, uv);
 				half4 normalTex = SAMPLE_TEXTURE2D(_LMLayer1BumpMap, sampler_LMLayer1BumpMap, uv);
-				if (_LMLayer1FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_LMLayer1FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				half3 normal = UnpackScaleNormal(normalTex, _LMLayer1BumpScale);
 				int hasMasks = _LMLayer1MaskMap_TexelSize.z > 8;
 				half metal = masks[_LMLayer1MetalChannel];
 				half smooth = masks[_LMLayer1SmoothChannel];
-				if (_LMLayer1RoughnessMode) {
+				if (_LMLayer1RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				half detailMask = masks[_LMLayer1DetailMaskChannel];
@@ -1961,19 +2035,22 @@ Shader "orels1/Standard Layered Material"
 				mask = mask = _LMLayer2VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer2VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer2VertexColor - 1];
 				
 				albedo = SAMPLE_TEXTURE2D(_LMLayer2MainTex, sampler_LMLayer1MainTex, uv);
-				if (_LMLayer2AlbedoChannel > 0) {
+				if (_LMLayer2AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_LMLayer2AlbedoChannel].xxx;
 				}
 				masks = SAMPLE_TEXTURE2D(_LMLayer2MaskMap, sampler_LMLayer1MaskMap, uv);
 				normalTex = SAMPLE_TEXTURE2D(_LMLayer2BumpMap, sampler_LMLayer1BumpMap, uv);
-				if (_LMLayer2FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_LMLayer2FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				normal = UnpackScaleNormal(normalTex, _LMLayer2BumpScale * mask);
 				hasMasks = _LMLayer2MaskMap_TexelSize.z > 8;
 				metal = masks[_LMLayer2MetalChannel];
 				smooth = masks[_LMLayer2SmoothChannel];
-				if (_LMLayer2RoughnessMode) {
+				if (_LMLayer2RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				detailMask = masks[_LMLayer2DetailMaskChannel];
@@ -1999,19 +2076,22 @@ Shader "orels1/Standard Layered Material"
 				mask = mask = _LMLayer3VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer3VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer3VertexColor - 1];
 				
 				albedo = SAMPLE_TEXTURE2D(_LMLayer3MainTex, sampler_LMLayer1MainTex, uv);
-				if (_LMLayer3AlbedoChannel > 0) {
+				if (_LMLayer3AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_LMLayer3AlbedoChannel].xxx;
 				}
 				masks = SAMPLE_TEXTURE2D(_LMLayer3MaskMap, sampler_LMLayer1MaskMap, uv);
 				normalTex = SAMPLE_TEXTURE2D(_LMLayer3BumpMap, sampler_LMLayer1BumpMap, uv);
-				if (_LMLayer3FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_LMLayer3FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				normal = UnpackScaleNormal(normalTex, _LMLayer3BumpScale * mask);
 				hasMasks = _LMLayer3MaskMap_TexelSize.z > 8;
 				metal = masks[_LMLayer3MetalChannel];
 				smooth = masks[_LMLayer3SmoothChannel];
-				if (_LMLayer3RoughnessMode) {
+				if (_LMLayer3RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				detailMask = masks[_LMLayer3DetailMaskChannel];
@@ -2033,19 +2113,22 @@ Shader "orels1/Standard Layered Material"
 				mask = mask = _LMLayer4VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer4VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer4VertexColor - 1];
 				
 				albedo = SAMPLE_TEXTURE2D(_LMLayer4MainTex, sampler_LMLayer1MainTex, uv);
-				if (_LMLayer4AlbedoChannel > 0) {
+				if (_LMLayer4AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_LMLayer4AlbedoChannel].xxx;
 				}
 				masks = SAMPLE_TEXTURE2D(_LMLayer4MaskMap, sampler_LMLayer1MaskMap, uv);
 				normalTex = SAMPLE_TEXTURE2D(_LMLayer4BumpMap, sampler_LMLayer1BumpMap, uv);
-				if (_LMLayer4FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_LMLayer4FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				normal = UnpackScaleNormal(normalTex, _LMLayer4BumpScale * mask);
 				hasMasks = _LMLayer4MaskMap_TexelSize.z > 8;
 				metal = masks[_LMLayer4MetalChannel];
 				smooth = masks[_LMLayer4SmoothChannel];
-				if (_LMLayer4RoughnessMode) {
+				if (_LMLayer4RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				detailMask = masks[_LMLayer4DetailMaskChannel];
@@ -2062,7 +2145,8 @@ Shader "orels1/Standard Layered Material"
 				#endif
 			}
 			
-			void ORLLighting() {
+			void ORLLighting()
+			{
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -2110,9 +2194,9 @@ Shader "orels1/Standard Layered Material"
 				half3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize));
 				half3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize));
 				
-				lightMap = saturate(dot(rnmBasis0, tangentNormal)) *  rnm0 +
-				saturate(dot(rnmBasis1, tangentNormal)) *  rnm1 +
-				saturate(dot(rnmBasis2, tangentNormal)) *  rnm2;
+				lightMap = saturate(dot(rnmBasis0, tangentNormal)) * rnm0 +
+				saturate(dot(rnmBasis1, tangentNormal)) * rnm1 +
+				saturate(dot(rnmBasis2, tangentNormal)) * rnm2;
 				#endif
 				
 				// BAKERY SH MODE (these are also used for the specular)
@@ -2144,7 +2228,7 @@ Shader "orels1/Standard Layered Material"
 				#endif
 				
 				#if defined(DIRLIGHTMAP_COMBINED)
-				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
+				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
 				lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
 				#endif
 				
@@ -2155,16 +2239,18 @@ Shader "orels1/Standard Layered Material"
 				
 				#if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
 				pixelLight = 0;
-				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap (lightMap, lightAttenuation, bakedColorTex, o.Normal);
+				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap(lightMap, lightAttenuation, bakedColorTex, o.Normal);
 				#endif
 				indirectDiffuse = lightMap;
 				#else
 				#if UNITY_LIGHT_PROBE_PROXY_VOLUME
 				UNITY_BRANCH
-				if (unity_ProbeVolumeParams.x == 1) {
+				if (unity_ProbeVolumeParams.x == 1)
+				{
 					indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), FragData.worldPos);
 				}
-				else {
+				else
+				{
 					#endif
 					indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
 					#if UNITY_LIGHT_PROBE_PROXY_VOLUME
@@ -2268,7 +2354,8 @@ Shader "orels1/Standard Layered Material"
 				
 				#if defined(UNITY_SPECCUBE_BLENDING)
 				UNITY_BRANCH
-				if (unity_SpecCube0_BoxMin.w < 0.99999) {
+				if (unity_SpecCube0_BoxMin.w < 0.99999)
+				{
 					envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
 					half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
 					indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
@@ -2295,7 +2382,7 @@ Shader "orels1/Standard Layered Material"
 			}
 			
 			// ForwardBase Vertex
-			FragmentData Vertex (VertexData v)
+			FragmentData Vertex(VertexData v)
 			{
 				UNITY_SETUP_INSTANCE_ID(v);
 				FragmentData i;
@@ -2307,27 +2394,27 @@ Shader "orels1/Standard Layered Material"
 				
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				#else
 				#if defined(UNITY_PASS_META)
 				i.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
 				#else
-				i.pos        = UnityObjectToClipPos(v.vertex);
+				i.pos = UnityObjectToClipPos(v.vertex);
 				#endif
-				i.normal     = v.normal;
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.normal = v.normal;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				i.vertexColor = v.color;
@@ -2357,14 +2444,14 @@ Shader "orels1/Standard Layered Material"
 				#if !defined(UNITY_PASS_FORWARDADD)
 				// unity does some funky stuff for different platforms with these macros
 				#ifdef FOG_COMBINED_WITH_TSPACE
-				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i,i.pos);
-				#elif defined (FOG_COMBINED_WITH_WORLD_POS)
-				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i,i.pos);
+				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i, i.pos);
+				#elif defined(FOG_COMBINED_WITH_WORLD_POS)
+				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i, i.pos);
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#endif
 				#endif
@@ -2373,12 +2460,12 @@ Shader "orels1/Standard Layered Material"
 			}
 			
 			// ForwardBase Fragment
-			half4 Fragment (FragmentData i) : SV_TARGET
+			half4 Fragment(FragmentData i) : SV_TARGET
 			{
 				UNITY_SETUP_INSTANCE_ID(i);
 				#ifdef FOG_COMBINED_WITH_TSPACE
 				UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-				#elif defined (FOG_COMBINED_WITH_WORLD_POS)
+				#elif defined(FOG_COMBINED_WITH_WORLD_POS)
 				UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
 				#else
 				UNITY_EXTRACT_FOG(i);
@@ -2387,8 +2474,8 @@ Shader "orels1/Standard Layered Material"
 				FragData = i;
 				o = (SurfaceData) 0;
 				d = CreateMeshData(i);
-				o.Albedo = half3(0.5,0.5,0.5);
-				o.Normal = half3(0,0,1);
+				o.Albedo = half3(0.5, 0.5, 0.5);
+				o.Normal = half3(0, 0, 1);
 				o.Smoothness = 0.5;
 				o.Occlusion = 1;
 				o.Alpha = 1;
@@ -2405,14 +2492,12 @@ Shader "orels1/Standard Layered Material"
 			
 			ENDCG
 			// ForwardBase Pass End
+			
 		}
 		
 		Pass
 		{
-			Tags
-			{
-				"LightMode" = "ForwardAdd"
-			}
+			Tags { "LightMode" = "ForwardAdd"  }
 			ZWrite Off
 			Blend One One
 			
@@ -2448,6 +2533,7 @@ Shader "orels1/Standard Layered Material"
 			#endif
 			
 			// Credit to Jason Booth for digging this all up
+			// This originally comes from CoreRP, see Jason's comment below
 			
 			// If your looking in here and thinking WTF, yeah, I know. These are taken from the SRPs, to allow us to use the same
 			// texturing library they use. However, since they are not included in the standard pipeline by default, there is no
@@ -2499,15 +2585,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -2605,15 +2691,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -2711,15 +2797,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -2817,15 +2903,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -2925,15 +3011,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -3032,15 +3118,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -3144,15 +3230,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -3270,15 +3356,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -3496,27 +3582,200 @@ Shader "orels1/Standard Layered Material"
 			#   define UNITY_LOOP
 			#endif
 			
+			struct VertexData
+			{
+				float4 vertex : POSITION;
+				float3 normal : NORMAL;
+				float4 tangent : TANGENT;
+				float4 color : COLOR;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+			};
+			
+			struct FragmentData
+			{
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				V2F_SHADOW_CASTER;
+				float2 uv0 : TEXCOORD1;
+				float2 uv1 : TEXCOORD2;
+				float2 uv2 : TEXCOORD3;
+				float2 uv3 : TEXCOORD4;
+				float3 worldPos : TEXCOORD5;
+				float3 worldNormal : TEXCOORD6;
+				float4 worldTangent : TEXCOORD7;
+				#else
+				float4 pos : SV_POSITION;
+				float3 normal : NORMAL;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
+				float3 worldPos : TEXCOORD4;
+				float3 worldNormal : TEXCOORD5;
+				float4 worldTangent : TEXCOORD6;
+				float4 lightmapUv : TEXCOORD7;
+				float4 vertexColor : TEXCOORD8;
+				
+				#if !defined(UNITY_PASS_META)
+				UNITY_LIGHTING_COORDS(9, 10)
+				UNITY_FOG_COORDS(11)
+				#endif
+				#endif
+				
+				#if defined(EDITOR_VISUALIZATION)
+				float2 vizUV : TEXCOORD9;
+				float4 lightCoord : TEXCOORD10;
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F0 : TEXCOORD8;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F0 : TEXCOORD12;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F0 : TEXCOORD11;
+				#else
+				float4 extraV2F0 : TEXCOORD9;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_1)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F1 : TEXCOORD9;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F1 : TEXCOORD13;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F1 : TEXCOORD14;
+				#else
+				float4 extraV2F1 : TEXCOORD15;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_2)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F2 : TEXCOORD10;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F2 : TEXCOORD14;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F2 : TEXCOORD15
+				#else
+				float4 extraV2F2 : TEXCOORD16;
+				#endif
+				#endif
+				#endif
+				#endif
+				
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+				UNITY_VERTEX_OUTPUT_STEREO
+			};
+			
+			struct MeshData
+			{
+				half2 uv0;
+				half2 uv1;
+				half2 uv2;
+				half2 uv3;
+				half3 vertexColor;
+				half3 normal;
+				half3 worldNormal;
+				half3 localSpacePosition;
+				half3 worldSpacePosition;
+				half3 worldSpaceViewDir;
+				half3 tangentSpaceViewDir;
+				float3x3 TBNMatrix;
+				float4 extraV2F0;
+				float4 extraV2F1;
+				float4 extraV2F2;
+			};
+			
+			MeshData CreateMeshData(FragmentData i)
+			{
+				MeshData m = (MeshData) 0;
+				m.uv0 = i.uv0;
+				m.uv1 = i.uv1;
+				m.uv2 = i.uv2;
+				m.uv3 = i.uv3;
+				m.worldNormal = normalize(i.worldNormal);
+				m.localSpacePosition = mul(unity_WorldToObject, float4(i.worldPos, 1)).xyz;
+				m.worldSpacePosition = i.worldPos;
+				m.worldSpaceViewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
+				
+				#if !defined(UNITY_PASS_SHADOWCASTER)
+				m.vertexColor = i.vertexColor;
+				m.normal = i.normal;
+				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * - 1;
+				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
+				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				m.extraV2F0 = i.extraV2F0;
+				#endif
+				#if defined(EXTRA_V2F_1)
+				m.extraV2F1 = i.extraV2F1;
+				#endif
+				#if defined(EXTRA_V2F_2)
+				m.extraV2F2 = i.extraV2F2;
+				#endif
+				
+				return m;
+			}
+			
+			struct SurfaceData
+			{
+				half3 Albedo;
+				half3 Emission;
+				half Metallic;
+				half Smoothness;
+				half Occlusion;
+				half3 Normal;
+				half Alpha;
+			};
+			
+			FragmentData FragData;
+			SurfaceData o;
+			MeshData d;
+			VertexData vD;
+			float4 FinalColor;
+			
 			half invLerp(half a, half b, half v)
 			{
 				return (v - a) / (b - a);
 			}
 			
-			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p ){
-				half3 i = floor(p); p -= i; p *= p*(3. - 2.*p);
-				half2 uv = (p.xy + i.xy + half2(37, 17)*i.z + .5)/256.;
+			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+			{
+				half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+				half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
 				uv.y *= -1;
 				p.xy = noiseTex.SampleLevel(noiseTexSampler, uv, 0).yx;
 				return lerp(p.x, p.y, p.z);
 			}
+			
+			half3 TransformObjectToWorld(half3 pos)
+			{
+				return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
+			};
 			
 			// mostly taken from the Amplify shader reference
 			half2 POM(Texture2D heightMap, SamplerState heightSampler, half2 uvs, half2 dx, half2 dy, half3 normalWorld, half3 viewWorld, half3 viewDirTan, int minSamples, int maxSamples, half parallax, half refPlane, half2 tilling, half2 curv, int index, inout half finalHeight)
 			{
 				half3 result = 0;
 				int stepIndex = 0;
-				int numSteps = ( int )lerp( (half)maxSamples, (half)minSamples, saturate( dot( normalWorld, viewWorld ) ) );
+				int numSteps = (int)lerp((half)maxSamples, (half)minSamples, saturate(dot(normalWorld, viewWorld)));
 				half layerHeight = 1.0 / numSteps;
-				half2 plane = parallax * ( viewDirTan.xy / viewDirTan.z );
+				half2 plane = parallax * (viewDirTan.xy / viewDirTan.z);
 				uvs.xy += refPlane * plane;
 				half2 deltaTex = -plane * layerHeight;
 				half2 prevTexOffset = 0;
@@ -3527,10 +3786,10 @@ Shader "orels1/Standard Layered Material"
 				half currHeight = 0.0f;
 				half intersection = 0;
 				half2 finalTexOffset = 0;
-				while ( stepIndex < numSteps + 1 )
+				while (stepIndex < numSteps + 1)
 				{
-					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy ).r;
-					if ( currHeight > currRayZ )
+					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy).r;
+					if (currHeight > currRayZ)
 					{
 						stepIndex = numSteps + 1;
 					}
@@ -3548,13 +3807,13 @@ Shader "orels1/Standard Layered Material"
 				int sectionIndex = 0;
 				half newZ = 0;
 				half newHeight = 0;
-				while ( sectionIndex < sectionSteps )
+				while (sectionIndex < sectionSteps)
 				{
-					intersection = ( prevHeight - prevRayZ ) / ( prevHeight - currHeight + currRayZ - prevRayZ );
-					finalTexOffset = prevTexOffset + intersection * deltaTex;
+					intersection = (prevHeight - prevRayZ) / (prevHeight - currHeight + currRayZ - prevRayZ);
+					finalTexOffset = prevTexOffset +intersection * deltaTex;
 					newZ = prevRayZ - intersection * layerHeight;
-					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy ).r;
-					if ( newHeight > newZ )
+					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy).r;
+					if (newHeight > newZ)
 					{
 						currTexOffset = finalTexOffset;
 						currHeight = newHeight;
@@ -3567,8 +3826,8 @@ Shader "orels1/Standard Layered Material"
 						prevTexOffset = finalTexOffset;
 						prevHeight = newHeight;
 						prevRayZ = newZ;
-						deltaTex = ( 1 - intersection ) * deltaTex;
-						layerHeight = ( 1 - intersection ) * layerHeight;
+						deltaTex = (1 - intersection) * deltaTex;
+						layerHeight = (1 - intersection) * layerHeight;
 					}
 					sectionIndex++;
 				}
@@ -3578,7 +3837,7 @@ Shader "orels1/Standard Layered Material"
 			
 			half remap(half s, half a1, half a2, half b1, half b2)
 			{
-				return b1 + (s-a1)*(b2-b1)/(a2-a1);
+				return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
 			}
 			
 			half3 ApplyLut2D(Texture2D LUT2D, SamplerState lutSampler, half3 uvw)
@@ -3597,18 +3856,21 @@ Shader "orels1/Standard Layered Material"
 				return uvw;
 			}
 			
-			half3 AdjustContrast(half3 color, half contrast) {
+			half3 AdjustContrast(half3 color, half contrast)
+			{
 				color = saturate(lerp(half3(0.5, 0.5, 0.5), color, contrast));
 				return color;
 			}
 			
-			half3 AdjustSaturation(half3 color, half saturation) {
-				half3 intensity = dot(color.rgb, half3(0.299,0.587,0.114));
+			half3 AdjustSaturation(half3 color, half saturation)
+			{
+				half3 intensity = dot(color.rgb, half3(0.299, 0.587, 0.114));
 				color = lerp(intensity, color.rgb, saturation);
 				return color;
 			}
 			
-			half3 AdjustBrightness(half3 color, half brightness) {
+			half3 AdjustBrightness(half3 color, half brightness)
+			{
 				color += brightness;
 				return color;
 			}
@@ -3619,8 +3881,7 @@ Shader "orels1/Standard Layered Material"
 				half a, b, c, d, e, f;
 			};
 			
-			static const ParamsLogC LogC =
-			{
+			static const ParamsLogC LogC = {
 				0.011361, // cut
 				5.555556, // a
 				0.047996, // b
@@ -3628,6 +3889,7 @@ Shader "orels1/Standard Layered Material"
 				0.386036, // d
 				5.301883, // e
 				0.092819  // f
+				
 			};
 			
 			half LinearToLogC_Precise(half x)
@@ -3650,15 +3912,18 @@ Shader "orels1/Standard Layered Material"
 				return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
 			}
 			
-			half3 LinerToSRGB(half3 c) {
+			half3 LinerToSRGB(half3 c)
+			{
 				return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
 			}
 			
-			half3 SRGBToLiner(half3 c) {
+			half3 SRGBToLiner(half3 c)
+			{
 				return max(1.055 * PositivePow(c, 0.416666667) - 0.055, 0.0);
 			}
 			
-			half3 LogCToLinear(half3 c) {
+			half3 LogCToLinear(half3 c)
+			{
 				return (pow(10.0, (c - LogC.d) / LogC.c) - LogC.b) / LogC.a;
 			}
 			
@@ -3710,13 +3975,13 @@ Shader "orels1/Standard Layered Material"
 				return g;
 			}
 			
-			half4 SampleGradient( Gradient gradient, half time )
+			half4 SampleGradient(Gradient gradient, half time)
 			{
 				half3 color = gradient.colors[0].rgb;
 				UNITY_UNROLL
 				for (int c = 1; c < 8; c++)
 				{
-					half colorPos = saturate((time - gradient.colors[c-1].w) / ( 0.00001 + (gradient.colors[c].w - gradient.colors[c-1].w)) * step(c, (half)gradient.colorsLength-1));
+					half colorPos = saturate((time - gradient.colors[c - 1].w) / (0.00001 + (gradient.colors[c].w - gradient.colors[c - 1].w)) * step(c, (half)gradient.colorsLength - 1));
 					color = lerp(color, gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), gradient.type));
 				}
 				#ifndef UNITY_COLORSPACE_GAMMA
@@ -3726,17 +3991,17 @@ Shader "orels1/Standard Layered Material"
 				UNITY_UNROLL
 				for (int a = 1; a < 8; a++)
 				{
-					half alphaPos = saturate((time - gradient.alphas[a-1].y) / ( 0.00001 + (gradient.alphas[a].y - gradient.alphas[a-1].y)) * step(a, (half)gradient.alphasLength-1));
+					half alphaPos = saturate((time - gradient.alphas[a - 1].y) / (0.00001 + (gradient.alphas[a].y - gradient.alphas[a - 1].y)) * step(a, (half)gradient.alphasLength - 1));
 					alpha = lerp(alpha, gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), gradient.type));
 				}
 				return half4(color, alpha);
 			}
 			
-			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			float3 RotateAroundAxis(float3 center, float3 original, float3 u, float angle)
 			{
 				original -= center;
-				float C = cos( angle );
-				float S = sin( angle );
+				float C = cos(angle);
+				float S = sin(angle);
 				float t = 1 - C;
 				float m00 = t * u.x * u.x + C;
 				float m01 = t * u.x * u.y - S * u.z;
@@ -3747,17 +4012,19 @@ Shader "orels1/Standard Layered Material"
 				float m20 = t * u.x * u.z - S * u.y;
 				float m21 = t * u.y * u.z + S * u.x;
 				float m22 = t * u.z * u.z + C;
-				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
-				return mul( finalMatrix, original ) + center;
+				float3x3 finalMatrix = float3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
+				return mul(finalMatrix, original) + center;
 			}
 			
-			half D_GGX(half NoH, half roughness) {
+			half D_GGX(half NoH, half roughness)
+			{
 				half a = NoH * roughness;
 				half k = roughness / (1.0 - NoH * NoH + a * a);
 				return k * k * (1.0 / UNITY_PI);
 			}
 			
-			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness) {
+			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness)
+			{
 				half a2 = roughness * roughness;
 				half GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
 				half GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
@@ -3790,7 +4057,7 @@ Shader "orels1/Standard Layered Material"
 				return lightScatter * viewScatter;
 			}
 			
-			half3 getBoxProjection (half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
+			half3 getBoxProjection(half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
 			{
 				#if defined(UNITY_SPECCUBE_BOX_PROJECTION) && !defined(UNITY_PBS_USE_BRDF2) || defined(FORCE_BOX_PROJECTION)
 				if (cubemapPosition.w > 0)
@@ -3850,24 +4117,25 @@ Shader "orels1/Standard Layered Material"
 			half w0(half a)
 			{
 				//    return (1.0f/6.0f)*(-a*a*a + 3.0f*a*a - 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				return (1.0f / 6.0f) * (a * (a * (-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				
 			}
 			
 			half w1(half a)
 			{
 				//    return (1.0f/6.0f)*(3.0f*a*a*a - 6.0f*a*a + 4.0f);
-				return (1.0f/6.0f)*(a*a*(3.0f*a - 6.0f) + 4.0f);
+				return (1.0f / 6.0f) * (a * a * (3.0f * a - 6.0f) + 4.0f);
 			}
 			
 			half w2(half a)
 			{
 				//    return (1.0f/6.0f)*(-3.0f*a*a*a + 3.0f*a*a + 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-3.0f*a + 3.0f) + 3.0f) + 1.0f);
+				return (1.0f / 6.0f) * (a * (a * (-3.0f * a + 3.0f) + 3.0f) + 1.0f);
 			}
 			
 			half w3(half a)
 			{
-				return (1.0f/6.0f)*(a*a*a);
+				return (1.0f / 6.0f) * (a * a * a);
 			}
 			
 			// g0 and g1 are the two amplitude functions
@@ -3918,10 +4186,10 @@ Shader "orels1/Standard Layered Material"
 				half h0y = h0(fy);
 				half h1y = h1(fy);
 				
-				half4 r = g0(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f/width))) +
-				g1(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f/width)));
+				half4 r = g0(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+				g1(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f / width)));
 				bakedColorTex = r;
 				return DecodeLightmap(r);
 				#else
@@ -3958,7 +4226,7 @@ Shader "orels1/Standard Layered Material"
 				
 				#ifdef DIRLIGHTMAP_COMBINED
 				half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
-				realtimeLightmap += DecodeDirectionalLightmap (realtimeLightmap, realtimeDirTex, worldNormal);
+				realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
 				#endif
 				
 				return realtimeLightmap;
@@ -3997,111 +4265,6 @@ Shader "orels1/Standard Layered Material"
 				
 				return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 			}
-			
-			struct VertexData
-			{
-				float4 vertex     : POSITION;
-				float3 normal     : NORMAL;
-				float4 tangent    : TANGENT;
-				float4 color      : COLOR;
-				float2 uv0        : TEXCOORD0;
-				float2 uv1        : TEXCOORD1;
-				float2 uv2        : TEXCOORD2;
-				float2 uv3        : TEXCOORD3;
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-			};
-			
-			struct FragmentData
-			{
-				#if defined(UNITY_PASS_SHADOWCASTER)
-				V2F_SHADOW_CASTER;
-				float2 uv0         : TEXCOORD1;
-				float2 uv1         : TEXCOORD2;
-				float2 uv2         : TEXCOORD3;
-				float2 uv3         : TEXCOORD4;
-				float3 worldPos    : TEXCOORD5;
-				float3 worldNormal : TEXCOORD6;
-				float4 worldTangent: TEXCOORD7;
-				#else
-				float4 pos         : SV_POSITION;
-				float3 normal      : NORMAL;
-				float2 uv0         : TEXCOORD0;
-				float2 uv1         : TEXCOORD1;
-				float2 uv2         : TEXCOORD2;
-				float2 uv3         : TEXCOORD3;
-				float3 worldPos    : TEXCOORD4;
-				float3 worldNormal : TEXCOORD5;
-				float4 worldTangent: TEXCOORD6;
-				float4 lightmapUv  : TEXCOORD7;
-				float4 vertexColor : TEXCOORD8;
-				
-				#if !defined(UNITY_PASS_META)
-				UNITY_LIGHTING_COORDS(9,10)
-				UNITY_FOG_COORDS(11)
-				#endif
-				#endif
-				
-				#ifdef EDITOR_VISUALIZATION
-				float2 vizUV : TEXCOORD9;
-				float4 lightCoord : TEXCOORD10;
-				#endif
-				
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-				UNITY_VERTEX_OUTPUT_STEREO
-			};
-			
-			struct MeshData {
-				half2 uv0;
-				half2 uv1;
-				half2 uv2;
-				half2 uv3;
-				half3 vertexColor;
-				half3 normal;
-				half3 worldNormal;
-				half3 localSpacePosition;
-				half3 worldSpacePosition;
-				half3 worldSpaceViewDir;
-				half3 tangentSpaceViewDir;
-				float3x3 TBNMatrix;
-			};
-			
-			MeshData CreateMeshData(FragmentData i) {
-				MeshData m = (MeshData) 0;
-				m.uv0 = i.uv0;
-				m.uv1 = i.uv1;
-				m.uv2 = i.uv2;
-				m.uv3 = i.uv3;
-				m.worldNormal = normalize(i.worldNormal);
-				m.localSpacePosition = mul(unity_WorldToObject, float4(i.worldPos, 1)).xyz;
-				m.worldSpacePosition = i.worldPos;
-				m.worldSpaceViewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
-				
-				#if !defined(UNITY_PASS_SHADOWCASTER)
-				m.vertexColor = i.vertexColor;
-				m.normal = i.normal;
-				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
-				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
-				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
-				#endif
-				
-				return m;
-			}
-			
-			struct SurfaceData {
-				half3 Albedo;
-				half3 Emission;
-				half  Metallic;
-				half  Smoothness;
-				half  Occlusion;
-				half3 Normal;
-				half  Alpha;
-			};
-			
-			FragmentData FragData;
-			SurfaceData o;
-			MeshData d;
-			VertexData vD;
-			float4 FinalColor;
 			
 			half _LMLayer1Smoothness;
 			half _LMLayer1Metallic;
@@ -4194,7 +4357,8 @@ Shader "orels1/Standard Layered Material"
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
-			void LayeredMaterialFragment() {
+			void LayeredMaterialFragment()
+			{
 				#if defined(_VERTEX_DEBUGGING)
 				o.Albedo = d.vertexColor.rgb;
 				o.Emission = d.vertexColor.rgb * 0.2;
@@ -4204,19 +4368,22 @@ Shader "orels1/Standard Layered Material"
 				half mask = _LMLayer1VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer1VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer1VertexColor - 1];
 				
 				half4 albedo = SAMPLE_TEXTURE2D(_LMLayer1MainTex, sampler_LMLayer1MainTex, uv);
-				if (_LMLayer1AlbedoChannel > 0) {
+				if (_LMLayer1AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_LMLayer1AlbedoChannel].xxx;
 				}
 				half4 masks = SAMPLE_TEXTURE2D(_LMLayer1MaskMap, sampler_LMLayer1MaskMap, uv);
 				half4 normalTex = SAMPLE_TEXTURE2D(_LMLayer1BumpMap, sampler_LMLayer1BumpMap, uv);
-				if (_LMLayer1FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_LMLayer1FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				half3 normal = UnpackScaleNormal(normalTex, _LMLayer1BumpScale);
 				int hasMasks = _LMLayer1MaskMap_TexelSize.z > 8;
 				half metal = masks[_LMLayer1MetalChannel];
 				half smooth = masks[_LMLayer1SmoothChannel];
-				if (_LMLayer1RoughnessMode) {
+				if (_LMLayer1RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				half detailMask = masks[_LMLayer1DetailMaskChannel];
@@ -4238,19 +4405,22 @@ Shader "orels1/Standard Layered Material"
 				mask = mask = _LMLayer2VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer2VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer2VertexColor - 1];
 				
 				albedo = SAMPLE_TEXTURE2D(_LMLayer2MainTex, sampler_LMLayer1MainTex, uv);
-				if (_LMLayer2AlbedoChannel > 0) {
+				if (_LMLayer2AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_LMLayer2AlbedoChannel].xxx;
 				}
 				masks = SAMPLE_TEXTURE2D(_LMLayer2MaskMap, sampler_LMLayer1MaskMap, uv);
 				normalTex = SAMPLE_TEXTURE2D(_LMLayer2BumpMap, sampler_LMLayer1BumpMap, uv);
-				if (_LMLayer2FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_LMLayer2FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				normal = UnpackScaleNormal(normalTex, _LMLayer2BumpScale * mask);
 				hasMasks = _LMLayer2MaskMap_TexelSize.z > 8;
 				metal = masks[_LMLayer2MetalChannel];
 				smooth = masks[_LMLayer2SmoothChannel];
-				if (_LMLayer2RoughnessMode) {
+				if (_LMLayer2RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				detailMask = masks[_LMLayer2DetailMaskChannel];
@@ -4276,19 +4446,22 @@ Shader "orels1/Standard Layered Material"
 				mask = mask = _LMLayer3VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer3VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer3VertexColor - 1];
 				
 				albedo = SAMPLE_TEXTURE2D(_LMLayer3MainTex, sampler_LMLayer1MainTex, uv);
-				if (_LMLayer3AlbedoChannel > 0) {
+				if (_LMLayer3AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_LMLayer3AlbedoChannel].xxx;
 				}
 				masks = SAMPLE_TEXTURE2D(_LMLayer3MaskMap, sampler_LMLayer1MaskMap, uv);
 				normalTex = SAMPLE_TEXTURE2D(_LMLayer3BumpMap, sampler_LMLayer1BumpMap, uv);
-				if (_LMLayer3FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_LMLayer3FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				normal = UnpackScaleNormal(normalTex, _LMLayer3BumpScale * mask);
 				hasMasks = _LMLayer3MaskMap_TexelSize.z > 8;
 				metal = masks[_LMLayer3MetalChannel];
 				smooth = masks[_LMLayer3SmoothChannel];
-				if (_LMLayer3RoughnessMode) {
+				if (_LMLayer3RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				detailMask = masks[_LMLayer3DetailMaskChannel];
@@ -4310,19 +4483,22 @@ Shader "orels1/Standard Layered Material"
 				mask = mask = _LMLayer4VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer4VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer4VertexColor - 1];
 				
 				albedo = SAMPLE_TEXTURE2D(_LMLayer4MainTex, sampler_LMLayer1MainTex, uv);
-				if (_LMLayer4AlbedoChannel > 0) {
+				if (_LMLayer4AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_LMLayer4AlbedoChannel].xxx;
 				}
 				masks = SAMPLE_TEXTURE2D(_LMLayer4MaskMap, sampler_LMLayer1MaskMap, uv);
 				normalTex = SAMPLE_TEXTURE2D(_LMLayer4BumpMap, sampler_LMLayer1BumpMap, uv);
-				if (_LMLayer4FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_LMLayer4FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				normal = UnpackScaleNormal(normalTex, _LMLayer4BumpScale * mask);
 				hasMasks = _LMLayer4MaskMap_TexelSize.z > 8;
 				metal = masks[_LMLayer4MetalChannel];
 				smooth = masks[_LMLayer4SmoothChannel];
-				if (_LMLayer4RoughnessMode) {
+				if (_LMLayer4RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				detailMask = masks[_LMLayer4DetailMaskChannel];
@@ -4339,7 +4515,8 @@ Shader "orels1/Standard Layered Material"
 				#endif
 			}
 			
-			void ORLLighting() {
+			void ORLLighting()
+			{
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -4387,9 +4564,9 @@ Shader "orels1/Standard Layered Material"
 				half3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize));
 				half3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize));
 				
-				lightMap = saturate(dot(rnmBasis0, tangentNormal)) *  rnm0 +
-				saturate(dot(rnmBasis1, tangentNormal)) *  rnm1 +
-				saturate(dot(rnmBasis2, tangentNormal)) *  rnm2;
+				lightMap = saturate(dot(rnmBasis0, tangentNormal)) * rnm0 +
+				saturate(dot(rnmBasis1, tangentNormal)) * rnm1 +
+				saturate(dot(rnmBasis2, tangentNormal)) * rnm2;
 				#endif
 				
 				// BAKERY SH MODE (these are also used for the specular)
@@ -4421,7 +4598,7 @@ Shader "orels1/Standard Layered Material"
 				#endif
 				
 				#if defined(DIRLIGHTMAP_COMBINED)
-				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
+				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
 				lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
 				#endif
 				
@@ -4432,16 +4609,18 @@ Shader "orels1/Standard Layered Material"
 				
 				#if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
 				pixelLight = 0;
-				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap (lightMap, lightAttenuation, bakedColorTex, o.Normal);
+				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap(lightMap, lightAttenuation, bakedColorTex, o.Normal);
 				#endif
 				indirectDiffuse = lightMap;
 				#else
 				#if UNITY_LIGHT_PROBE_PROXY_VOLUME
 				UNITY_BRANCH
-				if (unity_ProbeVolumeParams.x == 1) {
+				if (unity_ProbeVolumeParams.x == 1)
+				{
 					indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), FragData.worldPos);
 				}
-				else {
+				else
+				{
 					#endif
 					indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
 					#if UNITY_LIGHT_PROBE_PROXY_VOLUME
@@ -4545,7 +4724,8 @@ Shader "orels1/Standard Layered Material"
 				
 				#if defined(UNITY_SPECCUBE_BLENDING)
 				UNITY_BRANCH
-				if (unity_SpecCube0_BoxMin.w < 0.99999) {
+				if (unity_SpecCube0_BoxMin.w < 0.99999)
+				{
 					envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
 					half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
 					indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
@@ -4572,7 +4752,7 @@ Shader "orels1/Standard Layered Material"
 			}
 			
 			// ForwardAdd Vertex
-			FragmentData Vertex (VertexData v)
+			FragmentData Vertex(VertexData v)
 			{
 				UNITY_SETUP_INSTANCE_ID(v);
 				FragmentData i;
@@ -4584,27 +4764,27 @@ Shader "orels1/Standard Layered Material"
 				
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				#else
 				#if defined(UNITY_PASS_META)
 				i.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
 				#else
-				i.pos        = UnityObjectToClipPos(v.vertex);
+				i.pos = UnityObjectToClipPos(v.vertex);
 				#endif
-				i.normal     = v.normal;
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.normal = v.normal;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				i.vertexColor = v.color;
@@ -4634,14 +4814,14 @@ Shader "orels1/Standard Layered Material"
 				#if !defined(UNITY_PASS_FORWARDADD)
 				// unity does some funky stuff for different platforms with these macros
 				#ifdef FOG_COMBINED_WITH_TSPACE
-				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i,i.pos);
-				#elif defined (FOG_COMBINED_WITH_WORLD_POS)
-				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i,i.pos);
+				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i, i.pos);
+				#elif defined(FOG_COMBINED_WITH_WORLD_POS)
+				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i, i.pos);
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#endif
 				#endif
@@ -4650,12 +4830,12 @@ Shader "orels1/Standard Layered Material"
 			}
 			
 			// ForwardAdd Fragment
-			half4 Fragment (FragmentData i) : SV_TARGET
+			half4 Fragment(FragmentData i) : SV_TARGET
 			{
 				UNITY_SETUP_INSTANCE_ID(i);
 				#ifdef FOG_COMBINED_WITH_TSPACE
 				UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-				#elif defined (FOG_COMBINED_WITH_WORLD_POS)
+				#elif defined(FOG_COMBINED_WITH_WORLD_POS)
 				UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
 				#else
 				UNITY_EXTRACT_FOG(i);
@@ -4664,8 +4844,8 @@ Shader "orels1/Standard Layered Material"
 				FragData = i;
 				o = (SurfaceData) 0;
 				d = CreateMeshData(i);
-				o.Albedo = half3(0.5,0.5,0.5);
-				o.Normal = half3(0,0,1);
+				o.Albedo = half3(0.5, 0.5, 0.5);
+				o.Normal = half3(0, 0, 1);
 				o.Smoothness = 0.5;
 				o.Occlusion = 1;
 				o.Alpha = 1;
@@ -4682,14 +4862,12 @@ Shader "orels1/Standard Layered Material"
 			
 			ENDCG
 			// ForwardAdd Pass End
+			
 		}
 		
 		Pass
 		{
-			Tags
-			{
-				"LightMode" = "Meta"
-			}
+			Tags { "LightMode" = "Meta" }
 			Cull Off
 			
 			// Meta Pass Start
@@ -4726,6 +4904,7 @@ Shader "orels1/Standard Layered Material"
 			#endif
 			
 			// Credit to Jason Booth for digging this all up
+			// This originally comes from CoreRP, see Jason's comment below
 			
 			// If your looking in here and thinking WTF, yeah, I know. These are taken from the SRPs, to allow us to use the same
 			// texturing library they use. However, since they are not included in the standard pipeline by default, there is no
@@ -4777,15 +4956,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -4883,15 +5062,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -4989,15 +5168,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -5095,15 +5274,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -5203,15 +5382,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -5310,15 +5489,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -5422,15 +5601,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -5548,15 +5727,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -5774,27 +5953,200 @@ Shader "orels1/Standard Layered Material"
 			#   define UNITY_LOOP
 			#endif
 			
+			struct VertexData
+			{
+				float4 vertex : POSITION;
+				float3 normal : NORMAL;
+				float4 tangent : TANGENT;
+				float4 color : COLOR;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+			};
+			
+			struct FragmentData
+			{
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				V2F_SHADOW_CASTER;
+				float2 uv0 : TEXCOORD1;
+				float2 uv1 : TEXCOORD2;
+				float2 uv2 : TEXCOORD3;
+				float2 uv3 : TEXCOORD4;
+				float3 worldPos : TEXCOORD5;
+				float3 worldNormal : TEXCOORD6;
+				float4 worldTangent : TEXCOORD7;
+				#else
+				float4 pos : SV_POSITION;
+				float3 normal : NORMAL;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
+				float3 worldPos : TEXCOORD4;
+				float3 worldNormal : TEXCOORD5;
+				float4 worldTangent : TEXCOORD6;
+				float4 lightmapUv : TEXCOORD7;
+				float4 vertexColor : TEXCOORD8;
+				
+				#if !defined(UNITY_PASS_META)
+				UNITY_LIGHTING_COORDS(9, 10)
+				UNITY_FOG_COORDS(11)
+				#endif
+				#endif
+				
+				#if defined(EDITOR_VISUALIZATION)
+				float2 vizUV : TEXCOORD9;
+				float4 lightCoord : TEXCOORD10;
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F0 : TEXCOORD8;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F0 : TEXCOORD12;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F0 : TEXCOORD11;
+				#else
+				float4 extraV2F0 : TEXCOORD9;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_1)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F1 : TEXCOORD9;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F1 : TEXCOORD13;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F1 : TEXCOORD14;
+				#else
+				float4 extraV2F1 : TEXCOORD15;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_2)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F2 : TEXCOORD10;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F2 : TEXCOORD14;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F2 : TEXCOORD15
+				#else
+				float4 extraV2F2 : TEXCOORD16;
+				#endif
+				#endif
+				#endif
+				#endif
+				
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+				UNITY_VERTEX_OUTPUT_STEREO
+			};
+			
+			struct MeshData
+			{
+				half2 uv0;
+				half2 uv1;
+				half2 uv2;
+				half2 uv3;
+				half3 vertexColor;
+				half3 normal;
+				half3 worldNormal;
+				half3 localSpacePosition;
+				half3 worldSpacePosition;
+				half3 worldSpaceViewDir;
+				half3 tangentSpaceViewDir;
+				float3x3 TBNMatrix;
+				float4 extraV2F0;
+				float4 extraV2F1;
+				float4 extraV2F2;
+			};
+			
+			MeshData CreateMeshData(FragmentData i)
+			{
+				MeshData m = (MeshData) 0;
+				m.uv0 = i.uv0;
+				m.uv1 = i.uv1;
+				m.uv2 = i.uv2;
+				m.uv3 = i.uv3;
+				m.worldNormal = normalize(i.worldNormal);
+				m.localSpacePosition = mul(unity_WorldToObject, float4(i.worldPos, 1)).xyz;
+				m.worldSpacePosition = i.worldPos;
+				m.worldSpaceViewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
+				
+				#if !defined(UNITY_PASS_SHADOWCASTER)
+				m.vertexColor = i.vertexColor;
+				m.normal = i.normal;
+				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * - 1;
+				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
+				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				m.extraV2F0 = i.extraV2F0;
+				#endif
+				#if defined(EXTRA_V2F_1)
+				m.extraV2F1 = i.extraV2F1;
+				#endif
+				#if defined(EXTRA_V2F_2)
+				m.extraV2F2 = i.extraV2F2;
+				#endif
+				
+				return m;
+			}
+			
+			struct SurfaceData
+			{
+				half3 Albedo;
+				half3 Emission;
+				half Metallic;
+				half Smoothness;
+				half Occlusion;
+				half3 Normal;
+				half Alpha;
+			};
+			
+			FragmentData FragData;
+			SurfaceData o;
+			MeshData d;
+			VertexData vD;
+			float4 FinalColor;
+			
 			half invLerp(half a, half b, half v)
 			{
 				return (v - a) / (b - a);
 			}
 			
-			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p ){
-				half3 i = floor(p); p -= i; p *= p*(3. - 2.*p);
-				half2 uv = (p.xy + i.xy + half2(37, 17)*i.z + .5)/256.;
+			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+			{
+				half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+				half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
 				uv.y *= -1;
 				p.xy = noiseTex.SampleLevel(noiseTexSampler, uv, 0).yx;
 				return lerp(p.x, p.y, p.z);
 			}
+			
+			half3 TransformObjectToWorld(half3 pos)
+			{
+				return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
+			};
 			
 			// mostly taken from the Amplify shader reference
 			half2 POM(Texture2D heightMap, SamplerState heightSampler, half2 uvs, half2 dx, half2 dy, half3 normalWorld, half3 viewWorld, half3 viewDirTan, int minSamples, int maxSamples, half parallax, half refPlane, half2 tilling, half2 curv, int index, inout half finalHeight)
 			{
 				half3 result = 0;
 				int stepIndex = 0;
-				int numSteps = ( int )lerp( (half)maxSamples, (half)minSamples, saturate( dot( normalWorld, viewWorld ) ) );
+				int numSteps = (int)lerp((half)maxSamples, (half)minSamples, saturate(dot(normalWorld, viewWorld)));
 				half layerHeight = 1.0 / numSteps;
-				half2 plane = parallax * ( viewDirTan.xy / viewDirTan.z );
+				half2 plane = parallax * (viewDirTan.xy / viewDirTan.z);
 				uvs.xy += refPlane * plane;
 				half2 deltaTex = -plane * layerHeight;
 				half2 prevTexOffset = 0;
@@ -5805,10 +6157,10 @@ Shader "orels1/Standard Layered Material"
 				half currHeight = 0.0f;
 				half intersection = 0;
 				half2 finalTexOffset = 0;
-				while ( stepIndex < numSteps + 1 )
+				while (stepIndex < numSteps + 1)
 				{
-					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy ).r;
-					if ( currHeight > currRayZ )
+					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy).r;
+					if (currHeight > currRayZ)
 					{
 						stepIndex = numSteps + 1;
 					}
@@ -5826,13 +6178,13 @@ Shader "orels1/Standard Layered Material"
 				int sectionIndex = 0;
 				half newZ = 0;
 				half newHeight = 0;
-				while ( sectionIndex < sectionSteps )
+				while (sectionIndex < sectionSteps)
 				{
-					intersection = ( prevHeight - prevRayZ ) / ( prevHeight - currHeight + currRayZ - prevRayZ );
-					finalTexOffset = prevTexOffset + intersection * deltaTex;
+					intersection = (prevHeight - prevRayZ) / (prevHeight - currHeight + currRayZ - prevRayZ);
+					finalTexOffset = prevTexOffset +intersection * deltaTex;
 					newZ = prevRayZ - intersection * layerHeight;
-					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy ).r;
-					if ( newHeight > newZ )
+					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy).r;
+					if (newHeight > newZ)
 					{
 						currTexOffset = finalTexOffset;
 						currHeight = newHeight;
@@ -5845,8 +6197,8 @@ Shader "orels1/Standard Layered Material"
 						prevTexOffset = finalTexOffset;
 						prevHeight = newHeight;
 						prevRayZ = newZ;
-						deltaTex = ( 1 - intersection ) * deltaTex;
-						layerHeight = ( 1 - intersection ) * layerHeight;
+						deltaTex = (1 - intersection) * deltaTex;
+						layerHeight = (1 - intersection) * layerHeight;
 					}
 					sectionIndex++;
 				}
@@ -5856,7 +6208,7 @@ Shader "orels1/Standard Layered Material"
 			
 			half remap(half s, half a1, half a2, half b1, half b2)
 			{
-				return b1 + (s-a1)*(b2-b1)/(a2-a1);
+				return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
 			}
 			
 			half3 ApplyLut2D(Texture2D LUT2D, SamplerState lutSampler, half3 uvw)
@@ -5875,18 +6227,21 @@ Shader "orels1/Standard Layered Material"
 				return uvw;
 			}
 			
-			half3 AdjustContrast(half3 color, half contrast) {
+			half3 AdjustContrast(half3 color, half contrast)
+			{
 				color = saturate(lerp(half3(0.5, 0.5, 0.5), color, contrast));
 				return color;
 			}
 			
-			half3 AdjustSaturation(half3 color, half saturation) {
-				half3 intensity = dot(color.rgb, half3(0.299,0.587,0.114));
+			half3 AdjustSaturation(half3 color, half saturation)
+			{
+				half3 intensity = dot(color.rgb, half3(0.299, 0.587, 0.114));
 				color = lerp(intensity, color.rgb, saturation);
 				return color;
 			}
 			
-			half3 AdjustBrightness(half3 color, half brightness) {
+			half3 AdjustBrightness(half3 color, half brightness)
+			{
 				color += brightness;
 				return color;
 			}
@@ -5897,8 +6252,7 @@ Shader "orels1/Standard Layered Material"
 				half a, b, c, d, e, f;
 			};
 			
-			static const ParamsLogC LogC =
-			{
+			static const ParamsLogC LogC = {
 				0.011361, // cut
 				5.555556, // a
 				0.047996, // b
@@ -5906,6 +6260,7 @@ Shader "orels1/Standard Layered Material"
 				0.386036, // d
 				5.301883, // e
 				0.092819  // f
+				
 			};
 			
 			half LinearToLogC_Precise(half x)
@@ -5928,15 +6283,18 @@ Shader "orels1/Standard Layered Material"
 				return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
 			}
 			
-			half3 LinerToSRGB(half3 c) {
+			half3 LinerToSRGB(half3 c)
+			{
 				return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
 			}
 			
-			half3 SRGBToLiner(half3 c) {
+			half3 SRGBToLiner(half3 c)
+			{
 				return max(1.055 * PositivePow(c, 0.416666667) - 0.055, 0.0);
 			}
 			
-			half3 LogCToLinear(half3 c) {
+			half3 LogCToLinear(half3 c)
+			{
 				return (pow(10.0, (c - LogC.d) / LogC.c) - LogC.b) / LogC.a;
 			}
 			
@@ -5988,13 +6346,13 @@ Shader "orels1/Standard Layered Material"
 				return g;
 			}
 			
-			half4 SampleGradient( Gradient gradient, half time )
+			half4 SampleGradient(Gradient gradient, half time)
 			{
 				half3 color = gradient.colors[0].rgb;
 				UNITY_UNROLL
 				for (int c = 1; c < 8; c++)
 				{
-					half colorPos = saturate((time - gradient.colors[c-1].w) / ( 0.00001 + (gradient.colors[c].w - gradient.colors[c-1].w)) * step(c, (half)gradient.colorsLength-1));
+					half colorPos = saturate((time - gradient.colors[c - 1].w) / (0.00001 + (gradient.colors[c].w - gradient.colors[c - 1].w)) * step(c, (half)gradient.colorsLength - 1));
 					color = lerp(color, gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), gradient.type));
 				}
 				#ifndef UNITY_COLORSPACE_GAMMA
@@ -6004,17 +6362,17 @@ Shader "orels1/Standard Layered Material"
 				UNITY_UNROLL
 				for (int a = 1; a < 8; a++)
 				{
-					half alphaPos = saturate((time - gradient.alphas[a-1].y) / ( 0.00001 + (gradient.alphas[a].y - gradient.alphas[a-1].y)) * step(a, (half)gradient.alphasLength-1));
+					half alphaPos = saturate((time - gradient.alphas[a - 1].y) / (0.00001 + (gradient.alphas[a].y - gradient.alphas[a - 1].y)) * step(a, (half)gradient.alphasLength - 1));
 					alpha = lerp(alpha, gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), gradient.type));
 				}
 				return half4(color, alpha);
 			}
 			
-			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			float3 RotateAroundAxis(float3 center, float3 original, float3 u, float angle)
 			{
 				original -= center;
-				float C = cos( angle );
-				float S = sin( angle );
+				float C = cos(angle);
+				float S = sin(angle);
 				float t = 1 - C;
 				float m00 = t * u.x * u.x + C;
 				float m01 = t * u.x * u.y - S * u.z;
@@ -6025,17 +6383,19 @@ Shader "orels1/Standard Layered Material"
 				float m20 = t * u.x * u.z - S * u.y;
 				float m21 = t * u.y * u.z + S * u.x;
 				float m22 = t * u.z * u.z + C;
-				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
-				return mul( finalMatrix, original ) + center;
+				float3x3 finalMatrix = float3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
+				return mul(finalMatrix, original) + center;
 			}
 			
-			half D_GGX(half NoH, half roughness) {
+			half D_GGX(half NoH, half roughness)
+			{
 				half a = NoH * roughness;
 				half k = roughness / (1.0 - NoH * NoH + a * a);
 				return k * k * (1.0 / UNITY_PI);
 			}
 			
-			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness) {
+			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness)
+			{
 				half a2 = roughness * roughness;
 				half GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
 				half GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
@@ -6068,7 +6428,7 @@ Shader "orels1/Standard Layered Material"
 				return lightScatter * viewScatter;
 			}
 			
-			half3 getBoxProjection (half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
+			half3 getBoxProjection(half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
 			{
 				#if defined(UNITY_SPECCUBE_BOX_PROJECTION) && !defined(UNITY_PBS_USE_BRDF2) || defined(FORCE_BOX_PROJECTION)
 				if (cubemapPosition.w > 0)
@@ -6128,24 +6488,25 @@ Shader "orels1/Standard Layered Material"
 			half w0(half a)
 			{
 				//    return (1.0f/6.0f)*(-a*a*a + 3.0f*a*a - 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				return (1.0f / 6.0f) * (a * (a * (-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				
 			}
 			
 			half w1(half a)
 			{
 				//    return (1.0f/6.0f)*(3.0f*a*a*a - 6.0f*a*a + 4.0f);
-				return (1.0f/6.0f)*(a*a*(3.0f*a - 6.0f) + 4.0f);
+				return (1.0f / 6.0f) * (a * a * (3.0f * a - 6.0f) + 4.0f);
 			}
 			
 			half w2(half a)
 			{
 				//    return (1.0f/6.0f)*(-3.0f*a*a*a + 3.0f*a*a + 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-3.0f*a + 3.0f) + 3.0f) + 1.0f);
+				return (1.0f / 6.0f) * (a * (a * (-3.0f * a + 3.0f) + 3.0f) + 1.0f);
 			}
 			
 			half w3(half a)
 			{
-				return (1.0f/6.0f)*(a*a*a);
+				return (1.0f / 6.0f) * (a * a * a);
 			}
 			
 			// g0 and g1 are the two amplitude functions
@@ -6196,10 +6557,10 @@ Shader "orels1/Standard Layered Material"
 				half h0y = h0(fy);
 				half h1y = h1(fy);
 				
-				half4 r = g0(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f/width))) +
-				g1(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f/width)));
+				half4 r = g0(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+				g1(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f / width)));
 				bakedColorTex = r;
 				return DecodeLightmap(r);
 				#else
@@ -6236,7 +6597,7 @@ Shader "orels1/Standard Layered Material"
 				
 				#ifdef DIRLIGHTMAP_COMBINED
 				half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
-				realtimeLightmap += DecodeDirectionalLightmap (realtimeLightmap, realtimeDirTex, worldNormal);
+				realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
 				#endif
 				
 				return realtimeLightmap;
@@ -6275,111 +6636,6 @@ Shader "orels1/Standard Layered Material"
 				
 				return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 			}
-			
-			struct VertexData
-			{
-				float4 vertex     : POSITION;
-				float3 normal     : NORMAL;
-				float4 tangent    : TANGENT;
-				float4 color      : COLOR;
-				float2 uv0        : TEXCOORD0;
-				float2 uv1        : TEXCOORD1;
-				float2 uv2        : TEXCOORD2;
-				float2 uv3        : TEXCOORD3;
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-			};
-			
-			struct FragmentData
-			{
-				#if defined(UNITY_PASS_SHADOWCASTER)
-				V2F_SHADOW_CASTER;
-				float2 uv0         : TEXCOORD1;
-				float2 uv1         : TEXCOORD2;
-				float2 uv2         : TEXCOORD3;
-				float2 uv3         : TEXCOORD4;
-				float3 worldPos    : TEXCOORD5;
-				float3 worldNormal : TEXCOORD6;
-				float4 worldTangent: TEXCOORD7;
-				#else
-				float4 pos         : SV_POSITION;
-				float3 normal      : NORMAL;
-				float2 uv0         : TEXCOORD0;
-				float2 uv1         : TEXCOORD1;
-				float2 uv2         : TEXCOORD2;
-				float2 uv3         : TEXCOORD3;
-				float3 worldPos    : TEXCOORD4;
-				float3 worldNormal : TEXCOORD5;
-				float4 worldTangent: TEXCOORD6;
-				float4 lightmapUv  : TEXCOORD7;
-				float4 vertexColor : TEXCOORD8;
-				
-				#if !defined(UNITY_PASS_META)
-				UNITY_LIGHTING_COORDS(9,10)
-				UNITY_FOG_COORDS(11)
-				#endif
-				#endif
-				
-				#ifdef EDITOR_VISUALIZATION
-				float2 vizUV : TEXCOORD9;
-				float4 lightCoord : TEXCOORD10;
-				#endif
-				
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-				UNITY_VERTEX_OUTPUT_STEREO
-			};
-			
-			struct MeshData {
-				half2 uv0;
-				half2 uv1;
-				half2 uv2;
-				half2 uv3;
-				half3 vertexColor;
-				half3 normal;
-				half3 worldNormal;
-				half3 localSpacePosition;
-				half3 worldSpacePosition;
-				half3 worldSpaceViewDir;
-				half3 tangentSpaceViewDir;
-				float3x3 TBNMatrix;
-			};
-			
-			MeshData CreateMeshData(FragmentData i) {
-				MeshData m = (MeshData) 0;
-				m.uv0 = i.uv0;
-				m.uv1 = i.uv1;
-				m.uv2 = i.uv2;
-				m.uv3 = i.uv3;
-				m.worldNormal = normalize(i.worldNormal);
-				m.localSpacePosition = mul(unity_WorldToObject, float4(i.worldPos, 1)).xyz;
-				m.worldSpacePosition = i.worldPos;
-				m.worldSpaceViewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
-				
-				#if !defined(UNITY_PASS_SHADOWCASTER)
-				m.vertexColor = i.vertexColor;
-				m.normal = i.normal;
-				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
-				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
-				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
-				#endif
-				
-				return m;
-			}
-			
-			struct SurfaceData {
-				half3 Albedo;
-				half3 Emission;
-				half  Metallic;
-				half  Smoothness;
-				half  Occlusion;
-				half3 Normal;
-				half  Alpha;
-			};
-			
-			FragmentData FragData;
-			SurfaceData o;
-			MeshData d;
-			VertexData vD;
-			float4 FinalColor;
 			
 			half _LMLayer1Smoothness;
 			half _LMLayer1Metallic;
@@ -6472,7 +6728,8 @@ Shader "orels1/Standard Layered Material"
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
-			void LayeredMaterialFragment() {
+			void LayeredMaterialFragment()
+			{
 				#if defined(_VERTEX_DEBUGGING)
 				o.Albedo = d.vertexColor.rgb;
 				o.Emission = d.vertexColor.rgb * 0.2;
@@ -6482,19 +6739,22 @@ Shader "orels1/Standard Layered Material"
 				half mask = _LMLayer1VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer1VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer1VertexColor - 1];
 				
 				half4 albedo = SAMPLE_TEXTURE2D(_LMLayer1MainTex, sampler_LMLayer1MainTex, uv);
-				if (_LMLayer1AlbedoChannel > 0) {
+				if (_LMLayer1AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_LMLayer1AlbedoChannel].xxx;
 				}
 				half4 masks = SAMPLE_TEXTURE2D(_LMLayer1MaskMap, sampler_LMLayer1MaskMap, uv);
 				half4 normalTex = SAMPLE_TEXTURE2D(_LMLayer1BumpMap, sampler_LMLayer1BumpMap, uv);
-				if (_LMLayer1FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_LMLayer1FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				half3 normal = UnpackScaleNormal(normalTex, _LMLayer1BumpScale);
 				int hasMasks = _LMLayer1MaskMap_TexelSize.z > 8;
 				half metal = masks[_LMLayer1MetalChannel];
 				half smooth = masks[_LMLayer1SmoothChannel];
-				if (_LMLayer1RoughnessMode) {
+				if (_LMLayer1RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				half detailMask = masks[_LMLayer1DetailMaskChannel];
@@ -6516,19 +6776,22 @@ Shader "orels1/Standard Layered Material"
 				mask = mask = _LMLayer2VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer2VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer2VertexColor - 1];
 				
 				albedo = SAMPLE_TEXTURE2D(_LMLayer2MainTex, sampler_LMLayer1MainTex, uv);
-				if (_LMLayer2AlbedoChannel > 0) {
+				if (_LMLayer2AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_LMLayer2AlbedoChannel].xxx;
 				}
 				masks = SAMPLE_TEXTURE2D(_LMLayer2MaskMap, sampler_LMLayer1MaskMap, uv);
 				normalTex = SAMPLE_TEXTURE2D(_LMLayer2BumpMap, sampler_LMLayer1BumpMap, uv);
-				if (_LMLayer2FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_LMLayer2FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				normal = UnpackScaleNormal(normalTex, _LMLayer2BumpScale * mask);
 				hasMasks = _LMLayer2MaskMap_TexelSize.z > 8;
 				metal = masks[_LMLayer2MetalChannel];
 				smooth = masks[_LMLayer2SmoothChannel];
-				if (_LMLayer2RoughnessMode) {
+				if (_LMLayer2RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				detailMask = masks[_LMLayer2DetailMaskChannel];
@@ -6554,19 +6817,22 @@ Shader "orels1/Standard Layered Material"
 				mask = mask = _LMLayer3VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer3VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer3VertexColor - 1];
 				
 				albedo = SAMPLE_TEXTURE2D(_LMLayer3MainTex, sampler_LMLayer1MainTex, uv);
-				if (_LMLayer3AlbedoChannel > 0) {
+				if (_LMLayer3AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_LMLayer3AlbedoChannel].xxx;
 				}
 				masks = SAMPLE_TEXTURE2D(_LMLayer3MaskMap, sampler_LMLayer1MaskMap, uv);
 				normalTex = SAMPLE_TEXTURE2D(_LMLayer3BumpMap, sampler_LMLayer1BumpMap, uv);
-				if (_LMLayer3FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_LMLayer3FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				normal = UnpackScaleNormal(normalTex, _LMLayer3BumpScale * mask);
 				hasMasks = _LMLayer3MaskMap_TexelSize.z > 8;
 				metal = masks[_LMLayer3MetalChannel];
 				smooth = masks[_LMLayer3SmoothChannel];
-				if (_LMLayer3RoughnessMode) {
+				if (_LMLayer3RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				detailMask = masks[_LMLayer3DetailMaskChannel];
@@ -6588,19 +6854,22 @@ Shader "orels1/Standard Layered Material"
 				mask = mask = _LMLayer4VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer4VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer4VertexColor - 1];
 				
 				albedo = SAMPLE_TEXTURE2D(_LMLayer4MainTex, sampler_LMLayer1MainTex, uv);
-				if (_LMLayer4AlbedoChannel > 0) {
+				if (_LMLayer4AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_LMLayer4AlbedoChannel].xxx;
 				}
 				masks = SAMPLE_TEXTURE2D(_LMLayer4MaskMap, sampler_LMLayer1MaskMap, uv);
 				normalTex = SAMPLE_TEXTURE2D(_LMLayer4BumpMap, sampler_LMLayer1BumpMap, uv);
-				if (_LMLayer4FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_LMLayer4FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				normal = UnpackScaleNormal(normalTex, _LMLayer4BumpScale * mask);
 				hasMasks = _LMLayer4MaskMap_TexelSize.z > 8;
 				metal = masks[_LMLayer4MetalChannel];
 				smooth = masks[_LMLayer4SmoothChannel];
-				if (_LMLayer4RoughnessMode) {
+				if (_LMLayer4RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				detailMask = masks[_LMLayer4DetailMaskChannel];
@@ -6617,7 +6886,8 @@ Shader "orels1/Standard Layered Material"
 				#endif
 			}
 			
-			void ORLLighting() {
+			void ORLLighting()
+			{
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -6665,9 +6935,9 @@ Shader "orels1/Standard Layered Material"
 				half3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize));
 				half3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize));
 				
-				lightMap = saturate(dot(rnmBasis0, tangentNormal)) *  rnm0 +
-				saturate(dot(rnmBasis1, tangentNormal)) *  rnm1 +
-				saturate(dot(rnmBasis2, tangentNormal)) *  rnm2;
+				lightMap = saturate(dot(rnmBasis0, tangentNormal)) * rnm0 +
+				saturate(dot(rnmBasis1, tangentNormal)) * rnm1 +
+				saturate(dot(rnmBasis2, tangentNormal)) * rnm2;
 				#endif
 				
 				// BAKERY SH MODE (these are also used for the specular)
@@ -6699,7 +6969,7 @@ Shader "orels1/Standard Layered Material"
 				#endif
 				
 				#if defined(DIRLIGHTMAP_COMBINED)
-				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
+				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
 				lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
 				#endif
 				
@@ -6710,16 +6980,18 @@ Shader "orels1/Standard Layered Material"
 				
 				#if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
 				pixelLight = 0;
-				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap (lightMap, lightAttenuation, bakedColorTex, o.Normal);
+				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap(lightMap, lightAttenuation, bakedColorTex, o.Normal);
 				#endif
 				indirectDiffuse = lightMap;
 				#else
 				#if UNITY_LIGHT_PROBE_PROXY_VOLUME
 				UNITY_BRANCH
-				if (unity_ProbeVolumeParams.x == 1) {
+				if (unity_ProbeVolumeParams.x == 1)
+				{
 					indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), FragData.worldPos);
 				}
-				else {
+				else
+				{
 					#endif
 					indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
 					#if UNITY_LIGHT_PROBE_PROXY_VOLUME
@@ -6823,7 +7095,8 @@ Shader "orels1/Standard Layered Material"
 				
 				#if defined(UNITY_SPECCUBE_BLENDING)
 				UNITY_BRANCH
-				if (unity_SpecCube0_BoxMin.w < 0.99999) {
+				if (unity_SpecCube0_BoxMin.w < 0.99999)
+				{
 					envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
 					half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
 					indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
@@ -6850,7 +7123,7 @@ Shader "orels1/Standard Layered Material"
 			}
 			
 			// Meta Vertex
-			FragmentData Vertex (VertexData v)
+			FragmentData Vertex(VertexData v)
 			{
 				UNITY_SETUP_INSTANCE_ID(v);
 				FragmentData i;
@@ -6862,27 +7135,27 @@ Shader "orels1/Standard Layered Material"
 				
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				#else
 				#if defined(UNITY_PASS_META)
 				i.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
 				#else
-				i.pos        = UnityObjectToClipPos(v.vertex);
+				i.pos = UnityObjectToClipPos(v.vertex);
 				#endif
-				i.normal     = v.normal;
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.normal = v.normal;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				i.vertexColor = v.color;
@@ -6912,14 +7185,14 @@ Shader "orels1/Standard Layered Material"
 				#if !defined(UNITY_PASS_FORWARDADD)
 				// unity does some funky stuff for different platforms with these macros
 				#ifdef FOG_COMBINED_WITH_TSPACE
-				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i,i.pos);
-				#elif defined (FOG_COMBINED_WITH_WORLD_POS)
-				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i,i.pos);
+				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i, i.pos);
+				#elif defined(FOG_COMBINED_WITH_WORLD_POS)
+				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i, i.pos);
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#endif
 				#endif
@@ -6928,15 +7201,15 @@ Shader "orels1/Standard Layered Material"
 			}
 			
 			// Meta Fragment
-			half4 Fragment (FragmentData i) : SV_TARGET
+			half4 Fragment(FragmentData i) : SV_TARGET
 			{
 				UNITY_SETUP_INSTANCE_ID(i);
 				
 				FragData = i;
 				o = (SurfaceData) 0;
 				d = CreateMeshData(i);
-				o.Albedo = half3(0.5,0.5,0.5);
-				o.Normal = half3(0,0,1);
+				o.Albedo = half3(0.5, 0.5, 0.5);
+				o.Normal = half3(0, 0, 1);
 				o.Smoothness = 0.5;
 				o.Occlusion = 1;
 				o.Alpha = 1;
@@ -6961,14 +7234,12 @@ Shader "orels1/Standard Layered Material"
 			
 			ENDCG
 			// Meta Pass End
+			
 		}
 		
 		Pass
 		{
-			Tags
-			{
-				"LightMode" = "ShadowCaster"
-			}
+			Tags { "LightMode" = "ShadowCaster"  }
 			
 			// Shadow Pass Start
 			CGPROGRAM
@@ -7008,6 +7279,7 @@ Shader "orels1/Standard Layered Material"
 			#endif
 			
 			// Credit to Jason Booth for digging this all up
+			// This originally comes from CoreRP, see Jason's comment below
 			
 			// If your looking in here and thinking WTF, yeah, I know. These are taken from the SRPs, to allow us to use the same
 			// texturing library they use. However, since they are not included in the standard pipeline by default, there is no
@@ -7059,15 +7331,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7165,15 +7437,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7271,15 +7543,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7377,15 +7649,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7485,15 +7757,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7592,15 +7864,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7704,15 +7976,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7830,15 +8102,15 @@ Shader "orels1/Standard Layered Material"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -8056,27 +8328,198 @@ Shader "orels1/Standard Layered Material"
 			#   define UNITY_LOOP
 			#endif
 			
+			struct VertexData
+			{
+				float4 vertex : POSITION;
+				float3 normal : NORMAL;
+				float4 tangent : TANGENT;
+				float4 color : COLOR;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+			};
+			
+			struct FragmentData
+			{
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				V2F_SHADOW_CASTER;
+				float2 uv0 : TEXCOORD1;
+				float2 uv1 : TEXCOORD2;
+				float2 uv2 : TEXCOORD3;
+				float2 uv3 : TEXCOORD4;
+				float3 worldPos : TEXCOORD5;
+				float3 worldNormal : TEXCOORD6;
+				float4 worldTangent : TEXCOORD7;
+				#else
+				float4 pos : SV_POSITION;
+				float3 normal : NORMAL;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
+				float3 worldPos : TEXCOORD4;
+				float3 worldNormal : TEXCOORD5;
+				float4 worldTangent : TEXCOORD6;
+				float4 lightmapUv : TEXCOORD7;
+				float4 vertexColor : TEXCOORD8;
+				
+				#if !defined(UNITY_PASS_META)
+				UNITY_LIGHTING_COORDS(9, 10)
+				UNITY_FOG_COORDS(11)
+				#endif
+				#endif
+				
+				#if defined(EDITOR_VISUALIZATION)
+				float2 vizUV : TEXCOORD9;
+				float4 lightCoord : TEXCOORD10;
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F0 : TEXCOORD8;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F0 : TEXCOORD12;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F0 : TEXCOORD11;
+				#else
+				float4 extraV2F0 : TEXCOORD9;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_1)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F1 : TEXCOORD9;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F1 : TEXCOORD13;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F1 : TEXCOORD14;
+				#else
+				float4 extraV2F1 : TEXCOORD15;
+				#endif
+				#endif
+				#endif
+				#endif
+				#if defined(EXTRA_V2F_2)
+				#if defined(UNITY_PASS_SHADOWCASTER)
+				float4 extraV2F2 : TEXCOORD10;
+				#else
+				#if !defined(UNITY_PASS_META)
+				float4 extraV2F2 : TEXCOORD14;
+				#else
+				#if defined(EDITOR_VISUALIZATION)
+				float4 extraV2F2 : TEXCOORD15
+				#else
+				float4 extraV2F2 : TEXCOORD16;
+				#endif
+				#endif
+				#endif
+				#endif
+				
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+				UNITY_VERTEX_OUTPUT_STEREO
+			};
+			
+			struct MeshData
+			{
+				half2 uv0;
+				half2 uv1;
+				half2 uv2;
+				half2 uv3;
+				half3 vertexColor;
+				half3 normal;
+				half3 worldNormal;
+				half3 localSpacePosition;
+				half3 worldSpacePosition;
+				half3 worldSpaceViewDir;
+				half3 tangentSpaceViewDir;
+				float3x3 TBNMatrix;
+				float4 extraV2F0;
+				float4 extraV2F1;
+				float4 extraV2F2;
+			};
+			
+			MeshData CreateMeshData(FragmentData i)
+			{
+				MeshData m = (MeshData) 0;
+				m.uv0 = i.uv0;
+				m.uv1 = i.uv1;
+				m.uv2 = i.uv2;
+				m.uv3 = i.uv3;
+				m.worldNormal = normalize(i.worldNormal);
+				m.localSpacePosition = mul(unity_WorldToObject, float4(i.worldPos, 1)).xyz;
+				m.worldSpacePosition = i.worldPos;
+				m.worldSpaceViewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
+				
+				#if !defined(UNITY_PASS_SHADOWCASTER)
+				m.vertexColor = i.vertexColor;
+				m.normal = i.normal;
+				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * - 1;
+				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
+				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
+				#endif
+				
+				#if defined(EXTRA_V2F_0)
+				m.extraV2F0 = i.extraV2F0;
+				#endif
+				#if defined(EXTRA_V2F_1)
+				m.extraV2F1 = i.extraV2F1;
+				#endif
+				#if defined(EXTRA_V2F_2)
+				m.extraV2F2 = i.extraV2F2;
+				#endif
+				
+				return m;
+			}
+			
+			struct SurfaceData
+			{
+				half3 Albedo;
+				half3 Emission;
+				half Metallic;
+				half Smoothness;
+				half Occlusion;
+				half3 Normal;
+				half Alpha;
+			};
+			
+			FragmentData FragData;
+			MeshData d;
+			VertexData vD;
+			
 			half invLerp(half a, half b, half v)
 			{
 				return (v - a) / (b - a);
 			}
 			
-			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p ){
-				half3 i = floor(p); p -= i; p *= p*(3. - 2.*p);
-				half2 uv = (p.xy + i.xy + half2(37, 17)*i.z + .5)/256.;
+			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+			{
+				half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+				half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
 				uv.y *= -1;
 				p.xy = noiseTex.SampleLevel(noiseTexSampler, uv, 0).yx;
 				return lerp(p.x, p.y, p.z);
 			}
+			
+			half3 TransformObjectToWorld(half3 pos)
+			{
+				return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
+			};
 			
 			// mostly taken from the Amplify shader reference
 			half2 POM(Texture2D heightMap, SamplerState heightSampler, half2 uvs, half2 dx, half2 dy, half3 normalWorld, half3 viewWorld, half3 viewDirTan, int minSamples, int maxSamples, half parallax, half refPlane, half2 tilling, half2 curv, int index, inout half finalHeight)
 			{
 				half3 result = 0;
 				int stepIndex = 0;
-				int numSteps = ( int )lerp( (half)maxSamples, (half)minSamples, saturate( dot( normalWorld, viewWorld ) ) );
+				int numSteps = (int)lerp((half)maxSamples, (half)minSamples, saturate(dot(normalWorld, viewWorld)));
 				half layerHeight = 1.0 / numSteps;
-				half2 plane = parallax * ( viewDirTan.xy / viewDirTan.z );
+				half2 plane = parallax * (viewDirTan.xy / viewDirTan.z);
 				uvs.xy += refPlane * plane;
 				half2 deltaTex = -plane * layerHeight;
 				half2 prevTexOffset = 0;
@@ -8087,10 +8530,10 @@ Shader "orels1/Standard Layered Material"
 				half currHeight = 0.0f;
 				half intersection = 0;
 				half2 finalTexOffset = 0;
-				while ( stepIndex < numSteps + 1 )
+				while (stepIndex < numSteps + 1)
 				{
-					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy ).r;
-					if ( currHeight > currRayZ )
+					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy).r;
+					if (currHeight > currRayZ)
 					{
 						stepIndex = numSteps + 1;
 					}
@@ -8108,13 +8551,13 @@ Shader "orels1/Standard Layered Material"
 				int sectionIndex = 0;
 				half newZ = 0;
 				half newHeight = 0;
-				while ( sectionIndex < sectionSteps )
+				while (sectionIndex < sectionSteps)
 				{
-					intersection = ( prevHeight - prevRayZ ) / ( prevHeight - currHeight + currRayZ - prevRayZ );
-					finalTexOffset = prevTexOffset + intersection * deltaTex;
+					intersection = (prevHeight - prevRayZ) / (prevHeight - currHeight + currRayZ - prevRayZ);
+					finalTexOffset = prevTexOffset +intersection * deltaTex;
 					newZ = prevRayZ - intersection * layerHeight;
-					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy ).r;
-					if ( newHeight > newZ )
+					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy).r;
+					if (newHeight > newZ)
 					{
 						currTexOffset = finalTexOffset;
 						currHeight = newHeight;
@@ -8127,8 +8570,8 @@ Shader "orels1/Standard Layered Material"
 						prevTexOffset = finalTexOffset;
 						prevHeight = newHeight;
 						prevRayZ = newZ;
-						deltaTex = ( 1 - intersection ) * deltaTex;
-						layerHeight = ( 1 - intersection ) * layerHeight;
+						deltaTex = (1 - intersection) * deltaTex;
+						layerHeight = (1 - intersection) * layerHeight;
 					}
 					sectionIndex++;
 				}
@@ -8138,7 +8581,7 @@ Shader "orels1/Standard Layered Material"
 			
 			half remap(half s, half a1, half a2, half b1, half b2)
 			{
-				return b1 + (s-a1)*(b2-b1)/(a2-a1);
+				return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
 			}
 			
 			half3 ApplyLut2D(Texture2D LUT2D, SamplerState lutSampler, half3 uvw)
@@ -8157,18 +8600,21 @@ Shader "orels1/Standard Layered Material"
 				return uvw;
 			}
 			
-			half3 AdjustContrast(half3 color, half contrast) {
+			half3 AdjustContrast(half3 color, half contrast)
+			{
 				color = saturate(lerp(half3(0.5, 0.5, 0.5), color, contrast));
 				return color;
 			}
 			
-			half3 AdjustSaturation(half3 color, half saturation) {
-				half3 intensity = dot(color.rgb, half3(0.299,0.587,0.114));
+			half3 AdjustSaturation(half3 color, half saturation)
+			{
+				half3 intensity = dot(color.rgb, half3(0.299, 0.587, 0.114));
 				color = lerp(intensity, color.rgb, saturation);
 				return color;
 			}
 			
-			half3 AdjustBrightness(half3 color, half brightness) {
+			half3 AdjustBrightness(half3 color, half brightness)
+			{
 				color += brightness;
 				return color;
 			}
@@ -8179,8 +8625,7 @@ Shader "orels1/Standard Layered Material"
 				half a, b, c, d, e, f;
 			};
 			
-			static const ParamsLogC LogC =
-			{
+			static const ParamsLogC LogC = {
 				0.011361, // cut
 				5.555556, // a
 				0.047996, // b
@@ -8188,6 +8633,7 @@ Shader "orels1/Standard Layered Material"
 				0.386036, // d
 				5.301883, // e
 				0.092819  // f
+				
 			};
 			
 			half LinearToLogC_Precise(half x)
@@ -8210,15 +8656,18 @@ Shader "orels1/Standard Layered Material"
 				return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
 			}
 			
-			half3 LinerToSRGB(half3 c) {
+			half3 LinerToSRGB(half3 c)
+			{
 				return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
 			}
 			
-			half3 SRGBToLiner(half3 c) {
+			half3 SRGBToLiner(half3 c)
+			{
 				return max(1.055 * PositivePow(c, 0.416666667) - 0.055, 0.0);
 			}
 			
-			half3 LogCToLinear(half3 c) {
+			half3 LogCToLinear(half3 c)
+			{
 				return (pow(10.0, (c - LogC.d) / LogC.c) - LogC.b) / LogC.a;
 			}
 			
@@ -8270,13 +8719,13 @@ Shader "orels1/Standard Layered Material"
 				return g;
 			}
 			
-			half4 SampleGradient( Gradient gradient, half time )
+			half4 SampleGradient(Gradient gradient, half time)
 			{
 				half3 color = gradient.colors[0].rgb;
 				UNITY_UNROLL
 				for (int c = 1; c < 8; c++)
 				{
-					half colorPos = saturate((time - gradient.colors[c-1].w) / ( 0.00001 + (gradient.colors[c].w - gradient.colors[c-1].w)) * step(c, (half)gradient.colorsLength-1));
+					half colorPos = saturate((time - gradient.colors[c - 1].w) / (0.00001 + (gradient.colors[c].w - gradient.colors[c - 1].w)) * step(c, (half)gradient.colorsLength - 1));
 					color = lerp(color, gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), gradient.type));
 				}
 				#ifndef UNITY_COLORSPACE_GAMMA
@@ -8286,17 +8735,17 @@ Shader "orels1/Standard Layered Material"
 				UNITY_UNROLL
 				for (int a = 1; a < 8; a++)
 				{
-					half alphaPos = saturate((time - gradient.alphas[a-1].y) / ( 0.00001 + (gradient.alphas[a].y - gradient.alphas[a-1].y)) * step(a, (half)gradient.alphasLength-1));
+					half alphaPos = saturate((time - gradient.alphas[a - 1].y) / (0.00001 + (gradient.alphas[a].y - gradient.alphas[a - 1].y)) * step(a, (half)gradient.alphasLength - 1));
 					alpha = lerp(alpha, gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), gradient.type));
 				}
 				return half4(color, alpha);
 			}
 			
-			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			float3 RotateAroundAxis(float3 center, float3 original, float3 u, float angle)
 			{
 				original -= center;
-				float C = cos( angle );
-				float S = sin( angle );
+				float C = cos(angle);
+				float S = sin(angle);
 				float t = 1 - C;
 				float m00 = t * u.x * u.x + C;
 				float m01 = t * u.x * u.y - S * u.z;
@@ -8307,17 +8756,19 @@ Shader "orels1/Standard Layered Material"
 				float m20 = t * u.x * u.z - S * u.y;
 				float m21 = t * u.y * u.z + S * u.x;
 				float m22 = t * u.z * u.z + C;
-				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
-				return mul( finalMatrix, original ) + center;
+				float3x3 finalMatrix = float3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
+				return mul(finalMatrix, original) + center;
 			}
 			
-			half D_GGX(half NoH, half roughness) {
+			half D_GGX(half NoH, half roughness)
+			{
 				half a = NoH * roughness;
 				half k = roughness / (1.0 - NoH * NoH + a * a);
 				return k * k * (1.0 / UNITY_PI);
 			}
 			
-			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness) {
+			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness)
+			{
 				half a2 = roughness * roughness;
 				half GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
 				half GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
@@ -8350,7 +8801,7 @@ Shader "orels1/Standard Layered Material"
 				return lightScatter * viewScatter;
 			}
 			
-			half3 getBoxProjection (half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
+			half3 getBoxProjection(half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
 			{
 				#if defined(UNITY_SPECCUBE_BOX_PROJECTION) && !defined(UNITY_PBS_USE_BRDF2) || defined(FORCE_BOX_PROJECTION)
 				if (cubemapPosition.w > 0)
@@ -8410,24 +8861,25 @@ Shader "orels1/Standard Layered Material"
 			half w0(half a)
 			{
 				//    return (1.0f/6.0f)*(-a*a*a + 3.0f*a*a - 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				return (1.0f / 6.0f) * (a * (a * (-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				
 			}
 			
 			half w1(half a)
 			{
 				//    return (1.0f/6.0f)*(3.0f*a*a*a - 6.0f*a*a + 4.0f);
-				return (1.0f/6.0f)*(a*a*(3.0f*a - 6.0f) + 4.0f);
+				return (1.0f / 6.0f) * (a * a * (3.0f * a - 6.0f) + 4.0f);
 			}
 			
 			half w2(half a)
 			{
 				//    return (1.0f/6.0f)*(-3.0f*a*a*a + 3.0f*a*a + 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-3.0f*a + 3.0f) + 3.0f) + 1.0f);
+				return (1.0f / 6.0f) * (a * (a * (-3.0f * a + 3.0f) + 3.0f) + 1.0f);
 			}
 			
 			half w3(half a)
 			{
-				return (1.0f/6.0f)*(a*a*a);
+				return (1.0f / 6.0f) * (a * a * a);
 			}
 			
 			// g0 and g1 are the two amplitude functions
@@ -8478,10 +8930,10 @@ Shader "orels1/Standard Layered Material"
 				half h0y = h0(fy);
 				half h1y = h1(fy);
 				
-				half4 r = g0(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f/width))) +
-				g1(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f/width)));
+				half4 r = g0(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+				g1(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f / width)));
 				bakedColorTex = r;
 				return DecodeLightmap(r);
 				#else
@@ -8518,7 +8970,7 @@ Shader "orels1/Standard Layered Material"
 				
 				#ifdef DIRLIGHTMAP_COMBINED
 				half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
-				realtimeLightmap += DecodeDirectionalLightmap (realtimeLightmap, realtimeDirTex, worldNormal);
+				realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
 				#endif
 				
 				return realtimeLightmap;
@@ -8557,109 +9009,6 @@ Shader "orels1/Standard Layered Material"
 				
 				return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 			}
-			
-			struct VertexData
-			{
-				float4 vertex     : POSITION;
-				float3 normal     : NORMAL;
-				float4 tangent    : TANGENT;
-				float4 color      : COLOR;
-				float2 uv0        : TEXCOORD0;
-				float2 uv1        : TEXCOORD1;
-				float2 uv2        : TEXCOORD2;
-				float2 uv3        : TEXCOORD3;
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-			};
-			
-			struct FragmentData
-			{
-				#if defined(UNITY_PASS_SHADOWCASTER)
-				V2F_SHADOW_CASTER;
-				float2 uv0         : TEXCOORD1;
-				float2 uv1         : TEXCOORD2;
-				float2 uv2         : TEXCOORD3;
-				float2 uv3         : TEXCOORD4;
-				float3 worldPos    : TEXCOORD5;
-				float3 worldNormal : TEXCOORD6;
-				float4 worldTangent: TEXCOORD7;
-				#else
-				float4 pos         : SV_POSITION;
-				float3 normal      : NORMAL;
-				float2 uv0         : TEXCOORD0;
-				float2 uv1         : TEXCOORD1;
-				float2 uv2         : TEXCOORD2;
-				float2 uv3         : TEXCOORD3;
-				float3 worldPos    : TEXCOORD4;
-				float3 worldNormal : TEXCOORD5;
-				float4 worldTangent: TEXCOORD6;
-				float4 lightmapUv  : TEXCOORD7;
-				float4 vertexColor : TEXCOORD8;
-				
-				#if !defined(UNITY_PASS_META)
-				UNITY_LIGHTING_COORDS(9,10)
-				UNITY_FOG_COORDS(11)
-				#endif
-				#endif
-				
-				#ifdef EDITOR_VISUALIZATION
-				float2 vizUV : TEXCOORD9;
-				float4 lightCoord : TEXCOORD10;
-				#endif
-				
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-				UNITY_VERTEX_OUTPUT_STEREO
-			};
-			
-			struct MeshData {
-				half2 uv0;
-				half2 uv1;
-				half2 uv2;
-				half2 uv3;
-				half3 vertexColor;
-				half3 normal;
-				half3 worldNormal;
-				half3 localSpacePosition;
-				half3 worldSpacePosition;
-				half3 worldSpaceViewDir;
-				half3 tangentSpaceViewDir;
-				float3x3 TBNMatrix;
-			};
-			
-			MeshData CreateMeshData(FragmentData i) {
-				MeshData m = (MeshData) 0;
-				m.uv0 = i.uv0;
-				m.uv1 = i.uv1;
-				m.uv2 = i.uv2;
-				m.uv3 = i.uv3;
-				m.worldNormal = normalize(i.worldNormal);
-				m.localSpacePosition = mul(unity_WorldToObject, float4(i.worldPos, 1)).xyz;
-				m.worldSpacePosition = i.worldPos;
-				m.worldSpaceViewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
-				
-				#if !defined(UNITY_PASS_SHADOWCASTER)
-				m.vertexColor = i.vertexColor;
-				m.normal = i.normal;
-				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
-				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
-				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
-				#endif
-				
-				return m;
-			}
-			
-			struct SurfaceData {
-				half3 Albedo;
-				half3 Emission;
-				half  Metallic;
-				half  Smoothness;
-				half  Occlusion;
-				half3 Normal;
-				half  Alpha;
-			};
-			
-			FragmentData FragData;
-			MeshData d;
-			VertexData vD;
 			
 			half _LMLayer1Smoothness;
 			half _LMLayer1Metallic;
@@ -8753,7 +9102,7 @@ Shader "orels1/Standard Layered Material"
 			SAMPLER(sampler_DFG);
 			
 			// Shadow Vertex
-			FragmentData Vertex (VertexData v)
+			FragmentData Vertex(VertexData v)
 			{
 				UNITY_SETUP_INSTANCE_ID(v);
 				FragmentData i;
@@ -8765,27 +9114,27 @@ Shader "orels1/Standard Layered Material"
 				
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				#else
 				#if defined(UNITY_PASS_META)
 				i.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
 				#else
-				i.pos        = UnityObjectToClipPos(v.vertex);
+				i.pos = UnityObjectToClipPos(v.vertex);
 				#endif
-				i.normal     = v.normal;
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.normal = v.normal;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				i.vertexColor = v.color;
@@ -8815,14 +9164,14 @@ Shader "orels1/Standard Layered Material"
 				#if !defined(UNITY_PASS_FORWARDADD)
 				// unity does some funky stuff for different platforms with these macros
 				#ifdef FOG_COMBINED_WITH_TSPACE
-				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i,i.pos);
-				#elif defined (FOG_COMBINED_WITH_WORLD_POS)
-				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i,i.pos);
+				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i, i.pos);
+				#elif defined(FOG_COMBINED_WITH_WORLD_POS)
+				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i, i.pos);
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#endif
 				#endif
@@ -8833,7 +9182,7 @@ Shader "orels1/Standard Layered Material"
 			}
 			
 			// Shadow Fragment
-			half4 Fragment (FragmentData i) : SV_TARGET
+			half4 Fragment(FragmentData i) : SV_TARGET
 			{
 				UNITY_SETUP_INSTANCE_ID(i);
 				SHADOW_CASTER_FRAGMENT(i);
@@ -8841,6 +9190,7 @@ Shader "orels1/Standard Layered Material"
 			
 			ENDCG
 			// Shadow Pass End
+			
 		}
 		
 	}

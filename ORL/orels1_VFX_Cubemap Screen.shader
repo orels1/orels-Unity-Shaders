@@ -1,66 +1,64 @@
-// Upgrade NOTE: replaced 'defined FOG_COMBINED_WITH_WORLD_POS' with 'defined (FOG_COMBINED_WITH_WORLD_POS)'
-
 Shader "orels1/VFX/Cubemap Screen"
 {
 	Properties
 	{
 		[ToggleUI] UI_MainHeader("# Main Settings", Int) =  0
 		_Color("Main Color", Color) =  (1, 1, 1, 1)
-		_MainTex("Albedo", 2D) =  "white" {}
+		_MainTex("Albedo", 2D) =  "white" { }
 		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_MainTex] _AlbedoChannel("Albedo Channel [_MainTex]", Int) =  0
 		[Enum(UV, 0, Local Space, 1, World Space, 2)] _MappingSpace("Mapping Space", Int) =  0
 		[ToggleUI] UI_PlanarAxisSelector("!DRAWER MultiProperty _PlanarAxisX _PlanarAxisY [_MappingSpace > 0]", Int) =  0
 		[Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisX("X Axis", Int) =  0
 		[Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisY("Y Axis", Int) =  2
-		[NoScaleOffset] _MaskMap("Masks &", 2D) =  "white" {}
+		[NoScaleOffset] _MaskMap("Masks &", 2D) =  "white" { }
 		[ToggleUI][_MaskMap] UI_ChannelSelector("!DRAWER MultiProperty _MetalChannel _AOChannel _DetailMaskChannel _SmoothChannel [_MaskMap]", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _MetalChannel("Metal", Int) =  0
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _AOChannel("AO", Int) =  1
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _DetailMaskChannel("Detail", Int) =  2
 		[Enum(R, 0, G, 1, B, 2, A, 3)] _SmoothChannel("Smooth", Int) =  3
-		_Smoothness("Smoothness [!_MaskMap]", Range(0,1)) =  0.5
+		_Smoothness("Smoothness [!_MaskMap]", Range(0, 1)) =  0.5
 		[ToggleUI][_MaskMap] _RoughnessMode("Roughness Mode [_MaskMap]", Int) =  0
 		[ToggleUI][_MaskMap] UI_SmoothnessRemap("!DRAWER MinMax _SmoothnessRemap.x _SmoothnessRemap.y [_MaskMap]", Float) =  0
-		_Metallic("Metallic [!_MaskMap]", Range(0,1)) =  0
+		_Metallic("Metallic [!_MaskMap]", Range(0, 1)) =  0
 		[ToggleUI][_MaskMap] UI_MetallicRemap("!DRAWER MinMax _MetallicRemap.x _MetallicRemap.y [_MaskMap]", Float) =  0
-		[HideInInspector] _MetallicRemap("Metallic Remap", Vector) =  (0,1,0,1)
-		[HideInInspector] _SmoothnessRemap("Smoothness Remap", Vector) =  (0,1,0,1)
-		[_MaskMap] _OcclusionStrength("AO Strength [_MaskMap]", Range(0,1)) =  1
+		[HideInInspector] _MetallicRemap("Metallic Remap", Vector) =  (0, 1, 0, 1)
+		[HideInInspector] _SmoothnessRemap("Smoothness Remap", Vector) =  (0, 1, 0, 1)
+		[_MaskMap] _OcclusionStrength("AO Strength [_MaskMap]", Range(0, 1)) =  1
 		[ToggleUI][_MaskMap] _DetailAsTintMask("Detail as Tint Mask [_MaskMap]", Int) =  0
-		[NoScaleOffset] _BumpMap("Normal Map &&", 2D) =  "bump" {}
+		[NoScaleOffset] _BumpMap("Normal Map &&", 2D) =  "bump" { }
 		_BumpScale("Normal Map Scale", Float) = 0.0
 		[ToggleUI][_BumpMap] _FlipBumpY("Flip Y (UE Mode) [_BumpMap]", Int) =  0
 		[Toggle(_EMISSION)] _EmissionEnabled("Emission", Int) =  0
-		[_EMISSION] _EmissionMap("Emission Map && [_EMISSION]", 2D) =  "white" {}
-		[HDR][_EMISSION] _EmissionColor("Emission Color [_EMISSION]", Color) =  (0,0,0,1)
+		[_EMISSION] _EmissionMap("Emission Map && [_EMISSION]", 2D) =  "white" { }
+		[HDR][_EMISSION] _EmissionColor("Emission Color [_EMISSION]", Color) =  (0, 0, 0, 1)
 		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_EmissionMap] _EmissionChannel("Emission Channel [_EmissionMap]", Int) =  0
 		[ToggleUI] UI_DetailsHeader("# Details", Int) =  0
 		[Toggle(DETAILS_OVERLAY)] _DetailsOverlay("Enable Details", Int) =  0
 		[ToggleUI][DETAILS_OVERLAY] _DIgnoreMask("Ignore Mask [DETAILS_OVERLAY]", Int) =  0
 		[ToggleUI][DETAILS_OVERLAY] UI_IgnoreMaskNote("!NOTE Force-draws the detail effects [DETAILS_OVERLAY]", Int) =  0
 		[KeywordEnum(Packed, Separated)][DETAILS_OVERLAY] DETAILS_MODE("Detail Map Mode [DETAILS_OVERLAY]", Int) =  0
-		[HideInInspector] _DDetailsMap("Details Map", 2D) =  "gray" {}
+		[HideInInspector] _DDetailsMap("Details Map", 2D) =  "gray" { }
 		[ToggleUI] _DDetailsMapRef1("!REF _DDetailsMap [DETAILS_OVERLAY && DETAILS_MODE_PACKED]", Int) =  0
 		[ToggleUI] UI_DetailsMapNote("!NOTE R: Albedo, G: Normal G, B: Smooth, A: Normal R. Uncheck sRGB!", Int) =  0
 		[ToggleUI] _DDetailsMapRef2("!REF _DDetailsMap [DETAILS_OVERLAY && DETAILS_MODE_SEPARATED]", Int) =  0
 		[ToggleUI] UI_DetailsMapNoteSeparate("!NOTE RGB: Albedo, A: Smooth. Uncheck sRGB!", Int) =  0
-		[NoScaleOffset] _DDetailsNormal("Details Normal Map & [DETAILS_OVERLAY && DETAILS_MODE_SEPARATED]", 2D) =  "bump" {}
+		[NoScaleOffset] _DDetailsNormal("Details Normal Map & [DETAILS_OVERLAY && DETAILS_MODE_SEPARATED]", 2D) =  "bump" { }
 		[Enum(UV, 0, Local Space, 1, World Space, 2)][DETAILS_OVERLAY] _DMappingSpace("Mapping Space [DETAILS_OVERLAY]", Int) =  0
 		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _DUVChannel("UV Set [_DMappingSpace == 0 && DETAILS_OVERLAY]", Int) =  0
 		[ToggleUI] UI_DPlanarAxisSelector("!DRAWER MultiProperty _DPlanarAxisX _DPlanarAxisY [_DMappingSpace > 0 && DETAILS_OVERLAY]", Int) =  0
 		[Enum(X, 0, Y, 1, Z, 2)] _DPlanarAxisX("X Axis", Int) =  0
 		[Enum(X, 0, Y, 1, Z, 2)] _DPlanarAxisY("Y Axis", Int) =  2
-		[DETAILS_OVERLAY] _DAlbedoScale("Albedo Scale [DETAILS_OVERLAY]", Float) = 0.0
+		[DETAILS_OVERLAY] _DAlbedoScale("Albedo Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) =  1
 		[ToggleUI][DETAILS_OVERLAY] UI_DetailAlbedoNote("!NOTE Values < 0.5 - darken, > 0.5 - lighten [DETAILS_OVERLAY]", Int) =  0
-		[DETAILS_OVERLAY] _DNormalScale("Normal Scale [DETAILS_OVERLAY]", Float) = 0.0
+		[DETAILS_OVERLAY] _DNormalScale("Normal Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) =  1
 		[ToggleUI][DETAILS_OVERLAY] _DNormalFlipY("Flip Y (UE Mode) [DETAILS_OVERLAY]", Int) =  0
-		[DETAILS_OVERLAY] _DSmoothScale("Smooth Scale [DETAILS_OVERLAY]", Float) = 0.0
+		[DETAILS_OVERLAY] _DSmoothScale("Smooth Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) =  1
 		[ToggleUI][DETAILS_OVERLAY] UI_DetailSmoothNote("!NOTE Values < 0.5 - roughen, > 0.5 - smoothen [DETAILS_OVERLAY]", Int) =  0
 		[ToggleUI] UI_SkyboxScreenHeader("# Cubemap Screen", Int) =  0
-		[NoScaleOffset] _SSCubemap("Cubemap &", Cube) =  "cube" {}
+		[NoScaleOffset] _SSCubemap("Cubemap &", Cube) =  "cube" { }
 		_SSCubeRotation("Rotation", Float) =  0
 		_SSCubeLOD("Blur Level", Range(0, 7)) =  0
-		_SSSubPixel("SubPixel Texture", 2D) =  "white" {}
+		_SSSubPixel("SubPixel Texture", 2D) =  "white" { }
 		_RedScale("Red Scale", Float) = 0.0
 		_GreenScale("Green Scale", Float) = 0.0
 		_BlueScale("Blue Scale", Float) = 0.0
@@ -86,10 +84,7 @@ Shader "orels1/VFX/Cubemap Screen"
 	}
 	SubShader
 	{
-		Tags
-		{
-			
-		}
+		Tags {  }
 		
 		ZTest[_ZTest]
 		ZWrite[_ZWrite]
@@ -97,10 +92,7 @@ Shader "orels1/VFX/Cubemap Screen"
 		
 		Pass
 		{
-			Tags
-			{
-				"LightMode" = "ForwardBase"
-			}
+			Tags { "LightMode" = "ForwardBase"  }
 			
 			// ForwardBase Pass Start
 			CGPROGRAM
@@ -149,6 +141,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			#endif
 			
 			// Credit to Jason Booth for digging this all up
+			// This originally comes from CoreRP, see Jason's comment below
 			
 			// If your looking in here and thinking WTF, yeah, I know. These are taken from the SRPs, to allow us to use the same
 			// texturing library they use. However, since they are not included in the standard pipeline by default, there is no
@@ -200,15 +193,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -306,15 +299,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -412,15 +405,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -518,15 +511,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -626,15 +619,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -733,15 +726,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -845,15 +838,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -971,15 +964,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -1199,14 +1192,14 @@ Shader "orels1/VFX/Cubemap Screen"
 			
 			struct VertexData
 			{
-				float4 vertex     : POSITION;
-				float3 normal     : NORMAL;
-				float4 tangent    : TANGENT;
-				float4 color      : COLOR;
-				float2 uv0        : TEXCOORD0;
-				float2 uv1        : TEXCOORD1;
-				float2 uv2        : TEXCOORD2;
-				float2 uv3        : TEXCOORD3;
+				float4 vertex : POSITION;
+				float3 normal : NORMAL;
+				float4 tangent : TANGENT;
+				float4 color : COLOR;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 			
@@ -1214,28 +1207,28 @@ Shader "orels1/VFX/Cubemap Screen"
 			{
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				V2F_SHADOW_CASTER;
-				float2 uv0         : TEXCOORD1;
-				float2 uv1         : TEXCOORD2;
-				float2 uv2         : TEXCOORD3;
-				float2 uv3         : TEXCOORD4;
-				float3 worldPos    : TEXCOORD5;
+				float2 uv0 : TEXCOORD1;
+				float2 uv1 : TEXCOORD2;
+				float2 uv2 : TEXCOORD3;
+				float2 uv3 : TEXCOORD4;
+				float3 worldPos : TEXCOORD5;
 				float3 worldNormal : TEXCOORD6;
-				float4 worldTangent: TEXCOORD7;
+				float4 worldTangent : TEXCOORD7;
 				#else
-				float4 pos         : SV_POSITION;
-				float3 normal      : NORMAL;
-				float2 uv0         : TEXCOORD0;
-				float2 uv1         : TEXCOORD1;
-				float2 uv2         : TEXCOORD2;
-				float2 uv3         : TEXCOORD3;
-				float3 worldPos    : TEXCOORD4;
+				float4 pos : SV_POSITION;
+				float3 normal : NORMAL;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
+				float3 worldPos : TEXCOORD4;
 				float3 worldNormal : TEXCOORD5;
-				float4 worldTangent: TEXCOORD6;
-				float4 lightmapUv  : TEXCOORD7;
+				float4 worldTangent : TEXCOORD6;
+				float4 lightmapUv : TEXCOORD7;
 				float4 vertexColor : TEXCOORD8;
 				
 				#if !defined(UNITY_PASS_META)
-				UNITY_LIGHTING_COORDS(9,10)
+				UNITY_LIGHTING_COORDS(9, 10)
 				UNITY_FOG_COORDS(11)
 				#endif
 				#endif
@@ -1295,7 +1288,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 			
-			struct MeshData {
+			struct MeshData
+			{
 				half2 uv0;
 				half2 uv1;
 				half2 uv2;
@@ -1313,7 +1307,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				float4 extraV2F2;
 			};
 			
-			MeshData CreateMeshData(FragmentData i) {
+			MeshData CreateMeshData(FragmentData i)
+			{
 				MeshData m = (MeshData) 0;
 				m.uv0 = i.uv0;
 				m.uv1 = i.uv1;
@@ -1327,7 +1322,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				#if !defined(UNITY_PASS_SHADOWCASTER)
 				m.vertexColor = i.vertexColor;
 				m.normal = i.normal;
-				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
+				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * - 1;
 				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
 				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
 				#endif
@@ -1345,14 +1340,15 @@ Shader "orels1/VFX/Cubemap Screen"
 				return m;
 			}
 			
-			struct SurfaceData {
+			struct SurfaceData
+			{
 				half3 Albedo;
 				half3 Emission;
-				half  Metallic;
-				half  Smoothness;
-				half  Occlusion;
+				half Metallic;
+				half Smoothness;
+				half Occlusion;
 				half3 Normal;
-				half  Alpha;
+				half Alpha;
 			};
 			
 			FragmentData FragData;
@@ -1366,15 +1362,17 @@ Shader "orels1/VFX/Cubemap Screen"
 				return (v - a) / (b - a);
 			}
 			
-			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p ){
-				half3 i = floor(p); p -= i; p *= p*(3. - 2.*p);
-				half2 uv = (p.xy + i.xy + half2(37, 17)*i.z + .5)/256.;
+			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+			{
+				half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+				half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
 				uv.y *= -1;
 				p.xy = noiseTex.SampleLevel(noiseTexSampler, uv, 0).yx;
 				return lerp(p.x, p.y, p.z);
 			}
 			
-			half3 TransformObjectToWorld(half3 pos) {
+			half3 TransformObjectToWorld(half3 pos)
+			{
 				return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
 			};
 			
@@ -1383,9 +1381,9 @@ Shader "orels1/VFX/Cubemap Screen"
 			{
 				half3 result = 0;
 				int stepIndex = 0;
-				int numSteps = ( int )lerp( (half)maxSamples, (half)minSamples, saturate( dot( normalWorld, viewWorld ) ) );
+				int numSteps = (int)lerp((half)maxSamples, (half)minSamples, saturate(dot(normalWorld, viewWorld)));
 				half layerHeight = 1.0 / numSteps;
-				half2 plane = parallax * ( viewDirTan.xy / viewDirTan.z );
+				half2 plane = parallax * (viewDirTan.xy / viewDirTan.z);
 				uvs.xy += refPlane * plane;
 				half2 deltaTex = -plane * layerHeight;
 				half2 prevTexOffset = 0;
@@ -1396,10 +1394,10 @@ Shader "orels1/VFX/Cubemap Screen"
 				half currHeight = 0.0f;
 				half intersection = 0;
 				half2 finalTexOffset = 0;
-				while ( stepIndex < numSteps + 1 )
+				while (stepIndex < numSteps + 1)
 				{
-					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy ).r;
-					if ( currHeight > currRayZ )
+					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy).r;
+					if (currHeight > currRayZ)
 					{
 						stepIndex = numSteps + 1;
 					}
@@ -1417,13 +1415,13 @@ Shader "orels1/VFX/Cubemap Screen"
 				int sectionIndex = 0;
 				half newZ = 0;
 				half newHeight = 0;
-				while ( sectionIndex < sectionSteps )
+				while (sectionIndex < sectionSteps)
 				{
-					intersection = ( prevHeight - prevRayZ ) / ( prevHeight - currHeight + currRayZ - prevRayZ );
-					finalTexOffset = prevTexOffset + intersection * deltaTex;
+					intersection = (prevHeight - prevRayZ) / (prevHeight - currHeight + currRayZ - prevRayZ);
+					finalTexOffset = prevTexOffset +intersection * deltaTex;
 					newZ = prevRayZ - intersection * layerHeight;
-					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy ).r;
-					if ( newHeight > newZ )
+					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy).r;
+					if (newHeight > newZ)
 					{
 						currTexOffset = finalTexOffset;
 						currHeight = newHeight;
@@ -1436,8 +1434,8 @@ Shader "orels1/VFX/Cubemap Screen"
 						prevTexOffset = finalTexOffset;
 						prevHeight = newHeight;
 						prevRayZ = newZ;
-						deltaTex = ( 1 - intersection ) * deltaTex;
-						layerHeight = ( 1 - intersection ) * layerHeight;
+						deltaTex = (1 - intersection) * deltaTex;
+						layerHeight = (1 - intersection) * layerHeight;
 					}
 					sectionIndex++;
 				}
@@ -1447,7 +1445,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			
 			half remap(half s, half a1, half a2, half b1, half b2)
 			{
-				return b1 + (s-a1)*(b2-b1)/(a2-a1);
+				return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
 			}
 			
 			half3 ApplyLut2D(Texture2D LUT2D, SamplerState lutSampler, half3 uvw)
@@ -1466,18 +1464,21 @@ Shader "orels1/VFX/Cubemap Screen"
 				return uvw;
 			}
 			
-			half3 AdjustContrast(half3 color, half contrast) {
+			half3 AdjustContrast(half3 color, half contrast)
+			{
 				color = saturate(lerp(half3(0.5, 0.5, 0.5), color, contrast));
 				return color;
 			}
 			
-			half3 AdjustSaturation(half3 color, half saturation) {
-				half3 intensity = dot(color.rgb, half3(0.299,0.587,0.114));
+			half3 AdjustSaturation(half3 color, half saturation)
+			{
+				half3 intensity = dot(color.rgb, half3(0.299, 0.587, 0.114));
 				color = lerp(intensity, color.rgb, saturation);
 				return color;
 			}
 			
-			half3 AdjustBrightness(half3 color, half brightness) {
+			half3 AdjustBrightness(half3 color, half brightness)
+			{
 				color += brightness;
 				return color;
 			}
@@ -1488,8 +1489,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				half a, b, c, d, e, f;
 			};
 			
-			static const ParamsLogC LogC =
-			{
+			static const ParamsLogC LogC = {
 				0.011361, // cut
 				5.555556, // a
 				0.047996, // b
@@ -1497,6 +1497,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				0.386036, // d
 				5.301883, // e
 				0.092819  // f
+				
 			};
 			
 			half LinearToLogC_Precise(half x)
@@ -1519,15 +1520,18 @@ Shader "orels1/VFX/Cubemap Screen"
 				return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
 			}
 			
-			half3 LinerToSRGB(half3 c) {
+			half3 LinerToSRGB(half3 c)
+			{
 				return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
 			}
 			
-			half3 SRGBToLiner(half3 c) {
+			half3 SRGBToLiner(half3 c)
+			{
 				return max(1.055 * PositivePow(c, 0.416666667) - 0.055, 0.0);
 			}
 			
-			half3 LogCToLinear(half3 c) {
+			half3 LogCToLinear(half3 c)
+			{
 				return (pow(10.0, (c - LogC.d) / LogC.c) - LogC.b) / LogC.a;
 			}
 			
@@ -1579,13 +1583,13 @@ Shader "orels1/VFX/Cubemap Screen"
 				return g;
 			}
 			
-			half4 SampleGradient( Gradient gradient, half time )
+			half4 SampleGradient(Gradient gradient, half time)
 			{
 				half3 color = gradient.colors[0].rgb;
 				UNITY_UNROLL
 				for (int c = 1; c < 8; c++)
 				{
-					half colorPos = saturate((time - gradient.colors[c-1].w) / ( 0.00001 + (gradient.colors[c].w - gradient.colors[c-1].w)) * step(c, (half)gradient.colorsLength-1));
+					half colorPos = saturate((time - gradient.colors[c - 1].w) / (0.00001 + (gradient.colors[c].w - gradient.colors[c - 1].w)) * step(c, (half)gradient.colorsLength - 1));
 					color = lerp(color, gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), gradient.type));
 				}
 				#ifndef UNITY_COLORSPACE_GAMMA
@@ -1595,17 +1599,17 @@ Shader "orels1/VFX/Cubemap Screen"
 				UNITY_UNROLL
 				for (int a = 1; a < 8; a++)
 				{
-					half alphaPos = saturate((time - gradient.alphas[a-1].y) / ( 0.00001 + (gradient.alphas[a].y - gradient.alphas[a-1].y)) * step(a, (half)gradient.alphasLength-1));
+					half alphaPos = saturate((time - gradient.alphas[a - 1].y) / (0.00001 + (gradient.alphas[a].y - gradient.alphas[a - 1].y)) * step(a, (half)gradient.alphasLength - 1));
 					alpha = lerp(alpha, gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), gradient.type));
 				}
 				return half4(color, alpha);
 			}
 			
-			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			float3 RotateAroundAxis(float3 center, float3 original, float3 u, float angle)
 			{
 				original -= center;
-				float C = cos( angle );
-				float S = sin( angle );
+				float C = cos(angle);
+				float S = sin(angle);
 				float t = 1 - C;
 				float m00 = t * u.x * u.x + C;
 				float m01 = t * u.x * u.y - S * u.z;
@@ -1616,8 +1620,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				float m20 = t * u.x * u.z - S * u.y;
 				float m21 = t * u.y * u.z + S * u.x;
 				float m22 = t * u.z * u.z + C;
-				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
-				return mul( finalMatrix, original ) + center;
+				float3x3 finalMatrix = float3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
+				return mul(finalMatrix, original) + center;
 			}
 			
 			half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
@@ -1630,7 +1634,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				return normal;
 			}
 			
-			half3 RotateAroundYInDegrees (half3 toRotate, half degrees)
+			half3 RotateAroundYInDegrees(half3 toRotate, half degrees)
 			{
 				half alpha = degrees * UNITY_PI / 180.0;
 				half sina, cosa;
@@ -1639,13 +1643,15 @@ Shader "orels1/VFX/Cubemap Screen"
 				return half3(mul(m, toRotate.xz), toRotate.y).xzy;
 			}
 			
-			half D_GGX(half NoH, half roughness) {
+			half D_GGX(half NoH, half roughness)
+			{
 				half a = NoH * roughness;
 				half k = roughness / (1.0 - NoH * NoH + a * a);
 				return k * k * (1.0 / UNITY_PI);
 			}
 			
-			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness) {
+			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness)
+			{
 				half a2 = roughness * roughness;
 				half GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
 				half GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
@@ -1678,7 +1684,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				return lightScatter * viewScatter;
 			}
 			
-			half3 getBoxProjection (half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
+			half3 getBoxProjection(half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
 			{
 				#if defined(UNITY_SPECCUBE_BOX_PROJECTION) && !defined(UNITY_PBS_USE_BRDF2) || defined(FORCE_BOX_PROJECTION)
 				if (cubemapPosition.w > 0)
@@ -1738,24 +1744,25 @@ Shader "orels1/VFX/Cubemap Screen"
 			half w0(half a)
 			{
 				//    return (1.0f/6.0f)*(-a*a*a + 3.0f*a*a - 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				return (1.0f / 6.0f) * (a * (a * (-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				
 			}
 			
 			half w1(half a)
 			{
 				//    return (1.0f/6.0f)*(3.0f*a*a*a - 6.0f*a*a + 4.0f);
-				return (1.0f/6.0f)*(a*a*(3.0f*a - 6.0f) + 4.0f);
+				return (1.0f / 6.0f) * (a * a * (3.0f * a - 6.0f) + 4.0f);
 			}
 			
 			half w2(half a)
 			{
 				//    return (1.0f/6.0f)*(-3.0f*a*a*a + 3.0f*a*a + 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-3.0f*a + 3.0f) + 3.0f) + 1.0f);
+				return (1.0f / 6.0f) * (a * (a * (-3.0f * a + 3.0f) + 3.0f) + 1.0f);
 			}
 			
 			half w3(half a)
 			{
-				return (1.0f/6.0f)*(a*a*a);
+				return (1.0f / 6.0f) * (a * a * a);
 			}
 			
 			// g0 and g1 are the two amplitude functions
@@ -1806,10 +1813,10 @@ Shader "orels1/VFX/Cubemap Screen"
 				half h0y = h0(fy);
 				half h1y = h1(fy);
 				
-				half4 r = g0(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f/width))) +
-				g1(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f/width)));
+				half4 r = g0(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+				g1(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f / width)));
 				bakedColorTex = r;
 				return DecodeLightmap(r);
 				#else
@@ -1846,7 +1853,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				#ifdef DIRLIGHTMAP_COMBINED
 				half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
-				realtimeLightmap += DecodeDirectionalLightmap (realtimeLightmap, realtimeDirTex, worldNormal);
+				realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
 				#endif
 				
 				return realtimeLightmap;
@@ -1950,32 +1957,38 @@ Shader "orels1/VFX/Cubemap Screen"
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
-			void BaseFragmentFunction() {
+			void BaseFragmentFunction()
+			{
 				#if !defined(_SET_GLOBAL_UVS)
 				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				#endif
-				if (_MappingSpace > 0) {
+				if (_MappingSpace > 0)
+				{
 					GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
 					GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
 				}
 				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
-				if (_AlbedoChannel > 0) {
+				if (_AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_AlbedoChannel].xxx;
 				}
 				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
 				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
-				if (_FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
 				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
-				if (_EmissionChannel > 0) {
+				if (_EmissionChannel > 0)
+				{
 					emission.rgb = emission[_EmissionChannel].xxx;
 				}
 				int hasMasks = _MaskMap_TexelSize.z > 8;
 				half metal = masks[_MetalChannel];
 				half smooth = masks[_SmoothChannel];
-				if (_RoughnessMode) {
+				if (_RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				half detailMask = masks[_DetailMaskChannel];
@@ -1987,9 +2000,12 @@ Shader "orels1/VFX/Cubemap Screen"
 				o.Smoothness = lerp(_Smoothness, smooth, hasMasks);
 				o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
 				o.Normal = normal;
-				if (!_DetailAsTintMask) {
+				if (!_DetailAsTintMask)
+				{
 					o.Albedo = albedo.rgb * _Color.rgb;
-				} else {
+				}
+				else
+				{
 					o.Albedo = lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
 				}
 				o.Alpha = albedo.a * _Color.a;
@@ -1998,7 +2014,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				#endif
 			}
 			
-			void DetailsFragment() {
+			void DetailsFragment()
+			{
 				#if defined(DETAILS_OVERLAY)
 				half masks = 0;
 				#if defined(_MASKMAP_SAMPLED)
@@ -2008,14 +2025,16 @@ Shader "orels1/VFX/Cubemap Screen"
 				#endif
 				half mask = lerp(masks, 1, _DIgnoreMask);
 				half2 uv = d.uv0.xy;
-				switch (_DUVChannel) {
+				switch(_DUVChannel)
+				{
 					case 1: uv = d.uv1.xy; break;
 					case 2: uv = d.uv2.xy; break;
 					case 3: uv = d.uv3.xy; break;
 					default: uv = d.uv0.xy; break;
 				}
 				uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
-				if (_DMappingSpace > 0) {
+				if (_DMappingSpace > 0)
+				{
 					uv = (_DMappingSpace - 1) ? half2(d.worldSpacePosition[_DPlanarAxisX], d.worldSpacePosition[_DPlanarAxisY]) : half2(d.localSpacePosition[_DPlanarAxisX], d.localSpacePosition[_DPlanarAxisY]);
 					uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
 				}
@@ -2026,7 +2045,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				half detailAlbedo = detailsMap.r * 2.0 - 1.0;
 				half detailSmooth = detailsMap.b * 2.0 - 1.0;
 				half3 detailNormal = 0;
-				if (_DNormalFlipY) {
+				if (_DNormalFlipY)
+				{
 					detailsMap.g = 1 - detailsMap.g;
 				}
 				detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
@@ -2036,7 +2056,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				half detailSmooth = detailsMap.a * 2.0 - 1.0;
 				
 				half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
-				if (_DNormalFlipY) {
+				if (_DNormalFlipY)
+				{
 					packedNormal.g = 1 - packedNormal.g;
 				}
 				half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
@@ -2056,7 +2077,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				#endif
 			}
 			
-			void BlockFaderFragemtn() {
+			void BlockFaderFragemtn()
+			{
 				float3 viewDir = normalize(_WorldSpaceCameraPos - d.worldSpacePosition.xyz);
 				half3 reflDir = reflect(-d.worldSpaceViewDir, d.worldNormal);
 				reflDir = RotateAroundYInDegrees(reflDir, _SSCubeRotation);
@@ -2087,12 +2109,13 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				half3 pixelValue = half3(pixelR, pixelG, pixelB);
 				
-				half3 screenCol = lerp(pixelValue, half4(0,0,0,1), max(0, (1-vdn * 1.2)));
+				half3 screenCol = lerp(pixelValue, half4(0, 0, 0, 1), max(0, (1 - vdn * 1.2)));
 				
 				o.Emission = screenCol * _EmissionBoost;
 			}
 			
-			void ORLLighting() {
+			void ORLLighting()
+			{
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -2140,9 +2163,9 @@ Shader "orels1/VFX/Cubemap Screen"
 				half3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize));
 				half3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize));
 				
-				lightMap = saturate(dot(rnmBasis0, tangentNormal)) *  rnm0 +
-				saturate(dot(rnmBasis1, tangentNormal)) *  rnm1 +
-				saturate(dot(rnmBasis2, tangentNormal)) *  rnm2;
+				lightMap = saturate(dot(rnmBasis0, tangentNormal)) * rnm0 +
+				saturate(dot(rnmBasis1, tangentNormal)) * rnm1 +
+				saturate(dot(rnmBasis2, tangentNormal)) * rnm2;
 				#endif
 				
 				// BAKERY SH MODE (these are also used for the specular)
@@ -2174,7 +2197,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				#endif
 				
 				#if defined(DIRLIGHTMAP_COMBINED)
-				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
+				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
 				lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
 				#endif
 				
@@ -2185,16 +2208,18 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				#if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
 				pixelLight = 0;
-				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap (lightMap, lightAttenuation, bakedColorTex, o.Normal);
+				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap(lightMap, lightAttenuation, bakedColorTex, o.Normal);
 				#endif
 				indirectDiffuse = lightMap;
 				#else
 				#if UNITY_LIGHT_PROBE_PROXY_VOLUME
 				UNITY_BRANCH
-				if (unity_ProbeVolumeParams.x == 1) {
+				if (unity_ProbeVolumeParams.x == 1)
+				{
 					indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), FragData.worldPos);
 				}
-				else {
+				else
+				{
 					#endif
 					indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
 					#if UNITY_LIGHT_PROBE_PROXY_VOLUME
@@ -2298,7 +2323,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				#if defined(UNITY_SPECCUBE_BLENDING)
 				UNITY_BRANCH
-				if (unity_SpecCube0_BoxMin.w < 0.99999) {
+				if (unity_SpecCube0_BoxMin.w < 0.99999)
+				{
 					envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
 					half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
 					indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
@@ -2325,7 +2351,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			}
 			
 			// ForwardBase Vertex
-			FragmentData Vertex (VertexData v)
+			FragmentData Vertex(VertexData v)
 			{
 				UNITY_SETUP_INSTANCE_ID(v);
 				FragmentData i;
@@ -2337,27 +2363,27 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				#else
 				#if defined(UNITY_PASS_META)
 				i.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
 				#else
-				i.pos        = UnityObjectToClipPos(v.vertex);
+				i.pos = UnityObjectToClipPos(v.vertex);
 				#endif
-				i.normal     = v.normal;
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.normal = v.normal;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				i.vertexColor = v.color;
@@ -2387,14 +2413,14 @@ Shader "orels1/VFX/Cubemap Screen"
 				#if !defined(UNITY_PASS_FORWARDADD)
 				// unity does some funky stuff for different platforms with these macros
 				#ifdef FOG_COMBINED_WITH_TSPACE
-				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i,i.pos);
-				#elif defined (FOG_COMBINED_WITH_WORLD_POS)
-				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i,i.pos);
+				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i, i.pos);
+				#elif defined(FOG_COMBINED_WITH_WORLD_POS)
+				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i, i.pos);
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#endif
 				#endif
@@ -2403,12 +2429,12 @@ Shader "orels1/VFX/Cubemap Screen"
 			}
 			
 			// ForwardBase Fragment
-			half4 Fragment (FragmentData i) : SV_TARGET
+			half4 Fragment(FragmentData i) : SV_TARGET
 			{
 				UNITY_SETUP_INSTANCE_ID(i);
 				#ifdef FOG_COMBINED_WITH_TSPACE
 				UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-				#elif defined (FOG_COMBINED_WITH_WORLD_POS)
+				#elif defined(FOG_COMBINED_WITH_WORLD_POS)
 				UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
 				#else
 				UNITY_EXTRACT_FOG(i);
@@ -2417,8 +2443,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				FragData = i;
 				o = (SurfaceData) 0;
 				d = CreateMeshData(i);
-				o.Albedo = half3(0.5,0.5,0.5);
-				o.Normal = half3(0,0,1);
+				o.Albedo = half3(0.5, 0.5, 0.5);
+				o.Normal = half3(0, 0, 1);
 				o.Smoothness = 0.5;
 				o.Occlusion = 1;
 				o.Alpha = 1;
@@ -2437,14 +2463,12 @@ Shader "orels1/VFX/Cubemap Screen"
 			
 			ENDCG
 			// ForwardBase Pass End
+			
 		}
 		
 		Pass
 		{
-			Tags
-			{
-				"LightMode" = "ForwardAdd"
-			}
+			Tags { "LightMode" = "ForwardAdd"  }
 			ZWrite Off
 			Blend One One
 			
@@ -2486,6 +2510,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			#endif
 			
 			// Credit to Jason Booth for digging this all up
+			// This originally comes from CoreRP, see Jason's comment below
 			
 			// If your looking in here and thinking WTF, yeah, I know. These are taken from the SRPs, to allow us to use the same
 			// texturing library they use. However, since they are not included in the standard pipeline by default, there is no
@@ -2537,15 +2562,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -2643,15 +2668,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -2749,15 +2774,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -2855,15 +2880,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -2963,15 +2988,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -3070,15 +3095,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -3182,15 +3207,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -3308,15 +3333,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -3536,14 +3561,14 @@ Shader "orels1/VFX/Cubemap Screen"
 			
 			struct VertexData
 			{
-				float4 vertex     : POSITION;
-				float3 normal     : NORMAL;
-				float4 tangent    : TANGENT;
-				float4 color      : COLOR;
-				float2 uv0        : TEXCOORD0;
-				float2 uv1        : TEXCOORD1;
-				float2 uv2        : TEXCOORD2;
-				float2 uv3        : TEXCOORD3;
+				float4 vertex : POSITION;
+				float3 normal : NORMAL;
+				float4 tangent : TANGENT;
+				float4 color : COLOR;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 			
@@ -3551,28 +3576,28 @@ Shader "orels1/VFX/Cubemap Screen"
 			{
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				V2F_SHADOW_CASTER;
-				float2 uv0         : TEXCOORD1;
-				float2 uv1         : TEXCOORD2;
-				float2 uv2         : TEXCOORD3;
-				float2 uv3         : TEXCOORD4;
-				float3 worldPos    : TEXCOORD5;
+				float2 uv0 : TEXCOORD1;
+				float2 uv1 : TEXCOORD2;
+				float2 uv2 : TEXCOORD3;
+				float2 uv3 : TEXCOORD4;
+				float3 worldPos : TEXCOORD5;
 				float3 worldNormal : TEXCOORD6;
-				float4 worldTangent: TEXCOORD7;
+				float4 worldTangent : TEXCOORD7;
 				#else
-				float4 pos         : SV_POSITION;
-				float3 normal      : NORMAL;
-				float2 uv0         : TEXCOORD0;
-				float2 uv1         : TEXCOORD1;
-				float2 uv2         : TEXCOORD2;
-				float2 uv3         : TEXCOORD3;
-				float3 worldPos    : TEXCOORD4;
+				float4 pos : SV_POSITION;
+				float3 normal : NORMAL;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
+				float3 worldPos : TEXCOORD4;
 				float3 worldNormal : TEXCOORD5;
-				float4 worldTangent: TEXCOORD6;
-				float4 lightmapUv  : TEXCOORD7;
+				float4 worldTangent : TEXCOORD6;
+				float4 lightmapUv : TEXCOORD7;
 				float4 vertexColor : TEXCOORD8;
 				
 				#if !defined(UNITY_PASS_META)
-				UNITY_LIGHTING_COORDS(9,10)
+				UNITY_LIGHTING_COORDS(9, 10)
 				UNITY_FOG_COORDS(11)
 				#endif
 				#endif
@@ -3632,7 +3657,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 			
-			struct MeshData {
+			struct MeshData
+			{
 				half2 uv0;
 				half2 uv1;
 				half2 uv2;
@@ -3650,7 +3676,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				float4 extraV2F2;
 			};
 			
-			MeshData CreateMeshData(FragmentData i) {
+			MeshData CreateMeshData(FragmentData i)
+			{
 				MeshData m = (MeshData) 0;
 				m.uv0 = i.uv0;
 				m.uv1 = i.uv1;
@@ -3664,7 +3691,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				#if !defined(UNITY_PASS_SHADOWCASTER)
 				m.vertexColor = i.vertexColor;
 				m.normal = i.normal;
-				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
+				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * - 1;
 				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
 				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
 				#endif
@@ -3682,14 +3709,15 @@ Shader "orels1/VFX/Cubemap Screen"
 				return m;
 			}
 			
-			struct SurfaceData {
+			struct SurfaceData
+			{
 				half3 Albedo;
 				half3 Emission;
-				half  Metallic;
-				half  Smoothness;
-				half  Occlusion;
+				half Metallic;
+				half Smoothness;
+				half Occlusion;
 				half3 Normal;
-				half  Alpha;
+				half Alpha;
 			};
 			
 			FragmentData FragData;
@@ -3703,15 +3731,17 @@ Shader "orels1/VFX/Cubemap Screen"
 				return (v - a) / (b - a);
 			}
 			
-			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p ){
-				half3 i = floor(p); p -= i; p *= p*(3. - 2.*p);
-				half2 uv = (p.xy + i.xy + half2(37, 17)*i.z + .5)/256.;
+			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+			{
+				half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+				half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
 				uv.y *= -1;
 				p.xy = noiseTex.SampleLevel(noiseTexSampler, uv, 0).yx;
 				return lerp(p.x, p.y, p.z);
 			}
 			
-			half3 TransformObjectToWorld(half3 pos) {
+			half3 TransformObjectToWorld(half3 pos)
+			{
 				return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
 			};
 			
@@ -3720,9 +3750,9 @@ Shader "orels1/VFX/Cubemap Screen"
 			{
 				half3 result = 0;
 				int stepIndex = 0;
-				int numSteps = ( int )lerp( (half)maxSamples, (half)minSamples, saturate( dot( normalWorld, viewWorld ) ) );
+				int numSteps = (int)lerp((half)maxSamples, (half)minSamples, saturate(dot(normalWorld, viewWorld)));
 				half layerHeight = 1.0 / numSteps;
-				half2 plane = parallax * ( viewDirTan.xy / viewDirTan.z );
+				half2 plane = parallax * (viewDirTan.xy / viewDirTan.z);
 				uvs.xy += refPlane * plane;
 				half2 deltaTex = -plane * layerHeight;
 				half2 prevTexOffset = 0;
@@ -3733,10 +3763,10 @@ Shader "orels1/VFX/Cubemap Screen"
 				half currHeight = 0.0f;
 				half intersection = 0;
 				half2 finalTexOffset = 0;
-				while ( stepIndex < numSteps + 1 )
+				while (stepIndex < numSteps + 1)
 				{
-					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy ).r;
-					if ( currHeight > currRayZ )
+					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy).r;
+					if (currHeight > currRayZ)
 					{
 						stepIndex = numSteps + 1;
 					}
@@ -3754,13 +3784,13 @@ Shader "orels1/VFX/Cubemap Screen"
 				int sectionIndex = 0;
 				half newZ = 0;
 				half newHeight = 0;
-				while ( sectionIndex < sectionSteps )
+				while (sectionIndex < sectionSteps)
 				{
-					intersection = ( prevHeight - prevRayZ ) / ( prevHeight - currHeight + currRayZ - prevRayZ );
-					finalTexOffset = prevTexOffset + intersection * deltaTex;
+					intersection = (prevHeight - prevRayZ) / (prevHeight - currHeight + currRayZ - prevRayZ);
+					finalTexOffset = prevTexOffset +intersection * deltaTex;
 					newZ = prevRayZ - intersection * layerHeight;
-					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy ).r;
-					if ( newHeight > newZ )
+					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy).r;
+					if (newHeight > newZ)
 					{
 						currTexOffset = finalTexOffset;
 						currHeight = newHeight;
@@ -3773,8 +3803,8 @@ Shader "orels1/VFX/Cubemap Screen"
 						prevTexOffset = finalTexOffset;
 						prevHeight = newHeight;
 						prevRayZ = newZ;
-						deltaTex = ( 1 - intersection ) * deltaTex;
-						layerHeight = ( 1 - intersection ) * layerHeight;
+						deltaTex = (1 - intersection) * deltaTex;
+						layerHeight = (1 - intersection) * layerHeight;
 					}
 					sectionIndex++;
 				}
@@ -3784,7 +3814,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			
 			half remap(half s, half a1, half a2, half b1, half b2)
 			{
-				return b1 + (s-a1)*(b2-b1)/(a2-a1);
+				return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
 			}
 			
 			half3 ApplyLut2D(Texture2D LUT2D, SamplerState lutSampler, half3 uvw)
@@ -3803,18 +3833,21 @@ Shader "orels1/VFX/Cubemap Screen"
 				return uvw;
 			}
 			
-			half3 AdjustContrast(half3 color, half contrast) {
+			half3 AdjustContrast(half3 color, half contrast)
+			{
 				color = saturate(lerp(half3(0.5, 0.5, 0.5), color, contrast));
 				return color;
 			}
 			
-			half3 AdjustSaturation(half3 color, half saturation) {
-				half3 intensity = dot(color.rgb, half3(0.299,0.587,0.114));
+			half3 AdjustSaturation(half3 color, half saturation)
+			{
+				half3 intensity = dot(color.rgb, half3(0.299, 0.587, 0.114));
 				color = lerp(intensity, color.rgb, saturation);
 				return color;
 			}
 			
-			half3 AdjustBrightness(half3 color, half brightness) {
+			half3 AdjustBrightness(half3 color, half brightness)
+			{
 				color += brightness;
 				return color;
 			}
@@ -3825,8 +3858,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				half a, b, c, d, e, f;
 			};
 			
-			static const ParamsLogC LogC =
-			{
+			static const ParamsLogC LogC = {
 				0.011361, // cut
 				5.555556, // a
 				0.047996, // b
@@ -3834,6 +3866,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				0.386036, // d
 				5.301883, // e
 				0.092819  // f
+				
 			};
 			
 			half LinearToLogC_Precise(half x)
@@ -3856,15 +3889,18 @@ Shader "orels1/VFX/Cubemap Screen"
 				return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
 			}
 			
-			half3 LinerToSRGB(half3 c) {
+			half3 LinerToSRGB(half3 c)
+			{
 				return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
 			}
 			
-			half3 SRGBToLiner(half3 c) {
+			half3 SRGBToLiner(half3 c)
+			{
 				return max(1.055 * PositivePow(c, 0.416666667) - 0.055, 0.0);
 			}
 			
-			half3 LogCToLinear(half3 c) {
+			half3 LogCToLinear(half3 c)
+			{
 				return (pow(10.0, (c - LogC.d) / LogC.c) - LogC.b) / LogC.a;
 			}
 			
@@ -3916,13 +3952,13 @@ Shader "orels1/VFX/Cubemap Screen"
 				return g;
 			}
 			
-			half4 SampleGradient( Gradient gradient, half time )
+			half4 SampleGradient(Gradient gradient, half time)
 			{
 				half3 color = gradient.colors[0].rgb;
 				UNITY_UNROLL
 				for (int c = 1; c < 8; c++)
 				{
-					half colorPos = saturate((time - gradient.colors[c-1].w) / ( 0.00001 + (gradient.colors[c].w - gradient.colors[c-1].w)) * step(c, (half)gradient.colorsLength-1));
+					half colorPos = saturate((time - gradient.colors[c - 1].w) / (0.00001 + (gradient.colors[c].w - gradient.colors[c - 1].w)) * step(c, (half)gradient.colorsLength - 1));
 					color = lerp(color, gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), gradient.type));
 				}
 				#ifndef UNITY_COLORSPACE_GAMMA
@@ -3932,17 +3968,17 @@ Shader "orels1/VFX/Cubemap Screen"
 				UNITY_UNROLL
 				for (int a = 1; a < 8; a++)
 				{
-					half alphaPos = saturate((time - gradient.alphas[a-1].y) / ( 0.00001 + (gradient.alphas[a].y - gradient.alphas[a-1].y)) * step(a, (half)gradient.alphasLength-1));
+					half alphaPos = saturate((time - gradient.alphas[a - 1].y) / (0.00001 + (gradient.alphas[a].y - gradient.alphas[a - 1].y)) * step(a, (half)gradient.alphasLength - 1));
 					alpha = lerp(alpha, gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), gradient.type));
 				}
 				return half4(color, alpha);
 			}
 			
-			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			float3 RotateAroundAxis(float3 center, float3 original, float3 u, float angle)
 			{
 				original -= center;
-				float C = cos( angle );
-				float S = sin( angle );
+				float C = cos(angle);
+				float S = sin(angle);
 				float t = 1 - C;
 				float m00 = t * u.x * u.x + C;
 				float m01 = t * u.x * u.y - S * u.z;
@@ -3953,8 +3989,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				float m20 = t * u.x * u.z - S * u.y;
 				float m21 = t * u.y * u.z + S * u.x;
 				float m22 = t * u.z * u.z + C;
-				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
-				return mul( finalMatrix, original ) + center;
+				float3x3 finalMatrix = float3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
+				return mul(finalMatrix, original) + center;
 			}
 			
 			half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
@@ -3967,7 +4003,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				return normal;
 			}
 			
-			half3 RotateAroundYInDegrees (half3 toRotate, half degrees)
+			half3 RotateAroundYInDegrees(half3 toRotate, half degrees)
 			{
 				half alpha = degrees * UNITY_PI / 180.0;
 				half sina, cosa;
@@ -3976,13 +4012,15 @@ Shader "orels1/VFX/Cubemap Screen"
 				return half3(mul(m, toRotate.xz), toRotate.y).xzy;
 			}
 			
-			half D_GGX(half NoH, half roughness) {
+			half D_GGX(half NoH, half roughness)
+			{
 				half a = NoH * roughness;
 				half k = roughness / (1.0 - NoH * NoH + a * a);
 				return k * k * (1.0 / UNITY_PI);
 			}
 			
-			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness) {
+			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness)
+			{
 				half a2 = roughness * roughness;
 				half GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
 				half GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
@@ -4015,7 +4053,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				return lightScatter * viewScatter;
 			}
 			
-			half3 getBoxProjection (half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
+			half3 getBoxProjection(half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
 			{
 				#if defined(UNITY_SPECCUBE_BOX_PROJECTION) && !defined(UNITY_PBS_USE_BRDF2) || defined(FORCE_BOX_PROJECTION)
 				if (cubemapPosition.w > 0)
@@ -4075,24 +4113,25 @@ Shader "orels1/VFX/Cubemap Screen"
 			half w0(half a)
 			{
 				//    return (1.0f/6.0f)*(-a*a*a + 3.0f*a*a - 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				return (1.0f / 6.0f) * (a * (a * (-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				
 			}
 			
 			half w1(half a)
 			{
 				//    return (1.0f/6.0f)*(3.0f*a*a*a - 6.0f*a*a + 4.0f);
-				return (1.0f/6.0f)*(a*a*(3.0f*a - 6.0f) + 4.0f);
+				return (1.0f / 6.0f) * (a * a * (3.0f * a - 6.0f) + 4.0f);
 			}
 			
 			half w2(half a)
 			{
 				//    return (1.0f/6.0f)*(-3.0f*a*a*a + 3.0f*a*a + 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-3.0f*a + 3.0f) + 3.0f) + 1.0f);
+				return (1.0f / 6.0f) * (a * (a * (-3.0f * a + 3.0f) + 3.0f) + 1.0f);
 			}
 			
 			half w3(half a)
 			{
-				return (1.0f/6.0f)*(a*a*a);
+				return (1.0f / 6.0f) * (a * a * a);
 			}
 			
 			// g0 and g1 are the two amplitude functions
@@ -4143,10 +4182,10 @@ Shader "orels1/VFX/Cubemap Screen"
 				half h0y = h0(fy);
 				half h1y = h1(fy);
 				
-				half4 r = g0(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f/width))) +
-				g1(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f/width)));
+				half4 r = g0(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+				g1(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f / width)));
 				bakedColorTex = r;
 				return DecodeLightmap(r);
 				#else
@@ -4183,7 +4222,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				#ifdef DIRLIGHTMAP_COMBINED
 				half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
-				realtimeLightmap += DecodeDirectionalLightmap (realtimeLightmap, realtimeDirTex, worldNormal);
+				realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
 				#endif
 				
 				return realtimeLightmap;
@@ -4287,32 +4326,38 @@ Shader "orels1/VFX/Cubemap Screen"
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
-			void BaseFragmentFunction() {
+			void BaseFragmentFunction()
+			{
 				#if !defined(_SET_GLOBAL_UVS)
 				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				#endif
-				if (_MappingSpace > 0) {
+				if (_MappingSpace > 0)
+				{
 					GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
 					GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
 				}
 				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
-				if (_AlbedoChannel > 0) {
+				if (_AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_AlbedoChannel].xxx;
 				}
 				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
 				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
-				if (_FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
 				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
-				if (_EmissionChannel > 0) {
+				if (_EmissionChannel > 0)
+				{
 					emission.rgb = emission[_EmissionChannel].xxx;
 				}
 				int hasMasks = _MaskMap_TexelSize.z > 8;
 				half metal = masks[_MetalChannel];
 				half smooth = masks[_SmoothChannel];
-				if (_RoughnessMode) {
+				if (_RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				half detailMask = masks[_DetailMaskChannel];
@@ -4324,9 +4369,12 @@ Shader "orels1/VFX/Cubemap Screen"
 				o.Smoothness = lerp(_Smoothness, smooth, hasMasks);
 				o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
 				o.Normal = normal;
-				if (!_DetailAsTintMask) {
+				if (!_DetailAsTintMask)
+				{
 					o.Albedo = albedo.rgb * _Color.rgb;
-				} else {
+				}
+				else
+				{
 					o.Albedo = lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
 				}
 				o.Alpha = albedo.a * _Color.a;
@@ -4335,7 +4383,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				#endif
 			}
 			
-			void DetailsFragment() {
+			void DetailsFragment()
+			{
 				#if defined(DETAILS_OVERLAY)
 				half masks = 0;
 				#if defined(_MASKMAP_SAMPLED)
@@ -4345,14 +4394,16 @@ Shader "orels1/VFX/Cubemap Screen"
 				#endif
 				half mask = lerp(masks, 1, _DIgnoreMask);
 				half2 uv = d.uv0.xy;
-				switch (_DUVChannel) {
+				switch(_DUVChannel)
+				{
 					case 1: uv = d.uv1.xy; break;
 					case 2: uv = d.uv2.xy; break;
 					case 3: uv = d.uv3.xy; break;
 					default: uv = d.uv0.xy; break;
 				}
 				uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
-				if (_DMappingSpace > 0) {
+				if (_DMappingSpace > 0)
+				{
 					uv = (_DMappingSpace - 1) ? half2(d.worldSpacePosition[_DPlanarAxisX], d.worldSpacePosition[_DPlanarAxisY]) : half2(d.localSpacePosition[_DPlanarAxisX], d.localSpacePosition[_DPlanarAxisY]);
 					uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
 				}
@@ -4363,7 +4414,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				half detailAlbedo = detailsMap.r * 2.0 - 1.0;
 				half detailSmooth = detailsMap.b * 2.0 - 1.0;
 				half3 detailNormal = 0;
-				if (_DNormalFlipY) {
+				if (_DNormalFlipY)
+				{
 					detailsMap.g = 1 - detailsMap.g;
 				}
 				detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
@@ -4373,7 +4425,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				half detailSmooth = detailsMap.a * 2.0 - 1.0;
 				
 				half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
-				if (_DNormalFlipY) {
+				if (_DNormalFlipY)
+				{
 					packedNormal.g = 1 - packedNormal.g;
 				}
 				half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
@@ -4393,7 +4446,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				#endif
 			}
 			
-			void BlockFaderFragemtn() {
+			void BlockFaderFragemtn()
+			{
 				float3 viewDir = normalize(_WorldSpaceCameraPos - d.worldSpacePosition.xyz);
 				half3 reflDir = reflect(-d.worldSpaceViewDir, d.worldNormal);
 				reflDir = RotateAroundYInDegrees(reflDir, _SSCubeRotation);
@@ -4424,12 +4478,13 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				half3 pixelValue = half3(pixelR, pixelG, pixelB);
 				
-				half3 screenCol = lerp(pixelValue, half4(0,0,0,1), max(0, (1-vdn * 1.2)));
+				half3 screenCol = lerp(pixelValue, half4(0, 0, 0, 1), max(0, (1 - vdn * 1.2)));
 				
 				o.Emission = screenCol * _EmissionBoost;
 			}
 			
-			void ORLLighting() {
+			void ORLLighting()
+			{
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -4477,9 +4532,9 @@ Shader "orels1/VFX/Cubemap Screen"
 				half3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize));
 				half3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize));
 				
-				lightMap = saturate(dot(rnmBasis0, tangentNormal)) *  rnm0 +
-				saturate(dot(rnmBasis1, tangentNormal)) *  rnm1 +
-				saturate(dot(rnmBasis2, tangentNormal)) *  rnm2;
+				lightMap = saturate(dot(rnmBasis0, tangentNormal)) * rnm0 +
+				saturate(dot(rnmBasis1, tangentNormal)) * rnm1 +
+				saturate(dot(rnmBasis2, tangentNormal)) * rnm2;
 				#endif
 				
 				// BAKERY SH MODE (these are also used for the specular)
@@ -4511,7 +4566,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				#endif
 				
 				#if defined(DIRLIGHTMAP_COMBINED)
-				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
+				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
 				lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
 				#endif
 				
@@ -4522,16 +4577,18 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				#if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
 				pixelLight = 0;
-				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap (lightMap, lightAttenuation, bakedColorTex, o.Normal);
+				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap(lightMap, lightAttenuation, bakedColorTex, o.Normal);
 				#endif
 				indirectDiffuse = lightMap;
 				#else
 				#if UNITY_LIGHT_PROBE_PROXY_VOLUME
 				UNITY_BRANCH
-				if (unity_ProbeVolumeParams.x == 1) {
+				if (unity_ProbeVolumeParams.x == 1)
+				{
 					indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), FragData.worldPos);
 				}
-				else {
+				else
+				{
 					#endif
 					indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
 					#if UNITY_LIGHT_PROBE_PROXY_VOLUME
@@ -4635,7 +4692,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				#if defined(UNITY_SPECCUBE_BLENDING)
 				UNITY_BRANCH
-				if (unity_SpecCube0_BoxMin.w < 0.99999) {
+				if (unity_SpecCube0_BoxMin.w < 0.99999)
+				{
 					envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
 					half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
 					indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
@@ -4662,7 +4720,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			}
 			
 			// ForwardAdd Vertex
-			FragmentData Vertex (VertexData v)
+			FragmentData Vertex(VertexData v)
 			{
 				UNITY_SETUP_INSTANCE_ID(v);
 				FragmentData i;
@@ -4674,27 +4732,27 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				#else
 				#if defined(UNITY_PASS_META)
 				i.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
 				#else
-				i.pos        = UnityObjectToClipPos(v.vertex);
+				i.pos = UnityObjectToClipPos(v.vertex);
 				#endif
-				i.normal     = v.normal;
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.normal = v.normal;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				i.vertexColor = v.color;
@@ -4724,14 +4782,14 @@ Shader "orels1/VFX/Cubemap Screen"
 				#if !defined(UNITY_PASS_FORWARDADD)
 				// unity does some funky stuff for different platforms with these macros
 				#ifdef FOG_COMBINED_WITH_TSPACE
-				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i,i.pos);
-				#elif defined (FOG_COMBINED_WITH_WORLD_POS)
-				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i,i.pos);
+				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i, i.pos);
+				#elif defined(FOG_COMBINED_WITH_WORLD_POS)
+				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i, i.pos);
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#endif
 				#endif
@@ -4740,12 +4798,12 @@ Shader "orels1/VFX/Cubemap Screen"
 			}
 			
 			// ForwardAdd Fragment
-			half4 Fragment (FragmentData i) : SV_TARGET
+			half4 Fragment(FragmentData i) : SV_TARGET
 			{
 				UNITY_SETUP_INSTANCE_ID(i);
 				#ifdef FOG_COMBINED_WITH_TSPACE
 				UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-				#elif defined (FOG_COMBINED_WITH_WORLD_POS)
+				#elif defined(FOG_COMBINED_WITH_WORLD_POS)
 				UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
 				#else
 				UNITY_EXTRACT_FOG(i);
@@ -4754,8 +4812,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				FragData = i;
 				o = (SurfaceData) 0;
 				d = CreateMeshData(i);
-				o.Albedo = half3(0.5,0.5,0.5);
-				o.Normal = half3(0,0,1);
+				o.Albedo = half3(0.5, 0.5, 0.5);
+				o.Normal = half3(0, 0, 1);
 				o.Smoothness = 0.5;
 				o.Occlusion = 1;
 				o.Alpha = 1;
@@ -4774,14 +4832,12 @@ Shader "orels1/VFX/Cubemap Screen"
 			
 			ENDCG
 			// ForwardAdd Pass End
+			
 		}
 		
 		Pass
 		{
-			Tags
-			{
-				"LightMode" = "Meta"
-			}
+			Tags { "LightMode" = "Meta" }
 			Cull Off
 			
 			// Meta Pass Start
@@ -4824,6 +4880,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			#endif
 			
 			// Credit to Jason Booth for digging this all up
+			// This originally comes from CoreRP, see Jason's comment below
 			
 			// If your looking in here and thinking WTF, yeah, I know. These are taken from the SRPs, to allow us to use the same
 			// texturing library they use. However, since they are not included in the standard pipeline by default, there is no
@@ -4875,15 +4932,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -4981,15 +5038,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -5087,15 +5144,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -5193,15 +5250,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -5301,15 +5358,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -5408,15 +5465,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -5520,15 +5577,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -5646,15 +5703,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -5874,14 +5931,14 @@ Shader "orels1/VFX/Cubemap Screen"
 			
 			struct VertexData
 			{
-				float4 vertex     : POSITION;
-				float3 normal     : NORMAL;
-				float4 tangent    : TANGENT;
-				float4 color      : COLOR;
-				float2 uv0        : TEXCOORD0;
-				float2 uv1        : TEXCOORD1;
-				float2 uv2        : TEXCOORD2;
-				float2 uv3        : TEXCOORD3;
+				float4 vertex : POSITION;
+				float3 normal : NORMAL;
+				float4 tangent : TANGENT;
+				float4 color : COLOR;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 			
@@ -5889,28 +5946,28 @@ Shader "orels1/VFX/Cubemap Screen"
 			{
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				V2F_SHADOW_CASTER;
-				float2 uv0         : TEXCOORD1;
-				float2 uv1         : TEXCOORD2;
-				float2 uv2         : TEXCOORD3;
-				float2 uv3         : TEXCOORD4;
-				float3 worldPos    : TEXCOORD5;
+				float2 uv0 : TEXCOORD1;
+				float2 uv1 : TEXCOORD2;
+				float2 uv2 : TEXCOORD3;
+				float2 uv3 : TEXCOORD4;
+				float3 worldPos : TEXCOORD5;
 				float3 worldNormal : TEXCOORD6;
-				float4 worldTangent: TEXCOORD7;
+				float4 worldTangent : TEXCOORD7;
 				#else
-				float4 pos         : SV_POSITION;
-				float3 normal      : NORMAL;
-				float2 uv0         : TEXCOORD0;
-				float2 uv1         : TEXCOORD1;
-				float2 uv2         : TEXCOORD2;
-				float2 uv3         : TEXCOORD3;
-				float3 worldPos    : TEXCOORD4;
+				float4 pos : SV_POSITION;
+				float3 normal : NORMAL;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
+				float3 worldPos : TEXCOORD4;
 				float3 worldNormal : TEXCOORD5;
-				float4 worldTangent: TEXCOORD6;
-				float4 lightmapUv  : TEXCOORD7;
+				float4 worldTangent : TEXCOORD6;
+				float4 lightmapUv : TEXCOORD7;
 				float4 vertexColor : TEXCOORD8;
 				
 				#if !defined(UNITY_PASS_META)
-				UNITY_LIGHTING_COORDS(9,10)
+				UNITY_LIGHTING_COORDS(9, 10)
 				UNITY_FOG_COORDS(11)
 				#endif
 				#endif
@@ -5970,7 +6027,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 			
-			struct MeshData {
+			struct MeshData
+			{
 				half2 uv0;
 				half2 uv1;
 				half2 uv2;
@@ -5988,7 +6046,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				float4 extraV2F2;
 			};
 			
-			MeshData CreateMeshData(FragmentData i) {
+			MeshData CreateMeshData(FragmentData i)
+			{
 				MeshData m = (MeshData) 0;
 				m.uv0 = i.uv0;
 				m.uv1 = i.uv1;
@@ -6002,7 +6061,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				#if !defined(UNITY_PASS_SHADOWCASTER)
 				m.vertexColor = i.vertexColor;
 				m.normal = i.normal;
-				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
+				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * - 1;
 				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
 				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
 				#endif
@@ -6020,14 +6079,15 @@ Shader "orels1/VFX/Cubemap Screen"
 				return m;
 			}
 			
-			struct SurfaceData {
+			struct SurfaceData
+			{
 				half3 Albedo;
 				half3 Emission;
-				half  Metallic;
-				half  Smoothness;
-				half  Occlusion;
+				half Metallic;
+				half Smoothness;
+				half Occlusion;
 				half3 Normal;
-				half  Alpha;
+				half Alpha;
 			};
 			
 			FragmentData FragData;
@@ -6041,15 +6101,17 @@ Shader "orels1/VFX/Cubemap Screen"
 				return (v - a) / (b - a);
 			}
 			
-			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p ){
-				half3 i = floor(p); p -= i; p *= p*(3. - 2.*p);
-				half2 uv = (p.xy + i.xy + half2(37, 17)*i.z + .5)/256.;
+			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+			{
+				half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+				half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
 				uv.y *= -1;
 				p.xy = noiseTex.SampleLevel(noiseTexSampler, uv, 0).yx;
 				return lerp(p.x, p.y, p.z);
 			}
 			
-			half3 TransformObjectToWorld(half3 pos) {
+			half3 TransformObjectToWorld(half3 pos)
+			{
 				return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
 			};
 			
@@ -6058,9 +6120,9 @@ Shader "orels1/VFX/Cubemap Screen"
 			{
 				half3 result = 0;
 				int stepIndex = 0;
-				int numSteps = ( int )lerp( (half)maxSamples, (half)minSamples, saturate( dot( normalWorld, viewWorld ) ) );
+				int numSteps = (int)lerp((half)maxSamples, (half)minSamples, saturate(dot(normalWorld, viewWorld)));
 				half layerHeight = 1.0 / numSteps;
-				half2 plane = parallax * ( viewDirTan.xy / viewDirTan.z );
+				half2 plane = parallax * (viewDirTan.xy / viewDirTan.z);
 				uvs.xy += refPlane * plane;
 				half2 deltaTex = -plane * layerHeight;
 				half2 prevTexOffset = 0;
@@ -6071,10 +6133,10 @@ Shader "orels1/VFX/Cubemap Screen"
 				half currHeight = 0.0f;
 				half intersection = 0;
 				half2 finalTexOffset = 0;
-				while ( stepIndex < numSteps + 1 )
+				while (stepIndex < numSteps + 1)
 				{
-					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy ).r;
-					if ( currHeight > currRayZ )
+					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy).r;
+					if (currHeight > currRayZ)
 					{
 						stepIndex = numSteps + 1;
 					}
@@ -6092,13 +6154,13 @@ Shader "orels1/VFX/Cubemap Screen"
 				int sectionIndex = 0;
 				half newZ = 0;
 				half newHeight = 0;
-				while ( sectionIndex < sectionSteps )
+				while (sectionIndex < sectionSteps)
 				{
-					intersection = ( prevHeight - prevRayZ ) / ( prevHeight - currHeight + currRayZ - prevRayZ );
-					finalTexOffset = prevTexOffset + intersection * deltaTex;
+					intersection = (prevHeight - prevRayZ) / (prevHeight - currHeight + currRayZ - prevRayZ);
+					finalTexOffset = prevTexOffset +intersection * deltaTex;
 					newZ = prevRayZ - intersection * layerHeight;
-					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy ).r;
-					if ( newHeight > newZ )
+					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy).r;
+					if (newHeight > newZ)
 					{
 						currTexOffset = finalTexOffset;
 						currHeight = newHeight;
@@ -6111,8 +6173,8 @@ Shader "orels1/VFX/Cubemap Screen"
 						prevTexOffset = finalTexOffset;
 						prevHeight = newHeight;
 						prevRayZ = newZ;
-						deltaTex = ( 1 - intersection ) * deltaTex;
-						layerHeight = ( 1 - intersection ) * layerHeight;
+						deltaTex = (1 - intersection) * deltaTex;
+						layerHeight = (1 - intersection) * layerHeight;
 					}
 					sectionIndex++;
 				}
@@ -6122,7 +6184,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			
 			half remap(half s, half a1, half a2, half b1, half b2)
 			{
-				return b1 + (s-a1)*(b2-b1)/(a2-a1);
+				return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
 			}
 			
 			half3 ApplyLut2D(Texture2D LUT2D, SamplerState lutSampler, half3 uvw)
@@ -6141,18 +6203,21 @@ Shader "orels1/VFX/Cubemap Screen"
 				return uvw;
 			}
 			
-			half3 AdjustContrast(half3 color, half contrast) {
+			half3 AdjustContrast(half3 color, half contrast)
+			{
 				color = saturate(lerp(half3(0.5, 0.5, 0.5), color, contrast));
 				return color;
 			}
 			
-			half3 AdjustSaturation(half3 color, half saturation) {
-				half3 intensity = dot(color.rgb, half3(0.299,0.587,0.114));
+			half3 AdjustSaturation(half3 color, half saturation)
+			{
+				half3 intensity = dot(color.rgb, half3(0.299, 0.587, 0.114));
 				color = lerp(intensity, color.rgb, saturation);
 				return color;
 			}
 			
-			half3 AdjustBrightness(half3 color, half brightness) {
+			half3 AdjustBrightness(half3 color, half brightness)
+			{
 				color += brightness;
 				return color;
 			}
@@ -6163,8 +6228,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				half a, b, c, d, e, f;
 			};
 			
-			static const ParamsLogC LogC =
-			{
+			static const ParamsLogC LogC = {
 				0.011361, // cut
 				5.555556, // a
 				0.047996, // b
@@ -6172,6 +6236,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				0.386036, // d
 				5.301883, // e
 				0.092819  // f
+				
 			};
 			
 			half LinearToLogC_Precise(half x)
@@ -6194,15 +6259,18 @@ Shader "orels1/VFX/Cubemap Screen"
 				return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
 			}
 			
-			half3 LinerToSRGB(half3 c) {
+			half3 LinerToSRGB(half3 c)
+			{
 				return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
 			}
 			
-			half3 SRGBToLiner(half3 c) {
+			half3 SRGBToLiner(half3 c)
+			{
 				return max(1.055 * PositivePow(c, 0.416666667) - 0.055, 0.0);
 			}
 			
-			half3 LogCToLinear(half3 c) {
+			half3 LogCToLinear(half3 c)
+			{
 				return (pow(10.0, (c - LogC.d) / LogC.c) - LogC.b) / LogC.a;
 			}
 			
@@ -6254,13 +6322,13 @@ Shader "orels1/VFX/Cubemap Screen"
 				return g;
 			}
 			
-			half4 SampleGradient( Gradient gradient, half time )
+			half4 SampleGradient(Gradient gradient, half time)
 			{
 				half3 color = gradient.colors[0].rgb;
 				UNITY_UNROLL
 				for (int c = 1; c < 8; c++)
 				{
-					half colorPos = saturate((time - gradient.colors[c-1].w) / ( 0.00001 + (gradient.colors[c].w - gradient.colors[c-1].w)) * step(c, (half)gradient.colorsLength-1));
+					half colorPos = saturate((time - gradient.colors[c - 1].w) / (0.00001 + (gradient.colors[c].w - gradient.colors[c - 1].w)) * step(c, (half)gradient.colorsLength - 1));
 					color = lerp(color, gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), gradient.type));
 				}
 				#ifndef UNITY_COLORSPACE_GAMMA
@@ -6270,17 +6338,17 @@ Shader "orels1/VFX/Cubemap Screen"
 				UNITY_UNROLL
 				for (int a = 1; a < 8; a++)
 				{
-					half alphaPos = saturate((time - gradient.alphas[a-1].y) / ( 0.00001 + (gradient.alphas[a].y - gradient.alphas[a-1].y)) * step(a, (half)gradient.alphasLength-1));
+					half alphaPos = saturate((time - gradient.alphas[a - 1].y) / (0.00001 + (gradient.alphas[a].y - gradient.alphas[a - 1].y)) * step(a, (half)gradient.alphasLength - 1));
 					alpha = lerp(alpha, gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), gradient.type));
 				}
 				return half4(color, alpha);
 			}
 			
-			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			float3 RotateAroundAxis(float3 center, float3 original, float3 u, float angle)
 			{
 				original -= center;
-				float C = cos( angle );
-				float S = sin( angle );
+				float C = cos(angle);
+				float S = sin(angle);
 				float t = 1 - C;
 				float m00 = t * u.x * u.x + C;
 				float m01 = t * u.x * u.y - S * u.z;
@@ -6291,8 +6359,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				float m20 = t * u.x * u.z - S * u.y;
 				float m21 = t * u.y * u.z + S * u.x;
 				float m22 = t * u.z * u.z + C;
-				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
-				return mul( finalMatrix, original ) + center;
+				float3x3 finalMatrix = float3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
+				return mul(finalMatrix, original) + center;
 			}
 			
 			half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
@@ -6305,7 +6373,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				return normal;
 			}
 			
-			half3 RotateAroundYInDegrees (half3 toRotate, half degrees)
+			half3 RotateAroundYInDegrees(half3 toRotate, half degrees)
 			{
 				half alpha = degrees * UNITY_PI / 180.0;
 				half sina, cosa;
@@ -6314,13 +6382,15 @@ Shader "orels1/VFX/Cubemap Screen"
 				return half3(mul(m, toRotate.xz), toRotate.y).xzy;
 			}
 			
-			half D_GGX(half NoH, half roughness) {
+			half D_GGX(half NoH, half roughness)
+			{
 				half a = NoH * roughness;
 				half k = roughness / (1.0 - NoH * NoH + a * a);
 				return k * k * (1.0 / UNITY_PI);
 			}
 			
-			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness) {
+			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness)
+			{
 				half a2 = roughness * roughness;
 				half GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
 				half GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
@@ -6353,7 +6423,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				return lightScatter * viewScatter;
 			}
 			
-			half3 getBoxProjection (half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
+			half3 getBoxProjection(half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
 			{
 				#if defined(UNITY_SPECCUBE_BOX_PROJECTION) && !defined(UNITY_PBS_USE_BRDF2) || defined(FORCE_BOX_PROJECTION)
 				if (cubemapPosition.w > 0)
@@ -6413,24 +6483,25 @@ Shader "orels1/VFX/Cubemap Screen"
 			half w0(half a)
 			{
 				//    return (1.0f/6.0f)*(-a*a*a + 3.0f*a*a - 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				return (1.0f / 6.0f) * (a * (a * (-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				
 			}
 			
 			half w1(half a)
 			{
 				//    return (1.0f/6.0f)*(3.0f*a*a*a - 6.0f*a*a + 4.0f);
-				return (1.0f/6.0f)*(a*a*(3.0f*a - 6.0f) + 4.0f);
+				return (1.0f / 6.0f) * (a * a * (3.0f * a - 6.0f) + 4.0f);
 			}
 			
 			half w2(half a)
 			{
 				//    return (1.0f/6.0f)*(-3.0f*a*a*a + 3.0f*a*a + 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-3.0f*a + 3.0f) + 3.0f) + 1.0f);
+				return (1.0f / 6.0f) * (a * (a * (-3.0f * a + 3.0f) + 3.0f) + 1.0f);
 			}
 			
 			half w3(half a)
 			{
-				return (1.0f/6.0f)*(a*a*a);
+				return (1.0f / 6.0f) * (a * a * a);
 			}
 			
 			// g0 and g1 are the two amplitude functions
@@ -6481,10 +6552,10 @@ Shader "orels1/VFX/Cubemap Screen"
 				half h0y = h0(fy);
 				half h1y = h1(fy);
 				
-				half4 r = g0(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f/width))) +
-				g1(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f/width)));
+				half4 r = g0(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+				g1(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f / width)));
 				bakedColorTex = r;
 				return DecodeLightmap(r);
 				#else
@@ -6521,7 +6592,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				#ifdef DIRLIGHTMAP_COMBINED
 				half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
-				realtimeLightmap += DecodeDirectionalLightmap (realtimeLightmap, realtimeDirTex, worldNormal);
+				realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
 				#endif
 				
 				return realtimeLightmap;
@@ -6625,32 +6696,38 @@ Shader "orels1/VFX/Cubemap Screen"
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
-			void BaseFragmentFunction() {
+			void BaseFragmentFunction()
+			{
 				#if !defined(_SET_GLOBAL_UVS)
 				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				#endif
-				if (_MappingSpace > 0) {
+				if (_MappingSpace > 0)
+				{
 					GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
 					GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
 				}
 				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
-				if (_AlbedoChannel > 0) {
+				if (_AlbedoChannel > 0)
+				{
 					albedo.rgb = albedo[_AlbedoChannel].xxx;
 				}
 				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
 				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
-				if (_FlipBumpY) {
-					normalTex.y = 1-normalTex.y;
+				if (_FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
 				}
 				half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
 				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
-				if (_EmissionChannel > 0) {
+				if (_EmissionChannel > 0)
+				{
 					emission.rgb = emission[_EmissionChannel].xxx;
 				}
 				int hasMasks = _MaskMap_TexelSize.z > 8;
 				half metal = masks[_MetalChannel];
 				half smooth = masks[_SmoothChannel];
-				if (_RoughnessMode) {
+				if (_RoughnessMode)
+				{
 					smooth = 1 - smooth;
 				}
 				half detailMask = masks[_DetailMaskChannel];
@@ -6662,9 +6739,12 @@ Shader "orels1/VFX/Cubemap Screen"
 				o.Smoothness = lerp(_Smoothness, smooth, hasMasks);
 				o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
 				o.Normal = normal;
-				if (!_DetailAsTintMask) {
+				if (!_DetailAsTintMask)
+				{
 					o.Albedo = albedo.rgb * _Color.rgb;
-				} else {
+				}
+				else
+				{
 					o.Albedo = lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
 				}
 				o.Alpha = albedo.a * _Color.a;
@@ -6673,7 +6753,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				#endif
 			}
 			
-			void DetailsFragment() {
+			void DetailsFragment()
+			{
 				#if defined(DETAILS_OVERLAY)
 				half masks = 0;
 				#if defined(_MASKMAP_SAMPLED)
@@ -6683,14 +6764,16 @@ Shader "orels1/VFX/Cubemap Screen"
 				#endif
 				half mask = lerp(masks, 1, _DIgnoreMask);
 				half2 uv = d.uv0.xy;
-				switch (_DUVChannel) {
+				switch(_DUVChannel)
+				{
 					case 1: uv = d.uv1.xy; break;
 					case 2: uv = d.uv2.xy; break;
 					case 3: uv = d.uv3.xy; break;
 					default: uv = d.uv0.xy; break;
 				}
 				uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
-				if (_DMappingSpace > 0) {
+				if (_DMappingSpace > 0)
+				{
 					uv = (_DMappingSpace - 1) ? half2(d.worldSpacePosition[_DPlanarAxisX], d.worldSpacePosition[_DPlanarAxisY]) : half2(d.localSpacePosition[_DPlanarAxisX], d.localSpacePosition[_DPlanarAxisY]);
 					uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
 				}
@@ -6701,7 +6784,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				half detailAlbedo = detailsMap.r * 2.0 - 1.0;
 				half detailSmooth = detailsMap.b * 2.0 - 1.0;
 				half3 detailNormal = 0;
-				if (_DNormalFlipY) {
+				if (_DNormalFlipY)
+				{
 					detailsMap.g = 1 - detailsMap.g;
 				}
 				detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
@@ -6711,7 +6795,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				half detailSmooth = detailsMap.a * 2.0 - 1.0;
 				
 				half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
-				if (_DNormalFlipY) {
+				if (_DNormalFlipY)
+				{
 					packedNormal.g = 1 - packedNormal.g;
 				}
 				half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
@@ -6731,7 +6816,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				#endif
 			}
 			
-			void BlockFaderFragemtn() {
+			void BlockFaderFragemtn()
+			{
 				float3 viewDir = normalize(_WorldSpaceCameraPos - d.worldSpacePosition.xyz);
 				half3 reflDir = reflect(-d.worldSpaceViewDir, d.worldNormal);
 				reflDir = RotateAroundYInDegrees(reflDir, _SSCubeRotation);
@@ -6762,12 +6848,13 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				half3 pixelValue = half3(pixelR, pixelG, pixelB);
 				
-				half3 screenCol = lerp(pixelValue, half4(0,0,0,1), max(0, (1-vdn * 1.2)));
+				half3 screenCol = lerp(pixelValue, half4(0, 0, 0, 1), max(0, (1 - vdn * 1.2)));
 				
 				o.Emission = screenCol * _EmissionBoost;
 			}
 			
-			void ORLLighting() {
+			void ORLLighting()
+			{
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -6815,9 +6902,9 @@ Shader "orels1/VFX/Cubemap Screen"
 				half3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize));
 				half3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize));
 				
-				lightMap = saturate(dot(rnmBasis0, tangentNormal)) *  rnm0 +
-				saturate(dot(rnmBasis1, tangentNormal)) *  rnm1 +
-				saturate(dot(rnmBasis2, tangentNormal)) *  rnm2;
+				lightMap = saturate(dot(rnmBasis0, tangentNormal)) * rnm0 +
+				saturate(dot(rnmBasis1, tangentNormal)) * rnm1 +
+				saturate(dot(rnmBasis2, tangentNormal)) * rnm2;
 				#endif
 				
 				// BAKERY SH MODE (these are also used for the specular)
@@ -6849,7 +6936,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				#endif
 				
 				#if defined(DIRLIGHTMAP_COMBINED)
-				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
+				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
 				lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
 				#endif
 				
@@ -6860,16 +6947,18 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				#if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
 				pixelLight = 0;
-				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap (lightMap, lightAttenuation, bakedColorTex, o.Normal);
+				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap(lightMap, lightAttenuation, bakedColorTex, o.Normal);
 				#endif
 				indirectDiffuse = lightMap;
 				#else
 				#if UNITY_LIGHT_PROBE_PROXY_VOLUME
 				UNITY_BRANCH
-				if (unity_ProbeVolumeParams.x == 1) {
+				if (unity_ProbeVolumeParams.x == 1)
+				{
 					indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), FragData.worldPos);
 				}
-				else {
+				else
+				{
 					#endif
 					indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
 					#if UNITY_LIGHT_PROBE_PROXY_VOLUME
@@ -6973,7 +7062,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				#if defined(UNITY_SPECCUBE_BLENDING)
 				UNITY_BRANCH
-				if (unity_SpecCube0_BoxMin.w < 0.99999) {
+				if (unity_SpecCube0_BoxMin.w < 0.99999)
+				{
 					envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
 					half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
 					indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
@@ -7000,7 +7090,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			}
 			
 			// Meta Vertex
-			FragmentData Vertex (VertexData v)
+			FragmentData Vertex(VertexData v)
 			{
 				UNITY_SETUP_INSTANCE_ID(v);
 				FragmentData i;
@@ -7012,27 +7102,27 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				#else
 				#if defined(UNITY_PASS_META)
 				i.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
 				#else
-				i.pos        = UnityObjectToClipPos(v.vertex);
+				i.pos = UnityObjectToClipPos(v.vertex);
 				#endif
-				i.normal     = v.normal;
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.normal = v.normal;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				i.vertexColor = v.color;
@@ -7062,14 +7152,14 @@ Shader "orels1/VFX/Cubemap Screen"
 				#if !defined(UNITY_PASS_FORWARDADD)
 				// unity does some funky stuff for different platforms with these macros
 				#ifdef FOG_COMBINED_WITH_TSPACE
-				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i,i.pos);
-				#elif defined (FOG_COMBINED_WITH_WORLD_POS)
-				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i,i.pos);
+				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i, i.pos);
+				#elif defined(FOG_COMBINED_WITH_WORLD_POS)
+				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i, i.pos);
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#endif
 				#endif
@@ -7078,15 +7168,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			}
 			
 			// Meta Fragment
-			half4 Fragment (FragmentData i) : SV_TARGET
+			half4 Fragment(FragmentData i) : SV_TARGET
 			{
 				UNITY_SETUP_INSTANCE_ID(i);
 				
 				FragData = i;
 				o = (SurfaceData) 0;
 				d = CreateMeshData(i);
-				o.Albedo = half3(0.5,0.5,0.5);
-				o.Normal = half3(0,0,1);
+				o.Albedo = half3(0.5, 0.5, 0.5);
+				o.Normal = half3(0, 0, 1);
 				o.Smoothness = 0.5;
 				o.Occlusion = 1;
 				o.Alpha = 1;
@@ -7113,14 +7203,12 @@ Shader "orels1/VFX/Cubemap Screen"
 			
 			ENDCG
 			// Meta Pass End
+			
 		}
 		
 		Pass
 		{
-			Tags
-			{
-				"LightMode" = "ShadowCaster"
-			}
+			Tags { "LightMode" = "ShadowCaster"  }
 			
 			// Shadow Pass Start
 			CGPROGRAM
@@ -7169,6 +7257,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			#endif
 			
 			// Credit to Jason Booth for digging this all up
+			// This originally comes from CoreRP, see Jason's comment below
 			
 			// If your looking in here and thinking WTF, yeah, I know. These are taken from the SRPs, to allow us to use the same
 			// texturing library they use. However, since they are not included in the standard pipeline by default, there is no
@@ -7220,15 +7309,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7326,15 +7415,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7432,15 +7521,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7538,15 +7627,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7646,15 +7735,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7753,15 +7842,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                  SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7865,15 +7954,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -7991,15 +8080,15 @@ Shader "orels1/VFX/Cubemap Screen"
 			#define SAMPLER(samplerName)                    SamplerState samplerName
 			#define SAMPLER_CMP(samplerName)                SamplerComparisonState samplerName
 			
-			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+			#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName), SAMPLER(samplerName)
+			#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName), SAMPLER(samplerName)
+			#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName), SAMPLER(samplerName)
 			#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+			#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName), SAMPLER(samplerName)
 			
-			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName), SAMPLER_CMP(samplerName)
+			#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName), SAMPLER_CMP(samplerName)
 			#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 			
 			#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
@@ -8219,14 +8308,14 @@ Shader "orels1/VFX/Cubemap Screen"
 			
 			struct VertexData
 			{
-				float4 vertex     : POSITION;
-				float3 normal     : NORMAL;
-				float4 tangent    : TANGENT;
-				float4 color      : COLOR;
-				float2 uv0        : TEXCOORD0;
-				float2 uv1        : TEXCOORD1;
-				float2 uv2        : TEXCOORD2;
-				float2 uv3        : TEXCOORD3;
+				float4 vertex : POSITION;
+				float3 normal : NORMAL;
+				float4 tangent : TANGENT;
+				float4 color : COLOR;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 			
@@ -8234,28 +8323,28 @@ Shader "orels1/VFX/Cubemap Screen"
 			{
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				V2F_SHADOW_CASTER;
-				float2 uv0         : TEXCOORD1;
-				float2 uv1         : TEXCOORD2;
-				float2 uv2         : TEXCOORD3;
-				float2 uv3         : TEXCOORD4;
-				float3 worldPos    : TEXCOORD5;
+				float2 uv0 : TEXCOORD1;
+				float2 uv1 : TEXCOORD2;
+				float2 uv2 : TEXCOORD3;
+				float2 uv3 : TEXCOORD4;
+				float3 worldPos : TEXCOORD5;
 				float3 worldNormal : TEXCOORD6;
-				float4 worldTangent: TEXCOORD7;
+				float4 worldTangent : TEXCOORD7;
 				#else
-				float4 pos         : SV_POSITION;
-				float3 normal      : NORMAL;
-				float2 uv0         : TEXCOORD0;
-				float2 uv1         : TEXCOORD1;
-				float2 uv2         : TEXCOORD2;
-				float2 uv3         : TEXCOORD3;
-				float3 worldPos    : TEXCOORD4;
+				float4 pos : SV_POSITION;
+				float3 normal : NORMAL;
+				float2 uv0 : TEXCOORD0;
+				float2 uv1 : TEXCOORD1;
+				float2 uv2 : TEXCOORD2;
+				float2 uv3 : TEXCOORD3;
+				float3 worldPos : TEXCOORD4;
 				float3 worldNormal : TEXCOORD5;
-				float4 worldTangent: TEXCOORD6;
-				float4 lightmapUv  : TEXCOORD7;
+				float4 worldTangent : TEXCOORD6;
+				float4 lightmapUv : TEXCOORD7;
 				float4 vertexColor : TEXCOORD8;
 				
 				#if !defined(UNITY_PASS_META)
-				UNITY_LIGHTING_COORDS(9,10)
+				UNITY_LIGHTING_COORDS(9, 10)
 				UNITY_FOG_COORDS(11)
 				#endif
 				#endif
@@ -8315,7 +8404,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 			
-			struct MeshData {
+			struct MeshData
+			{
 				half2 uv0;
 				half2 uv1;
 				half2 uv2;
@@ -8333,7 +8423,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				float4 extraV2F2;
 			};
 			
-			MeshData CreateMeshData(FragmentData i) {
+			MeshData CreateMeshData(FragmentData i)
+			{
 				MeshData m = (MeshData) 0;
 				m.uv0 = i.uv0;
 				m.uv1 = i.uv1;
@@ -8347,7 +8438,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				#if !defined(UNITY_PASS_SHADOWCASTER)
 				m.vertexColor = i.vertexColor;
 				m.normal = i.normal;
-				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * -1;
+				float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * - 1;
 				m.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, m.worldNormal);
 				m.tangentSpaceViewDir = mul(m.TBNMatrix, m.worldSpaceViewDir);
 				#endif
@@ -8365,14 +8456,15 @@ Shader "orels1/VFX/Cubemap Screen"
 				return m;
 			}
 			
-			struct SurfaceData {
+			struct SurfaceData
+			{
 				half3 Albedo;
 				half3 Emission;
-				half  Metallic;
-				half  Smoothness;
-				half  Occlusion;
+				half Metallic;
+				half Smoothness;
+				half Occlusion;
 				half3 Normal;
-				half  Alpha;
+				half Alpha;
 			};
 			
 			FragmentData FragData;
@@ -8384,15 +8476,17 @@ Shader "orels1/VFX/Cubemap Screen"
 				return (v - a) / (b - a);
 			}
 			
-			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p ){
-				half3 i = floor(p); p -= i; p *= p*(3. - 2.*p);
-				half2 uv = (p.xy + i.xy + half2(37, 17)*i.z + .5)/256.;
+			half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+			{
+				half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+				half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
 				uv.y *= -1;
 				p.xy = noiseTex.SampleLevel(noiseTexSampler, uv, 0).yx;
 				return lerp(p.x, p.y, p.z);
 			}
 			
-			half3 TransformObjectToWorld(half3 pos) {
+			half3 TransformObjectToWorld(half3 pos)
+			{
 				return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
 			};
 			
@@ -8401,9 +8495,9 @@ Shader "orels1/VFX/Cubemap Screen"
 			{
 				half3 result = 0;
 				int stepIndex = 0;
-				int numSteps = ( int )lerp( (half)maxSamples, (half)minSamples, saturate( dot( normalWorld, viewWorld ) ) );
+				int numSteps = (int)lerp((half)maxSamples, (half)minSamples, saturate(dot(normalWorld, viewWorld)));
 				half layerHeight = 1.0 / numSteps;
-				half2 plane = parallax * ( viewDirTan.xy / viewDirTan.z );
+				half2 plane = parallax * (viewDirTan.xy / viewDirTan.z);
 				uvs.xy += refPlane * plane;
 				half2 deltaTex = -plane * layerHeight;
 				half2 prevTexOffset = 0;
@@ -8414,10 +8508,10 @@ Shader "orels1/VFX/Cubemap Screen"
 				half currHeight = 0.0f;
 				half intersection = 0;
 				half2 finalTexOffset = 0;
-				while ( stepIndex < numSteps + 1 )
+				while (stepIndex < numSteps + 1)
 				{
-					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy ).r;
-					if ( currHeight > currRayZ )
+					currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy).r;
+					if (currHeight > currRayZ)
 					{
 						stepIndex = numSteps + 1;
 					}
@@ -8435,13 +8529,13 @@ Shader "orels1/VFX/Cubemap Screen"
 				int sectionIndex = 0;
 				half newZ = 0;
 				half newHeight = 0;
-				while ( sectionIndex < sectionSteps )
+				while (sectionIndex < sectionSteps)
 				{
-					intersection = ( prevHeight - prevRayZ ) / ( prevHeight - currHeight + currRayZ - prevRayZ );
-					finalTexOffset = prevTexOffset + intersection * deltaTex;
+					intersection = (prevHeight - prevRayZ) / (prevHeight - currHeight + currRayZ - prevRayZ);
+					finalTexOffset = prevTexOffset +intersection * deltaTex;
 					newZ = prevRayZ - intersection * layerHeight;
-					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy ).r;
-					if ( newHeight > newZ )
+					newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy).r;
+					if (newHeight > newZ)
 					{
 						currTexOffset = finalTexOffset;
 						currHeight = newHeight;
@@ -8454,8 +8548,8 @@ Shader "orels1/VFX/Cubemap Screen"
 						prevTexOffset = finalTexOffset;
 						prevHeight = newHeight;
 						prevRayZ = newZ;
-						deltaTex = ( 1 - intersection ) * deltaTex;
-						layerHeight = ( 1 - intersection ) * layerHeight;
+						deltaTex = (1 - intersection) * deltaTex;
+						layerHeight = (1 - intersection) * layerHeight;
 					}
 					sectionIndex++;
 				}
@@ -8465,7 +8559,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			
 			half remap(half s, half a1, half a2, half b1, half b2)
 			{
-				return b1 + (s-a1)*(b2-b1)/(a2-a1);
+				return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
 			}
 			
 			half3 ApplyLut2D(Texture2D LUT2D, SamplerState lutSampler, half3 uvw)
@@ -8484,18 +8578,21 @@ Shader "orels1/VFX/Cubemap Screen"
 				return uvw;
 			}
 			
-			half3 AdjustContrast(half3 color, half contrast) {
+			half3 AdjustContrast(half3 color, half contrast)
+			{
 				color = saturate(lerp(half3(0.5, 0.5, 0.5), color, contrast));
 				return color;
 			}
 			
-			half3 AdjustSaturation(half3 color, half saturation) {
-				half3 intensity = dot(color.rgb, half3(0.299,0.587,0.114));
+			half3 AdjustSaturation(half3 color, half saturation)
+			{
+				half3 intensity = dot(color.rgb, half3(0.299, 0.587, 0.114));
 				color = lerp(intensity, color.rgb, saturation);
 				return color;
 			}
 			
-			half3 AdjustBrightness(half3 color, half brightness) {
+			half3 AdjustBrightness(half3 color, half brightness)
+			{
 				color += brightness;
 				return color;
 			}
@@ -8506,8 +8603,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				half a, b, c, d, e, f;
 			};
 			
-			static const ParamsLogC LogC =
-			{
+			static const ParamsLogC LogC = {
 				0.011361, // cut
 				5.555556, // a
 				0.047996, // b
@@ -8515,6 +8611,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				0.386036, // d
 				5.301883, // e
 				0.092819  // f
+				
 			};
 			
 			half LinearToLogC_Precise(half x)
@@ -8537,15 +8634,18 @@ Shader "orels1/VFX/Cubemap Screen"
 				return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
 			}
 			
-			half3 LinerToSRGB(half3 c) {
+			half3 LinerToSRGB(half3 c)
+			{
 				return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
 			}
 			
-			half3 SRGBToLiner(half3 c) {
+			half3 SRGBToLiner(half3 c)
+			{
 				return max(1.055 * PositivePow(c, 0.416666667) - 0.055, 0.0);
 			}
 			
-			half3 LogCToLinear(half3 c) {
+			half3 LogCToLinear(half3 c)
+			{
 				return (pow(10.0, (c - LogC.d) / LogC.c) - LogC.b) / LogC.a;
 			}
 			
@@ -8597,13 +8697,13 @@ Shader "orels1/VFX/Cubemap Screen"
 				return g;
 			}
 			
-			half4 SampleGradient( Gradient gradient, half time )
+			half4 SampleGradient(Gradient gradient, half time)
 			{
 				half3 color = gradient.colors[0].rgb;
 				UNITY_UNROLL
 				for (int c = 1; c < 8; c++)
 				{
-					half colorPos = saturate((time - gradient.colors[c-1].w) / ( 0.00001 + (gradient.colors[c].w - gradient.colors[c-1].w)) * step(c, (half)gradient.colorsLength-1));
+					half colorPos = saturate((time - gradient.colors[c - 1].w) / (0.00001 + (gradient.colors[c].w - gradient.colors[c - 1].w)) * step(c, (half)gradient.colorsLength - 1));
 					color = lerp(color, gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), gradient.type));
 				}
 				#ifndef UNITY_COLORSPACE_GAMMA
@@ -8613,17 +8713,17 @@ Shader "orels1/VFX/Cubemap Screen"
 				UNITY_UNROLL
 				for (int a = 1; a < 8; a++)
 				{
-					half alphaPos = saturate((time - gradient.alphas[a-1].y) / ( 0.00001 + (gradient.alphas[a].y - gradient.alphas[a-1].y)) * step(a, (half)gradient.alphasLength-1));
+					half alphaPos = saturate((time - gradient.alphas[a - 1].y) / (0.00001 + (gradient.alphas[a].y - gradient.alphas[a - 1].y)) * step(a, (half)gradient.alphasLength - 1));
 					alpha = lerp(alpha, gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), gradient.type));
 				}
 				return half4(color, alpha);
 			}
 			
-			float3 RotateAroundAxis( float3 center, float3 original, float3 u, float angle )
+			float3 RotateAroundAxis(float3 center, float3 original, float3 u, float angle)
 			{
 				original -= center;
-				float C = cos( angle );
-				float S = sin( angle );
+				float C = cos(angle);
+				float S = sin(angle);
 				float t = 1 - C;
 				float m00 = t * u.x * u.x + C;
 				float m01 = t * u.x * u.y - S * u.z;
@@ -8634,8 +8734,8 @@ Shader "orels1/VFX/Cubemap Screen"
 				float m20 = t * u.x * u.z - S * u.y;
 				float m21 = t * u.y * u.z + S * u.x;
 				float m22 = t * u.z * u.z + C;
-				float3x3 finalMatrix = float3x3( m00, m01, m02, m10, m11, m12, m20, m21, m22 );
-				return mul( finalMatrix, original ) + center;
+				float3x3 finalMatrix = float3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
+				return mul(finalMatrix, original) + center;
 			}
 			
 			half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
@@ -8648,7 +8748,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				return normal;
 			}
 			
-			half3 RotateAroundYInDegrees (half3 toRotate, half degrees)
+			half3 RotateAroundYInDegrees(half3 toRotate, half degrees)
 			{
 				half alpha = degrees * UNITY_PI / 180.0;
 				half sina, cosa;
@@ -8657,13 +8757,15 @@ Shader "orels1/VFX/Cubemap Screen"
 				return half3(mul(m, toRotate.xz), toRotate.y).xzy;
 			}
 			
-			half D_GGX(half NoH, half roughness) {
+			half D_GGX(half NoH, half roughness)
+			{
 				half a = NoH * roughness;
 				half k = roughness / (1.0 - NoH * NoH + a * a);
 				return k * k * (1.0 / UNITY_PI);
 			}
 			
-			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness) {
+			half V_SmithGGXCorrelated(half NoV, half NoL, half roughness)
+			{
 				half a2 = roughness * roughness;
 				half GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
 				half GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
@@ -8696,7 +8798,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				return lightScatter * viewScatter;
 			}
 			
-			half3 getBoxProjection (half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
+			half3 getBoxProjection(half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
 			{
 				#if defined(UNITY_SPECCUBE_BOX_PROJECTION) && !defined(UNITY_PBS_USE_BRDF2) || defined(FORCE_BOX_PROJECTION)
 				if (cubemapPosition.w > 0)
@@ -8756,24 +8858,25 @@ Shader "orels1/VFX/Cubemap Screen"
 			half w0(half a)
 			{
 				//    return (1.0f/6.0f)*(-a*a*a + 3.0f*a*a - 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				return (1.0f / 6.0f) * (a * (a * (-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+				
 			}
 			
 			half w1(half a)
 			{
 				//    return (1.0f/6.0f)*(3.0f*a*a*a - 6.0f*a*a + 4.0f);
-				return (1.0f/6.0f)*(a*a*(3.0f*a - 6.0f) + 4.0f);
+				return (1.0f / 6.0f) * (a * a * (3.0f * a - 6.0f) + 4.0f);
 			}
 			
 			half w2(half a)
 			{
 				//    return (1.0f/6.0f)*(-3.0f*a*a*a + 3.0f*a*a + 3.0f*a + 1.0f);
-				return (1.0f/6.0f)*(a*(a*(-3.0f*a + 3.0f) + 3.0f) + 1.0f);
+				return (1.0f / 6.0f) * (a * (a * (-3.0f * a + 3.0f) + 3.0f) + 1.0f);
 			}
 			
 			half w3(half a)
 			{
-				return (1.0f/6.0f)*(a*a*a);
+				return (1.0f / 6.0f) * (a * a * a);
 			}
 			
 			// g0 and g1 are the two amplitude functions
@@ -8824,10 +8927,10 @@ Shader "orels1/VFX/Cubemap Screen"
 				half h0y = h0(fy);
 				half h1y = h1(fy);
 				
-				half4 r = g0(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f/width))) +
-				g1(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f/width)) +
-				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f/width)));
+				half4 r = g0(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+				g1(fy) * (g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+				g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (half2(px + h1x, py + h1y) * 1.0f / width)));
 				bakedColorTex = r;
 				return DecodeLightmap(r);
 				#else
@@ -8864,7 +8967,7 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				#ifdef DIRLIGHTMAP_COMBINED
 				half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
-				realtimeLightmap += DecodeDirectionalLightmap (realtimeLightmap, realtimeDirTex, worldNormal);
+				realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
 				#endif
 				
 				return realtimeLightmap;
@@ -8969,7 +9072,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			SAMPLER(sampler_DFG);
 			
 			// Shadow Vertex
-			FragmentData Vertex (VertexData v)
+			FragmentData Vertex(VertexData v)
 			{
 				UNITY_SETUP_INSTANCE_ID(v);
 				FragmentData i;
@@ -8981,27 +9084,27 @@ Shader "orels1/VFX/Cubemap Screen"
 				
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				#else
 				#if defined(UNITY_PASS_META)
 				i.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
 				#else
-				i.pos        = UnityObjectToClipPos(v.vertex);
+				i.pos = UnityObjectToClipPos(v.vertex);
 				#endif
-				i.normal     = v.normal;
-				i.worldNormal= UnityObjectToWorldNormal(v.normal);
-				i.worldPos   = mul(unity_ObjectToWorld, v.vertex);
-				i.uv0        = v.uv0;
-				i.uv1        = v.uv1;
-				i.uv2        = v.uv2;
-				i.uv3        = v.uv3;
+				i.normal = v.normal;
+				i.worldNormal = UnityObjectToWorldNormal(v.normal);
+				i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				i.uv0 = v.uv0;
+				i.uv1 = v.uv1;
+				i.uv2 = v.uv2;
+				i.uv3 = v.uv3;
 				i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
 				i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 				i.vertexColor = v.color;
@@ -9031,14 +9134,14 @@ Shader "orels1/VFX/Cubemap Screen"
 				#if !defined(UNITY_PASS_FORWARDADD)
 				// unity does some funky stuff for different platforms with these macros
 				#ifdef FOG_COMBINED_WITH_TSPACE
-				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i,i.pos);
-				#elif defined (FOG_COMBINED_WITH_WORLD_POS)
-				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i,i.pos);
+				UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i, i.pos);
+				#elif defined(FOG_COMBINED_WITH_WORLD_POS)
+				UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i, i.pos);
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#else
-				UNITY_TRANSFER_FOG(i,i.pos);
+				UNITY_TRANSFER_FOG(i, i.pos);
 				#endif
 				#endif
 				#endif
@@ -9049,7 +9152,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			}
 			
 			// Shadow Fragment
-			half4 Fragment (FragmentData i) : SV_TARGET
+			half4 Fragment(FragmentData i) : SV_TARGET
 			{
 				UNITY_SETUP_INSTANCE_ID(i);
 				SHADOW_CASTER_FRAGMENT(i);
@@ -9057,6 +9160,7 @@ Shader "orels1/VFX/Cubemap Screen"
 			
 			ENDCG
 			// Shadow Pass End
+			
 		}
 		
 	}

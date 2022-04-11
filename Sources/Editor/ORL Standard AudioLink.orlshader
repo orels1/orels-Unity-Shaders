@@ -13,60 +13,60 @@ CustomEditor "Needle.MarkdownShaderGUI"
 "ORL PBR Module.asset"
 
 #S#Properties
-[ToggleUI]UI_AudioLinkHeader("# Audio Link", Int) = 0
-[ToggleUI]UI_GlobalSettingsHeader("## Global Settings", Int) = 0
-[NoScaleOffset]_ALMask("Mask &", 2D) = "white" {}
-[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ALUVChannel("UV Channel", Int) = 0
-[HDR]_ALTint("Tint", Color) = (1,1,1,1)
-[ToggleUI]_KillEffects("Kill Effects", Int) = 0
-[KeywordEnum(Band Selection, UV Based, Waveform, Pulse, Bar)]AL_EFFECT("Effect Type", Int) = 0
+[ToggleUI]UI_AudioLinkHeader ("# Audio Link", Int) = 0
+[ToggleUI]UI_GlobalSettingsHeader ("## Global Settings", Int) = 0
+[NoScaleOffset]_ALMask ("Mask &", 2D) = "white" { }
+[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ALUVChannel ("UV Channel", Int) = 0
+[HDR]_ALTint ("Tint", Color) = (1, 1, 1, 1)
+[ToggleUI]_KillEffects ("Kill Effects", Int) = 0
+[KeywordEnum(Band Selection, UV Based, Waveform, Pulse, Bar)]AL_EFFECT ("Effect Type", Int) = 0
 
-[ToggleUI]UI_SelectedEffect("## Effect Settings", Int) = 0
+[ToggleUI]UI_SelectedEffect ("## Effect Settings", Int) = 0
 // BAND SELECTION
-[IntRange]_BandFrequency("Frequency Band [AL_EFFECT_BAND_SELECTION]", Range(1, 4)) = 1
-[ToggleUI]UI_BandNote("!NOTE 1: Bass, 2: Low Mids, 3: High Mids, 4: Highs", Int) = 0
-_BandHistoryRange("History Range [AL_EFFECT_BAND_SELECTION]", Float) = 128
-[Enum(X, 0, Y, 1, Negative X, 2, Negative Y, 3)]_BandScrollAxis("Scroll Axis [AL_EFFECT_BAND_SELECTION]", Int) = 1
+[IntRange]_BandFrequency ("Frequency Band [AL_EFFECT_BAND_SELECTION]", Range(1, 4)) = 1
+[ToggleUI]UI_BandNote ("!NOTE 1: Bass, 2: Low Mids, 3: High Mids, 4: Highs", Int) = 0
+_BandHistoryRange ("History Range [AL_EFFECT_BAND_SELECTION]", Float) = 128
+[Enum(X, 0, Y, 1, Negative X, 2, Negative Y, 3)]_BandScrollAxis ("Scroll Axis [AL_EFFECT_BAND_SELECTION]", Int) = 1
 
 // UV BASED
-_UVHistoryRange("History Range [AL_EFFECT_UV_BASED]", Float) = 128
-[ToggleUI]_UVFlipXY("Flip UV X and Y [AL_EFFECT_UV_BASED]", Int) = 0
-[ToggleUI]_UVUseThemeColors("Use Theme Colors [AL_EFFECT_UV_BASED]", Int) = 0
-[ToggleUI]UI_UVColorsNote("!NOTE Check AudioLink object for colors, still applies global tint!", Int) = 0
+_UVHistoryRange ("History Range [AL_EFFECT_UV_BASED]", Float) = 128
+[ToggleUI]_UVFlipXY ("Flip UV X and Y [AL_EFFECT_UV_BASED]", Int) = 0
+[ToggleUI]_UVUseThemeColors ("Use Theme Colors [AL_EFFECT_UV_BASED]", Int) = 0
+[ToggleUI]UI_UVColorsNote ("!NOTE Check AudioLink object for colors, still applies global tint!", Int) = 0
 
 // WAVEFORM
-[ToggleUI]UI_WVFRMBottomGrad("!DRAWER Gradient _WVFRMBottomColor [AL_EFFECT_WAVEFORM]", Int) = 0
-_WVFRMBottomColor("Waveform Bottom Color [AL_EFFECT_WAVEFORM]", 2D) = "white" {}
-[ToggleUI]UI_WVFRMTopGrad("!DRAWER Gradient _WVFRMTopColor [AL_EFFECT_WAVEFORM]", Int) = 0
-_WVFRMTopColor("Waveform Top Color [AL_EFFECT_WAVEFORM]", 2D) = "black" {}
-[ToggleUI]_WVFRMMiddleLine("Add Middle Line [AL_EFFECT_WAVEFORM]", Int) = 0
-[ToggleUI]UI_WVFRMMiddleGrad("!DRAWER Gradient _WVFRMMiddleColor [_WVFRMMiddleLine && AL_EFFECT_WAVEFORM]", Int) = 0
-_WVFRMMiddleColor("- Waveform Middle Color [_WVFRMMiddleLine && AL_EFFECT_WAVEFORM]", 2D) = "gray" {}
-_WVFRMMiddleLineWidth("- Line Width [_WVFRMMiddleLine && AL_EFFECT_WAVEFORM]", Range(0, 1)) = 0.05
-[ToggleUI]_WVFRMFlip("Flip Waveform [AL_EFFECT_WAVEFORM]", Int) = 0
-_WVFRMOffset("Waveform Offset [AL_EFFECT_WAVEFORM]", Range(0, 1)) = 0.5
-_WVFRMScale("Waveform Scale [AL_EFFECT_WAVEFORM]", Range(0, 1)) = 0.05
+[ToggleUI]UI_WVFRMBottomGrad ("!DRAWER Gradient _WVFRMBottomColor [AL_EFFECT_WAVEFORM]", Int) = 0
+_WVFRMBottomColor ("Waveform Bottom Color [AL_EFFECT_WAVEFORM]", 2D) = "white" { }
+[ToggleUI]UI_WVFRMTopGrad ("!DRAWER Gradient _WVFRMTopColor [AL_EFFECT_WAVEFORM]", Int) = 0
+_WVFRMTopColor ("Waveform Top Color [AL_EFFECT_WAVEFORM]", 2D) = "black" { }
+[ToggleUI]_WVFRMMiddleLine ("Add Middle Line [AL_EFFECT_WAVEFORM]", Int) = 0
+[ToggleUI]UI_WVFRMMiddleGrad ("!DRAWER Gradient _WVFRMMiddleColor [_WVFRMMiddleLine && AL_EFFECT_WAVEFORM]", Int) = 0
+_WVFRMMiddleColor ("- Waveform Middle Color [_WVFRMMiddleLine && AL_EFFECT_WAVEFORM]", 2D) = "gray" { }
+_WVFRMMiddleLineWidth ("- Line Width [_WVFRMMiddleLine && AL_EFFECT_WAVEFORM]", Range(0, 1)) = 0.05
+[ToggleUI]_WVFRMFlip ("Flip Waveform [AL_EFFECT_WAVEFORM]", Int) = 0
+_WVFRMOffset ("Waveform Offset [AL_EFFECT_WAVEFORM]", Range(0, 1)) = 0.5
+_WVFRMScale ("Waveform Scale [AL_EFFECT_WAVEFORM]", Range(0, 1)) = 0.05
 
 // PULSE
-[IntRange]_PulseBand("Frequency Band [AL_EFFECT_PULSE]", Range(1, 4)) = 1
-[Enum(Emission, 0, Texture, 1)]_PulseMode("Pulse Mode [AL_EFFECT_PULSE]", Int) = 0
-_PulseStrength("Pulse Strength [AL_EFFECT_PULSE]", Float) = 1
-[Enum(Additive, 0, Multiply, 1)]_PulseEmissionMode("Emission Mode [AL_EFFECT_PULSE && _PulseMode == 0]", Int) = 0
-[Enum(Bump, 0, Continuous, 1)]_PulseTextureAdjustment("Texture Pulse Mode [AL_EFFECT_PULSE && _PulseMode == 1]", Int) = 0
-[ToggleUI]UI_PulseTextureNote("!NOTE Bump: Bumps the texture in a direction with the beat", Int) = 0
-[ToggleUI]UI_PulseTextureNote2("!NOTE Continuous: Pushes the texture continuously with the beat", Int) = 0
-[NoScaleOffset]_PulseTexture("Pulse Texture & [AL_EFFECT_PULSE && _PulseMode == 1]", 2D) = "white" {}
-_PulseTextureDirection("Pulse Direction [AL_EFFECT_PULSE && _PulseMode == 1]", Vector) = (0, 1, 0, 0)
+[IntRange]_PulseBand ("Frequency Band [AL_EFFECT_PULSE]", Range(1, 4)) = 1
+[Enum(Emission, 0, Texture, 1)]_PulseMode ("Pulse Mode [AL_EFFECT_PULSE]", Int) = 0
+_PulseStrength ("Pulse Strength [AL_EFFECT_PULSE]", Float) = 1
+[Enum(Additive, 0, Multiply, 1)]_PulseEmissionMode ("Emission Mode [AL_EFFECT_PULSE && _PulseMode == 0]", Int) = 0
+[Enum(Bump, 0, Continuous, 1)]_PulseTextureAdjustment ("Texture Pulse Mode [AL_EFFECT_PULSE && _PulseMode == 1]", Int) = 0
+[ToggleUI]UI_PulseTextureNote ("!NOTE Bump: Bumps the texture in a direction with the beat", Int) = 0
+[ToggleUI]UI_PulseTextureNote2 ("!NOTE Continuous: Pushes the texture continuously with the beat", Int) = 0
+[NoScaleOffset]_PulseTexture ("Pulse Texture & [AL_EFFECT_PULSE && _PulseMode == 1]", 2D) = "white" { }
+_PulseTextureDirection ("Pulse Direction [AL_EFFECT_PULSE && _PulseMode == 1]", Vector) = (0, 1, 0, 0)
 
 // BAR
-[IntRange]_BarBand("Frequency Band [AL_EFFECT_BAR]", Range(1, 4)) = 1
-[Enum(X, 0, Y, 1, Negative X, 2, Negative Y, 3)]_BarAxis("Bar UV Axis [AL_EFFECT_BAR]", Int) = 1
-[ToggleUI]UI_BarGrad("!DRAWER Gradient _BarColor [AL_EFFECT_BAR]", Int) = 0
-_BarColor("Bar Gradient [AL_EFFECT_BAR]", 2D) = "white" {}
-_BarScale("Bar Scale [AL_EFFECT_BAR]", Float) = 1
+[IntRange]_BarBand ("Frequency Band [AL_EFFECT_BAR]", Range(1, 4)) = 1
+[Enum(X, 0, Y, 1, Negative X, 2, Negative Y, 3)]_BarAxis ("Bar UV Axis [AL_EFFECT_BAR]", Int) = 1
+[ToggleUI]UI_BarGrad ("!DRAWER Gradient _BarColor [AL_EFFECT_BAR]", Int) = 0
+_BarColor ("Bar Gradient [AL_EFFECT_BAR]", 2D) = "white" { }
+_BarScale ("Bar Scale [AL_EFFECT_BAR]", Float) = 1
 
-[ToggleUI]UI_Spacer("!NOTE   ", Int) = 0
-[ToggleUI]UI_AudioLinkThanksNote("[Thanks to the amazing AudioLink project <3](https://github.com/llealloo/vrc-udon-audio-link)", Int) = 0
+[ToggleUI]UI_Spacer ("!NOTE   ", Int) = 0
+[ToggleUI]UI_AudioLinkThanksNote ("[Thanks to the amazing AudioLink project <3](https://github.com/llealloo/vrc-udon-audio-link)", Int) = 0
 
 #T#ShaderFeatures
 #pragma shader_feature_local _ AL_EFFECT_BAND_SELECTION AL_EFFECT_UV_BASED AL_EFFECT_WAVEFORM AL_EFFECT_PULSE AL_EFFECT_BAR
@@ -119,14 +119,16 @@ TEXTURE2D(_BarColor);
 SAMPLER(sampler_BarColor);
 
 #T#FragmentFunction
-void ALFragment() {
+void ALFragment()
+{
   UNITY_BRANCH
   if (_KillEffects) return;
   UNITY_BRANCH
   if (!AudioLinkIsAvailable()) return;
   half3 finalEmission = 0;
   half2 uv = 0;
-  switch (_ALUVChannel) {
+  switch(_ALUVChannel)
+  {
     case 0: uv = d.uv0.xy; break;
     case 1: uv = d.uv1.xy; break;
     case 2: uv = d.uv2.xy; break;
@@ -135,16 +137,18 @@ void ALFragment() {
   half4 mask = SAMPLE_TEXTURE2D(_ALMask, sampler_ALMask, uv);
   
   #if defined(AL_EFFECT_BAND_SELECTION)
-    half uvSource = lerp(uv.x, lerp(uv.y, lerp(1-uv.x, 1 - uv.y, saturate(_BandScrollAxis - 2)), saturate(_BandScrollAxis -1)), saturate(_BandScrollAxis));
+    half uvSource = lerp(uv.x, lerp(uv.y, lerp(1 - uv.x, 1 - uv.y, saturate(_BandScrollAxis - 2)), saturate(_BandScrollAxis - 1)), saturate(_BandScrollAxis));
     half scaledUv = (uvSource * _BandHistoryRange) % 128.0;
     half4 bandData = AudioLinkLerp(half2(scaledUv, clamp(_BandFrequency - 1, 0, 3)));
     finalEmission = bandData.rgb * _ALTint;
   #elif defined(AL_EFFECT_UV_BASED)
     half2 scaledUv = half2(lerp(uv.x, uv.y, _UVFlipXY) * _UVHistoryRange % 128, floor(lerp(uv.y, uv.x, _UVFlipXY) * 4));
     half4 bandData = AudioLinkLerp(scaledUv);
-    if (_UVUseThemeColors) {
+    if (_UVUseThemeColors)
+    {
       int band = clamp(floor(scaledUv.y), 0, 3);
-      switch (band) {
+      switch(band)
+      {
         case 0:
           bandData *= AudioLinkData(ALPASS_THEME_COLOR0);
           break;
@@ -166,28 +170,37 @@ void ALFragment() {
     half4 bottomColor = SAMPLE_TEXTURE2D(_WVFRMBottomColor, sampler_WVFRMBottomColor, uv);
     half4 topColor = SAMPLE_TEXTURE2D(_WVFRMTopColor, sampler_WVFRMBottomColor, uv);
     half4 midColor = SAMPLE_TEXTURE2D(_WVFRMMiddleColor, sampler_WVFRMBottomColor, uv);
-    finalEmission = lerp(lerp(bottomColor, midColor, _WVFRMMiddleLine > 0 && lerp(uv.y, 1-uv.y,_WVFRMFlip) > (wvfrm + _WVFRMOffset) - _WVFRMMiddleLineWidth ), topColor, lerp(uv.y, 1-uv.y,_WVFRMFlip) > (wvfrm + _WVFRMOffset));
+    finalEmission = lerp(lerp(bottomColor, midColor, _WVFRMMiddleLine > 0 && lerp(uv.y, 1 - uv.y, _WVFRMFlip) > (wvfrm + _WVFRMOffset) - _WVFRMMiddleLineWidth), topColor, lerp(uv.y, 1 - uv.y, _WVFRMFlip) > (wvfrm + _WVFRMOffset));
     finalEmission *= _ALTint;
   #elif defined(AL_EFFECT_PULSE)
     half pulseData = AudioLinkLerp(half2(0, clamp(_PulseBand - 1, 0, 3))).r;
-    if (_PulseMode == 0) {
-      if (!_PulseEmissionMode) {
+    if (_PulseMode == 0)
+    {
+      if (!_PulseEmissionMode)
+      {
         finalEmission = o.Emission + pulseData * _ALTint * _PulseStrength;
-      } else {
+      }
+      else
+      {
         finalEmission = o.Emission * pulseData * _ALTint * _PulseStrength;
       }
-    } else {
+    }
+    else
+    {
       finalEmission = pulseData * _PulseStrength * _ALTint;
-      if (_PulseTextureAdjustment == 0) {
-        uv += _PulseTextureDirection.xy * pulseData;  
-      } else {
-        float chrono = (AudioLinkDecodeDataAsUInt( ALPASS_CHRONOTENSITY + float2(0, 0) ) % 1000000) / 1000000.0;
+      if (_PulseTextureAdjustment == 0)
+      {
+        uv += _PulseTextureDirection.xy * pulseData;
+      }
+      else
+      {
+        float chrono = (AudioLinkDecodeDataAsUInt(ALPASS_CHRONOTENSITY + float2(0, 0)) % 1000000) / 1000000.0;
         uv += _PulseTextureDirection.xy * chrono;
       }
       finalEmission += SAMPLE_TEXTURE2D(_PulseTexture, sampler_PulseTexture, uv) * _ALTint;
     }
   #elif defined(AL_EFFECT_BAR)
-    half uvSource = lerp(uv.x, lerp(uv.y, lerp(1-uv.x, 1 - uv.y, saturate(_BarAxis - 2)), saturate(_BarAxis -1)), saturate(_BarAxis));
+    half uvSource = lerp(uv.x, lerp(uv.y, lerp(1 - uv.x, 1 - uv.y, saturate(_BarAxis - 2)), saturate(_BarAxis - 1)), saturate(_BarAxis));
     half3 color = SAMPLE_TEXTURE2D(_BarColor, sampler_BarColor, half2(uvSource, 0)).rgb;
     half bandData = saturate(AudioLinkLerp(half2(0, clamp(_BarBand - 1, 0, 3))).r * _BarScale);
     half barData = smoothstep((1 - bandData), (1 - bandData) + 0.01, uvSource);

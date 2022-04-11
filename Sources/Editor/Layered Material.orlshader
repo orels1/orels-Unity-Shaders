@@ -11,106 +11,106 @@ CustomEditor "Needle.MarkdownShaderGUI"
 "ORL PBR Module.asset"
 
 #S#Properties
-[ToggleUI]UI_LayeredMatHeader("# Layers", Int) = 0
-[ToggleUI]UI_LayeredMatLayersCount("!REF _LayeredMatLayersCount", Int) = 0
-[IntRange]_LayeredMatLayersCount("Layer Count", Range(1, 4)) = 2
-[Toggle(_VERTEX_DEBUGGING)]_LMVertexColorDebugging("Vertex Color Debugging", Int) = 0
+[ToggleUI]UI_LayeredMatHeader ("# Layers", Int) = 0
+[ToggleUI]UI_LayeredMatLayersCount ("!REF _LayeredMatLayersCount", Int) = 0
+[IntRange]_LayeredMatLayersCount ("Layer Count", Range(1, 4)) = 2
+[Toggle(_VERTEX_DEBUGGING)]_LMVertexColorDebugging ("Vertex Color Debugging", Int) = 0
 
 // Layer 1
-[ToggleUI]UI_LMLayer1Header("## Layer 1", Int) = 0
-[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)]_LMLayer1VertexColor("Vertex Color Mask", Int) = 0
+[ToggleUI]UI_LMLayer1Header ("## Layer 1", Int) = 0
+[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)]_LMLayer1VertexColor ("Vertex Color Mask", Int) = 0
 _LMLayer1Color ("Main Color", Color) = (1, 1, 1, 1)
-_LMLayer1MainTex("Albedo", 2D) = "white" {}
-[Enum(RGB, 0, R, 1, G, 2, B, 3)]_LMLayer1AlbedoChannel("Albedo Channel [_LMLayer1MainTex]", Int) = 0
-[NoScaleOffset]_LMLayer1MaskMap("Masks &", 2D)  = "white" {}
-[ToggleUI]UI_LMLayer1ChannelSelector("!DRAWER MultiProperty _LMLayer1MetalChannel _LMLayer1AOChannel _LMLayer1DetailMaskChannel _LMLayer1SmoothChannel [_LMLayer1MaskMap]", Int) = 0
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer1MetalChannel("Metal", Int) = 0
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer1AOChannel("AO", Int) = 1
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer1DetailMaskChannel("Detail", Int) = 2
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer1SmoothChannel("Smooth", Int) = 3
-_LMLayer1Smoothness("Smoothness [!_LMLayer1MaskMap]", Range(0,1)) = 0.5
-[ToggleUI]_LMLayer1RoughnessMode("Roughness Mode [_LMLayer1MaskMap]", Int) = 0
-[ToggleUI]UI_LMLayer1SmoothnessRemap("!DRAWER MinMax _LMLayer1SmoothnessRemap.x _LMLayer1SmoothnessRemap.y [_LMLayer1MaskMap]", Float) = 0
-_LMLayer1Metallic("Metallic [!_LMLayer1MaskMap]", Range(0,1)) = 0
-[ToggleUI]UI_LMLayer1MetallicRemap("!DRAWER MinMax _LMLayer1MetallicRemap.x _LMLayer1MetallicRemap.y [_LMLayer1MaskMap]", Float) = 0
-[HideInInspector]_LMLayer1MetallicRemap("Metallic Remap", Vector) = (0,1,0,1)
-[HideInInspector]_LMLayer1SmoothnessRemap("Smoothness Remap", Vector) = (0,1,0,1)
-_LMLayer1OcclusionStrength("AO Strength", Range(0,1)) = 1
-[NoScaleOffset]_LMLayer1BumpMap("Normal Map &&", 2D) = "bump" {}
-_LMLayer1BumpScale("Normal Map Scale", Range(-1,1)) = 1
-[ToggleUI]_LMLayer1FlipBumpY("Flip Y (UE Mode) [_LMLayer1BumpMap]", Int) = 0
+_LMLayer1MainTex ("Albedo", 2D) = "white" { }
+[Enum(RGB, 0, R, 1, G, 2, B, 3)]_LMLayer1AlbedoChannel ("Albedo Channel [_LMLayer1MainTex]", Int) = 0
+[NoScaleOffset]_LMLayer1MaskMap ("Masks &", 2D) = "white" { }
+[ToggleUI]UI_LMLayer1ChannelSelector ("!DRAWER MultiProperty _LMLayer1MetalChannel _LMLayer1AOChannel _LMLayer1DetailMaskChannel _LMLayer1SmoothChannel [_LMLayer1MaskMap]", Int) = 0
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer1MetalChannel ("Metal", Int) = 0
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer1AOChannel ("AO", Int) = 1
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer1DetailMaskChannel ("Detail", Int) = 2
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer1SmoothChannel ("Smooth", Int) = 3
+_LMLayer1Smoothness ("Smoothness [!_LMLayer1MaskMap]", Range(0, 1)) = 0.5
+[ToggleUI]_LMLayer1RoughnessMode ("Roughness Mode [_LMLayer1MaskMap]", Int) = 0
+[ToggleUI]UI_LMLayer1SmoothnessRemap ("!DRAWER MinMax _LMLayer1SmoothnessRemap.x _LMLayer1SmoothnessRemap.y [_LMLayer1MaskMap]", Float) = 0
+_LMLayer1Metallic ("Metallic [!_LMLayer1MaskMap]", Range(0, 1)) = 0
+[ToggleUI]UI_LMLayer1MetallicRemap ("!DRAWER MinMax _LMLayer1MetallicRemap.x _LMLayer1MetallicRemap.y [_LMLayer1MaskMap]", Float) = 0
+[HideInInspector]_LMLayer1MetallicRemap ("Metallic Remap", Vector) = (0, 1, 0, 1)
+[HideInInspector]_LMLayer1SmoothnessRemap ("Smoothness Remap", Vector) = (0, 1, 0, 1)
+_LMLayer1OcclusionStrength ("AO Strength", Range(0, 1)) = 1
+[NoScaleOffset]_LMLayer1BumpMap ("Normal Map &&", 2D) = "bump" { }
+_LMLayer1BumpScale ("Normal Map Scale", Range(-1, 1)) = 1
+[ToggleUI]_LMLayer1FlipBumpY ("Flip Y (UE Mode) [_LMLayer1BumpMap]", Int) = 0
 
 // Layer 2
-[ToggleUI]UI_LMLayer2Header("## Layer 2 [_LayeredMatLayersCount > 1]", Int) = 0
-[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)]_LMLayer2VertexColor("Vertex Color Mask", Int) = 1
+[ToggleUI]UI_LMLayer2Header ("## Layer 2 [_LayeredMatLayersCount > 1]", Int) = 0
+[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)]_LMLayer2VertexColor ("Vertex Color Mask", Int) = 1
 _LMLayer2Color ("Main Color [_LayeredMatLayersCount > 1]", Color) = (1, 1, 1, 1)
-_LMLayer2MainTex("Albedo [_LayeredMatLayersCount > 1]", 2D) = "white" {}
-[Enum(RGB, 0, R, 1, G, 2, B, 3)]_LMLayer2AlbedoChannel("Albedo Channel [_LMLayer2MainTex && _LayeredMatLayersCount > 1]", Int) = 0
-[NoScaleOffset]_LMLayer2MaskMap("Masks & [_LayeredMatLayersCount > 1]", 2D)  = "white" {}
-[ToggleUI]UI_LMLayer2ChannelSelector("!DRAWER MultiProperty _LMLayer2MetalChannel _LMLayer2AOChannel _LMLayer2DetailMaskChannel _LMLayer2SmoothChannel [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Int) = 0
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer2MetalChannel("Metal", Int) = 0
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer2AOChannel("AO", Int) = 1
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer2DetailMaskChannel("Detail", Int) = 2
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer2SmoothChannel("Smooth", Int) = 3
-_LMLayer2Smoothness("Smoothness [!_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Range(0,1)) = 0.5
-[ToggleUI]_LMLayer2RoughnessMode("Roughness Mode [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Int) = 0
-[ToggleUI]UI_LMLayer2SmoothnessRemap("!DRAWER MinMax _LMLayer2SmoothnessRemap.x _LMLayer2SmoothnessRemap.y [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Float) = 0
-_LMLayer2Metallic("Metallic [!_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Range(0,1)) = 0
-[ToggleUI]UI_LMLayer2MetallicRemap("!DRAWER MinMax _LMLayer2MetallicRemap.x _LMLayer2MetallicRemap.y [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Float) = 0
-[HideInInspector]_LMLayer2MetallicRemap("Metallic Remap", Vector) = (0,1,0,1)
-[HideInInspector]_LMLayer2SmoothnessRemap("Smoothness Remap", Vector) = (0,1,0,1)
-_LMLayer2OcclusionStrength("AO Strength [_LayeredMatLayersCount > 1]", Range(0,1)) = 1
-[NoScaleOffset]_LMLayer2BumpMap("Normal Map && [_LayeredMatLayersCount > 1]", 2D) = "bump" {}
-_LMLayer2BumpScale("Normal Map Scale [_LayeredMatLayersCount > 1]", Range(-1,1)) = 1
-[ToggleUI]_LMLayer2FlipBumpY("Flip Y (UE Mode) [_LMLayer2BumpMap && _LayeredMatLayersCount > 1]", Int) = 0
+_LMLayer2MainTex ("Albedo [_LayeredMatLayersCount > 1]", 2D) = "white" { }
+[Enum(RGB, 0, R, 1, G, 2, B, 3)]_LMLayer2AlbedoChannel ("Albedo Channel [_LMLayer2MainTex && _LayeredMatLayersCount > 1]", Int) = 0
+[NoScaleOffset]_LMLayer2MaskMap ("Masks & [_LayeredMatLayersCount > 1]", 2D) = "white" { }
+[ToggleUI]UI_LMLayer2ChannelSelector ("!DRAWER MultiProperty _LMLayer2MetalChannel _LMLayer2AOChannel _LMLayer2DetailMaskChannel _LMLayer2SmoothChannel [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Int) = 0
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer2MetalChannel ("Metal", Int) = 0
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer2AOChannel ("AO", Int) = 1
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer2DetailMaskChannel ("Detail", Int) = 2
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer2SmoothChannel ("Smooth", Int) = 3
+_LMLayer2Smoothness ("Smoothness [!_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Range(0, 1)) = 0.5
+[ToggleUI]_LMLayer2RoughnessMode ("Roughness Mode [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Int) = 0
+[ToggleUI]UI_LMLayer2SmoothnessRemap ("!DRAWER MinMax _LMLayer2SmoothnessRemap.x _LMLayer2SmoothnessRemap.y [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Float) = 0
+_LMLayer2Metallic ("Metallic [!_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Range(0, 1)) = 0
+[ToggleUI]UI_LMLayer2MetallicRemap ("!DRAWER MinMax _LMLayer2MetallicRemap.x _LMLayer2MetallicRemap.y [_LMLayer2MaskMap && _LayeredMatLayersCount > 1]", Float) = 0
+[HideInInspector]_LMLayer2MetallicRemap ("Metallic Remap", Vector) = (0, 1, 0, 1)
+[HideInInspector]_LMLayer2SmoothnessRemap ("Smoothness Remap", Vector) = (0, 1, 0, 1)
+_LMLayer2OcclusionStrength ("AO Strength [_LayeredMatLayersCount > 1]", Range(0, 1)) = 1
+[NoScaleOffset]_LMLayer2BumpMap ("Normal Map && [_LayeredMatLayersCount > 1]", 2D) = "bump" { }
+_LMLayer2BumpScale ("Normal Map Scale [_LayeredMatLayersCount > 1]", Range(-1, 1)) = 1
+[ToggleUI]_LMLayer2FlipBumpY ("Flip Y (UE Mode) [_LMLayer2BumpMap && _LayeredMatLayersCount > 1]", Int) = 0
 
 // Layer 3
-[ToggleUI]UI_LMLayer3Header("## Layer 3 [_LayeredMatLayersCount > 2]", Int) = 0
-[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)]_LMLayer3VertexColor("Vertex Color Mask", Int) = 2
+[ToggleUI]UI_LMLayer3Header ("## Layer 3 [_LayeredMatLayersCount > 2]", Int) = 0
+[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)]_LMLayer3VertexColor ("Vertex Color Mask", Int) = 2
 _LMLayer3Color ("Main Color [_LayeredMatLayersCount > 2]", Color) = (1, 1, 1, 1)
-_LMLayer3MainTex("Albedo [_LayeredMatLayersCount > 2]", 2D) = "white" {}
-[Enum(RGB, 0, R, 1, G, 2, B, 3)]_LMLayer3AlbedoChannel("Albedo Channel [_LMLayer3MainTex && _LayeredMatLayersCount > 2]", Int) = 0
-[NoScaleOffset]_LMLayer3MaskMap("Masks & [_LayeredMatLayersCount > 2]", 2D)  = "white" {}
-[ToggleUI]UI_LMLayer3ChannelSelector("!DRAWER MultiProperty _LMLayer3MetalChannel _LMLayer3AOChannel _LMLayer3DetailMaskChannel _LMLayer3SmoothChannel [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Int) = 0
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer3MetalChannel("Metal", Int) = 0
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer3AOChannel("AO", Int) = 1
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer3DetailMaskChannel("Detail", Int) = 2
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer3SmoothChannel("Smooth", Int) = 3
-_LMLayer3Smoothness("Smoothness [!_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Range(0,1)) = 0.5
-[ToggleUI]_LMLayer3RoughnessMode("Roughness Mode [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Int) = 0
-[ToggleUI]UI_LMLayer3SmoothnessRemap("!DRAWER MinMax _LMLayer3SmoothnessRemap.x _LMLayer3SmoothnessRemap.y [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Float) = 0
-_LMLayer3Metallic("Metallic [!_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Range(0,1)) = 0
-[ToggleUI]UI_LMLayer3MetallicRemap("!DRAWER MinMax _LMLayer3MetallicRemap.x _LMLayer3MetallicRemap.y [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Float) = 0
-[HideInInspector]_LMLayer3MetallicRemap("Metallic Remap", Vector) = (0,1,0,1)
-[HideInInspector]_LMLayer3SmoothnessRemap("Smoothness Remap", Vector) = (0,1,0,1)
-_LMLayer3OcclusionStrength("AO Strength [_LayeredMatLayersCount > 2]", Range(0,1)) = 1
-[NoScaleOffset]_LMLayer3BumpMap("Normal Map && [_LayeredMatLayersCount > 2]", 2D) = "bump" {}
-_LMLayer3BumpScale("Normal Map Scale [_LayeredMatLayersCount > 2]", Range(-1,1)) = 1
-[ToggleUI]_LMLayer3FlipBumpY("Flip Y (UE Mode) [_LMLayer3BumpMap && _LayeredMatLayersCount > 2]", Int) = 0
+_LMLayer3MainTex ("Albedo [_LayeredMatLayersCount > 2]", 2D) = "white" { }
+[Enum(RGB, 0, R, 1, G, 2, B, 3)]_LMLayer3AlbedoChannel ("Albedo Channel [_LMLayer3MainTex && _LayeredMatLayersCount > 2]", Int) = 0
+[NoScaleOffset]_LMLayer3MaskMap ("Masks & [_LayeredMatLayersCount > 2]", 2D) = "white" { }
+[ToggleUI]UI_LMLayer3ChannelSelector ("!DRAWER MultiProperty _LMLayer3MetalChannel _LMLayer3AOChannel _LMLayer3DetailMaskChannel _LMLayer3SmoothChannel [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Int) = 0
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer3MetalChannel ("Metal", Int) = 0
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer3AOChannel ("AO", Int) = 1
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer3DetailMaskChannel ("Detail", Int) = 2
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer3SmoothChannel ("Smooth", Int) = 3
+_LMLayer3Smoothness ("Smoothness [!_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Range(0, 1)) = 0.5
+[ToggleUI]_LMLayer3RoughnessMode ("Roughness Mode [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Int) = 0
+[ToggleUI]UI_LMLayer3SmoothnessRemap ("!DRAWER MinMax _LMLayer3SmoothnessRemap.x _LMLayer3SmoothnessRemap.y [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Float) = 0
+_LMLayer3Metallic ("Metallic [!_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Range(0, 1)) = 0
+[ToggleUI]UI_LMLayer3MetallicRemap ("!DRAWER MinMax _LMLayer3MetallicRemap.x _LMLayer3MetallicRemap.y [_LMLayer3MaskMap && _LayeredMatLayersCount > 2]", Float) = 0
+[HideInInspector]_LMLayer3MetallicRemap ("Metallic Remap", Vector) = (0, 1, 0, 1)
+[HideInInspector]_LMLayer3SmoothnessRemap ("Smoothness Remap", Vector) = (0, 1, 0, 1)
+_LMLayer3OcclusionStrength ("AO Strength [_LayeredMatLayersCount > 2]", Range(0, 1)) = 1
+[NoScaleOffset]_LMLayer3BumpMap ("Normal Map && [_LayeredMatLayersCount > 2]", 2D) = "bump" { }
+_LMLayer3BumpScale ("Normal Map Scale [_LayeredMatLayersCount > 2]", Range(-1, 1)) = 1
+[ToggleUI]_LMLayer3FlipBumpY ("Flip Y (UE Mode) [_LMLayer3BumpMap && _LayeredMatLayersCount > 2]", Int) = 0
 
 // Layer 4
-[ToggleUI]UI_LMLayer4Header("## Layer 4 [_LayeredMatLayersCount > 3]", Int) = 0
-[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)]_LMLayer4VertexColor("Vertex Color Mask", Int) = 3
+[ToggleUI]UI_LMLayer4Header ("## Layer 4 [_LayeredMatLayersCount > 3]", Int) = 0
+[Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)]_LMLayer4VertexColor ("Vertex Color Mask", Int) = 3
 _LMLayer4Color ("Main Color [_LayeredMatLayersCount > 3]", Color) = (1, 1, 1, 1)
-_LMLayer4MainTex("Albedo [_LayeredMatLayersCount > 3]", 2D) = "white" {}
-[Enum(RGB, 0, R, 1, G, 2, B, 3)]_LMLayer4AlbedoChannel("Albedo Channel [_LMLayer4MainTex && _LayeredMatLayersCount > 3]", Int) = 0
-[NoScaleOffset]_LMLayer4MaskMap("Masks & [_LayeredMatLayersCount > 3]", 2D)  = "white" {}
-[ToggleUI]UI_LMLayer4ChannelSelector("!DRAWER MultiProperty _LMLayer4MetalChannel _LMLayer4AOChannel _LMLayer4DetailMaskChannel _LMLayer4SmoothChannel [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Int) = 0
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer4MetalChannel("Metal", Int) = 0
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer4AOChannel("AO", Int) = 1
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer4DetailMaskChannel("Detail", Int) = 2
-[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer4SmoothChannel("Smooth", Int) = 3
-_LMLayer4Smoothness("Smoothness [!_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Range(0,1)) = 0.5
-[ToggleUI]_LMLayer4RoughnessMode("Roughness Mode [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Int) = 0
-[ToggleUI]UI_LMLayer4SmoothnessRemap("!DRAWER MinMax _LMLayer4SmoothnessRemap.x _LMLayer4SmoothnessRemap.y [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Float) = 0
-_LMLayer4Metallic("Metallic [!_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Range(0,1)) = 0
-[ToggleUI]UI_LMLayer4MetallicRemap("!DRAWER MinMax _LMLayer4MetallicRemap.x _LMLayer4MetallicRemap.y [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Float) = 0
-[HideInInspector]_LMLayer4MetallicRemap("Metallic Remap", Vector) = (0,1,0,1)
-[HideInInspector]_LMLayer4SmoothnessRemap("Smoothness Remap", Vector) = (0,1,0,1)
-_LMLayer4OcclusionStrength("AO Strength [_LayeredMatLayersCount > 3]", Range(0,1)) = 1
-[NoScaleOffset]_LMLayer4BumpMap("Normal Map && [_LayeredMatLayersCount > 3]", 2D) = "bump" {}
-_LMLayer4BumpScale("Normal Map Scale [_LayeredMatLayersCount > 3]", Range(-1,1)) = 1
-[ToggleUI]_LMLayer4FlipBumpY("Flip Y (UE Mode) [_LMLayer4BumpMap && _LayeredMatLayersCount > 3]", Int) = 0
+_LMLayer4MainTex ("Albedo [_LayeredMatLayersCount > 3]", 2D) = "white" { }
+[Enum(RGB, 0, R, 1, G, 2, B, 3)]_LMLayer4AlbedoChannel ("Albedo Channel [_LMLayer4MainTex && _LayeredMatLayersCount > 3]", Int) = 0
+[NoScaleOffset]_LMLayer4MaskMap ("Masks & [_LayeredMatLayersCount > 3]", 2D) = "white" { }
+[ToggleUI]UI_LMLayer4ChannelSelector ("!DRAWER MultiProperty _LMLayer4MetalChannel _LMLayer4AOChannel _LMLayer4DetailMaskChannel _LMLayer4SmoothChannel [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Int) = 0
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer4MetalChannel ("Metal", Int) = 0
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer4AOChannel ("AO", Int) = 1
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer4DetailMaskChannel ("Detail", Int) = 2
+[Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer4SmoothChannel ("Smooth", Int) = 3
+_LMLayer4Smoothness ("Smoothness [!_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Range(0, 1)) = 0.5
+[ToggleUI]_LMLayer4RoughnessMode ("Roughness Mode [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Int) = 0
+[ToggleUI]UI_LMLayer4SmoothnessRemap ("!DRAWER MinMax _LMLayer4SmoothnessRemap.x _LMLayer4SmoothnessRemap.y [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Float) = 0
+_LMLayer4Metallic ("Metallic [!_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Range(0, 1)) = 0
+[ToggleUI]UI_LMLayer4MetallicRemap ("!DRAWER MinMax _LMLayer4MetallicRemap.x _LMLayer4MetallicRemap.y [_LMLayer4MaskMap && _LayeredMatLayersCount > 3]", Float) = 0
+[HideInInspector]_LMLayer4MetallicRemap ("Metallic Remap", Vector) = (0, 1, 0, 1)
+[HideInInspector]_LMLayer4SmoothnessRemap ("Smoothness Remap", Vector) = (0, 1, 0, 1)
+_LMLayer4OcclusionStrength ("AO Strength [_LayeredMatLayersCount > 3]", Range(0, 1)) = 1
+[NoScaleOffset]_LMLayer4BumpMap ("Normal Map && [_LayeredMatLayersCount > 3]", 2D) = "bump" { }
+_LMLayer4BumpScale ("Normal Map Scale [_LayeredMatLayersCount > 3]", Range(-1, 1)) = 1
+[ToggleUI]_LMLayer4FlipBumpY ("Flip Y (UE Mode) [_LMLayer4BumpMap && _LayeredMatLayersCount > 3]", Int) = 0
 
 #T#ShaderFeatures
 #pragma shader_feature_local _VERTEX_DEBUGGING
@@ -219,30 +219,34 @@ SAMPLER(sampler_LMLayer1MaskMap);
 SAMPLER(sampler_LMLayer1BumpMap);
 
 #T#FragmentFunction
-void LayeredMaterialFragment() {
+void LayeredMaterialFragment()
+{
   #if defined(_VERTEX_DEBUGGING)
-      o.Albedo = d.vertexColor.rgb;
-      o.Emission = d.vertexColor.rgb * 0.2;
-    #else
+    o.Albedo = d.vertexColor.rgb;
+    o.Emission = d.vertexColor.rgb * 0.2;
+  #else
     half2 uv = d.uv0.xy * _LMLayer1MainTex_ST.xy + _LMLayer1MainTex_ST.zw;
 
     half mask = _LMLayer1VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer1VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer1VertexColor - 1];
     
     // Layer 1
     half4 albedo = SAMPLE_TEXTURE2D(_LMLayer1MainTex, sampler_LMLayer1MainTex, uv);
-    if (_LMLayer1AlbedoChannel > 0) {
+    if (_LMLayer1AlbedoChannel > 0)
+    {
       albedo.rgb = albedo[_LMLayer1AlbedoChannel].xxx;
     }
     half4 masks = SAMPLE_TEXTURE2D(_LMLayer1MaskMap, sampler_LMLayer1MaskMap, uv);
     half4 normalTex = SAMPLE_TEXTURE2D(_LMLayer1BumpMap, sampler_LMLayer1BumpMap, uv);
-    if (_LMLayer1FlipBumpY) {
-      normalTex.y = 1-normalTex.y;
+    if (_LMLayer1FlipBumpY)
+    {
+      normalTex.y = 1 - normalTex.y;
     }
     half3 normal = UnpackScaleNormal(normalTex, _LMLayer1BumpScale);
-    int hasMasks = _LMLayer1MaskMap_TexelSize.z > 8; 
+    int hasMasks = _LMLayer1MaskMap_TexelSize.z > 8;
     half metal = masks[_LMLayer1MetalChannel];
     half smooth = masks[_LMLayer1SmoothChannel];
-    if (_LMLayer1RoughnessMode) {
+    if (_LMLayer1RoughnessMode)
+    {
       smooth = 1 - smooth;
     }
     half detailMask = masks[_LMLayer1DetailMaskChannel];
@@ -263,21 +267,24 @@ void LayeredMaterialFragment() {
     // Layer 2
     uv = d.uv0.xy * _LMLayer2MainTex_ST.xy + _LMLayer2MainTex_ST.zw;
     mask = mask = _LMLayer2VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer2VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer2VertexColor - 1];
-        
+    
     albedo = SAMPLE_TEXTURE2D(_LMLayer2MainTex, sampler_LMLayer1MainTex, uv);
-    if (_LMLayer2AlbedoChannel > 0) {
+    if (_LMLayer2AlbedoChannel > 0)
+    {
       albedo.rgb = albedo[_LMLayer2AlbedoChannel].xxx;
     }
     masks = SAMPLE_TEXTURE2D(_LMLayer2MaskMap, sampler_LMLayer1MaskMap, uv);
     normalTex = SAMPLE_TEXTURE2D(_LMLayer2BumpMap, sampler_LMLayer1BumpMap, uv);
-    if (_LMLayer2FlipBumpY) {
-      normalTex.y = 1-normalTex.y;
+    if (_LMLayer2FlipBumpY)
+    {
+      normalTex.y = 1 - normalTex.y;
     }
     normal = UnpackScaleNormal(normalTex, _LMLayer2BumpScale * mask);
-    hasMasks = _LMLayer2MaskMap_TexelSize.z > 8; 
+    hasMasks = _LMLayer2MaskMap_TexelSize.z > 8;
     metal = masks[_LMLayer2MetalChannel];
     smooth = masks[_LMLayer2SmoothChannel];
-    if (_LMLayer2RoughnessMode) {
+    if (_LMLayer2RoughnessMode)
+    {
       smooth = 1 - smooth;
     }
     detailMask = masks[_LMLayer2DetailMaskChannel];
@@ -303,21 +310,24 @@ void LayeredMaterialFragment() {
     // Layer 3
     uv = d.uv0.xy * _LMLayer3MainTex_ST.xy + _LMLayer3MainTex_ST.zw;
     mask = mask = _LMLayer3VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer3VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer3VertexColor - 1];
-        
+    
     albedo = SAMPLE_TEXTURE2D(_LMLayer3MainTex, sampler_LMLayer1MainTex, uv);
-    if (_LMLayer3AlbedoChannel > 0) {
+    if (_LMLayer3AlbedoChannel > 0)
+    {
       albedo.rgb = albedo[_LMLayer3AlbedoChannel].xxx;
     }
     masks = SAMPLE_TEXTURE2D(_LMLayer3MaskMap, sampler_LMLayer1MaskMap, uv);
     normalTex = SAMPLE_TEXTURE2D(_LMLayer3BumpMap, sampler_LMLayer1BumpMap, uv);
-    if (_LMLayer3FlipBumpY) {
-      normalTex.y = 1-normalTex.y;
+    if (_LMLayer3FlipBumpY)
+    {
+      normalTex.y = 1 - normalTex.y;
     }
     normal = UnpackScaleNormal(normalTex, _LMLayer3BumpScale * mask);
-    hasMasks = _LMLayer3MaskMap_TexelSize.z > 8; 
+    hasMasks = _LMLayer3MaskMap_TexelSize.z > 8;
     metal = masks[_LMLayer3MetalChannel];
     smooth = masks[_LMLayer3SmoothChannel];
-    if (_LMLayer3RoughnessMode) {
+    if (_LMLayer3RoughnessMode)
+    {
       smooth = 1 - smooth;
     }
     detailMask = masks[_LMLayer3DetailMaskChannel];
@@ -338,21 +348,24 @@ void LayeredMaterialFragment() {
     // Layer 4
     uv = d.uv0.xy * _LMLayer4MainTex_ST.xy + _LMLayer4MainTex_ST.zw;
     mask = mask = _LMLayer4VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer4VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer4VertexColor - 1];
-        
+    
     albedo = SAMPLE_TEXTURE2D(_LMLayer4MainTex, sampler_LMLayer1MainTex, uv);
-    if (_LMLayer4AlbedoChannel > 0) {
+    if (_LMLayer4AlbedoChannel > 0)
+    {
       albedo.rgb = albedo[_LMLayer4AlbedoChannel].xxx;
     }
     masks = SAMPLE_TEXTURE2D(_LMLayer4MaskMap, sampler_LMLayer1MaskMap, uv);
     normalTex = SAMPLE_TEXTURE2D(_LMLayer4BumpMap, sampler_LMLayer1BumpMap, uv);
-    if (_LMLayer4FlipBumpY) {
-      normalTex.y = 1-normalTex.y;
+    if (_LMLayer4FlipBumpY)
+    {
+      normalTex.y = 1 - normalTex.y;
     }
     normal = UnpackScaleNormal(normalTex, _LMLayer4BumpScale * mask);
-    hasMasks = _LMLayer4MaskMap_TexelSize.z > 8; 
+    hasMasks = _LMLayer4MaskMap_TexelSize.z > 8;
     metal = masks[_LMLayer4MetalChannel];
     smooth = masks[_LMLayer4SmoothChannel];
-    if (_LMLayer4RoughnessMode) {
+    if (_LMLayer4RoughnessMode)
+    {
       smooth = 1 - smooth;
     }
     detailMask = masks[_LMLayer4DetailMaskChannel];
@@ -366,5 +379,5 @@ void LayeredMaterialFragment() {
     o.Normal = BlendNormals(o.Normal, normal);
     o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer4Color.rgb, mask);
     o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer4Color.a, mask);
-    #endif
+  #endif
 }

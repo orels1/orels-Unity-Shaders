@@ -12,32 +12,32 @@ CustomEditor "Needle.MarkdownShaderGUI"
 "ORL PBR Module.asset"
 
 #S#Properties
-UI_NeonHeader("# Neon Light", Int) = 0
-[HDR]_NeonColor("Main Color", Color) = (1, 1, 1, 1)
-_FlickerSpeed("Flicker Speed", Float) = 63
-_FlickerFrequency("Flicker Frequency", Float) = 44
-[ToggleUI]UI_FlickerStrengthSlider("!DRAWER MinMax _FlickerStrengthMin _FlickerStrengthMax", Int) = 0
-_FlickerStrengthMin("Flick Strength Min", Float) = 0.85
-_FlickerStrengthMax("Max", Float) = 1
-_FlickerStrengthMultiplier("Strength Multiplier", Float) = 1.78
-[NonModifiableTextureData][NoScaleOffset]_BakedNoiseTex("Noise Tex &", 2D) = "white" {}
+UI_NeonHeader ("# Neon Light", Int) = 0
+[HDR]_NeonColor ("Main Color", Color) = (1, 1, 1, 1)
+_FlickerSpeed ("Flicker Speed", Float) = 63
+_FlickerFrequency ("Flicker Frequency", Float) = 44
+[ToggleUI]UI_FlickerStrengthSlider ("!DRAWER MinMax _FlickerStrengthMin _FlickerStrengthMax", Int) = 0
+_FlickerStrengthMin ("Flick Strength Min", Float) = 0.85
+_FlickerStrengthMax ("Max", Float) = 1
+_FlickerStrengthMultiplier ("Strength Multiplier", Float) = 1.78
+[NonModifiableTextureData][NoScaleOffset]_BakedNoiseTex ("Noise Tex &", 2D) = "white" { }
 
-[ToggleUI]UI_NeonTubeHeader("# Neon Tube", Int) = 0
-_NeonTubeColor("Tube Color", Color) = (1,1,1,1)
-_NeonTubePower("Tube Rim Power", Float) = 5
-_NeonTubeSmoothing("Tube Rim Smoothing", Float) = 10
-[ToggleUI]_NeonTubeCapEnabled("Tube Cap Enabled", Int) = 0
-[Enum(X, 0, Y, 1, Z, 2, Negative X, 3, Negative Y, 4, Negative Z, 5)]_NeonTubeCapDirection("Tube Cap Direction [_NeonTubeCapEnabled]", Int) = 5 
-_NeonTubeCapOffset("Tube Cap Offset [_NeonTubeCapEnabled]", Float) = 0
-_NeonTubeCapColor("Tube Cap Color [_NeonTubeCapEnabled]", Color) = (0.3, 0.3, 0.3, 1)
-_NeonTubeCapSmoothness("Tube Cap Smoothness [_NeonTubeCapEnabled]", Range(0,1)) = 0.5
+[ToggleUI]UI_NeonTubeHeader ("# Neon Tube", Int) = 0
+_NeonTubeColor ("Tube Color", Color) = (1, 1, 1, 1)
+_NeonTubePower ("Tube Rim Power", Float) = 5
+_NeonTubeSmoothing ("Tube Rim Smoothing", Float) = 10
+[ToggleUI]_NeonTubeCapEnabled ("Tube Cap Enabled", Int) = 0
+[Enum(X, 0, Y, 1, Z, 2, Negative X, 3, Negative Y, 4, Negative Z, 5)]_NeonTubeCapDirection ("Tube Cap Direction [_NeonTubeCapEnabled]", Int) = 5
+_NeonTubeCapOffset ("Tube Cap Offset [_NeonTubeCapEnabled]", Float) = 0
+_NeonTubeCapColor ("Tube Cap Color [_NeonTubeCapEnabled]", Color) = (0.3, 0.3, 0.3, 1)
+_NeonTubeCapSmoothness ("Tube Cap Smoothness [_NeonTubeCapEnabled]", Range(0, 1)) = 0.5
 
-[ToggleUI]UI_GlassHeader("# Glass", Int) = 0
-_GlassRimTint("Shadow Tint", Color) = (1,1,1,1)
-_GlassRimPower("Rim Power", Float) = 1.38
-_GlassRimStrength("Rim Strength", Float) = 0.97
-[ToggleUI]UI_GlassRimSmoothing("!DRAWER MinMax _GlassRimSmoothing.x _GlassRimSmoothing.y", Int) = 0
-_GlassRimSmoothing("Rim Smoothing", Vector) = (0.05, .7, 0, 0)
+[ToggleUI]UI_GlassHeader ("# Glass", Int) = 0
+_GlassRimTint ("Shadow Tint", Color) = (1, 1, 1, 1)
+_GlassRimPower ("Rim Power", Float) = 1.38
+_GlassRimStrength ("Rim Strength", Float) = 0.97
+[ToggleUI]UI_GlassRimSmoothing ("!DRAWER MinMax _GlassRimSmoothing.x _GlassRimSmoothing.y", Int) = 0
+_GlassRimSmoothing ("Rim Smoothing", Vector) = (0.05, .7, 0, 0)
 
 #S#FragmentVariables
 half4 _NeonColor;
@@ -65,8 +65,9 @@ TEXTURE2D(_BakedNoiseTex);
 SAMPLER(sampler_BakedNoiseTex);
 
 #T#FragmentFunction
-void NeonFragment() {
-  half3 pos = mul(unity_ObjectToWorld, half4(0..xxx,1));
+void NeonFragment()
+{
+  half3 pos = mul(unity_ObjectToWorld, half4(0..xxx, 1));
   pos *= _FlickerFrequency;
   pos += _Time.y * _FlickerSpeed;
   half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos);
@@ -83,7 +84,7 @@ void NeonFragment() {
   glassNdV = saturate(pow(saturate(glassNdV), _GlassRimPower));
   glassNdV = smoothstep(_GlassRimSmoothing.x, _GlassRimSmoothing.y, glassNdV);
   glassNdV = saturate(glassNdV);
-  o.Occlusion =  glassNdV;
+  o.Occlusion = glassNdV;
   
   // Apply "neon tube" effect
   half rimNdV = NdV;
@@ -96,16 +97,20 @@ void NeonFragment() {
   o.Albedo *= glassNdV;
   
   UNITY_BRANCH
-  if (_NeonTubeCapEnabled) {
+  if (_NeonTubeCapEnabled)
+  {
     float3 scale = float3(
-        length(unity_ObjectToWorld._m00_m10_m20),
-        length(unity_ObjectToWorld._m01_m11_m21),
-        length(unity_ObjectToWorld._m02_m12_m22)
+      length(unity_ObjectToWorld._m00_m10_m20),
+      length(unity_ObjectToWorld._m01_m11_m21),
+      length(unity_ObjectToWorld._m02_m12_m22)
     );
     half mask = 1;
-    if (_NeonTubeCapDirection > 2) {
+    if (_NeonTubeCapDirection > 2)
+    {
       mask = d.localSpacePosition[_NeonTubeCapDirection - 3] < (_NeonTubeCapOffset / scale / 100);
-    } else {
+    }
+    else
+    {
       mask = d.localSpacePosition[_NeonTubeCapDirection] > (_NeonTubeCapOffset / scale / 100);
     }
     mask = saturate(mask);

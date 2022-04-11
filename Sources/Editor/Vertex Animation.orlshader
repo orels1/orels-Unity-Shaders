@@ -11,30 +11,30 @@ CustomEditor "Needle.MarkdownShaderGUI"
 "ORL PBR Module.asset"
 
 #S#Properties
-[ToggleUI]UI_VertexAnimHeader("# Vertex Animation", Float) = 0
+[ToggleUI]UI_VertexAnimHeader ("# Vertex Animation", Float) = 0
 
 // SPINNING
-[ToggleUI]UI_SpinHeader("## Spin", Int) = 0
-[KeywordEnum(None, Local, World)]SPIN("Spinning", Int) = 0
-_SpinAxis("Spin Axis [!SPIN_NONE]", Vector) = (0, 1, 0, 0)
-_SpinOrigin("Spin Origin Point [!SPIN_NONE]", Vector) = (0,0,0,0)
-[ToggleUI]UI_SpinOriginNote("!NOTE Spin Origin Point is considered in object's local space", Int) = 0
-_SpinSpeed("Spin Speed [!SPIN_NONE]", Float) = 1
+[ToggleUI]UI_SpinHeader ("## Spin", Int) = 0
+[KeywordEnum(None, Local, World)]SPIN ("Spinning", Int) = 0
+_SpinAxis ("Spin Axis [!SPIN_NONE]", Vector) = (0, 1, 0, 0)
+_SpinOrigin ("Spin Origin Point [!SPIN_NONE]", Vector) = (0, 0, 0, 0)
+[ToggleUI]UI_SpinOriginNote ("!NOTE Spin Origin Point is considered in object's local space", Int) = 0
+_SpinSpeed ("Spin Speed [!SPIN_NONE]", Float) = 1
 
 // FLOATING
-[ToggleUI]UI_FloatHeader("## Float", Int) = 0
-[KeywordEnum(None, Local, World)]FLOATING("Floating", Int) = 0
-_FloatAxis("Float Axis [!FLOATING_NONE]", Vector) = (0,1,0,0)
-_FloatSpeed("Float Speed [!FLOATING_NONE]", Float) = 1
-_FloatAmount("Float Amount [!FLOATING_NONE]", Float) = 0.2
-[ToggleUI]_FloatTwoWay("Two Way [!FLOATING_NONE]", Int) = 1
-[ToggleUI]UI_FloatNote("!NOTE Defines whether the object will go back and forth along the axis", Int) = 0
+[ToggleUI]UI_FloatHeader ("## Float", Int) = 0
+[KeywordEnum(None, Local, World)]FLOATING ("Floating", Int) = 0
+_FloatAxis ("Float Axis [!FLOATING_NONE]", Vector) = (0, 1, 0, 0)
+_FloatSpeed ("Float Speed [!FLOATING_NONE]", Float) = 1
+_FloatAmount ("Float Amount [!FLOATING_NONE]", Float) = 0.2
+[ToggleUI]_FloatTwoWay ("Two Way [!FLOATING_NONE]", Int) = 1
+[ToggleUI]UI_FloatNote ("!NOTE Defines whether the object will go back and forth along the axis", Int) = 0
 
 // SCALING
-[ToggleUI]UI_ScaleHeader("## Scale", Int) = 0
-[KeywordEnum(None, Uniform)]SCALE("Scaling", Int) = 0
-_ScaleSpeed("Scale Speed [!SCALE_NONE]", Float) = 1
-_ScaleAmount("Scale Amount [!SCALE_NONE]", Float) = 0.5
+[ToggleUI]UI_ScaleHeader ("## Scale", Int) = 0
+[KeywordEnum(None, Uniform)]SCALE ("Scaling", Int) = 0
+_ScaleSpeed ("Scale Speed [!SCALE_NONE]", Float) = 1
+_ScaleAmount ("Scale Amount [!SCALE_NONE]", Float) = 0.5
 
 #T#ShaderFeatures
 #pragma shader_feature_local _ SPIN_LOCAL SPIN_WORLD
@@ -68,11 +68,12 @@ half _ScaleSpeed;
 half _ScaleAmount;
 
 #T#VertexFunction
-void VertexAnimationVertex() {
+void VertexAnimationVertex()
+{
   half3 wsVert = TransformObjectToWorld(vD.vertex.xyz);
   half3 wsNormal = TransformObjectToWorld(vD.normal.xyz);
   half factor = 0;
-        
+  
   #if defined(SPIN_LOCAL) || defined(SPIN_WORLD)
     half3 origin = _SpinOrigin.xyz;
     #if defined(SPIN_LOCAL)
@@ -80,9 +81,9 @@ void VertexAnimationVertex() {
       vD.normal.xyz = RotateAroundAxis(origin, vD.normal.xyz, _SpinAxis.xyz, _Time.y * _SpinSpeed);
     #elif defined(SPIN_WORLD)
       float3 scale = float3(
-          length(unity_ObjectToWorld._m00_m10_m20),
-          length(unity_ObjectToWorld._m01_m11_m21),
-          length(unity_ObjectToWorld._m02_m12_m22)
+        length(unity_ObjectToWorld._m00_m10_m20),
+        length(unity_ObjectToWorld._m01_m11_m21),
+        length(unity_ObjectToWorld._m02_m12_m22)
       );
       half3 wsCenter = TransformObjectToWorld(origin);
       half3 vertRot = RotateAroundAxis(wsCenter, wsCenter + vD.vertex.xyz * scale, _SpinAxis.xyz, _Time.y * _SpinSpeed);
@@ -99,9 +100,9 @@ void VertexAnimationVertex() {
     factor = lerp((factor + 1) / 2, factor, _FloatTwoWay);
     
     #if defined(FLOATING_LOCAL)
-    half3 axis = _FloatAxis.xyz;
+      half3 axis = _FloatAxis.xyz;
     #elif defined(FLOATING_WORLD)
-    half3 axis = normalize(TransformWorldToObject(half4(_FloatAxis.xyz + TransformObjectToWorld(half3(0,0,0)),1))).xyz;
+      half3 axis = normalize(TransformWorldToObject(half4(_FloatAxis.xyz + TransformObjectToWorld(half3(0, 0, 0)), 1))).xyz;
     #endif
     vD.vertex.xyz += factor * axis * _FloatAmount;
     wsVert = TransformObjectToWorld(vD.vertex.xyz);

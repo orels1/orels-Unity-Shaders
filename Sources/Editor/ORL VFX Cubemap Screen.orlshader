@@ -37,24 +37,24 @@ CustomEditor "Needle.MarkdownShaderGUI"
 "ORL PBR Module.asset"
 
 #S#Properties
-[ToggleUI]UI_SkyboxScreenHeader("# Cubemap Screen", Int) = 0
-[NoScaleOffset]_SSCubemap("Cubemap &", Cube) = "cube" {}
-_SSCubeRotation("Rotation", Float) = 0
-_SSCubeLOD("Blur Level", Range(0, 7)) = 0
-_SSSubPixel("SubPixel Texture", 2D) = "white" {}
-_RedScale("Red Scale", Range(-1,1)) = 1
-_GreenScale("Green Scale", Range(-1,1)) = 1
-_BlueScale("Blue Scale", Range(-1,1)) = 1
-_EmissionBoost("Emission Boost", Float) = 1
+[ToggleUI]UI_SkyboxScreenHeader ("# Cubemap Screen", Int) = 0
+[NoScaleOffset]_SSCubemap ("Cubemap &", Cube) = "cube" { }
+_SSCubeRotation ("Rotation", Float) = 0
+_SSCubeLOD ("Blur Level", Range(0, 7)) = 0
+_SSSubPixel ("SubPixel Texture", 2D) = "white" { }
+_RedScale ("Red Scale", Range(-1, 1)) = 1
+_GreenScale ("Green Scale", Range(-1, 1)) = 1
+_BlueScale ("Blue Scale", Range(-1, 1)) = 1
+_EmissionBoost ("Emission Boost", Float) = 1
 
 #T#LibraryFunctions
-half3 RotateAroundYInDegrees (half3 toRotate, half degrees)
+half3 RotateAroundYInDegrees(half3 toRotate, half degrees)
 {
-    half alpha = degrees * UNITY_PI / 180.0;
-    half sina, cosa;
-    sincos(alpha, sina, cosa);
-    half2x2 m = half2x2(cosa, -sina, sina, cosa);
-    return half3(mul(m, toRotate.xz), toRotate.y).xzy;
+  half alpha = degrees * UNITY_PI / 180.0;
+  half sina, cosa;
+  sincos(alpha, sina, cosa);
+  half2x2 m = half2x2(cosa, -sina, sina, cosa);
+  return half3(mul(m, toRotate.xz), toRotate.y).xzy;
 }
 
 #S#FragmentVariables
@@ -72,11 +72,12 @@ TEXTURECUBE(_SSCubemap);
 SAMPLER(sampler_SSCubemap);
 
 #T#FragmentFunction
-void BlockFaderFragemtn() {
- float3 viewDir = normalize(_WorldSpaceCameraPos - d.worldSpacePosition.xyz);
+void BlockFaderFragemtn()
+{
+  float3 viewDir = normalize(_WorldSpaceCameraPos - d.worldSpacePosition.xyz);
   half3 reflDir = reflect(-d.worldSpaceViewDir, d.worldNormal);
   reflDir = RotateAroundYInDegrees(reflDir, _SSCubeRotation);
-    
+  
   half3 probe0 = SAMPLE_TEXTURECUBE_LOD(_SSCubemap, sampler_SSCubemap, reflDir, _SSCubeLOD);
   //our emission map
   half2 uv = round(GLOBAL_uv * _SSSubPixel_ST.xy) / _SSSubPixel_ST.xy;
@@ -91,7 +92,7 @@ void BlockFaderFragemtn() {
   half backlight = dot(rgbpixel, 0.5);
   backlight *= 0.005;
 
-  //sample the main textures color channels to derive how strong any given subpixel should be, 
+  //sample the main textures color channels to derive how strong any given subpixel should be,
   //and then adjust the intensity of the subpixel by the color correction values
   half pixelR = ((_RedScale + rgbpixel.r) * rgbpixel.r) * e.r;
   half pixelG = ((_GreenScale + rgbpixel.g) * rgbpixel.g) * e.g;
@@ -111,10 +112,10 @@ void BlockFaderFragemtn() {
   //return all of our pixel values in a half3
   half3 pixelValue = half3(pixelR, pixelG, pixelB);
 
-  //do the color shift at large viewing angles, shifting to whatever color we want, based on 
+  //do the color shift at large viewing angles, shifting to whatever color we want, based on
   //1 - the dot product of the viewdir and the normals, multiplied, to make the dot larger.
   //i'm sure there's a more accurate way to handle this.
-  half3 screenCol = lerp(pixelValue, half4(0,0,0,1), max(0, (1-vdn * 1.2)));
+  half3 screenCol = lerp(pixelValue, half4(0, 0, 0, 1), max(0, (1 - vdn * 1.2)));
   
   o.Emission = screenCol * _EmissionBoost;
 }

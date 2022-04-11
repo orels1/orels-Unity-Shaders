@@ -1,7 +1,4 @@
-Tags
-{
-    #K#SHADER_TAGS
-}
+Tags { #K#SHADER_TAGS }
 
 ZTest[_ZTest]
 ZWrite[_ZWrite]
@@ -9,115 +6,113 @@ Cull[_CullMode]
 
 Pass
 {
-    Tags 
-    {
-        "LightMode" = "ForwardBase" #K#PASS_TAGS
-    }
-    #K#PASS_MODS
+  Tags { "LightMode" = "ForwardBase" #K#PASS_TAGS }
+  #K#PASS_MODS
 
-    // ForwardBase Pass Start
-    CGPROGRAM
-    #pragma target 4.5
-    #pragma multi_compile_instancing
-    #pragma multi_compile_fwdbase
-    #pragma multi_compile_fog
-    #pragma vertex Vertex
-    #pragma fragment Fragment
-    #K#SHADER_FEATURES
+  // ForwardBase Pass Start
+  CGPROGRAM
+  #pragma target 4.5
+  #pragma multi_compile_instancing
+  #pragma multi_compile_fwdbase
+  #pragma multi_compile_fog
+  #pragma vertex Vertex
+  #pragma fragment Fragment
+  #K#SHADER_FEATURES
 
-    #define UNITY_INSTANCED_LOD_FADE
-    #define UNITY_INSTANCED_SH
-    #define UNITY_INSTANCED_LIGHTMAPSTS
+  #define UNITY_INSTANCED_LOD_FADE
+  #define UNITY_INSTANCED_SH
+  #define UNITY_INSTANCED_LIGHTMAPSTS
 
-    #ifndef UNITY_PASS_FORWARDBASE
-        #define UNITY_PASS_FORWARDBASE
+  #ifndef UNITY_PASS_FORWARDBASE
+    #define UNITY_PASS_FORWARDBASE
+  #endif
+
+  #include "UnityStandardUtils.cginc"
+  #include "Lighting.cginc"
+  #include "AutoLight.cginc"
+
+  #K#SHADER_DEFINES
+
+  #K#SAMPLING_LIB
+
+  #K#VERTEX_DATA_STRUCT
+  #K#FRAGMENT_DATA_STRUCT
+  #K#MESH_DATA_STRUCT
+  #K#SURFACE_DATA_STRUCT
+  
+  FragmentData FragData;
+  SurfaceData o;
+  MeshData d;
+  VertexData vD;
+  float4 FinalColor;
+  
+  #K#LIBRARY_FUNCTIONS
+
+  #if defined(NEED_DEPTH)
+    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+  #endif
+  
+  #K#DEFAULT_VARIABLES
+  
+  #K#DEFAULT_CODE
+  #K#VERTEX_CODE
+  #K#FRAGMENT_CODE
+  #K#COLOR_CODE
+  
+  // ForwardBase Vertex
+  FragmentData Vertex(VertexData v)
+  {
+    UNITY_SETUP_INSTANCE_ID(v);
+    FragmentData i;
+    UNITY_INITIALIZE_OUTPUT(FragmentData, i);
+    UNITY_TRANSFER_INSTANCE_ID(v, i);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
+
+    vD = v;
+    FragData = i;
+    #K#VERTEX_FUNCTION
+    i = FragData;
+    v = vD;
+    #K#VERTEX_BASE
+    
+    return i;
+  }
+  
+  // ForwardBase Fragment
+  half4 Fragment(FragmentData i) : SV_TARGET
+  {
+    UNITY_SETUP_INSTANCE_ID(i);
+    #if defined(NEED_FOG)
+      #ifdef FOG_COMBINED_WITH_TSPACE
+        UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+      #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+        UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+      #else
+        UNITY_EXTRACT_FOG(i);
+      #endif
     #endif
 
-    #include "UnityStandardUtils.cginc"
-    #include "Lighting.cginc"
-    #include "AutoLight.cginc"
-
-    #K#SHADER_DEFINES
-
-    #K#SAMPLING_LIB
-
-    #K#VERTEX_DATA_STRUCT
-    #K#FRAGMENT_DATA_STRUCT
-    #K#MESH_DATA_STRUCT
-    #K#SURFACE_DATA_STRUCT
+    FragData = i;
+    o = (SurfaceData) 0;
+    d = CreateMeshData(i);
+    o.Albedo = half3(0.5, 0.5, 0.5);
+    o.Alpha = 1;
     
-    FragmentData FragData;
-    SurfaceData o;
-    MeshData d;
-    VertexData vD;
-    float4 FinalColor;
-    
-    #K#LIBRARY_FUNCTIONS
+    #K#FRAGMENT_FUNCTION
 
-    #if defined(NEED_DEPTH)
-      UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+    FinalColor = half4(o.Albedo, o.Alpha);
+
+    #K#FINAL_COLOR_MOD
+
+    // fog is optional for VFX, default is OFF
+    #ifdef NEED_FOG
+      UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
     #endif
     
-    #K#DEFAULT_VARIABLES
-    
-    #K#DEFAULT_CODE
-    #K#VERTEX_CODE
-    #K#FRAGMENT_CODE
-    #K#COLOR_CODE
-    
-    // ForwardBase Vertex
-    FragmentData Vertex (VertexData v)
-    {
-        UNITY_SETUP_INSTANCE_ID(v);
-        FragmentData i;
-        UNITY_INITIALIZE_OUTPUT(FragmentData, i);
-        UNITY_TRANSFER_INSTANCE_ID(v, i);
-        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
+    return FinalColor;
+  }
 
-        vD = v;
-        FragData = i;
-        #K#VERTEX_FUNCTION
-        i = FragData;
-        v = vD;
-        #K#VERTEX_BASE
-        
-        return i;
-    }
-    
-    // ForwardBase Fragment
-    half4 Fragment (FragmentData i) : SV_TARGET
-    {	
-        UNITY_SETUP_INSTANCE_ID(i);
-        #if defined(NEED_FOG)
-          #ifdef FOG_COMBINED_WITH_TSPACE
-          UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-          #elif defined (FOG_COMBINED_WITH_WORLD_POS)
-          UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
-          #else
-          UNITY_EXTRACT_FOG(i);
-          #endif
-        #endif
+  ENDCG
+  // ForwardBase Pass End
 
-        FragData = i;
-        o = (SurfaceData) 0;
-        d = CreateMeshData(i);
-        o.Albedo = half3(0.5,0.5,0.5);
-        o.Alpha = 1;
-        
-        #K#FRAGMENT_FUNCTION
-
-        FinalColor = half4(o.Albedo, o.Alpha);
-
-        #K#FINAL_COLOR_MOD
-
-        // fog is optional for VFX, default is OFF
-        #ifdef NEED_FOG
-          UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
-        #endif
-        
-        return FinalColor;
-    }
-
-    ENDCG
-    // ForwardBase Pass End
 }

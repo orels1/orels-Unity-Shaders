@@ -15,27 +15,27 @@
 
 #T#VertexFunction
 #if defined(UNITY_PASS_SHADOWCASTER)
-  i.worldNormal= UnityObjectToWorldNormal(v.normal);
-  i.worldPos   = mul(unity_ObjectToWorld, v.vertex);		
-  i.uv0        = v.uv0;
-  i.uv1        = v.uv1;
-  i.uv2        = v.uv2;
-  i.uv3        = v.uv3;
+  i.worldNormal = UnityObjectToWorldNormal(v.normal);
+  i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+  i.uv0 = v.uv0;
+  i.uv1 = v.uv1;
+  i.uv2 = v.uv2;
+  i.uv3 = v.uv3;
   i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
   i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
 #else
   #if defined(UNITY_PASS_META)
     i.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
   #else
-    i.pos        = UnityObjectToClipPos(v.vertex);
+    i.pos = UnityObjectToClipPos(v.vertex);
   #endif
-  i.normal     = v.normal;
-  i.worldNormal= UnityObjectToWorldNormal(v.normal);
-  i.worldPos   = mul(unity_ObjectToWorld, v.vertex);		
-  i.uv0        = v.uv0;
-  i.uv1        = v.uv1;
-  i.uv2        = v.uv2;
-  i.uv3        = v.uv3;
+  i.normal = v.normal;
+  i.worldNormal = UnityObjectToWorldNormal(v.normal);
+  i.worldPos = mul(unity_ObjectToWorld, v.vertex);
+  i.uv0 = v.uv0;
+  i.uv1 = v.uv1;
+  i.uv2 = v.uv2;
+  i.uv3 = v.uv3;
   i.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
   i.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
   i.vertexColor = v.color;
@@ -65,20 +65,21 @@
     #if !defined(UNITY_PASS_FORWARDADD)
       // unity does some funky stuff for different platforms with these macros
       #ifdef FOG_COMBINED_WITH_TSPACE
-        UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i,i.pos);
-      #elif defined (FOG_COMBINED_WITH_WORLD_POS)
-        UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i,i.pos);
+        UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i, i.pos);
+      #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+        UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i, i.pos);
       #else
-        UNITY_TRANSFER_FOG(i,i.pos);
+        UNITY_TRANSFER_FOG(i, i.pos);
       #endif
     #else
-      UNITY_TRANSFER_FOG(i,i.pos);
+      UNITY_TRANSFER_FOG(i, i.pos);
     #endif
   #endif
 #endif
 
 #T#LightingBase
-void ORLLighting() {
+void ORLLighting()
+{
   half reflectance = 0.5;
   half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
   half3 pixelLight = 0;
@@ -98,7 +99,7 @@ void ORLLighting() {
   #if defined(GSAA)
     perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness, _GSAAVariance, _GSAAThreshold);
   #endif
-      
+  
   UNITY_LIGHT_ATTENUATION(lightAttenuation, FragData, d.worldSpacePosition);
   half3 lightColor = lightAttenuation * _LightColor0.rgb;
   
@@ -126,9 +127,9 @@ void ORLLighting() {
       half3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize));
       half3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize));
       
-      lightMap = saturate(dot(rnmBasis0, tangentNormal)) *  rnm0 + 
-                  saturate(dot(rnmBasis1, tangentNormal)) *  rnm1 +
-                  saturate(dot(rnmBasis2, tangentNormal)) *  rnm2;
+      lightMap = saturate(dot(rnmBasis0, tangentNormal)) * rnm0 +
+      saturate(dot(rnmBasis1, tangentNormal)) * rnm1 +
+      saturate(dot(rnmBasis2, tangentNormal)) * rnm2;
     #endif
     
     // BAKERY SH MODE (these are also used for the specular)
@@ -154,37 +155,39 @@ void ORLLighting() {
         half regularLumaSH = dot(lightMap, 1.0);
         lightMap *= lerp(1.0, lumaSH / regularLumaSH, saturate(regularLumaSH * 16.0));
       #else
-      lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+        lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
       #endif
       
     #endif
     
     #if defined(DIRLIGHTMAP_COMBINED)
-        half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
-        lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
+      half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
+      lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
     #endif
     
     #if defined(DYNAMICLIGHTMAP_ON) && !defined(UNITY_PBS_USE_BRDF2)
-        half3 realtimeLightMap = getRealtimeLightmap(FragData.lightmapUv.zw, o.Normal);
-        lightMap += realtimeLightMap; 
+      half3 realtimeLightMap = getRealtimeLightmap(FragData.lightmapUv.zw, o.Normal);
+      lightMap += realtimeLightMap;
     #endif
     
     #if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
-        pixelLight = 0;
-        lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap (lightMap, lightAttenuation, bakedColorTex, o.Normal);
+      pixelLight = 0;
+      lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap(lightMap, lightAttenuation, bakedColorTex, o.Normal);
     #endif
     indirectDiffuse = lightMap;
   #else
     #if UNITY_LIGHT_PROBE_PROXY_VOLUME
       UNITY_BRANCH
-      if (unity_ProbeVolumeParams.x == 1) {
+      if (unity_ProbeVolumeParams.x == 1)
+      {
         indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), FragData.worldPos);
       }
-      else {
+      else
+      {
     #endif
-        indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
+    indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
     #if UNITY_LIGHT_PROBE_PROXY_VOLUME
-      }
+    }
     #endif
   #endif
   
@@ -207,33 +210,33 @@ void ORLLighting() {
     half V = V_SmithGGXCorrelated(NoV, lightNoL, clampedRoughness);
     
     F *= energyCompensation;
-        
+    
     directSpecular = max(0, D * V * F) * pixelLight * UNITY_PI;
   #endif
 
   // BAKED SPECULAR
   #if defined(BAKED_SPECULAR) && !defined(BAKERYLM_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
-  {
-    half3 bakedDominantDirection = 1;
-    half3 bakedSpecularColor = 0;
-    
-    // only do it if we have a directional lightmap
-    #if defined(DIRLIGHTMAP_COMBINED) && defined(LIGHTMAP_ON)
-      bakedDominantDirection = (lightMapDirection.xyz) * 2 - 1;
-      half directionality = max(0.001, length(bakedDominantDirection));
-      bakedDominantDirection /= directionality;
-      bakedSpecularColor = indirectDiffuse;
-    #endif
-    
-    // if we do not have lightmap - derive the specular from probes
-    //#ifndef LIGHTMAP_ON
+    {
+      half3 bakedDominantDirection = 1;
+      half3 bakedSpecularColor = 0;
+      
+      // only do it if we have a directional lightmap
+      #if defined(DIRLIGHTMAP_COMBINED) && defined(LIGHTMAP_ON)
+        bakedDominantDirection = (lightMapDirection.xyz) * 2 - 1;
+        half directionality = max(0.001, length(bakedDominantDirection));
+        bakedDominantDirection /= directionality;
+        bakedSpecularColor = indirectDiffuse;
+      #endif
+      
+      // if we do not have lightmap - derive the specular from probes
+      //#ifndef LIGHTMAP_ON
       //bakedSpecularColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
       //bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
-    // #endif
-    
-    bakedDominantDirection = normalize(bakedDominantDirection);
-    directSpecular += GetSpecularHighlights(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
-  }
+      // #endif
+      
+      bakedDominantDirection = normalize(bakedDominantDirection);
+      directSpecular += GetSpecularHighlights(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+    }
   #endif
   
   half3 fresnel = F_Schlick(NoV, f0);
@@ -241,33 +244,33 @@ void ORLLighting() {
   // BAKERY DIRECT SPECULAR
   #if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
     #if defined(BAKERY_RNM)
-    {
-      half3 viewDirTangent = -normalize(d.tangentSpaceViewDir);
-      half3 dominantDirTangent = rnmBasis0 * dot(rnm0, lumaConv) +
-                                  rnmBasis1 * dot(rnm1, lumaConv) +
-                                  rnmBasis2 * dot(rnm2, lumaConv);
-                                  
-      half3 dominantDirTangentNormalized = normalize(dominantDirTangent);
-      half3 specColor = saturate(dot(rnmBasis0, dominantDirTangentNormalized)) * rnm0 +
-                        saturate(dot(rnmBasis1, dominantDirTangentNormalized)) * rnm1 +
-                        saturate(dot(rnmBasis2, dominantDirTangentNormalized)) * rnm2;
-      half3 halfDir = Unity_SafeNormalize(dominantDirTangentNormalized - viewDirTangent);
-      half NoH = saturate(dot(tangentNormal, halfDir));
-      half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
-      directSpecular += spec * specColor * fresnel;
-    }
+      {
+        half3 viewDirTangent = -normalize(d.tangentSpaceViewDir);
+        half3 dominantDirTangent = rnmBasis0 * dot(rnm0, lumaConv) +
+        rnmBasis1 * dot(rnm1, lumaConv) +
+        rnmBasis2 * dot(rnm2, lumaConv);
+        
+        half3 dominantDirTangentNormalized = normalize(dominantDirTangent);
+        half3 specColor = saturate(dot(rnmBasis0, dominantDirTangentNormalized)) * rnm0 +
+        saturate(dot(rnmBasis1, dominantDirTangentNormalized)) * rnm1 +
+        saturate(dot(rnmBasis2, dominantDirTangentNormalized)) * rnm2;
+        half3 halfDir = Unity_SafeNormalize(dominantDirTangentNormalized - viewDirTangent);
+        half NoH = saturate(dot(tangentNormal, halfDir));
+        half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+        directSpecular += spec * specColor * fresnel;
+      }
     #endif
     
     #if defined(BAKERY_SH)
-    {
-      half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
-      half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + d.worldSpaceViewDir);
-      half NoH = saturate(dot(o.Normal, halfDir));
-      half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
-      half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
-      dominantDir = normalize(dominantDir);
-      directSpecular += max(spec * sh, 0.0) * fresnel;
-    }
+      {
+        half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
+        half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + d.worldSpaceViewDir);
+        half NoH = saturate(dot(o.Normal, halfDir));
+        half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+        half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
+        dominantDir = normalize(dominantDir);
+        directSpecular += max(spec * sh, 0.0) * fresnel;
+      }
     #endif
   #endif
   
@@ -285,7 +288,8 @@ void ORLLighting() {
     
     #if defined(UNITY_SPECCUBE_BLENDING)
       UNITY_BRANCH
-      if (unity_SpecCube0_BoxMin.w < 0.99999) {
+      if (unity_SpecCube0_BoxMin.w < 0.99999)
+      {
         envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
         half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
         indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
@@ -295,14 +299,14 @@ void ORLLighting() {
     half horizon = min(1 + dot(reflDir, o.Normal), 1);
     dfg.x *= saturate(pow(dot(indirectDiffuse, 1), _SpecOcclusion));
     indirectSpecular = indirectSpecular * horizon * horizon * energyCompensation * EnvBRDFMultiscatter(dfg, f0);
-  
+    
     #if defined(_MASKMAP_SAMPLED)
       indirectSpecular *= computeSpecularAO(NoV, o.Occlusion, perceptualRoughness * perceptualRoughness);
     #endif
   #endif
-    
+  
   #if defined(_INTEGRATE_CUSTOMGI) && !defined(UNITY_PASS_FORWARDADD)
-    IntegrateCustomGI(d, o, indirectSpecular, indirectDiffuse); 
+    IntegrateCustomGI(d, o, indirectSpecular, indirectDiffuse);
   #endif
   
   // FINAL COLOR
