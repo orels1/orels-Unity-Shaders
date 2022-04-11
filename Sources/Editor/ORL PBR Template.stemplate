@@ -84,7 +84,7 @@ Pass
         UNITY_SETUP_INSTANCE_ID(i);
         #ifdef FOG_COMBINED_WITH_TSPACE
         UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-        #elif defined FOG_COMBINED_WITH_WORLD_POS
+        #elif defined (FOG_COMBINED_WITH_WORLD_POS)
         UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
         #else
         UNITY_EXTRACT_FOG(i);
@@ -192,7 +192,7 @@ Pass
         UNITY_SETUP_INSTANCE_ID(i);
         #ifdef FOG_COMBINED_WITH_TSPACE
         UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-        #elif defined FOG_COMBINED_WITH_WORLD_POS
+        #elif defined (FOG_COMBINED_WITH_WORLD_POS)
         UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
         #else
         UNITY_EXTRACT_FOG(i);

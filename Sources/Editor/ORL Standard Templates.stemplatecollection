@@ -66,7 +66,7 @@
       // unity does some funky stuff for different platforms with these macros
       #ifdef FOG_COMBINED_WITH_TSPACE
         UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i,i.pos);
-      #elif defined FOG_COMBINED_WITH_WORLD_POS
+      #elif defined (FOG_COMBINED_WITH_WORLD_POS)
         UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i,i.pos);
       #else
         UNITY_TRANSFER_FOG(i,i.pos);
