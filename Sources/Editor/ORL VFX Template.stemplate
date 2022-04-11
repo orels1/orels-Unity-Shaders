@@ -40,7 +40,6 @@ Pass
     #K#SHADER_DEFINES
 
     #K#SAMPLING_LIB
-    #K#LIBRARY_FUNCTIONS
 
     #K#VERTEX_DATA_STRUCT
     #K#FRAGMENT_DATA_STRUCT
@@ -52,6 +51,8 @@ Pass
     MeshData d;
     VertexData vD;
     float4 FinalColor;
+    
+    #K#LIBRARY_FUNCTIONS
 
     #if defined(NEED_DEPTH)
       UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);

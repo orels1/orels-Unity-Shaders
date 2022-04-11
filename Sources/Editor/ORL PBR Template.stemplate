@@ -40,7 +40,6 @@ Pass
     #K#SHADER_DEFINES
 
     #K#SAMPLING_LIB
-    #K#LIBRARY_FUNCTIONS
 
     #K#VERTEX_DATA_STRUCT
     #K#FRAGMENT_DATA_STRUCT
@@ -52,6 +51,8 @@ Pass
     MeshData d;
     VertexData vD;
     float4 FinalColor;
+
+    #K#LIBRARY_FUNCTIONS
     
     #K#DEFAULT_VARIABLES
     
@@ -147,7 +148,6 @@ Pass
     #K#SHADER_DEFINES
 
     #K#SAMPLING_LIB
-    #K#LIBRARY_FUNCTIONS
 
     #K#VERTEX_DATA_STRUCT
     #K#FRAGMENT_DATA_STRUCT
@@ -159,6 +159,8 @@ Pass
     MeshData d;
     VertexData vD;
     float4 FinalColor;
+
+    #K#LIBRARY_FUNCTIONS
     
     #K#DEFAULT_VARIABLES
     
@@ -255,7 +257,6 @@ Pass
     #K#SHADER_DEFINES
 
     #K#SAMPLING_LIB
-    #K#LIBRARY_FUNCTIONS
 
     #K#VERTEX_DATA_STRUCT
     #K#FRAGMENT_DATA_STRUCT
@@ -267,6 +268,8 @@ Pass
     MeshData d;
     VertexData vD;
     float4 FinalColor;
+
+    #K#LIBRARY_FUNCTIONS
     
     #K#DEFAULT_VARIABLES
     
@@ -363,7 +366,6 @@ Pass
     #K#SHADER_DEFINES
 
     #K#SAMPLING_LIB
-    #K#LIBRARY_FUNCTIONS
 
     #K#VERTEX_DATA_STRUCT
     #K#FRAGMENT_DATA_STRUCT
@@ -373,6 +375,8 @@ Pass
     FragmentData FragData;
     MeshData d;
     VertexData vD;
+    
+    #K#LIBRARY_FUNCTIONS
     
     #K#DEFAULT_VARIABLES
     
