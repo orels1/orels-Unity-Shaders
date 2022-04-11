@@ -545,7 +545,7 @@ namespace ORL
           prop.Description = descMatch.Value;
         }
         // Type
-        var typeMatch = Regex.Match(line, "(?<=\",)(?:\\s*)([\\w\\d\\s(),]+)(?=\\))");
+        var typeMatch = Regex.Match(line, "(?<=\",)(?:\\s*)([\\w\\d\\s(),\\.]+)(?=\\))");
         if (typeMatch.Success)
         {
           prop.Type = typeMatch.Value.Trim();
