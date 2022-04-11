@@ -1,0 +1,49 @@
+#S#Settings
+Name "orels1/VFX/Block Fader"
+Author "orels1"
+Version "5.0.0"
+Template "ORL PBR Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#T#ShaderTags
+"Queue"="Transparent" "RenderType"="Transparent"
+
+#T#PassModifications
+Blend SrcAlpha OneMinusSrcAlpha
+
+#S#Includes
+"ORL Utility Functions.asset"
+"ORL Standard.orlshader"
+"self"
+"ORL PBR Module.asset"
+
+#S#Properties
+[ToggleUI]UI_FaderHeader("# Block Fader", Int) = 0
+_Progress("Progress", Range(0, 1.1)) = 0
+_FaderColumns("Fader Columns", Int) = 10
+[ToggleUI]_FaderRemap("Enable Fader Remapping", Int) = 0
+[ToggleUI]_FaderRemapDrawer("!DRAWER MultiProperty _FaderRemapMin _FaderRemapMax [_FaderRemap]", Int) = 0
+_FaderRemapMin("Min", Float) = 0.15
+_FaderRemapMax("Max", Float) = 0.95
+
+#S#FragmentVariables
+half _Progress;
+int _FaderColumns;
+int _FaderRemap;
+half _FaderRemapMin;
+half _FaderRemapMax;
+
+#T#FragmentFunction
+void BlockFaderFragemtn() {
+  half columns = _FaderColumns;
+  if (_FaderRemap) {
+    _Progress = clamp(remap(_Progress, _FaderRemapMin, _FaderRemapMax, 0, 1.1), 0, 1.1);
+  }
+  _Progress = 1.1 - _Progress;
+  half mask = trunc(d.uv0.x * columns) / columns;
+  mask = saturate(smoothstep(_Progress, _Progress - 1 / columns, mask));
+  o.Alpha = mask;
+  if (mask < 0.000001) {
+    clip(-1);
+  }
+}
