@@ -95,7 +95,7 @@ half remap(half s, half a1, half a2, half b1, half b2)
 
 half3 ApplyLut2D(Texture2D LUT2D, SamplerState lutSampler, half3 uvw)
 {
-  half3 scaleOffset = (1 / 1024.0, 1 / 32.0, 31.0);
+  half3 scaleOffset = half3(1.0 / 1024.0, 1.0 / 32.0, 31.0);
   // Strip format where `height = sqrt(width)`
   uvw.z *= scaleOffset.z;
   half shift = floor(uvw.z);

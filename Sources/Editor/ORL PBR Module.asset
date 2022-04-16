@@ -132,6 +132,38 @@ MonoBehaviour:
     DefaultTextureAsset: {fileID: 0}
     Attributes:
     - Toggle(BAKED_SPECULAR)
+  - Name: UI_BakeryHeader
+    DisplayName: '## Bakery Features'
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a,
+      type: 3}
+    Attributes:
+    - ToggleUI
+  - Name: _BakeryEnabled
+    DisplayName: Enable Bakery Features
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a,
+      type: 3}
+    Attributes:
+    - Toggle(BAKERY_ENABLED)
+  - Name: BAKERY
+    DisplayName: Bakery Mode
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a,
+      type: 3}
+    Attributes:
+    - KeywordEnum(None, SH, RNM)
+  - Name: _BakerySHNonLinear
+    DisplayName: Bakery Non-Linear SH [BAKERY_ENABLED]
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a,
+      type: 3}
+    Attributes:
+    - Toggle(BAKERY_SHNONLINEAR)
   - Name: UI_InternalsHeader
     DisplayName: '# Internal'
     Type: Int
@@ -148,6 +180,24 @@ MonoBehaviour:
       type: 3}
     Attributes:
     - NonModifiableTextureData
+  - Name: _RNM0
+    DisplayName: RNM0 &
+    Type: 2D
+    DefaultValue: '"black" {}'
+    DefaultTextureAsset: {fileID: 0}
+    Attributes: []
+  - Name: _RNM1
+    DisplayName: RNM1 &
+    Type: 2D
+    DefaultValue: '"black" {}'
+    DefaultTextureAsset: {fileID: 0}
+    Attributes: []
+  - Name: _RNM2
+    DisplayName: RNM2 &
+    Type: 2D
+    DefaultValue: '"black" {}'
+    DefaultTextureAsset: {fileID: 0}
+    Attributes: []
   ModuleDependencies: []
   IncompatibleWith: []
   Templates:
@@ -174,7 +224,7 @@ MonoBehaviour:
     Keywords:
     - SURFACE_DATA_STRUCT
     NeedsVariant: 0
-    Queue: 10
+    Queue: 0
   - Template: {fileID: -544282384758852595, guid: 81007e1598f664b7b91bb9baf4b1bcde,
       type: 3}
     Keywords:
@@ -203,6 +253,12 @@ MonoBehaviour:
       type: 3}
     Keywords:
     - SHADER_DEFINES
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -544282384758852595, guid: 89f58f23addd2af488e887784899656d,
+      type: 3}
+    Keywords:
+    - LIBRARY_FUNCTIONS
     NeedsVariant: 0
     Queue: 0
   Functions:

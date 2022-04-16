@@ -4,12 +4,40 @@
 #pragma shader_feature_local GSAA
 #pragma shader_feature_local FORCE_BOX_PROJECTION
 
+// Bakery Stuff
+#pragma shader_feature_local BAKERY_ENABLED
+#pragma shader_feature_local _ BAKERY_RNM BAKERY_SH
+#pragma shader_feature_local BAKERY_SHNONLINEAR
+
 #T#ShaderDefines
 #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
   #define PLAT_QUEST
 #else
   #ifdef PLAT_QUEST
     #undef PLAT_QUEST
+  #endif
+#endif
+
+#if !defined(LIGHTMAP_ON) || !defined(UNITY_PASS_FORWARDBASE)
+  #undef BAKERY_SH
+  #undef BAKERY_RNM
+#endif
+
+#ifdef LIGHTMAP_ON
+  #undef BAKERY_VOLUME
+#endif
+
+#ifdef LIGHTMAP_ON
+  #if defined(BAKERY_RNM) || defined(BAKERY_SH) || defined(BAKERY_VERTEXLM)
+    #define BAKERYLM_ENABLED
+    #undef DIRLIGHTMAP_COMBINED
+  #endif
+#endif
+
+#if defined(BAKERY_SH) || defined(BAKERY_RNM) || defined(BAKERY_VOLUME)
+  #ifdef BAKED_SPECULAR
+    #define _BAKERY_LMSPEC
+    #define BAKERY_LMSPEC
   #endif
 #endif
 
@@ -88,6 +116,7 @@ void ORLLighting()
   half3 directSpecular = 0;
   half occlusion = o.Occlusion;
   half perceptualRoughness = 1 - o.Smoothness;
+  half3 tangentNormal = o.Normal;
   o.Normal = normalize(mul(o.Normal, d.TBNMatrix));
 
   #ifndef USING_DIRECTIONAL_LIGHT
