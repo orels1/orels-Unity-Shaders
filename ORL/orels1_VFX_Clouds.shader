@@ -78,6 +78,29 @@ Shader "orels1/VFX/Clouds"
 		#endif
 		#endif
 		
+		#if !defined(LIGHTMAP_ON) || !defined(UNITY_PASS_FORWARDBASE)
+		#undef BAKERY_SH
+		#undef BAKERY_RNM
+		#endif
+		
+		#ifdef LIGHTMAP_ON
+		#undef BAKERY_VOLUME
+		#endif
+		
+		#ifdef LIGHTMAP_ON
+		#if defined(BAKERY_RNM) || defined(BAKERY_SH) || defined(BAKERY_VERTEXLM)
+		#define BAKERYLM_ENABLED
+		#undef DIRLIGHTMAP_COMBINED
+		#endif
+		#endif
+		
+		#if defined(BAKERY_SH) || defined(BAKERY_RNM) || defined(BAKERY_VOLUME)
+		#ifdef BAKED_SPECULAR
+		#define _BAKERY_LMSPEC
+		#define BAKERY_LMSPEC
+		#endif
+		#endif
+		
 		// Credit to Jason Booth for digging this all up
 		// This originally comes from CoreRP, see Jason's comment below
 		
@@ -1388,7 +1411,7 @@ Shader "orels1/VFX/Clouds"
 		
 		half3 ApplyLut2D(Texture2D LUT2D, SamplerState lutSampler, half3 uvw)
 		{
-			half3 scaleOffset = (1 / 1024.0, 1 / 32.0, 31.0);
+			half3 scaleOffset = half3(1.0 / 1024.0, 1.0 / 32.0, 31.0);
 			// Strip format where `height = sqrt(width)`
 			uvw.z *= scaleOffset.z;
 			half shift = floor(uvw.z);
