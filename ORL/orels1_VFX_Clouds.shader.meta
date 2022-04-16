@@ -1,9 +1,10 @@
 fileFormatVersion: 2
-guid: 50ea3af66c86f4b73a5afaeaf5a8b37a
+guid: 5f69cf125658cc046a729a5a5b4b9a11
 ShaderImporter:
   externalObjects: {}
   defaultTextures: []
-  nonModifiableTextures: []
+  nonModifiableTextures:
+  - _BakedNoiseTex: {fileID: 2800000, guid: cd53f97c747284367a8d878c95cf02ba, type: 3}
   userData: 
   assetBundleName: 
   assetBundleVariant: 

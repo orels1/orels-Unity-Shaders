@@ -1,4 +1,4 @@
-Shader "orels1/Standard Neon"
+Shader "orels1/Standard Neon Light"
 {
 	Properties
 	{
