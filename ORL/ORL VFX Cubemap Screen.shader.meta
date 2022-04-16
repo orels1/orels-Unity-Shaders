@@ -3,7 +3,17 @@ guid: 307b9906231b0784884d4b52416215a8
 ShaderImporter:
   externalObjects: {}
   defaultTextures:
-  - _DFG: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a, type: 3}
+  - _MainTex: {instanceID: 0}
+  - _MaskMap: {instanceID: 0}
+  - _BumpMap: {instanceID: 0}
+  - _EmissionMap: {instanceID: 0}
+  - _DDetailsMap: {instanceID: 0}
+  - _DDetailsNormal: {instanceID: 0}
+  - _SSCubemap: {instanceID: 0}
+  - _SSSubPixel: {fileID: 2800000, guid: df80f19031d0042bda78e0ac1a477805, type: 3}
+  - _RNM0: {instanceID: 0}
+  - _RNM1: {instanceID: 0}
+  - _RNM2: {instanceID: 0}
   nonModifiableTextures:
   - _DFG: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a, type: 3}
   userData: 

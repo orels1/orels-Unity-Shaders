@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using ORL.OdinSerializer.Utilities;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
@@ -59,6 +57,7 @@ namespace ORL
                 case "#S#FragmentVariables": type = "fragVars"; break;
                 case "#S#VertexVariables": type = "vertVars"; break;
                 case "#S#ColorVariables": type = "colorVars"; break;
+                case "#S#ShadowVariables": type = "shadowVars"; break;
               }
             }
 
@@ -374,6 +373,69 @@ namespace ORL
         });
       }
 
+      if (!string.IsNullOrEmpty(subAsset.ShadowFunction))
+      {
+        module.Functions.Add(new ShaderFunction
+        {
+          AppendAfter = "#K#SHADOW_FUNCTION",
+          CodeKeywords = new List<string>() { "SHADOW_CODE" },
+          Name = subAsset.ShadowFunction,
+          Queue = (short)subAsset.ShadowQueue,
+          ShaderFunctionCode = subAsset.Templates.Find(template => template.name == "ShadowFunction"),
+          UsedVariables = subAsset.ShadowVariables.Select(variable =>
+          {
+            var converted = new Variable()
+            {
+              Name = variable.Name
+            };
+            if (variable.Type == "Int")
+            {
+              converted.Type = VariableType.Custom;
+              converted.CustomType = variable.Type;
+            }
+            else
+            {
+              switch (variable.Type)
+              {
+                case "half":
+                  converted.Type = VariableType.Half;
+                  break;
+                case "half2":
+                  converted.Type = VariableType.Half2;
+                  break;
+                case "half3":
+                  converted.Type = VariableType.Half3;
+                  break;
+                case "half4":
+                  converted.Type = VariableType.Half4;
+                  break;
+                case "float":
+                  converted.Type = VariableType.Float;
+                  break;
+                case "float2":
+                  converted.Type = VariableType.Float2;
+                  break;
+                case "float3":
+                  converted.Type = VariableType.Float3;
+                  break;
+                case "float4":
+                  converted.Type = VariableType.Float4;
+                  break;
+                case "custom":
+                  converted.Type = VariableType.Custom;
+                  break;
+                default:
+                  converted.Type = VariableType.Custom;
+                  converted.CustomType = variable.Type;
+                  break;
+              }
+            }
+
+            return converted;
+          }).ToList()
+        });
+      }
+
       var shader = ScriptableObject.CreateInstance<ModularShader>();
 
       shader.Name = subAsset.ShaderName;
@@ -448,6 +510,9 @@ namespace ORL
           break;
         case "colorVars":
           SaveColorVars(asset, builder);
+          break;
+        case "shadowVars":
+          SaveShadowVars(asset, builder);
           break;
       }
     }
@@ -659,6 +724,38 @@ namespace ORL
       asset.ColorVariables = vars;
     }
 
+    private static void SaveShadowVars(ORLShaderDefinition asset, StringBuilder builder)
+    {
+      var varLines = builder.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+      var vars = new List<ShaderVariable>();
+      foreach (var line in varLines)
+      {
+        if (line.Contains("#S#")) continue;
+        var variable = new ShaderVariable();
+        if (line.Contains("TEXTURE") || line.Contains("SAMPLER"))
+        {
+          variable.Name = line.Trim();
+          variable.Type = "custom";
+          vars.Add(variable);
+          continue;
+        }
+        var typeMatch = Regex.Match(line, "([\\w\\d]+)(?=\\s)");
+        if (typeMatch.Success)
+        {
+          variable.Type = typeMatch.Value.Trim();
+        }
+
+        var nameMatch = Regex.Match(line, "(?<=\\s)([\\w\\d]+)(?=;)");
+        if (nameMatch.Success)
+        {
+          variable.Name = nameMatch.Value.Trim();
+        }
+        vars.Add(variable);
+      }
+
+      asset.ShadowVariables = vars;
+    }
+
     private static void SaveTemplateAsset(AssetImportContext ctx, ORLShaderDefinition asset, StringBuilder builder,
       string name)
     {
@@ -685,6 +782,11 @@ namespace ORL
           if (name == "ColorFunction")
           {
             asset.ColorFunction = nameMatch.Value;
+          }
+
+          if (name == "ShadowFunction")
+          {
+            asset.ShadowFunction = nameMatch.Value;
           }
         }
       }

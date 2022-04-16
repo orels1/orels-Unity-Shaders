@@ -14,9 +14,22 @@ CustomEditor "Needle.MarkdownShaderGUI"
 [ToggleUI]UI_MainHeader("# My Awesome Settings", Int) = 0
 _Level("Level", Range(0,1)) = 0
 _Mask("Mask", 2D) = "black" {}
+_Brightness("Brightness", Range(0,2)) = 1
 
 #T#ShaderFeatures
 #pragma shader_feature_local FANCY_FEATURE
+
+#T#ShaderDefines
+#define MY_THING
+
+#T#ShaderTags
+"Queue" = "Geometry+10"
+
+#T#PassTags
+"MyTag"="MyValue"
+
+#T#PassModifiers
+Cull Off
 
 #S#FragmentVariables
 float _Level;
@@ -39,4 +52,12 @@ float _Level;
 #T#VertexFunction
 void MyVertex() {
   vD.vertex.xyz += vD.normal * _Level * 0.1;
+}
+
+#S#ColorVariables
+half _Brightness;
+
+#T#ColorFunction
+void MyColor() {
+  FinalColor.rgb *= _Brightness;
 }

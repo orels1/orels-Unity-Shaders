@@ -108,6 +108,7 @@
 #T#LightingBase
 void ORLLighting()
 {
+  #if !defined(UNITY_PASS_SHADOWCASTER)
   half reflectance = 0.5;
   half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
   half3 pixelLight = 0;
@@ -342,4 +343,5 @@ void ORLLighting()
   FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
   
   FinalColor.rgb += o.Emission;
+  #endif
 }

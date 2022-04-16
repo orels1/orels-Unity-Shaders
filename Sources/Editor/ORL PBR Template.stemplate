@@ -361,8 +361,10 @@ Pass
   #K#SURFACE_DATA_STRUCT
   
   FragmentData FragData;
+  SurfaceData o;
   MeshData d;
   VertexData vD;
+  float4 FinalColor;
   
   #K#LIBRARY_FUNCTIONS
   
@@ -370,6 +372,8 @@ Pass
   
   #K#DEFAULT_CODE
   #K#VERTEX_CODE
+  #K#FRAGMENT_CODE
+  #K#SHADOW_CODE
   
   // Shadow Vertex
   FragmentData Vertex(VertexData v)
@@ -394,6 +398,25 @@ Pass
   half4 Fragment(FragmentData i) : SV_TARGET
   {
     UNITY_SETUP_INSTANCE_ID(i);
+
+    #if defined(NEED_FRAGMENT_IN_SHADOW)
+      FragData = i;
+      o = (SurfaceData) 0;
+      d = CreateMeshData(i);
+      o.Albedo = half3(0.5, 0.5, 0.5);
+      o.Normal = half3(0, 0, 1);
+      o.Smoothness = 0.5;
+      o.Occlusion = 1;
+      o.Alpha = 1;
+      FinalColor = half4(o.Albedo, o.Alpha);
+      
+      #K#FRAGMENT_FUNCTION
+
+      #K#FINAL_COLOR_MOD
+    #endif
+
+    #K#SHADOW_FUNCTION
+
     SHADOW_CASTER_FRAGMENT(i);
   }
 

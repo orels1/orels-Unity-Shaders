@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using JetBrains.Annotations;
 using ORL.OdinSerializer;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
@@ -32,6 +31,9 @@ namespace ORL
     public List<ShaderVariable> ColorVariables;
     public string ColorFunction;
     public int ColorQueue;
+    public List<ShaderVariable> ShadowVariables;
+    public string ShadowFunction;
+    public int ShadowQueue;
 
     // this mimics TemplateAssetCollection, as we essentially build on top of it
     public List<TemplateAsset> Templates;
@@ -63,6 +65,9 @@ namespace ORL
       ColorVariables = new List<ShaderVariable>();
       ColorFunction = "";
       ColorQueue = 0;
+      ShadowVariables = new List<ShaderVariable>();
+      ShadowFunction = "";
+      ShadowQueue = 0;
       Templates = new List<TemplateAsset>();
     }
 
@@ -117,6 +122,7 @@ namespace ORL
     private bool vertexVarsOpen = false;
     private bool fragVarsOpen = false;
     private bool colorVarsOpen = false;
+    private bool shadowVarsOpen = false;
     public override void OnInspectorGUI()
     {
       var t = target as ORLShaderDefinition;
@@ -190,6 +196,23 @@ namespace ORL
       if (colorVarsOpen)
       {
         foreach (var prop in t.ColorVariables)
+        {
+          using (var h = new EditorGUILayout.HorizontalScope(box))
+          {
+            EditorGUILayout.LabelField(prop.Name, prop.Type);
+          }
+        }
+      }
+
+      EditorGUILayout.Space();
+      EditorGUILayout.LabelField("Shadowcaster Mods", EditorStyles.largeLabel);
+      EditorGUILayout.TextField("Shadowcaster Mod Function:", t.ShadowFunction);
+      EditorGUILayout.IntField("Shadowcaster Mod Function Queue", t.ShadowQueue);
+
+      shadowVarsOpen = EditorGUILayout.Foldout(shadowVarsOpen, "Shadowcaster Mod Function Variables");
+      if (shadowVarsOpen)
+      {
+        foreach (var prop in t.ShadowVariables)
         {
           using (var h = new EditorGUILayout.HorizontalScope(box))
           {
