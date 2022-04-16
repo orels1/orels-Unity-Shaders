@@ -1,0 +1,43 @@
+#S#Settings
+Name "orels1/Standard Cutout"
+Author "orels1"
+Version "5.0.0"
+Template "ORL PBR Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"ORL Standard.orlshader"
+"Parallax.orlshader"
+"Details.orlshader"
+"self"
+"ORL PBR Module.asset"
+
+#S#Properties
+[ToggleUI]UI_CutoutHeader("# Cutout", Int) = 0
+_Cutoff("Cutoff", Range(0, 1)) = 0.5
+[Toggle(_NATIVE_A2C)]_AlphaToMask("Alpha To Coverage (A2C)", Int) = 0
+
+#T#ShaderFeatures
+#pragma shader_feature_local _NATIVE_A2C
+
+#T#ShaderDefines
+#define NEED_FRAGMENT_IN_SHADOW
+
+#T#ShaderTags
+"Queue" = "AlphaTest" "RenderType" = "TransparentCutout"
+
+#T#PassModifiers
+AlphaToMask [_AlphaToMask]
+
+#S#FragmentVariables
+half _Cutoff;
+
+#T#FragmentFunction
+void CutoutFragment() {
+  #if !defined(_NATIVE_A2C)
+  if (o.Alpha < _Cutoff)  {
+    clip(-1);
+  }
+  #endif
+}
