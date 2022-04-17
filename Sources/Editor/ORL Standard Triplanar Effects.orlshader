@@ -8,6 +8,8 @@ CustomEditor "Needle.MarkdownShaderGUI"
 #S#Includes
 "ORL Utility Functions.asset"
 "ORL Standard.orlshader"
+"Parallax.orlshader"
+"Details.orlshader"
 "Triplanar Effects.orlshader"
 "self"
 "ORL PBR Module.asset"

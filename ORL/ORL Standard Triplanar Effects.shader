@@ -32,6 +32,35 @@ Shader "orels1/Standard Triplanar Effects"
 		[_EMISSION] _EmissionMap("Emission Map && [_EMISSION]", 2D) =  "white" { }
 		[HDR][_EMISSION] _EmissionColor("Emission Color [_EMISSION]", Color) =  (0, 0, 0, 1)
 		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_EmissionMap] _EmissionChannel("Emission Channel [_EmissionMap]", Int) =  0
+		[ToggleUI] UI_ParallaxHeader("# Parallax", Int) =  0
+		[Toggle(PARALLAX)] _EnableParallax("Enable Parallax", Int) =  0
+		[NoScaleOffset][PARALLAX] _Height("Height && [PARALLAX]", 2D) =  "black" { }
+		[PARALLAX] _HeightScale("Height Scale [PARALLAX]", Range(0, 0.1)) =  0.006
+		[PARALLAX] _HeightRefPlane("Height Ref Plane [PARALLAX]", Float) = 0.0
+		[PARALLAX] _HeightStepsMin("Steps Min [PARALLAX]", Range(8, 32)) =  8
+		[PARALLAX] _HeightStepsMax("Steps Max [PARALLAX]", Range(8, 32)) =  16
+		[ToggleUI] UI_DetailsHeader("# Details", Int) =  0
+		[Toggle(DETAILS_OVERLAY)] _DetailsOverlay("Enable Details", Int) =  0
+		[ToggleUI][DETAILS_OVERLAY] _DIgnoreMask("Ignore Mask [DETAILS_OVERLAY]", Int) =  0
+		[ToggleUI][DETAILS_OVERLAY] UI_IgnoreMaskNote("!NOTE Force-draws the detail effects [DETAILS_OVERLAY]", Int) =  0
+		[KeywordEnum(Packed, Separated)][DETAILS_OVERLAY] DETAILS_MODE("Detail Map Mode [DETAILS_OVERLAY]", Int) =  0
+		[HideInInspector] _DDetailsMap("Details Map", 2D) =  "gray" { }
+		[ToggleUI] _DDetailsMapRef1("!REF _DDetailsMap [DETAILS_OVERLAY && DETAILS_MODE_PACKED]", Int) =  0
+		[ToggleUI] UI_DetailsMapNote("!NOTE R: Albedo, G: Normal G, B: Smooth, A: Normal R. Uncheck sRGB!", Int) =  0
+		[ToggleUI] _DDetailsMapRef2("!REF _DDetailsMap [DETAILS_OVERLAY && DETAILS_MODE_SEPARATED]", Int) =  0
+		[ToggleUI] UI_DetailsMapNoteSeparate("!NOTE RGB: Albedo, A: Smooth. Uncheck sRGB!", Int) =  0
+		[NoScaleOffset] _DDetailsNormal("Details Normal Map & [DETAILS_OVERLAY && DETAILS_MODE_SEPARATED]", 2D) =  "bump" { }
+		[Enum(UV, 0, Local Space, 1, World Space, 2)][DETAILS_OVERLAY] _DMappingSpace("Mapping Space [DETAILS_OVERLAY]", Int) =  0
+		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _DUVChannel("UV Set [_DMappingSpace == 0 && DETAILS_OVERLAY]", Int) =  0
+		[ToggleUI] UI_DPlanarAxisSelector("!DRAWER MultiProperty _DPlanarAxisX _DPlanarAxisY [_DMappingSpace > 0 && DETAILS_OVERLAY]", Int) =  0
+		[Enum(X, 0, Y, 1, Z, 2)] _DPlanarAxisX("X Axis", Int) =  0
+		[Enum(X, 0, Y, 1, Z, 2)] _DPlanarAxisY("Y Axis", Int) =  2
+		[DETAILS_OVERLAY] _DAlbedoScale("Albedo Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) =  1
+		[ToggleUI][DETAILS_OVERLAY] UI_DetailAlbedoNote("!NOTE Values < 0.5 - darken, > 0.5 - lighten [DETAILS_OVERLAY]", Int) =  0
+		[DETAILS_OVERLAY] _DNormalScale("Normal Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) =  1
+		[ToggleUI][DETAILS_OVERLAY] _DNormalFlipY("Flip Y (UE Mode) [DETAILS_OVERLAY]", Int) =  0
+		[DETAILS_OVERLAY] _DSmoothScale("Smooth Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) =  1
+		[ToggleUI][DETAILS_OVERLAY] UI_DetailSmoothNote("!NOTE Values < 0.5 - roughen, > 0.5 - smoothen [DETAILS_OVERLAY]", Int) =  0
 		[ToggleUI] UI_TriplanarEffectsHeader("# Triplanar Effects (Dirt, Damage, Puddles)", Int) =  0
 		[NoScaleOffset] _TriplanarMask("Triplanar Masks &&", 2D) =  "white" { }
 		_TriplanarMaskTiling("Tiling", Float) =  50
@@ -106,6 +135,11 @@ Shader "orels1/Standard Triplanar Effects"
 			#pragma fragment Fragment
 			#pragma shader_feature_local _EMISSION
 			
+			#pragma shader_feature_local PARALLAX
+			
+			#pragma shader_feature_local DETAILS_OVERLAY
+			#pragma shader_feature_local _ DETAILS_MODE_PACKED DETAILS_MODE_SEPARATED
+			
 			#pragma shader_feature_local DIRT_MODE_NONE DIRT_MODE_LOCAL_SPACE DIRT_MODE_WORLD_SPACE
 			#pragma shader_feature_local DAMAGE_MODE_NONE DAMAGE_MODE_ENABLED
 			
@@ -134,6 +168,12 @@ Shader "orels1/Standard Triplanar Effects"
 			#define FLT_EPSILON     1.192092896e-07
 			
 			#define _MASKMAP_SAMPLED
+			
+			#define _SET_GLOBAL_UVS
+			
+			#if !defined(DETAILS_MODE_PACKED) && !defined(DETAILS_MODE_SEPARATED)
+			#define DETAILS_MODE_PACKED
+			#endif
 			
 			#if !defined(DIRT_MODE_LOCAL_SPACE) && !defined(DIRT_MODE_WORLD_SPACE)
 			#define DIRT_MODE_NONE
@@ -1658,6 +1698,16 @@ Shader "orels1/Standard Triplanar Effects"
 				return mul(finalMatrix, original) + center;
 			}
 			
+			half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
+			{
+				half3 normal;
+				normal.xy = packedNormal.ag * 2.0 - 1.0;
+				normal.z = max(1.0e-16, sqrt(1.0 - saturate(dot(normal.xy, normal.xy))));
+				
+				normal.xy *= scale;
+				return normal;
+			}
+			
 			half D_GGX(half NoH, half roughness)
 			{
 				half a = NoH * roughness;
@@ -2312,6 +2362,13 @@ Shader "orels1/Standard Triplanar Effects"
 			half _Metallic;
 			half _OcclusionStrength;
 			half _BumpScale;
+			half _HeightScale;
+			half _HeightRefPlane;
+			half _HeightStepsMin;
+			half _HeightStepsMax;
+			half _DAlbedoScale;
+			half _DNormalScale;
+			half _DSmoothScale;
 			half _TriplanarMaskTiling;
 			half _DirtMaskPower;
 			half _DirtSmooth;
@@ -2335,6 +2392,7 @@ Shader "orels1/Standard Triplanar Effects"
 			half4 _MaskMap_TexelSize;
 			half4 _EmissionColor;
 			half4 GLOBAL_maskMap;
+			half4 _DDetailsMap_ST;
 			half4 _DirtColor;
 			half4 _DamageAlbedo_TexelSize;
 			half4 _DamageColor;
@@ -2360,6 +2418,18 @@ Shader "orels1/Standard Triplanar Effects"
 			SAMPLER(sampler_BumpMap);;
 			TEXTURE2D(_EmissionMap);;
 			SAMPLER(sampler_EmissionMap);;
+			TEXTURE2D(_Height);;
+			SAMPLER(sampler_Height);;
+			int _DIgnoreMask;
+			int _DMappingSpace;
+			int _DUVChannel;
+			int _DPlanarAxisX;
+			int _DPlanarAxisY;
+			int _DNormalFlipY;
+			TEXTURE2D(_DDetailsMap);;
+			SAMPLER(sampler_DDetailsMap);;
+			TEXTURE2D(_DDetailsNormal);;
+			SAMPLER(sampler_DDetailsNormal);;
 			int _DirtPlanarMask;
 			int _DamageNormalFlipY;
 			TEXTURE2D(_TriplanarMask);;
@@ -2369,6 +2439,15 @@ Shader "orels1/Standard Triplanar Effects"
 			SAMPLER(sampler_DamageNormal);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
+			
+			void ParallaxFragment()
+			{
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#if PARALLAX && !defined(PLAT_QUEST)
+				half customHeight = 0;
+				GLOBAL_uv = POM(_Height, sampler_Height, GLOBAL_uv, ddx(GLOBAL_uv), ddy(GLOBAL_uv), d.worldNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1, 1), half2(0, 0), 0, customHeight);
+				#endif
+			}
 			
 			void BaseFragmentFunction()
 			{
@@ -2424,6 +2503,69 @@ Shader "orels1/Standard Triplanar Effects"
 				o.Alpha = albedo.a * _Color.a;
 				#if defined(_EMISSION)
 				o.Emission = emission * _EmissionColor;
+				#endif
+			}
+			
+			void DetailsFragment()
+			{
+				#if defined(DETAILS_OVERLAY)
+				half masks = 0;
+				#if defined(_MASKMAP_SAMPLED)
+				masks = GLOBAL_maskMap.b;
+				#else
+				masks = 1;
+				#endif
+				half mask = lerp(masks, 1, _DIgnoreMask);
+				half2 uv = d.uv0.xy;
+				switch(_DUVChannel)
+				{
+					case 1: uv = d.uv1.xy; break;
+					case 2: uv = d.uv2.xy; break;
+					case 3: uv = d.uv3.xy; break;
+					default: uv = d.uv0.xy; break;
+				}
+				uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
+				if (_DMappingSpace > 0)
+				{
+					uv = (_DMappingSpace - 1) ? half2(d.worldSpacePosition[_DPlanarAxisX], d.worldSpacePosition[_DPlanarAxisY]) : half2(d.localSpacePosition[_DPlanarAxisX], d.localSpacePosition[_DPlanarAxisY]);
+					uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
+				}
+				
+				half4 detailsMap = SAMPLE_TEXTURE2D(_DDetailsMap, sampler_DDetailsMap, uv);
+				
+				#if defined(DETAILS_MODE_PACKED)
+				half detailAlbedo = detailsMap.r * 2.0 - 1.0;
+				half detailSmooth = detailsMap.b * 2.0 - 1.0;
+				half3 detailNormal = 0;
+				if (_DNormalFlipY)
+				{
+					detailsMap.g = 1 - detailsMap.g;
+				}
+				detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
+				half detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+				#elif defined(DETAILS_MODE_SEPARATED)
+				half3 detailAlbedo = detailsMap.rgb * 2.0 - 1.0;
+				half detailSmooth = detailsMap.a * 2.0 - 1.0;
+				
+				half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
+				if (_DNormalFlipY)
+				{
+					packedNormal.g = 1 - packedNormal.g;
+				}
+				half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
+				
+				half3 detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+				#endif
+				
+				half3 albedoOverlay = lerp(sqrt(o.Albedo), (detailAlbedo < 0.0) ? 0.0.xxx : 1.0.xxx, detailAlbedoSpeed * detailAlbedoSpeed);
+				albedoOverlay *= albedoOverlay;
+				o.Albedo = lerp(o.Albedo, saturate(albedoOverlay), mask);
+				
+				half detailSmoothSpeed = saturate(abs(detailSmooth) * _DSmoothScale);
+				half smoothOverlay = lerp(o.Smoothness, (detailSmooth < 0.0) ? 0.0 : 1.0, detailSmoothSpeed * detailSmoothSpeed);
+				o.Smoothness = lerp(o.Smoothness, saturate(smoothOverlay), mask);
+				
+				o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);
 				#endif
 			}
 			
@@ -2509,6 +2651,7 @@ Shader "orels1/Standard Triplanar Effects"
 			
 			void ORLLighting()
 			{
+				#if !defined(UNITY_PASS_SHADOWCASTER)
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -2742,6 +2885,7 @@ Shader "orels1/Standard Triplanar Effects"
 				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
 				
 				FinalColor.rgb += o.Emission;
+				#endif
 			}
 			
 			// ForwardBase Vertex
@@ -2844,7 +2988,9 @@ Shader "orels1/Standard Triplanar Effects"
 				o.Alpha = 1;
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
+				ParallaxFragment();
 				BaseFragmentFunction();
+				DetailsFragment();
 				TriplanarFragment();
 				
 				ORLLighting();
@@ -2889,6 +3035,12 @@ Shader "orels1/Standard Triplanar Effects"
 			#define FLT_EPSILON     1.192092896e-07
 			
 			#define _MASKMAP_SAMPLED
+			
+			#define _SET_GLOBAL_UVS
+			
+			#if !defined(DETAILS_MODE_PACKED) && !defined(DETAILS_MODE_SEPARATED)
+			#define DETAILS_MODE_PACKED
+			#endif
 			
 			#if !defined(DIRT_MODE_LOCAL_SPACE) && !defined(DIRT_MODE_WORLD_SPACE)
 			#define DIRT_MODE_NONE
@@ -4413,6 +4565,16 @@ Shader "orels1/Standard Triplanar Effects"
 				return mul(finalMatrix, original) + center;
 			}
 			
+			half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
+			{
+				half3 normal;
+				normal.xy = packedNormal.ag * 2.0 - 1.0;
+				normal.z = max(1.0e-16, sqrt(1.0 - saturate(dot(normal.xy, normal.xy))));
+				
+				normal.xy *= scale;
+				return normal;
+			}
+			
 			half D_GGX(half NoH, half roughness)
 			{
 				half a = NoH * roughness;
@@ -5067,6 +5229,13 @@ Shader "orels1/Standard Triplanar Effects"
 			half _Metallic;
 			half _OcclusionStrength;
 			half _BumpScale;
+			half _HeightScale;
+			half _HeightRefPlane;
+			half _HeightStepsMin;
+			half _HeightStepsMax;
+			half _DAlbedoScale;
+			half _DNormalScale;
+			half _DSmoothScale;
 			half _TriplanarMaskTiling;
 			half _DirtMaskPower;
 			half _DirtSmooth;
@@ -5090,6 +5259,7 @@ Shader "orels1/Standard Triplanar Effects"
 			half4 _MaskMap_TexelSize;
 			half4 _EmissionColor;
 			half4 GLOBAL_maskMap;
+			half4 _DDetailsMap_ST;
 			half4 _DirtColor;
 			half4 _DamageAlbedo_TexelSize;
 			half4 _DamageColor;
@@ -5115,6 +5285,18 @@ Shader "orels1/Standard Triplanar Effects"
 			SAMPLER(sampler_BumpMap);;
 			TEXTURE2D(_EmissionMap);;
 			SAMPLER(sampler_EmissionMap);;
+			TEXTURE2D(_Height);;
+			SAMPLER(sampler_Height);;
+			int _DIgnoreMask;
+			int _DMappingSpace;
+			int _DUVChannel;
+			int _DPlanarAxisX;
+			int _DPlanarAxisY;
+			int _DNormalFlipY;
+			TEXTURE2D(_DDetailsMap);;
+			SAMPLER(sampler_DDetailsMap);;
+			TEXTURE2D(_DDetailsNormal);;
+			SAMPLER(sampler_DDetailsNormal);;
 			int _DirtPlanarMask;
 			int _DamageNormalFlipY;
 			TEXTURE2D(_TriplanarMask);;
@@ -5124,6 +5306,15 @@ Shader "orels1/Standard Triplanar Effects"
 			SAMPLER(sampler_DamageNormal);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
+			
+			void ParallaxFragment()
+			{
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#if PARALLAX && !defined(PLAT_QUEST)
+				half customHeight = 0;
+				GLOBAL_uv = POM(_Height, sampler_Height, GLOBAL_uv, ddx(GLOBAL_uv), ddy(GLOBAL_uv), d.worldNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1, 1), half2(0, 0), 0, customHeight);
+				#endif
+			}
 			
 			void BaseFragmentFunction()
 			{
@@ -5179,6 +5370,69 @@ Shader "orels1/Standard Triplanar Effects"
 				o.Alpha = albedo.a * _Color.a;
 				#if defined(_EMISSION)
 				o.Emission = emission * _EmissionColor;
+				#endif
+			}
+			
+			void DetailsFragment()
+			{
+				#if defined(DETAILS_OVERLAY)
+				half masks = 0;
+				#if defined(_MASKMAP_SAMPLED)
+				masks = GLOBAL_maskMap.b;
+				#else
+				masks = 1;
+				#endif
+				half mask = lerp(masks, 1, _DIgnoreMask);
+				half2 uv = d.uv0.xy;
+				switch(_DUVChannel)
+				{
+					case 1: uv = d.uv1.xy; break;
+					case 2: uv = d.uv2.xy; break;
+					case 3: uv = d.uv3.xy; break;
+					default: uv = d.uv0.xy; break;
+				}
+				uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
+				if (_DMappingSpace > 0)
+				{
+					uv = (_DMappingSpace - 1) ? half2(d.worldSpacePosition[_DPlanarAxisX], d.worldSpacePosition[_DPlanarAxisY]) : half2(d.localSpacePosition[_DPlanarAxisX], d.localSpacePosition[_DPlanarAxisY]);
+					uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
+				}
+				
+				half4 detailsMap = SAMPLE_TEXTURE2D(_DDetailsMap, sampler_DDetailsMap, uv);
+				
+				#if defined(DETAILS_MODE_PACKED)
+				half detailAlbedo = detailsMap.r * 2.0 - 1.0;
+				half detailSmooth = detailsMap.b * 2.0 - 1.0;
+				half3 detailNormal = 0;
+				if (_DNormalFlipY)
+				{
+					detailsMap.g = 1 - detailsMap.g;
+				}
+				detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
+				half detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+				#elif defined(DETAILS_MODE_SEPARATED)
+				half3 detailAlbedo = detailsMap.rgb * 2.0 - 1.0;
+				half detailSmooth = detailsMap.a * 2.0 - 1.0;
+				
+				half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
+				if (_DNormalFlipY)
+				{
+					packedNormal.g = 1 - packedNormal.g;
+				}
+				half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
+				
+				half3 detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+				#endif
+				
+				half3 albedoOverlay = lerp(sqrt(o.Albedo), (detailAlbedo < 0.0) ? 0.0.xxx : 1.0.xxx, detailAlbedoSpeed * detailAlbedoSpeed);
+				albedoOverlay *= albedoOverlay;
+				o.Albedo = lerp(o.Albedo, saturate(albedoOverlay), mask);
+				
+				half detailSmoothSpeed = saturate(abs(detailSmooth) * _DSmoothScale);
+				half smoothOverlay = lerp(o.Smoothness, (detailSmooth < 0.0) ? 0.0 : 1.0, detailSmoothSpeed * detailSmoothSpeed);
+				o.Smoothness = lerp(o.Smoothness, saturate(smoothOverlay), mask);
+				
+				o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);
 				#endif
 			}
 			
@@ -5264,6 +5518,7 @@ Shader "orels1/Standard Triplanar Effects"
 			
 			void ORLLighting()
 			{
+				#if !defined(UNITY_PASS_SHADOWCASTER)
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -5497,6 +5752,7 @@ Shader "orels1/Standard Triplanar Effects"
 				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
 				
 				FinalColor.rgb += o.Emission;
+				#endif
 			}
 			
 			// ForwardAdd Vertex
@@ -5599,7 +5855,9 @@ Shader "orels1/Standard Triplanar Effects"
 				o.Alpha = 1;
 				FinalColor = half4(o.Albedo, o.Alpha);
 				
+				ParallaxFragment();
 				BaseFragmentFunction();
+				DetailsFragment();
 				TriplanarFragment();
 				
 				ORLLighting();
@@ -5645,6 +5903,12 @@ Shader "orels1/Standard Triplanar Effects"
 			#define FLT_EPSILON     1.192092896e-07
 			
 			#define _MASKMAP_SAMPLED
+			
+			#define _SET_GLOBAL_UVS
+			
+			#if !defined(DETAILS_MODE_PACKED) && !defined(DETAILS_MODE_SEPARATED)
+			#define DETAILS_MODE_PACKED
+			#endif
 			
 			#if !defined(DIRT_MODE_LOCAL_SPACE) && !defined(DIRT_MODE_WORLD_SPACE)
 			#define DIRT_MODE_NONE
@@ -7169,6 +7433,16 @@ Shader "orels1/Standard Triplanar Effects"
 				return mul(finalMatrix, original) + center;
 			}
 			
+			half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
+			{
+				half3 normal;
+				normal.xy = packedNormal.ag * 2.0 - 1.0;
+				normal.z = max(1.0e-16, sqrt(1.0 - saturate(dot(normal.xy, normal.xy))));
+				
+				normal.xy *= scale;
+				return normal;
+			}
+			
 			half D_GGX(half NoH, half roughness)
 			{
 				half a = NoH * roughness;
@@ -7823,6 +8097,13 @@ Shader "orels1/Standard Triplanar Effects"
 			half _Metallic;
 			half _OcclusionStrength;
 			half _BumpScale;
+			half _HeightScale;
+			half _HeightRefPlane;
+			half _HeightStepsMin;
+			half _HeightStepsMax;
+			half _DAlbedoScale;
+			half _DNormalScale;
+			half _DSmoothScale;
 			half _TriplanarMaskTiling;
 			half _DirtMaskPower;
 			half _DirtSmooth;
@@ -7846,6 +8127,7 @@ Shader "orels1/Standard Triplanar Effects"
 			half4 _MaskMap_TexelSize;
 			half4 _EmissionColor;
 			half4 GLOBAL_maskMap;
+			half4 _DDetailsMap_ST;
 			half4 _DirtColor;
 			half4 _DamageAlbedo_TexelSize;
 			half4 _DamageColor;
@@ -7871,6 +8153,18 @@ Shader "orels1/Standard Triplanar Effects"
 			SAMPLER(sampler_BumpMap);;
 			TEXTURE2D(_EmissionMap);;
 			SAMPLER(sampler_EmissionMap);;
+			TEXTURE2D(_Height);;
+			SAMPLER(sampler_Height);;
+			int _DIgnoreMask;
+			int _DMappingSpace;
+			int _DUVChannel;
+			int _DPlanarAxisX;
+			int _DPlanarAxisY;
+			int _DNormalFlipY;
+			TEXTURE2D(_DDetailsMap);;
+			SAMPLER(sampler_DDetailsMap);;
+			TEXTURE2D(_DDetailsNormal);;
+			SAMPLER(sampler_DDetailsNormal);;
 			int _DirtPlanarMask;
 			int _DamageNormalFlipY;
 			TEXTURE2D(_TriplanarMask);;
@@ -7880,6 +8174,15 @@ Shader "orels1/Standard Triplanar Effects"
 			SAMPLER(sampler_DamageNormal);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
+			
+			void ParallaxFragment()
+			{
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#if PARALLAX && !defined(PLAT_QUEST)
+				half customHeight = 0;
+				GLOBAL_uv = POM(_Height, sampler_Height, GLOBAL_uv, ddx(GLOBAL_uv), ddy(GLOBAL_uv), d.worldNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1, 1), half2(0, 0), 0, customHeight);
+				#endif
+			}
 			
 			void BaseFragmentFunction()
 			{
@@ -7935,6 +8238,69 @@ Shader "orels1/Standard Triplanar Effects"
 				o.Alpha = albedo.a * _Color.a;
 				#if defined(_EMISSION)
 				o.Emission = emission * _EmissionColor;
+				#endif
+			}
+			
+			void DetailsFragment()
+			{
+				#if defined(DETAILS_OVERLAY)
+				half masks = 0;
+				#if defined(_MASKMAP_SAMPLED)
+				masks = GLOBAL_maskMap.b;
+				#else
+				masks = 1;
+				#endif
+				half mask = lerp(masks, 1, _DIgnoreMask);
+				half2 uv = d.uv0.xy;
+				switch(_DUVChannel)
+				{
+					case 1: uv = d.uv1.xy; break;
+					case 2: uv = d.uv2.xy; break;
+					case 3: uv = d.uv3.xy; break;
+					default: uv = d.uv0.xy; break;
+				}
+				uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
+				if (_DMappingSpace > 0)
+				{
+					uv = (_DMappingSpace - 1) ? half2(d.worldSpacePosition[_DPlanarAxisX], d.worldSpacePosition[_DPlanarAxisY]) : half2(d.localSpacePosition[_DPlanarAxisX], d.localSpacePosition[_DPlanarAxisY]);
+					uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
+				}
+				
+				half4 detailsMap = SAMPLE_TEXTURE2D(_DDetailsMap, sampler_DDetailsMap, uv);
+				
+				#if defined(DETAILS_MODE_PACKED)
+				half detailAlbedo = detailsMap.r * 2.0 - 1.0;
+				half detailSmooth = detailsMap.b * 2.0 - 1.0;
+				half3 detailNormal = 0;
+				if (_DNormalFlipY)
+				{
+					detailsMap.g = 1 - detailsMap.g;
+				}
+				detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
+				half detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+				#elif defined(DETAILS_MODE_SEPARATED)
+				half3 detailAlbedo = detailsMap.rgb * 2.0 - 1.0;
+				half detailSmooth = detailsMap.a * 2.0 - 1.0;
+				
+				half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
+				if (_DNormalFlipY)
+				{
+					packedNormal.g = 1 - packedNormal.g;
+				}
+				half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
+				
+				half3 detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+				#endif
+				
+				half3 albedoOverlay = lerp(sqrt(o.Albedo), (detailAlbedo < 0.0) ? 0.0.xxx : 1.0.xxx, detailAlbedoSpeed * detailAlbedoSpeed);
+				albedoOverlay *= albedoOverlay;
+				o.Albedo = lerp(o.Albedo, saturate(albedoOverlay), mask);
+				
+				half detailSmoothSpeed = saturate(abs(detailSmooth) * _DSmoothScale);
+				half smoothOverlay = lerp(o.Smoothness, (detailSmooth < 0.0) ? 0.0 : 1.0, detailSmoothSpeed * detailSmoothSpeed);
+				o.Smoothness = lerp(o.Smoothness, saturate(smoothOverlay), mask);
+				
+				o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);
 				#endif
 			}
 			
@@ -8020,6 +8386,7 @@ Shader "orels1/Standard Triplanar Effects"
 			
 			void ORLLighting()
 			{
+				#if !defined(UNITY_PASS_SHADOWCASTER)
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -8253,6 +8620,7 @@ Shader "orels1/Standard Triplanar Effects"
 				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
 				
 				FinalColor.rgb += o.Emission;
+				#endif
 			}
 			
 			// Meta Vertex
@@ -8347,7 +8715,9 @@ Shader "orels1/Standard Triplanar Effects"
 				o.Occlusion = 1;
 				o.Alpha = 1;
 				
+				ParallaxFragment();
 				BaseFragmentFunction();
+				DetailsFragment();
 				TriplanarFragment();
 				
 				FinalColor = half4(o.Albedo, o.Alpha);
@@ -8385,6 +8755,11 @@ Shader "orels1/Standard Triplanar Effects"
 			#pragma fragment Fragment
 			#pragma shader_feature_local _EMISSION
 			
+			#pragma shader_feature_local PARALLAX
+			
+			#pragma shader_feature_local DETAILS_OVERLAY
+			#pragma shader_feature_local _ DETAILS_MODE_PACKED DETAILS_MODE_SEPARATED
+			
 			#pragma shader_feature_local DIRT_MODE_NONE DIRT_MODE_LOCAL_SPACE DIRT_MODE_WORLD_SPACE
 			#pragma shader_feature_local DAMAGE_MODE_NONE DAMAGE_MODE_ENABLED
 			
@@ -8413,6 +8788,12 @@ Shader "orels1/Standard Triplanar Effects"
 			#define FLT_EPSILON     1.192092896e-07
 			
 			#define _MASKMAP_SAMPLED
+			
+			#define _SET_GLOBAL_UVS
+			
+			#if !defined(DETAILS_MODE_PACKED) && !defined(DETAILS_MODE_SEPARATED)
+			#define DETAILS_MODE_PACKED
+			#endif
 			
 			#if !defined(DIRT_MODE_LOCAL_SPACE) && !defined(DIRT_MODE_WORLD_SPACE)
 			#define DIRT_MODE_NONE
@@ -9665,8 +10046,10 @@ Shader "orels1/Standard Triplanar Effects"
 			};
 			
 			FragmentData FragData;
+			SurfaceData o;
 			MeshData d;
 			VertexData vD;
+			float4 FinalColor;
 			
 			half invLerp(half a, half b, half v)
 			{
@@ -9933,6 +10316,16 @@ Shader "orels1/Standard Triplanar Effects"
 				float m22 = t * u.z * u.z + C;
 				float3x3 finalMatrix = float3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
 				return mul(finalMatrix, original) + center;
+			}
+			
+			half3 UnpackNormalAG(half4 packedNormal, half scale = 1.0)
+			{
+				half3 normal;
+				normal.xy = packedNormal.ag * 2.0 - 1.0;
+				normal.z = max(1.0e-16, sqrt(1.0 - saturate(dot(normal.xy, normal.xy))));
+				
+				normal.xy *= scale;
+				return normal;
 			}
 			
 			half D_GGX(half NoH, half roughness)
@@ -10589,6 +10982,13 @@ Shader "orels1/Standard Triplanar Effects"
 			half _Metallic;
 			half _OcclusionStrength;
 			half _BumpScale;
+			half _HeightScale;
+			half _HeightRefPlane;
+			half _HeightStepsMin;
+			half _HeightStepsMax;
+			half _DAlbedoScale;
+			half _DNormalScale;
+			half _DSmoothScale;
 			half _TriplanarMaskTiling;
 			half _DirtMaskPower;
 			half _DirtSmooth;
@@ -10612,6 +11012,7 @@ Shader "orels1/Standard Triplanar Effects"
 			half4 _MaskMap_TexelSize;
 			half4 _EmissionColor;
 			half4 GLOBAL_maskMap;
+			half4 _DDetailsMap_ST;
 			half4 _DirtColor;
 			half4 _DamageAlbedo_TexelSize;
 			half4 _DamageColor;
@@ -10637,6 +11038,18 @@ Shader "orels1/Standard Triplanar Effects"
 			SAMPLER(sampler_BumpMap);;
 			TEXTURE2D(_EmissionMap);;
 			SAMPLER(sampler_EmissionMap);;
+			TEXTURE2D(_Height);;
+			SAMPLER(sampler_Height);;
+			int _DIgnoreMask;
+			int _DMappingSpace;
+			int _DUVChannel;
+			int _DPlanarAxisX;
+			int _DPlanarAxisY;
+			int _DNormalFlipY;
+			TEXTURE2D(_DDetailsMap);;
+			SAMPLER(sampler_DDetailsMap);;
+			TEXTURE2D(_DDetailsNormal);;
+			SAMPLER(sampler_DDetailsNormal);;
 			int _DirtPlanarMask;
 			int _DamageNormalFlipY;
 			TEXTURE2D(_TriplanarMask);;
@@ -10646,6 +11059,454 @@ Shader "orels1/Standard Triplanar Effects"
 			SAMPLER(sampler_DamageNormal);;
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
+			
+			void ParallaxFragment()
+			{
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#if PARALLAX && !defined(PLAT_QUEST)
+				half customHeight = 0;
+				GLOBAL_uv = POM(_Height, sampler_Height, GLOBAL_uv, ddx(GLOBAL_uv), ddy(GLOBAL_uv), d.worldNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1, 1), half2(0, 0), 0, customHeight);
+				#endif
+			}
+			
+			void BaseFragmentFunction()
+			{
+				#if !defined(_SET_GLOBAL_UVS)
+				GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				#endif
+				if (_MappingSpace > 0)
+				{
+					GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
+					GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
+				}
+				half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
+				if (_AlbedoChannel > 0)
+				{
+					albedo.rgb = albedo[_AlbedoChannel].xxx;
+				}
+				half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
+				if (_FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
+				half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
+				if (_EmissionChannel > 0)
+				{
+					emission.rgb = emission[_EmissionChannel].xxx;
+				}
+				int hasMasks = _MaskMap_TexelSize.z > 8;
+				half metal = masks[_MetalChannel];
+				half smooth = masks[_SmoothChannel];
+				if (_RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				half detailMask = masks[_DetailMaskChannel];
+				half occlusion = masks[_AOChannel];
+				metal = remap(metal, 0, 1, _MetallicRemap.x, _MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
+				GLOBAL_maskMap = half4(metal, occlusion, detailMask, smooth);
+				o.Metallic = lerp(_Metallic, metal, hasMasks);
+				o.Smoothness = lerp(_Smoothness, smooth, hasMasks);
+				o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
+				o.Normal = normal;
+				if (!_DetailAsTintMask)
+				{
+					o.Albedo = albedo.rgb * _Color.rgb;
+				}
+				else
+				{
+					o.Albedo = lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
+				}
+				o.Alpha = albedo.a * _Color.a;
+				#if defined(_EMISSION)
+				o.Emission = emission * _EmissionColor;
+				#endif
+			}
+			
+			void DetailsFragment()
+			{
+				#if defined(DETAILS_OVERLAY)
+				half masks = 0;
+				#if defined(_MASKMAP_SAMPLED)
+				masks = GLOBAL_maskMap.b;
+				#else
+				masks = 1;
+				#endif
+				half mask = lerp(masks, 1, _DIgnoreMask);
+				half2 uv = d.uv0.xy;
+				switch(_DUVChannel)
+				{
+					case 1: uv = d.uv1.xy; break;
+					case 2: uv = d.uv2.xy; break;
+					case 3: uv = d.uv3.xy; break;
+					default: uv = d.uv0.xy; break;
+				}
+				uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
+				if (_DMappingSpace > 0)
+				{
+					uv = (_DMappingSpace - 1) ? half2(d.worldSpacePosition[_DPlanarAxisX], d.worldSpacePosition[_DPlanarAxisY]) : half2(d.localSpacePosition[_DPlanarAxisX], d.localSpacePosition[_DPlanarAxisY]);
+					uv = uv * _DDetailsMap_ST.xy + _DDetailsMap_ST.zw;
+				}
+				
+				half4 detailsMap = SAMPLE_TEXTURE2D(_DDetailsMap, sampler_DDetailsMap, uv);
+				
+				#if defined(DETAILS_MODE_PACKED)
+				half detailAlbedo = detailsMap.r * 2.0 - 1.0;
+				half detailSmooth = detailsMap.b * 2.0 - 1.0;
+				half3 detailNormal = 0;
+				if (_DNormalFlipY)
+				{
+					detailsMap.g = 1 - detailsMap.g;
+				}
+				detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
+				half detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+				#elif defined(DETAILS_MODE_SEPARATED)
+				half3 detailAlbedo = detailsMap.rgb * 2.0 - 1.0;
+				half detailSmooth = detailsMap.a * 2.0 - 1.0;
+				
+				half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
+				if (_DNormalFlipY)
+				{
+					packedNormal.g = 1 - packedNormal.g;
+				}
+				half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
+				
+				half3 detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+				#endif
+				
+				half3 albedoOverlay = lerp(sqrt(o.Albedo), (detailAlbedo < 0.0) ? 0.0.xxx : 1.0.xxx, detailAlbedoSpeed * detailAlbedoSpeed);
+				albedoOverlay *= albedoOverlay;
+				o.Albedo = lerp(o.Albedo, saturate(albedoOverlay), mask);
+				
+				half detailSmoothSpeed = saturate(abs(detailSmooth) * _DSmoothScale);
+				half smoothOverlay = lerp(o.Smoothness, (detailSmooth < 0.0) ? 0.0 : 1.0, detailSmoothSpeed * detailSmoothSpeed);
+				o.Smoothness = lerp(o.Smoothness, saturate(smoothOverlay), mask);
+				
+				o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), mask);
+				#endif
+			}
+			
+			void TriplanarFragment()
+			{
+				#if defined(DIRT_MODE_NONE) && defined(DAMAGE_MODE_NONE)
+				return;
+				#else
+				half3 wsAligned = (d.worldSpacePosition / - _TriplanarMaskTiling);
+				
+				half3 xySample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xy).rgb;
+				half3 yzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.yz).rgb;
+				half3 xzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xz).rgb;
+				
+				half xNormalMask = saturate(lerp(-1, 1, abs(d.worldNormal.x)));
+				half zNormalMask = saturate(lerp(-1, 1, abs(d.worldNormal.z)));
+				
+				half3 triplanarMask = lerp(lerp(xzSample, yzSample, xNormalMask), xySample, zNormalMask);
+				
+				half damageMask = triplanarMask.g;
+				half dirtMask = triplanarMask.b;
+				
+				#if defined(DAMAGE_MODE_ENABLED)
+				damageMask *= _DamageAmount;
+				half2 damageUV = d.uv0.xy * _DamageAlbedoTiling;
+				UNITY_BRANCH
+				if (_DamageAlbedo_TexelSize.w > 8)
+				{
+					half3 damageAlbedo = SAMPLE_TEXTURE2D(_DamageAlbedo, sampler_TriplanarMask, damageUV).rgb;
+					o.Albedo = lerp(o.Albedo, damageAlbedo, damageMask);
+				}
+				else
+				{
+					o.Albedo = lerp(o.Albedo, o.Albedo * _DamageColor, damageMask);
+				}
+				
+				half4 damageNormalPacked = SAMPLE_TEXTURE2D(_DamageNormal, sampler_DamageNormal, damageUV);
+				if (_DamageNormalFlipY)
+				{
+					damageNormalPacked.y = 1 - damageNormalPacked.y;
+				}
+				half3 damageNormal = UnpackScaleNormal(damageNormalPacked, _DamageNormalScale * damageMask);
+				o.Normal = BlendNormals(o.Normal, damageNormal);
+				
+				o.Smoothness = lerp(o.Smoothness, clamp(o.Smoothness, _DamageSmoothMin, _DamageSmoothMax), damageMask);
+				#endif
+				
+				#if !defined(DIRT_MODE_NONE)
+				dirtMask = pow(dirtMask, _DirtMaskPower);
+				
+				#if defined(DIRT_MODE_LOCAL_SPACE)
+				half gradMask = (d.localSpacePosition).y;
+				gradMask += _DirtGradPosition;
+				gradMask = 1 - gradMask;
+				gradMask = pow(gradMask, _DirtGradPower);
+				dirtMask *= saturate(gradMask);
+				#endif
+				#if defined(DIRT_MODE_WORLD_SPACE)
+				half gradMask = (d.worldSpacePosition - TransformObjectToWorld(half3(0, 0, 0))).y;
+				gradMask = (gradMask - _DirtGradientMax) / (_DirtGradientMin - _DirtGradientMax);
+				gradMask = saturate(gradMask);
+				dirtMask *= gradMask;
+				#endif
+				
+				dirtMask = clamp(dirtMask, 0, saturate(_DirtOpacity));
+				
+				if (_DirtPlanarMask)
+				{
+					half planarMask = dot(d.worldNormal, half3(0, -1, 0));
+					planarMask = pow(planarMask, 0.5);
+					planarMask = lerp(-1, 1, planarMask);
+					planarMask = saturate(planarMask);
+					dirtMask *= planarMask;
+				}
+				
+				o.Albedo = lerp(o.Albedo, _DirtColor, dirtMask);
+				o.Metallic = lerp(o.Metallic, 0, dirtMask);
+				o.Smoothness = lerp(o.Smoothness, _DirtSmooth, dirtMask);
+				#endif
+				
+				#endif
+			}
+			
+			void ORLLighting()
+			{
+				#if !defined(UNITY_PASS_SHADOWCASTER)
+				half reflectance = 0.5;
+				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
+				half3 pixelLight = 0;
+				half3 indirectDiffuse = 1;
+				half3 indirectSpecular = 0;
+				half3 directSpecular = 0;
+				half occlusion = o.Occlusion;
+				half perceptualRoughness = 1 - o.Smoothness;
+				half3 tangentNormal = o.Normal;
+				o.Normal = normalize(mul(o.Normal, d.TBNMatrix));
+				
+				#ifndef USING_DIRECTIONAL_LIGHT
+				fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
+				#else
+				fixed3 lightDir = _WorldSpaceLightPos0.xyz;
+				#endif
+				
+				#if defined(GSAA)
+				perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness, _GSAAVariance, _GSAAThreshold);
+				#endif
+				
+				UNITY_LIGHT_ATTENUATION(lightAttenuation, FragData, d.worldSpacePosition);
+				half3 lightColor = lightAttenuation * _LightColor0.rgb;
+				
+				half3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
+				half lightNoL = saturate(dot(o.Normal, lightDir));
+				half lightLoH = saturate(dot(lightDir, lightHalfVector));
+				
+				half NoV = abs(dot(o.Normal, d.worldSpaceViewDir)) + 1e-5;
+				pixelLight = lightNoL * lightColor * Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
+				
+				// READ THE LIGHTMAP
+				#if defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
+				half3 lightMap = 0;
+				half4 bakedColorTex = 0;
+				half2 lightmapUV = FragData.lightmapUv.xy;
+				
+				// UNITY LIGHTMAPPING
+				#if !defined(BAKERYLM_ENABLED) || !defined(BAKERY_ENABLED)
+				lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
+				#endif
+				
+				// BAKERY RNM MODE (why do we even support it??)
+				#if defined(BAKERY_RNM) && defined(BAKERY_ENABLED)
+				half3 rnm0 = DecodeLightmap(BakeryTex2D(_RNM0, lightmapUV, _RNM0_TexelSize));
+				half3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize));
+				half3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize));
+				
+				lightMap = saturate(dot(rnmBasis0, tangentNormal)) * rnm0 +
+				saturate(dot(rnmBasis1, tangentNormal)) * rnm1 +
+				saturate(dot(rnmBasis2, tangentNormal)) * rnm2;
+				#endif
+				
+				// BAKERY SH MODE (these are also used for the specular)
+				#if defined(BAKERY_SH) && defined(BAKERY_ENABLED)
+				half3 L0 = DecodeLightmap(BakeryTex2D(unity_Lightmap, samplerunity_Lightmap, lightmapUV, _RNM0_TexelSize));
+				
+				half3 nL1x = BakeryTex2D(_RNM0, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
+				half3 nL1y = BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
+				half3 nL1z = BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
+				half3 L1x = nL1x * L0 * 2.0;
+				half3 L1y = nL1y * L0 * 2.0;
+				half3 L1z = nL1z * L0 * 2.0;
+				
+				// Non-Linear mode
+				#if defined(BAKERY_SHNONLINEAR)
+				half lumaL0 = dot(L0, half(1));
+				half lumaL1x = dot(L1x, half(1));
+				half lumaL1y = dot(L1y, half(1));
+				half lumaL1z = dot(L1z, half(1));
+				half lumaSH = shEvaluateDiffuseL1Geomerics_local(lumaL0, half3(lumaL1x, lumaL1y, lumaL1z), o.Normal);
+				
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				half regularLumaSH = dot(lightMap, 1.0);
+				lightMap *= lerp(1.0, lumaSH / regularLumaSH, saturate(regularLumaSH * 16.0));
+				#else
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				#endif
+				
+				#endif
+				
+				#if defined(DIRLIGHTMAP_COMBINED)
+				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
+				lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
+				#endif
+				
+				#if defined(DYNAMICLIGHTMAP_ON) && !defined(UNITY_PBS_USE_BRDF2)
+				half3 realtimeLightMap = getRealtimeLightmap(FragData.lightmapUv.zw, o.Normal);
+				lightMap += realtimeLightMap;
+				#endif
+				
+				#if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
+				pixelLight = 0;
+				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap(lightMap, lightAttenuation, bakedColorTex, o.Normal);
+				#endif
+				indirectDiffuse = lightMap;
+				#else
+				#if UNITY_LIGHT_PROBE_PROXY_VOLUME
+				UNITY_BRANCH
+				if (unity_ProbeVolumeParams.x == 1)
+				{
+					indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), FragData.worldPos);
+				}
+				else
+				{
+					#endif
+					indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
+					#if UNITY_LIGHT_PROBE_PROXY_VOLUME
+				}
+				#endif
+				#endif
+				
+				#if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
+				pixelLight *= UnityComputeForwardShadows(FragData.lightmapUv.xy, d.worldSpacePosition, d.screenPos);
+				#endif
+				
+				half3 dfguv = half3(NoV, perceptualRoughness, 0);
+				half2 dfg = SAMPLE_TEXTURE2D(_DFG, sampler_DFG, dfguv).xy;
+				half3 energyCompensation = 1.0 + f0 * (1.0 / dfg.y - 1.0);
+				
+				half rough = perceptualRoughness * perceptualRoughness;
+				half clampedRoughness = max(rough, 0.002);
+				
+				#if !defined(SPECULAR_HIGHLIGHTS_OFF) && defined(USING_LIGHT_MULTI_COMPILE)
+				half NoH = saturate(dot(o.Normal, lightHalfVector));
+				half3 F = F_Schlick(lightLoH, f0);
+				half D = D_GGX(NoH, clampedRoughness);
+				half V = V_SmithGGXCorrelated(NoV, lightNoL, clampedRoughness);
+				
+				F *= energyCompensation;
+				
+				directSpecular = max(0, D * V * F) * pixelLight * UNITY_PI;
+				#endif
+				
+				// BAKED SPECULAR
+				#if defined(BAKED_SPECULAR) && !defined(BAKERYLM_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
+				{
+					half3 bakedDominantDirection = 1;
+					half3 bakedSpecularColor = 0;
+					
+					// only do it if we have a directional lightmap
+					#if defined(DIRLIGHTMAP_COMBINED) && defined(LIGHTMAP_ON)
+					bakedDominantDirection = (lightMapDirection.xyz) * 2 - 1;
+					half directionality = max(0.001, length(bakedDominantDirection));
+					bakedDominantDirection /= directionality;
+					bakedSpecularColor = indirectDiffuse;
+					#endif
+					
+					// if we do not have lightmap - derive the specular from probes
+					//#ifndef LIGHTMAP_ON
+					//bakedSpecularColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+					//bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+					// #endif
+					
+					bakedDominantDirection = normalize(bakedDominantDirection);
+					directSpecular += GetSpecularHighlights(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+				}
+				#endif
+				
+				half3 fresnel = F_Schlick(NoV, f0);
+				
+				// BAKERY DIRECT SPECULAR
+				#if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
+				#if defined(BAKERY_RNM)
+				{
+					half3 viewDirTangent = -normalize(d.tangentSpaceViewDir);
+					half3 dominantDirTangent = rnmBasis0 * dot(rnm0, lumaConv) +
+					rnmBasis1 * dot(rnm1, lumaConv) +
+					rnmBasis2 * dot(rnm2, lumaConv);
+					
+					half3 dominantDirTangentNormalized = normalize(dominantDirTangent);
+					half3 specColor = saturate(dot(rnmBasis0, dominantDirTangentNormalized)) * rnm0 +
+					saturate(dot(rnmBasis1, dominantDirTangentNormalized)) * rnm1 +
+					saturate(dot(rnmBasis2, dominantDirTangentNormalized)) * rnm2;
+					half3 halfDir = Unity_SafeNormalize(dominantDirTangentNormalized - viewDirTangent);
+					half NoH = saturate(dot(tangentNormal, halfDir));
+					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+					directSpecular += spec * specColor * fresnel;
+				}
+				#endif
+				
+				#if defined(BAKERY_SH)
+				{
+					half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
+					half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + d.worldSpaceViewDir);
+					half NoH = saturate(dot(o.Normal, halfDir));
+					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+					half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
+					dominantDir = normalize(dominantDir);
+					directSpecular += max(spec * sh, 0.0) * fresnel;
+				}
+				#endif
+				#endif
+				
+				// REFLECTIONS
+				#if !defined(UNITY_PASS_FORWARDADD)
+				half3 reflDir = reflect(-d.worldSpaceViewDir, o.Normal);
+				reflDir = lerp(reflDir, o.Normal, rough * rough);
+				
+				Unity_GlossyEnvironmentData envData;
+				envData.roughness = perceptualRoughness;
+				envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
+				
+				half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+				indirectSpecular = probe0;
+				
+				#if defined(UNITY_SPECCUBE_BLENDING)
+				UNITY_BRANCH
+				if (unity_SpecCube0_BoxMin.w < 0.99999)
+				{
+					envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
+					half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
+					indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
+				}
+				#endif
+				
+				half horizon = min(1 + dot(reflDir, o.Normal), 1);
+				dfg.x *= saturate(pow(dot(indirectDiffuse, 1), _SpecOcclusion));
+				indirectSpecular = indirectSpecular * horizon * horizon * energyCompensation * EnvBRDFMultiscatter(dfg, f0);
+				
+				#if defined(_MASKMAP_SAMPLED)
+				indirectSpecular *= computeSpecularAO(NoV, o.Occlusion, perceptualRoughness * perceptualRoughness);
+				#endif
+				#endif
+				
+				#if defined(_INTEGRATE_CUSTOMGI) && !defined(UNITY_PASS_FORWARDADD)
+				IntegrateCustomGI(d, o, indirectSpecular, indirectDiffuse);
+				#endif
+				
+				// FINAL COLOR
+				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
+				
+				FinalColor.rgb += o.Emission;
+				#endif
+			}
 			
 			// Shadow Vertex
 			FragmentData Vertex(VertexData v)
@@ -10731,6 +11592,25 @@ Shader "orels1/Standard Triplanar Effects"
 			half4 Fragment(FragmentData i) : SV_TARGET
 			{
 				UNITY_SETUP_INSTANCE_ID(i);
+				
+				#if defined(NEED_FRAGMENT_IN_SHADOW)
+				FragData = i;
+				o = (SurfaceData) 0;
+				d = CreateMeshData(i);
+				o.Albedo = half3(0.5, 0.5, 0.5);
+				o.Normal = half3(0, 0, 1);
+				o.Smoothness = 0.5;
+				o.Occlusion = 1;
+				o.Alpha = 1;
+				FinalColor = half4(o.Albedo, o.Alpha);
+				
+				ParallaxFragment();
+				BaseFragmentFunction();
+				DetailsFragment();
+				TriplanarFragment();
+				
+				#endif
+				
 				SHADOW_CASTER_FRAGMENT(i);
 			}
 			
