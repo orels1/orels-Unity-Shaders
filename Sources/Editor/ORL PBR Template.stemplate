@@ -47,6 +47,10 @@ Pass
   float4 FinalColor;
 
   #K#LIBRARY_FUNCTIONS
+
+  #if defined(NEED_DEPTH)
+    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+  #endif
   
   #K#DEFAULT_VARIABLES
   
@@ -153,6 +157,10 @@ Pass
   float4 FinalColor;
 
   #K#LIBRARY_FUNCTIONS
+
+  #if defined(NEED_DEPTH)
+    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+  #endif
   
   #K#DEFAULT_VARIABLES
   
@@ -260,6 +268,10 @@ Pass
   float4 FinalColor;
 
   #K#LIBRARY_FUNCTIONS
+
+  #if defined(NEED_DEPTH)
+    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+  #endif
   
   #K#DEFAULT_VARIABLES
   
@@ -367,6 +379,10 @@ Pass
   float4 FinalColor;
   
   #K#LIBRARY_FUNCTIONS
+
+  #if defined(NEED_DEPTH)
+    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+  #endif
   
   #K#DEFAULT_VARIABLES
   
