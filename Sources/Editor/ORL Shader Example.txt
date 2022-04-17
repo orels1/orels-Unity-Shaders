@@ -15,6 +15,7 @@ CustomEditor "Needle.MarkdownShaderGUI"
 _Level("Level", Range(0,1)) = 0
 _Mask("Mask", 2D) = "black" {}
 _Brightness("Brightness", Range(0,2)) = 1
+_Cutoff("Cutoff", Range(0, 1)) = 0.5
 
 #T#ShaderFeatures
 #pragma shader_feature_local FANCY_FEATURE
@@ -23,7 +24,7 @@ _Brightness("Brightness", Range(0,2)) = 1
 #define MY_THING
 
 #T#ShaderTags
-"Queue" = "Geometry+10"
+"Queue" = "AlphaTest" "RenderType"="TransparentCutout"
 
 #T#PassTags
 "MyTag"="MyValue"
@@ -37,11 +38,13 @@ float4 _Mask_ST;
 
 TEXTURE2D(_Mask);
 SAMPLER(sampler_Mask);
+// these macros are defined in the UnitySamplingLib.stemplate
+// if you are using the ORL PBR Module - you have access to those
 
 #T#FragmentFunction
 void MyFragment() {
   half2 uv = d.uv0.xy * _Mask_ST.xy + _Mask_ST.zw;
-  half mask = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, uv);
+  half mask = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, uv).r;
 
   o.Albedo = mask * _Level;
 }
@@ -60,4 +63,17 @@ half _Brightness;
 #T#ColorFunction
 void MyColor() {
   FinalColor.rgb *= _Brightness;
+}
+
+#S#ShadowVariables
+half _Cutoff;
+TEXTURE2D(_Mask);
+SAMPLER(sampler_Mask);
+
+#T#ShadowFunction
+void MyShadow() {
+  half mainAlpha = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, uv).a;
+  if (mainAlpha < _Cutoff) {
+    clip(-1);
+  }
 }
