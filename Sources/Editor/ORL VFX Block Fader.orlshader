@@ -34,7 +34,7 @@ half _FaderRemapMin;
 half _FaderRemapMax;
 
 #T#FragmentFunction
-void BlockFaderFragemtn()
+void BlockFaderFragment()
 {
   half columns = _FaderColumns;
   if (_FaderRemap)
