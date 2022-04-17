@@ -69,7 +69,9 @@ Pass
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
 
     vD = v;
+    FragData = i;
     #K#VERTEX_FUNCTION
+    i = FragData;
     v = vD;
     #K#VERTEX_BASE
     
@@ -179,7 +181,9 @@ Pass
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
     
     vD = v;
+    FragData = i;
     #K#VERTEX_FUNCTION
+    i = FragData;
     v = vD;
     #K#VERTEX_BASE
     
@@ -290,7 +294,9 @@ Pass
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
     
     vD = v;
+    FragData = i;
     #K#VERTEX_FUNCTION
+    i = FragData;
     v = vD;
     #K#VERTEX_BASE
     
@@ -401,7 +407,9 @@ Pass
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
     
     vD = v;
+    FragData = i;
     #K#VERTEX_FUNCTION
+    i = FragData;
     v = vD;
     #K#VERTEX_BASE
 
