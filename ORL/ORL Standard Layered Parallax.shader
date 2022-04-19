@@ -157,6 +157,8 @@ Shader "orels1/Standard Layered Parallax"
 			#endif
 			#endif
 			
+			#define NEED_SCREEN_POS
+			
 			// Credit to Jason Booth for digging this all up
 			// This originally comes from CoreRP, see Jason's comment below
 			
@@ -1255,6 +1257,10 @@ Shader "orels1/Standard Layered Parallax"
 				float4 lightCoord : TEXCOORD10;
 				#endif
 				
+				#if defined(NEED_SCREEN_POS)
+				float4 screenPos: SCREENPOS;
+				#endif
+				
 				#if defined(EXTRA_V2F_0)
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				float4 extraV2F0 : TEXCOORD8;
@@ -1322,6 +1328,7 @@ Shader "orels1/Standard Layered Parallax"
 				float4 extraV2F0;
 				float4 extraV2F1;
 				float4 extraV2F2;
+				float4 screenPos;
 			};
 			
 			MeshData CreateMeshData(FragmentData i)
@@ -1352,6 +1359,9 @@ Shader "orels1/Standard Layered Parallax"
 				#endif
 				#if defined(EXTRA_V2F_2)
 				m.extraV2F2 = i.extraV2F2;
+				#endif
+				#if defined(NEED_SCREEN_POS)
+				m.screenPos = i.screenPos;
 				#endif
 				
 				return m;
@@ -2291,6 +2301,10 @@ Shader "orels1/Standard Layered Parallax"
 			#endif
 			//BAKERY_ENABLED
 			
+			#if defined(NEED_DEPTH)
+			UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+			#endif
+			
 			half _LPLayer1Depth;
 			half _LPLayer1Speed;
 			half _LPLayer2Depth;
@@ -2512,6 +2526,7 @@ Shader "orels1/Standard Layered Parallax"
 			
 			void ORLLighting()
 			{
+				#if !defined(UNITY_PASS_SHADOWCASTER)
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -2745,6 +2760,7 @@ Shader "orels1/Standard Layered Parallax"
 				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
 				
 				FinalColor.rgb += o.Emission;
+				#endif
 			}
 			
 			// ForwardBase Vertex
@@ -2757,7 +2773,9 @@ Shader "orels1/Standard Layered Parallax"
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
 				
 				vD = v;
+				FragData = i;
 				
+				i = FragData;
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				i.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -2786,15 +2804,19 @@ Shader "orels1/Standard Layered Parallax"
 				i.vertexColor = v.color;
 				
 				#if defined(EDITOR_VISUALIZATION)
-				o.vizUV = 0;
-				o.lightCoord = 0;
+				i.vizUV = 0;
+				i.lightCoord = 0;
 				if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-				o.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
+				i.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
 				else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
 				{
-					o.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-					o.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
+					i.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+					i.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
 				}
+				#endif
+				
+				#if defined(NEED_SCREEN_POS)
+				i.screenPos = ComputeScreenPos(i.pos);
 				#endif
 				
 				#if !defined(UNITY_PASS_META)
@@ -2921,6 +2943,8 @@ Shader "orels1/Standard Layered Parallax"
 			#endif
 			#endif
 			
+			#define NEED_SCREEN_POS
+			
 			// Credit to Jason Booth for digging this all up
 			// This originally comes from CoreRP, see Jason's comment below
 			
@@ -4019,6 +4043,10 @@ Shader "orels1/Standard Layered Parallax"
 				float4 lightCoord : TEXCOORD10;
 				#endif
 				
+				#if defined(NEED_SCREEN_POS)
+				float4 screenPos: SCREENPOS;
+				#endif
+				
 				#if defined(EXTRA_V2F_0)
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				float4 extraV2F0 : TEXCOORD8;
@@ -4086,6 +4114,7 @@ Shader "orels1/Standard Layered Parallax"
 				float4 extraV2F0;
 				float4 extraV2F1;
 				float4 extraV2F2;
+				float4 screenPos;
 			};
 			
 			MeshData CreateMeshData(FragmentData i)
@@ -4116,6 +4145,9 @@ Shader "orels1/Standard Layered Parallax"
 				#endif
 				#if defined(EXTRA_V2F_2)
 				m.extraV2F2 = i.extraV2F2;
+				#endif
+				#if defined(NEED_SCREEN_POS)
+				m.screenPos = i.screenPos;
 				#endif
 				
 				return m;
@@ -5055,6 +5087,10 @@ Shader "orels1/Standard Layered Parallax"
 			#endif
 			//BAKERY_ENABLED
 			
+			#if defined(NEED_DEPTH)
+			UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+			#endif
+			
 			half _LPLayer1Depth;
 			half _LPLayer1Speed;
 			half _LPLayer2Depth;
@@ -5276,6 +5312,7 @@ Shader "orels1/Standard Layered Parallax"
 			
 			void ORLLighting()
 			{
+				#if !defined(UNITY_PASS_SHADOWCASTER)
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -5509,6 +5546,7 @@ Shader "orels1/Standard Layered Parallax"
 				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
 				
 				FinalColor.rgb += o.Emission;
+				#endif
 			}
 			
 			// ForwardAdd Vertex
@@ -5521,7 +5559,9 @@ Shader "orels1/Standard Layered Parallax"
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
 				
 				vD = v;
+				FragData = i;
 				
+				i = FragData;
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				i.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -5550,15 +5590,19 @@ Shader "orels1/Standard Layered Parallax"
 				i.vertexColor = v.color;
 				
 				#if defined(EDITOR_VISUALIZATION)
-				o.vizUV = 0;
-				o.lightCoord = 0;
+				i.vizUV = 0;
+				i.lightCoord = 0;
 				if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-				o.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
+				i.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
 				else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
 				{
-					o.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-					o.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
+					i.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+					i.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
 				}
+				#endif
+				
+				#if defined(NEED_SCREEN_POS)
+				i.screenPos = ComputeScreenPos(i.pos);
 				#endif
 				
 				#if !defined(UNITY_PASS_META)
@@ -5686,6 +5730,8 @@ Shader "orels1/Standard Layered Parallax"
 			#endif
 			#endif
 			
+			#define NEED_SCREEN_POS
+			
 			// Credit to Jason Booth for digging this all up
 			// This originally comes from CoreRP, see Jason's comment below
 			
@@ -6784,6 +6830,10 @@ Shader "orels1/Standard Layered Parallax"
 				float4 lightCoord : TEXCOORD10;
 				#endif
 				
+				#if defined(NEED_SCREEN_POS)
+				float4 screenPos: SCREENPOS;
+				#endif
+				
 				#if defined(EXTRA_V2F_0)
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				float4 extraV2F0 : TEXCOORD8;
@@ -6851,6 +6901,7 @@ Shader "orels1/Standard Layered Parallax"
 				float4 extraV2F0;
 				float4 extraV2F1;
 				float4 extraV2F2;
+				float4 screenPos;
 			};
 			
 			MeshData CreateMeshData(FragmentData i)
@@ -6881,6 +6932,9 @@ Shader "orels1/Standard Layered Parallax"
 				#endif
 				#if defined(EXTRA_V2F_2)
 				m.extraV2F2 = i.extraV2F2;
+				#endif
+				#if defined(NEED_SCREEN_POS)
+				m.screenPos = i.screenPos;
 				#endif
 				
 				return m;
@@ -7820,6 +7874,10 @@ Shader "orels1/Standard Layered Parallax"
 			#endif
 			//BAKERY_ENABLED
 			
+			#if defined(NEED_DEPTH)
+			UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+			#endif
+			
 			half _LPLayer1Depth;
 			half _LPLayer1Speed;
 			half _LPLayer2Depth;
@@ -8041,6 +8099,7 @@ Shader "orels1/Standard Layered Parallax"
 			
 			void ORLLighting()
 			{
+				#if !defined(UNITY_PASS_SHADOWCASTER)
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -8274,6 +8333,7 @@ Shader "orels1/Standard Layered Parallax"
 				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
 				
 				FinalColor.rgb += o.Emission;
+				#endif
 			}
 			
 			// Meta Vertex
@@ -8286,7 +8346,9 @@ Shader "orels1/Standard Layered Parallax"
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
 				
 				vD = v;
+				FragData = i;
 				
+				i = FragData;
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				i.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -8315,15 +8377,19 @@ Shader "orels1/Standard Layered Parallax"
 				i.vertexColor = v.color;
 				
 				#if defined(EDITOR_VISUALIZATION)
-				o.vizUV = 0;
-				o.lightCoord = 0;
+				i.vizUV = 0;
+				i.lightCoord = 0;
 				if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-				o.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
+				i.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
 				else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
 				{
-					o.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-					o.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
+					i.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+					i.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
 				}
+				#endif
+				
+				#if defined(NEED_SCREEN_POS)
+				i.screenPos = ComputeScreenPos(i.pos);
 				#endif
 				
 				#if !defined(UNITY_PASS_META)
@@ -8458,6 +8524,8 @@ Shader "orels1/Standard Layered Parallax"
 			#endif
 			#endif
 			
+			#define NEED_SCREEN_POS
+			
 			// Credit to Jason Booth for digging this all up
 			// This originally comes from CoreRP, see Jason's comment below
 			
@@ -9556,6 +9624,10 @@ Shader "orels1/Standard Layered Parallax"
 				float4 lightCoord : TEXCOORD10;
 				#endif
 				
+				#if defined(NEED_SCREEN_POS)
+				float4 screenPos: SCREENPOS;
+				#endif
+				
 				#if defined(EXTRA_V2F_0)
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				float4 extraV2F0 : TEXCOORD8;
@@ -9623,6 +9695,7 @@ Shader "orels1/Standard Layered Parallax"
 				float4 extraV2F0;
 				float4 extraV2F1;
 				float4 extraV2F2;
+				float4 screenPos;
 			};
 			
 			MeshData CreateMeshData(FragmentData i)
@@ -9654,6 +9727,9 @@ Shader "orels1/Standard Layered Parallax"
 				#if defined(EXTRA_V2F_2)
 				m.extraV2F2 = i.extraV2F2;
 				#endif
+				#if defined(NEED_SCREEN_POS)
+				m.screenPos = i.screenPos;
+				#endif
 				
 				return m;
 			}
@@ -9670,8 +9746,10 @@ Shader "orels1/Standard Layered Parallax"
 			};
 			
 			FragmentData FragData;
+			SurfaceData o;
 			MeshData d;
 			VertexData vD;
+			float4 FinalColor;
 			
 			half invLerp(half a, half b, half v)
 			{
@@ -10590,6 +10668,10 @@ Shader "orels1/Standard Layered Parallax"
 			#endif
 			//BAKERY_ENABLED
 			
+			#if defined(NEED_DEPTH)
+			UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+			#endif
+			
 			half _LPLayer1Depth;
 			half _LPLayer1Speed;
 			half _LPLayer2Depth;
@@ -10649,6 +10731,405 @@ Shader "orels1/Standard Layered Parallax"
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
+			void LayeredParallaxFragment()
+			{
+				half2 bgUv = d.uv0.xy * _LPBackground_ST.xy + _LPBackground_ST.zw;
+				half4 bg = SAMPLE_TEXTURE2D(_LPBackground, sampler_LPBackground, bgUv);
+				o.Albedo = bg.rgb;
+				
+				half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer1UV - 2)), saturate(_LPLayer1UV - 1)), saturate(_LPLayer1UV));
+				_LPLayer1Direction = _LPLayer1Direction / 10.0;
+				layerUv = layerUv * _LPLayer1_ST.xy + _LPLayer1_ST.zw;
+				half2 offset = ParallaxOffset(-1, _LPLayer1Depth, d.tangentSpaceViewDir);
+				switch(_LPLayer1Mode)
+				{
+					case 0:
+					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
+					break;
+					case 1:
+					layerUv += sin(_Time.y * _LPLayer1Speed) * _LPLayer1Direction.xy;
+					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
+					break;
+					case 2:
+					layerUv = lerp(layerUv % 1.0, clamp(layerUv, 0..xx, _LPLayer1_ST.xy), _LPLayer1UVMode);
+					layerUv += offset;
+					layerUv += _Time.y * _LPLayer1Speed * _LPLayer1Direction.xy;
+					break;
+				}
+				half4 layerColor = SAMPLE_TEXTURE2D(_LPLayer1, sampler_LPLayer1, layerUv);
+				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer1Color, layerColor.a * _LPLayer1Color.a);
+				
+				UNITY_BRANCH
+				if (_LPLayerCount < 2)
+				{
+					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
+					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+					return;
+				};
+				
+				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer2UV - 2)), saturate(_LPLayer2UV - 1)), saturate(_LPLayer2UV));
+				_LPLayer2Direction = _LPLayer2Direction / 10.0;
+				layerUv = layerUv * _LPLayer2_ST.xy + _LPLayer2_ST.zw;
+				offset = ParallaxOffset(-1, _LPLayer2Depth, d.tangentSpaceViewDir);
+				switch(_LPLayer2Mode)
+				{
+					case 0:
+					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
+					break;
+					case 1:
+					layerUv += sin(_Time.y * _LPLayer2Speed) * _LPLayer2Direction.xy;
+					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
+					break;
+					case 2:
+					layerUv += offset;
+					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer2_ST.xy), _LPLayer2UVMode);
+					layerUv += _Time.y * _LPLayer2Speed * _LPLayer2Direction.xy;
+					break;
+				}
+				layerColor = SAMPLE_TEXTURE2D(_LPLayer2, sampler_LPLayer1, layerUv);
+				
+				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer2Color, layerColor.a * _LPLayer2Color.a);
+				
+				UNITY_BRANCH
+				if (_LPLayerCount < 3)
+				{
+					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
+					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+					return;
+				};
+				
+				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer3UV - 2)), saturate(_LPLayer3UV - 1)), saturate(_LPLayer3UV));
+				_LPLayer3Direction = _LPLayer3Direction / 10.0;
+				layerUv = layerUv * _LPLayer3_ST.xy + _LPLayer3_ST.zw;
+				offset = ParallaxOffset(-1, _LPLayer3Depth, d.tangentSpaceViewDir);
+				switch(_LPLayer3Mode)
+				{
+					case 0:
+					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
+					break;
+					case 1:
+					layerUv += sin(_Time.y * _LPLayer3Speed) * _LPLayer3Direction.xy;
+					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
+					break;
+					case 2:
+					layerUv += offset;
+					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer3_ST.xy), _LPLayer3UVMode);
+					layerUv += _Time.y * _LPLayer3Speed * _LPLayer3Direction.xy;
+					break;
+				}
+				layerColor = SAMPLE_TEXTURE2D(_LPLayer3, sampler_LPLayer1, layerUv);
+				
+				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer3Color, layerColor.a * _LPLayer3Color.a);
+				
+				UNITY_BRANCH
+				if (_LPLayerCount < 4)
+				{
+					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
+					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+					return;
+				};
+				
+				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer4UV - 2)), saturate(_LPLayer4UV - 1)), saturate(_LPLayer4UV));
+				_LPLayer4Direction = _LPLayer4Direction / 10.0;
+				layerUv = layerUv * _LPLayer4_ST.xy + _LPLayer4_ST.zw;
+				offset = ParallaxOffset(-1, _LPLayer4Depth, d.tangentSpaceViewDir);
+				switch(_LPLayer4Mode)
+				{
+					case 0:
+					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
+					break;
+					case 1:
+					layerUv += sin(_Time.y * _LPLayer4Speed) * _LPLayer4Direction.xy;
+					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
+					break;
+					case 2:
+					layerUv += offset;
+					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer4_ST.xy), _LPLayer4UVMode);
+					layerUv += _Time.y * _LPLayer4Speed * _LPLayer4Direction.xy;
+					break;
+				}
+				layerColor = SAMPLE_TEXTURE2D(_LPLayer4, sampler_LPLayer1, layerUv);
+				
+				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer4Color, layerColor.a * _LPLayer4Color.a);
+				
+				UNITY_BRANCH
+				if (_LPLayerCount < 4)
+				{
+					half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+					half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
+					o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+					return;
+				};
+				
+				layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer5UV - 2)), saturate(_LPLayer5UV - 1)), saturate(_LPLayer5UV));
+				_LPLayer5Direction = _LPLayer5Direction / 10.0;
+				layerUv = layerUv * _LPLayer5_ST.xy + _LPLayer5_ST.zw;
+				offset = ParallaxOffset(-1, _LPLayer5Depth, d.tangentSpaceViewDir);
+				switch(_LPLayer5Mode)
+				{
+					case 0:
+					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
+					break;
+					case 1:
+					layerUv += sin(_Time.y * _LPLayer5Speed) * _LPLayer5Direction.xy;
+					layerUv = lerp(layerUv % 1.0 + offset, clamp(offset +layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
+					break;
+					case 2:
+					layerUv += offset;
+					layerUv = lerp(layerUv % 1, clamp(layerUv, 0..xx, _LPLayer5_ST.xy), _LPLayer5UVMode);
+					layerUv += _Time.y * _LPLayer5Speed * _LPLayer5Direction.xy;
+					break;
+				}
+				layerColor = SAMPLE_TEXTURE2D(_LPLayer5, sampler_LPLayer1, layerUv);
+				
+				o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer5Color, layerColor.a * _LPLayer5Color.a);
+				half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+				half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
+				o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
+			}
+			
+			void ORLLighting()
+			{
+				#if !defined(UNITY_PASS_SHADOWCASTER)
+				half reflectance = 0.5;
+				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
+				half3 pixelLight = 0;
+				half3 indirectDiffuse = 1;
+				half3 indirectSpecular = 0;
+				half3 directSpecular = 0;
+				half occlusion = o.Occlusion;
+				half perceptualRoughness = 1 - o.Smoothness;
+				half3 tangentNormal = o.Normal;
+				o.Normal = normalize(mul(o.Normal, d.TBNMatrix));
+				
+				#ifndef USING_DIRECTIONAL_LIGHT
+				fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
+				#else
+				fixed3 lightDir = _WorldSpaceLightPos0.xyz;
+				#endif
+				
+				#if defined(GSAA)
+				perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness, _GSAAVariance, _GSAAThreshold);
+				#endif
+				
+				UNITY_LIGHT_ATTENUATION(lightAttenuation, FragData, d.worldSpacePosition);
+				half3 lightColor = lightAttenuation * _LightColor0.rgb;
+				
+				half3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
+				half lightNoL = saturate(dot(o.Normal, lightDir));
+				half lightLoH = saturate(dot(lightDir, lightHalfVector));
+				
+				half NoV = abs(dot(o.Normal, d.worldSpaceViewDir)) + 1e-5;
+				pixelLight = lightNoL * lightColor * Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
+				
+				// READ THE LIGHTMAP
+				#if defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
+				half3 lightMap = 0;
+				half4 bakedColorTex = 0;
+				half2 lightmapUV = FragData.lightmapUv.xy;
+				
+				// UNITY LIGHTMAPPING
+				#if !defined(BAKERYLM_ENABLED) || !defined(BAKERY_ENABLED)
+				lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
+				#endif
+				
+				// BAKERY RNM MODE (why do we even support it??)
+				#if defined(BAKERY_RNM) && defined(BAKERY_ENABLED)
+				half3 rnm0 = DecodeLightmap(BakeryTex2D(_RNM0, lightmapUV, _RNM0_TexelSize));
+				half3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize));
+				half3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize));
+				
+				lightMap = saturate(dot(rnmBasis0, tangentNormal)) * rnm0 +
+				saturate(dot(rnmBasis1, tangentNormal)) * rnm1 +
+				saturate(dot(rnmBasis2, tangentNormal)) * rnm2;
+				#endif
+				
+				// BAKERY SH MODE (these are also used for the specular)
+				#if defined(BAKERY_SH) && defined(BAKERY_ENABLED)
+				half3 L0 = DecodeLightmap(BakeryTex2D(unity_Lightmap, samplerunity_Lightmap, lightmapUV, _RNM0_TexelSize));
+				
+				half3 nL1x = BakeryTex2D(_RNM0, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
+				half3 nL1y = BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
+				half3 nL1z = BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
+				half3 L1x = nL1x * L0 * 2.0;
+				half3 L1y = nL1y * L0 * 2.0;
+				half3 L1z = nL1z * L0 * 2.0;
+				
+				// Non-Linear mode
+				#if defined(BAKERY_SHNONLINEAR)
+				half lumaL0 = dot(L0, half(1));
+				half lumaL1x = dot(L1x, half(1));
+				half lumaL1y = dot(L1y, half(1));
+				half lumaL1z = dot(L1z, half(1));
+				half lumaSH = shEvaluateDiffuseL1Geomerics_local(lumaL0, half3(lumaL1x, lumaL1y, lumaL1z), o.Normal);
+				
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				half regularLumaSH = dot(lightMap, 1.0);
+				lightMap *= lerp(1.0, lumaSH / regularLumaSH, saturate(regularLumaSH * 16.0));
+				#else
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				#endif
+				
+				#endif
+				
+				#if defined(DIRLIGHTMAP_COMBINED)
+				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
+				lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
+				#endif
+				
+				#if defined(DYNAMICLIGHTMAP_ON) && !defined(UNITY_PBS_USE_BRDF2)
+				half3 realtimeLightMap = getRealtimeLightmap(FragData.lightmapUv.zw, o.Normal);
+				lightMap += realtimeLightMap;
+				#endif
+				
+				#if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
+				pixelLight = 0;
+				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap(lightMap, lightAttenuation, bakedColorTex, o.Normal);
+				#endif
+				indirectDiffuse = lightMap;
+				#else
+				#if UNITY_LIGHT_PROBE_PROXY_VOLUME
+				UNITY_BRANCH
+				if (unity_ProbeVolumeParams.x == 1)
+				{
+					indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), FragData.worldPos);
+				}
+				else
+				{
+					#endif
+					indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
+					#if UNITY_LIGHT_PROBE_PROXY_VOLUME
+				}
+				#endif
+				#endif
+				
+				#if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
+				pixelLight *= UnityComputeForwardShadows(FragData.lightmapUv.xy, d.worldSpacePosition, d.screenPos);
+				#endif
+				
+				half3 dfguv = half3(NoV, perceptualRoughness, 0);
+				half2 dfg = SAMPLE_TEXTURE2D(_DFG, sampler_DFG, dfguv).xy;
+				half3 energyCompensation = 1.0 + f0 * (1.0 / dfg.y - 1.0);
+				
+				half rough = perceptualRoughness * perceptualRoughness;
+				half clampedRoughness = max(rough, 0.002);
+				
+				#if !defined(SPECULAR_HIGHLIGHTS_OFF) && defined(USING_LIGHT_MULTI_COMPILE)
+				half NoH = saturate(dot(o.Normal, lightHalfVector));
+				half3 F = F_Schlick(lightLoH, f0);
+				half D = D_GGX(NoH, clampedRoughness);
+				half V = V_SmithGGXCorrelated(NoV, lightNoL, clampedRoughness);
+				
+				F *= energyCompensation;
+				
+				directSpecular = max(0, D * V * F) * pixelLight * UNITY_PI;
+				#endif
+				
+				// BAKED SPECULAR
+				#if defined(BAKED_SPECULAR) && !defined(BAKERYLM_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
+				{
+					half3 bakedDominantDirection = 1;
+					half3 bakedSpecularColor = 0;
+					
+					// only do it if we have a directional lightmap
+					#if defined(DIRLIGHTMAP_COMBINED) && defined(LIGHTMAP_ON)
+					bakedDominantDirection = (lightMapDirection.xyz) * 2 - 1;
+					half directionality = max(0.001, length(bakedDominantDirection));
+					bakedDominantDirection /= directionality;
+					bakedSpecularColor = indirectDiffuse;
+					#endif
+					
+					// if we do not have lightmap - derive the specular from probes
+					//#ifndef LIGHTMAP_ON
+					//bakedSpecularColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+					//bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+					// #endif
+					
+					bakedDominantDirection = normalize(bakedDominantDirection);
+					directSpecular += GetSpecularHighlights(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+				}
+				#endif
+				
+				half3 fresnel = F_Schlick(NoV, f0);
+				
+				// BAKERY DIRECT SPECULAR
+				#if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
+				#if defined(BAKERY_RNM)
+				{
+					half3 viewDirTangent = -normalize(d.tangentSpaceViewDir);
+					half3 dominantDirTangent = rnmBasis0 * dot(rnm0, lumaConv) +
+					rnmBasis1 * dot(rnm1, lumaConv) +
+					rnmBasis2 * dot(rnm2, lumaConv);
+					
+					half3 dominantDirTangentNormalized = normalize(dominantDirTangent);
+					half3 specColor = saturate(dot(rnmBasis0, dominantDirTangentNormalized)) * rnm0 +
+					saturate(dot(rnmBasis1, dominantDirTangentNormalized)) * rnm1 +
+					saturate(dot(rnmBasis2, dominantDirTangentNormalized)) * rnm2;
+					half3 halfDir = Unity_SafeNormalize(dominantDirTangentNormalized - viewDirTangent);
+					half NoH = saturate(dot(tangentNormal, halfDir));
+					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+					directSpecular += spec * specColor * fresnel;
+				}
+				#endif
+				
+				#if defined(BAKERY_SH)
+				{
+					half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
+					half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + d.worldSpaceViewDir);
+					half NoH = saturate(dot(o.Normal, halfDir));
+					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+					half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
+					dominantDir = normalize(dominantDir);
+					directSpecular += max(spec * sh, 0.0) * fresnel;
+				}
+				#endif
+				#endif
+				
+				// REFLECTIONS
+				#if !defined(UNITY_PASS_FORWARDADD)
+				half3 reflDir = reflect(-d.worldSpaceViewDir, o.Normal);
+				reflDir = lerp(reflDir, o.Normal, rough * rough);
+				
+				Unity_GlossyEnvironmentData envData;
+				envData.roughness = perceptualRoughness;
+				envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
+				
+				half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+				indirectSpecular = probe0;
+				
+				#if defined(UNITY_SPECCUBE_BLENDING)
+				UNITY_BRANCH
+				if (unity_SpecCube0_BoxMin.w < 0.99999)
+				{
+					envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
+					half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
+					indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
+				}
+				#endif
+				
+				half horizon = min(1 + dot(reflDir, o.Normal), 1);
+				dfg.x *= saturate(pow(dot(indirectDiffuse, 1), _SpecOcclusion));
+				indirectSpecular = indirectSpecular * horizon * horizon * energyCompensation * EnvBRDFMultiscatter(dfg, f0);
+				
+				#if defined(_MASKMAP_SAMPLED)
+				indirectSpecular *= computeSpecularAO(NoV, o.Occlusion, perceptualRoughness * perceptualRoughness);
+				#endif
+				#endif
+				
+				#if defined(_INTEGRATE_CUSTOMGI) && !defined(UNITY_PASS_FORWARDADD)
+				IntegrateCustomGI(d, o, indirectSpecular, indirectDiffuse);
+				#endif
+				
+				// FINAL COLOR
+				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
+				
+				FinalColor.rgb += o.Emission;
+				#endif
+			}
+			
 			// Shadow Vertex
 			FragmentData Vertex(VertexData v)
 			{
@@ -10659,7 +11140,9 @@ Shader "orels1/Standard Layered Parallax"
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
 				
 				vD = v;
+				FragData = i;
 				
+				i = FragData;
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				i.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -10688,15 +11171,19 @@ Shader "orels1/Standard Layered Parallax"
 				i.vertexColor = v.color;
 				
 				#if defined(EDITOR_VISUALIZATION)
-				o.vizUV = 0;
-				o.lightCoord = 0;
+				i.vizUV = 0;
+				i.lightCoord = 0;
 				if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-				o.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
+				i.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
 				else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
 				{
-					o.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-					o.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
+					i.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+					i.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
 				}
+				#endif
+				
+				#if defined(NEED_SCREEN_POS)
+				i.screenPos = ComputeScreenPos(i.pos);
 				#endif
 				
 				#if !defined(UNITY_PASS_META)
@@ -10733,6 +11220,22 @@ Shader "orels1/Standard Layered Parallax"
 			half4 Fragment(FragmentData i) : SV_TARGET
 			{
 				UNITY_SETUP_INSTANCE_ID(i);
+				
+				#if defined(NEED_FRAGMENT_IN_SHADOW)
+				FragData = i;
+				o = (SurfaceData) 0;
+				d = CreateMeshData(i);
+				o.Albedo = half3(0.5, 0.5, 0.5);
+				o.Normal = half3(0, 0, 1);
+				o.Smoothness = 0.5;
+				o.Occlusion = 1;
+				o.Alpha = 1;
+				FinalColor = half4(o.Albedo, o.Alpha);
+				
+				LayeredParallaxFragment();
+				
+				#endif
+				
 				SHADOW_CASTER_FRAGMENT(i);
 			}
 			

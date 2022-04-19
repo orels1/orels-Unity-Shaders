@@ -234,6 +234,8 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			#endif
 			#endif
 			
+			#define NEED_SCREEN_POS
+			
 			// Credit to Jason Booth for digging this all up
 			// This originally comes from CoreRP, see Jason's comment below
 			
@@ -1332,6 +1334,10 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				float4 lightCoord : TEXCOORD10;
 				#endif
 				
+				#if defined(NEED_SCREEN_POS)
+				float4 screenPos: SCREENPOS;
+				#endif
+				
 				#if defined(EXTRA_V2F_0)
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				float4 extraV2F0 : TEXCOORD8;
@@ -1399,6 +1405,7 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				float4 extraV2F0;
 				float4 extraV2F1;
 				float4 extraV2F2;
+				float4 screenPos;
 			};
 			
 			MeshData CreateMeshData(FragmentData i)
@@ -1429,6 +1436,9 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				#endif
 				#if defined(EXTRA_V2F_2)
 				m.extraV2F2 = i.extraV2F2;
+				#endif
+				#if defined(NEED_SCREEN_POS)
+				m.screenPos = i.screenPos;
 				#endif
 				
 				return m;
@@ -2368,6 +2378,10 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			#endif
 			//BAKERY_ENABLED
 			
+			#if defined(NEED_DEPTH)
+			UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+			#endif
+			
 			half _LMLayer1Smoothness;
 			half _LMLayer1Metallic;
 			half _LMLayer1OcclusionStrength;
@@ -2722,6 +2736,7 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			
 			void ORLLighting()
 			{
+				#if !defined(UNITY_PASS_SHADOWCASTER)
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -2955,6 +2970,7 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
 				
 				FinalColor.rgb += o.Emission;
+				#endif
 			}
 			
 			// ForwardBase Vertex
@@ -2967,7 +2983,9 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
 				
 				vD = v;
+				FragData = i;
 				
+				i = FragData;
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				i.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -2996,15 +3014,19 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				i.vertexColor = v.color;
 				
 				#if defined(EDITOR_VISUALIZATION)
-				o.vizUV = 0;
-				o.lightCoord = 0;
+				i.vizUV = 0;
+				i.lightCoord = 0;
 				if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-				o.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
+				i.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
 				else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
 				{
-					o.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-					o.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
+					i.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+					i.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
 				}
+				#endif
+				
+				#if defined(NEED_SCREEN_POS)
+				i.screenPos = ComputeScreenPos(i.pos);
 				#endif
 				
 				#if !defined(UNITY_PASS_META)
@@ -3140,6 +3162,8 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			#endif
 			#endif
 			
+			#define NEED_SCREEN_POS
+			
 			// Credit to Jason Booth for digging this all up
 			// This originally comes from CoreRP, see Jason's comment below
 			
@@ -4238,6 +4262,10 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				float4 lightCoord : TEXCOORD10;
 				#endif
 				
+				#if defined(NEED_SCREEN_POS)
+				float4 screenPos: SCREENPOS;
+				#endif
+				
 				#if defined(EXTRA_V2F_0)
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				float4 extraV2F0 : TEXCOORD8;
@@ -4305,6 +4333,7 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				float4 extraV2F0;
 				float4 extraV2F1;
 				float4 extraV2F2;
+				float4 screenPos;
 			};
 			
 			MeshData CreateMeshData(FragmentData i)
@@ -4335,6 +4364,9 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				#endif
 				#if defined(EXTRA_V2F_2)
 				m.extraV2F2 = i.extraV2F2;
+				#endif
+				#if defined(NEED_SCREEN_POS)
+				m.screenPos = i.screenPos;
 				#endif
 				
 				return m;
@@ -5274,6 +5306,10 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			#endif
 			//BAKERY_ENABLED
 			
+			#if defined(NEED_DEPTH)
+			UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+			#endif
+			
 			half _LMLayer1Smoothness;
 			half _LMLayer1Metallic;
 			half _LMLayer1OcclusionStrength;
@@ -5628,6 +5664,7 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			
 			void ORLLighting()
 			{
+				#if !defined(UNITY_PASS_SHADOWCASTER)
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -5861,6 +5898,7 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
 				
 				FinalColor.rgb += o.Emission;
+				#endif
 			}
 			
 			// ForwardAdd Vertex
@@ -5873,7 +5911,9 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
 				
 				vD = v;
+				FragData = i;
 				
+				i = FragData;
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				i.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -5902,15 +5942,19 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				i.vertexColor = v.color;
 				
 				#if defined(EDITOR_VISUALIZATION)
-				o.vizUV = 0;
-				o.lightCoord = 0;
+				i.vizUV = 0;
+				i.lightCoord = 0;
 				if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-				o.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
+				i.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
 				else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
 				{
-					o.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-					o.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
+					i.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+					i.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
 				}
+				#endif
+				
+				#if defined(NEED_SCREEN_POS)
+				i.screenPos = ComputeScreenPos(i.pos);
 				#endif
 				
 				#if !defined(UNITY_PASS_META)
@@ -6047,6 +6091,8 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			#endif
 			#endif
 			
+			#define NEED_SCREEN_POS
+			
 			// Credit to Jason Booth for digging this all up
 			// This originally comes from CoreRP, see Jason's comment below
 			
@@ -7145,6 +7191,10 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				float4 lightCoord : TEXCOORD10;
 				#endif
 				
+				#if defined(NEED_SCREEN_POS)
+				float4 screenPos: SCREENPOS;
+				#endif
+				
 				#if defined(EXTRA_V2F_0)
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				float4 extraV2F0 : TEXCOORD8;
@@ -7212,6 +7262,7 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				float4 extraV2F0;
 				float4 extraV2F1;
 				float4 extraV2F2;
+				float4 screenPos;
 			};
 			
 			MeshData CreateMeshData(FragmentData i)
@@ -7242,6 +7293,9 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				#endif
 				#if defined(EXTRA_V2F_2)
 				m.extraV2F2 = i.extraV2F2;
+				#endif
+				#if defined(NEED_SCREEN_POS)
+				m.screenPos = i.screenPos;
 				#endif
 				
 				return m;
@@ -8181,6 +8235,10 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			#endif
 			//BAKERY_ENABLED
 			
+			#if defined(NEED_DEPTH)
+			UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+			#endif
+			
 			half _LMLayer1Smoothness;
 			half _LMLayer1Metallic;
 			half _LMLayer1OcclusionStrength;
@@ -8535,6 +8593,7 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			
 			void ORLLighting()
 			{
+				#if !defined(UNITY_PASS_SHADOWCASTER)
 				half reflectance = 0.5;
 				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 				half3 pixelLight = 0;
@@ -8768,6 +8827,7 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
 				
 				FinalColor.rgb += o.Emission;
+				#endif
 			}
 			
 			// Meta Vertex
@@ -8780,7 +8840,9 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
 				
 				vD = v;
+				FragData = i;
 				
+				i = FragData;
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				i.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -8809,15 +8871,19 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				i.vertexColor = v.color;
 				
 				#if defined(EDITOR_VISUALIZATION)
-				o.vizUV = 0;
-				o.lightCoord = 0;
+				i.vizUV = 0;
+				i.lightCoord = 0;
 				if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-				o.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
+				i.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
 				else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
 				{
-					o.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-					o.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
+					i.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+					i.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
 				}
+				#endif
+				
+				#if defined(NEED_SCREEN_POS)
+				i.screenPos = ComputeScreenPos(i.pos);
 				#endif
 				
 				#if !defined(UNITY_PASS_META)
@@ -8966,6 +9032,8 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			#endif
 			#endif
 			
+			#define NEED_SCREEN_POS
+			
 			// Credit to Jason Booth for digging this all up
 			// This originally comes from CoreRP, see Jason's comment below
 			
@@ -10064,6 +10132,10 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				float4 lightCoord : TEXCOORD10;
 				#endif
 				
+				#if defined(NEED_SCREEN_POS)
+				float4 screenPos: SCREENPOS;
+				#endif
+				
 				#if defined(EXTRA_V2F_0)
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				float4 extraV2F0 : TEXCOORD8;
@@ -10131,6 +10203,7 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				float4 extraV2F0;
 				float4 extraV2F1;
 				float4 extraV2F2;
+				float4 screenPos;
 			};
 			
 			MeshData CreateMeshData(FragmentData i)
@@ -10162,6 +10235,9 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				#if defined(EXTRA_V2F_2)
 				m.extraV2F2 = i.extraV2F2;
 				#endif
+				#if defined(NEED_SCREEN_POS)
+				m.screenPos = i.screenPos;
+				#endif
 				
 				return m;
 			}
@@ -10178,8 +10254,10 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			};
 			
 			FragmentData FragData;
+			SurfaceData o;
 			MeshData d;
 			VertexData vD;
+			float4 FinalColor;
 			
 			half invLerp(half a, half b, half v)
 			{
@@ -11098,6 +11176,10 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			#endif
 			//BAKERY_ENABLED
 			
+			#if defined(NEED_DEPTH)
+			UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+			#endif
+			
 			half _LMLayer1Smoothness;
 			half _LMLayer1Metallic;
 			half _LMLayer1OcclusionStrength;
@@ -11212,6 +11294,483 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			TEXTURE2D(_DFG);
 			SAMPLER(sampler_DFG);
 			
+			void LayeredMaterialFragment()
+			{
+				#if defined(_VERTEX_DEBUGGING)
+				o.Albedo = d.vertexColor.rgb;
+				o.Emission = d.vertexColor.rgb * 0.2;
+				#else
+				half2 uv = d.uv0.xy * _LMLayer1MainTex_ST.xy + _LMLayer1MainTex_ST.zw;
+				
+				half mask = _LMLayer1VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer1VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer1VertexColor - 1];
+				
+				half4 albedo = SAMPLE_TEXTURE2D(_LMLayer1MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer1AlbedoChannel > 0)
+				{
+					albedo.rgb = albedo[_LMLayer1AlbedoChannel].xxx;
+				}
+				half4 masks = SAMPLE_TEXTURE2D(_LMLayer1MaskMap, sampler_LMLayer1MaskMap, uv);
+				half4 normalTex = SAMPLE_TEXTURE2D(_LMLayer1BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer1FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				half3 normal = UnpackScaleNormal(normalTex, _LMLayer1BumpScale);
+				int hasMasks = _LMLayer1MaskMap_TexelSize.z > 8;
+				half metal = masks[_LMLayer1MetalChannel];
+				half smooth = masks[_LMLayer1SmoothChannel];
+				if (_LMLayer1RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				half detailMask = masks[_LMLayer1DetailMaskChannel];
+				half occlusion = masks[_LMLayer1AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer1MetallicRemap.x, _LMLayer1MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer1SmoothnessRemap.x, _LMLayer1SmoothnessRemap.y);
+				
+				o.Metallic = lerp(_LMLayer1Metallic, metal, hasMasks);
+				o.Smoothness = lerp(_LMLayer1Smoothness, smooth, hasMasks);
+				o.Occlusion = lerp(1, occlusion, _LMLayer1OcclusionStrength);
+				o.Normal = normal;
+				o.Albedo = albedo.rgb * _LMLayer1Color.rgb;
+				o.Alpha = albedo.a * _LMLayer1Color.a;
+				
+				UNITY_BRANCH
+				if (_LayeredMatLayersCount < 2) return;
+				
+				uv = d.uv0.xy * _LMLayer2MainTex_ST.xy + _LMLayer2MainTex_ST.zw;
+				mask = mask = _LMLayer2VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer2VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer2VertexColor - 1];
+				
+				albedo = SAMPLE_TEXTURE2D(_LMLayer2MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer2AlbedoChannel > 0)
+				{
+					albedo.rgb = albedo[_LMLayer2AlbedoChannel].xxx;
+				}
+				masks = SAMPLE_TEXTURE2D(_LMLayer2MaskMap, sampler_LMLayer1MaskMap, uv);
+				normalTex = SAMPLE_TEXTURE2D(_LMLayer2BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer2FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				normal = UnpackScaleNormal(normalTex, _LMLayer2BumpScale * mask);
+				hasMasks = _LMLayer2MaskMap_TexelSize.z > 8;
+				metal = masks[_LMLayer2MetalChannel];
+				smooth = masks[_LMLayer2SmoothChannel];
+				if (_LMLayer2RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				detailMask = masks[_LMLayer2DetailMaskChannel];
+				occlusion = masks[_LMLayer2AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer2MetallicRemap.x, _LMLayer2MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer2SmoothnessRemap.x, _LMLayer2SmoothnessRemap.y);
+				
+				o.Metallic = lerp(o.Metallic, lerp(_LMLayer2Metallic, metal, hasMasks), mask);
+				o.Smoothness = lerp(o.Smoothness, lerp(_LMLayer2Smoothness, smooth, hasMasks), mask);
+				o.Occlusion = lerp(o.Occlusion, lerp(1, occlusion, _LMLayer2OcclusionStrength), mask);
+				o.Normal = BlendNormals(o.Normal, normal);
+				o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer2Color.rgb, mask);
+				o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer2Color.a, mask);
+				
+				#if defined(PLAT_QUEST)
+				return;
+				#endif
+				
+				UNITY_BRANCH
+				if (_LayeredMatLayersCount < 3) return;
+				
+				uv = d.uv0.xy * _LMLayer3MainTex_ST.xy + _LMLayer3MainTex_ST.zw;
+				mask = mask = _LMLayer3VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer3VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer3VertexColor - 1];
+				
+				albedo = SAMPLE_TEXTURE2D(_LMLayer3MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer3AlbedoChannel > 0)
+				{
+					albedo.rgb = albedo[_LMLayer3AlbedoChannel].xxx;
+				}
+				masks = SAMPLE_TEXTURE2D(_LMLayer3MaskMap, sampler_LMLayer1MaskMap, uv);
+				normalTex = SAMPLE_TEXTURE2D(_LMLayer3BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer3FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				normal = UnpackScaleNormal(normalTex, _LMLayer3BumpScale * mask);
+				hasMasks = _LMLayer3MaskMap_TexelSize.z > 8;
+				metal = masks[_LMLayer3MetalChannel];
+				smooth = masks[_LMLayer3SmoothChannel];
+				if (_LMLayer3RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				detailMask = masks[_LMLayer3DetailMaskChannel];
+				occlusion = masks[_LMLayer3AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer3MetallicRemap.x, _LMLayer3MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer3SmoothnessRemap.x, _LMLayer3SmoothnessRemap.y);
+				
+				o.Metallic = lerp(o.Metallic, lerp(_LMLayer3Metallic, metal, hasMasks), mask);
+				o.Smoothness = lerp(o.Smoothness, lerp(_LMLayer3Smoothness, smooth, hasMasks), mask);
+				o.Occlusion = lerp(o.Occlusion, lerp(1, occlusion, _LMLayer3OcclusionStrength), mask);
+				o.Normal = BlendNormals(o.Normal, normal);
+				o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer3Color.rgb, mask);
+				o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer3Color.a, mask);
+				
+				UNITY_BRANCH
+				if (_LayeredMatLayersCount < 4) return;
+				
+				uv = d.uv0.xy * _LMLayer4MainTex_ST.xy + _LMLayer4MainTex_ST.zw;
+				mask = mask = _LMLayer4VertexColor == 0 ? all(d.vertexColor.rgb < 0.00001) : _LMLayer4VertexColor == 4 ? all(d.vertexColor.rgb > 0.99999) : d.vertexColor[_LMLayer4VertexColor - 1];
+				
+				albedo = SAMPLE_TEXTURE2D(_LMLayer4MainTex, sampler_LMLayer1MainTex, uv);
+				if (_LMLayer4AlbedoChannel > 0)
+				{
+					albedo.rgb = albedo[_LMLayer4AlbedoChannel].xxx;
+				}
+				masks = SAMPLE_TEXTURE2D(_LMLayer4MaskMap, sampler_LMLayer1MaskMap, uv);
+				normalTex = SAMPLE_TEXTURE2D(_LMLayer4BumpMap, sampler_LMLayer1BumpMap, uv);
+				if (_LMLayer4FlipBumpY)
+				{
+					normalTex.y = 1 - normalTex.y;
+				}
+				normal = UnpackScaleNormal(normalTex, _LMLayer4BumpScale * mask);
+				hasMasks = _LMLayer4MaskMap_TexelSize.z > 8;
+				metal = masks[_LMLayer4MetalChannel];
+				smooth = masks[_LMLayer4SmoothChannel];
+				if (_LMLayer4RoughnessMode)
+				{
+					smooth = 1 - smooth;
+				}
+				detailMask = masks[_LMLayer4DetailMaskChannel];
+				occlusion = masks[_LMLayer4AOChannel];
+				metal = remap(metal, 0, 1, _LMLayer4MetallicRemap.x, _LMLayer4MetallicRemap.y);
+				smooth = remap(smooth, 0, 1, _LMLayer4SmoothnessRemap.x, _LMLayer4SmoothnessRemap.y);
+				
+				o.Metallic = lerp(o.Metallic, lerp(_LMLayer4Metallic, metal, hasMasks), mask);
+				o.Smoothness = lerp(o.Smoothness, lerp(_LMLayer4Smoothness, smooth, hasMasks), mask);
+				o.Occlusion = lerp(o.Occlusion, lerp(1, occlusion, _LMLayer4OcclusionStrength), mask);
+				o.Normal = BlendNormals(o.Normal, normal);
+				o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer4Color.rgb, mask);
+				o.Alpha = lerp(o.Albedo, albedo.a * _LMLayer4Color.a, mask);
+				#endif
+			}
+			
+			void TriplanarFragment()
+			{
+				#if defined(DIRT_MODE_NONE) && defined(DAMAGE_MODE_NONE)
+				return;
+				#else
+				half3 wsAligned = (d.worldSpacePosition / - _TriplanarMaskTiling);
+				
+				half3 xySample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xy).rgb;
+				half3 yzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.yz).rgb;
+				half3 xzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xz).rgb;
+				
+				half xNormalMask = saturate(lerp(-1, 1, abs(d.worldNormal.x)));
+				half zNormalMask = saturate(lerp(-1, 1, abs(d.worldNormal.z)));
+				
+				half3 triplanarMask = lerp(lerp(xzSample, yzSample, xNormalMask), xySample, zNormalMask);
+				
+				half damageMask = triplanarMask.g;
+				half dirtMask = triplanarMask.b;
+				
+				#if defined(DAMAGE_MODE_ENABLED)
+				damageMask *= _DamageAmount;
+				half2 damageUV = d.uv0.xy * _DamageAlbedoTiling;
+				UNITY_BRANCH
+				if (_DamageAlbedo_TexelSize.w > 8)
+				{
+					half3 damageAlbedo = SAMPLE_TEXTURE2D(_DamageAlbedo, sampler_TriplanarMask, damageUV).rgb;
+					o.Albedo = lerp(o.Albedo, damageAlbedo, damageMask);
+				}
+				else
+				{
+					o.Albedo = lerp(o.Albedo, o.Albedo * _DamageColor, damageMask);
+				}
+				
+				half4 damageNormalPacked = SAMPLE_TEXTURE2D(_DamageNormal, sampler_DamageNormal, damageUV);
+				if (_DamageNormalFlipY)
+				{
+					damageNormalPacked.y = 1 - damageNormalPacked.y;
+				}
+				half3 damageNormal = UnpackScaleNormal(damageNormalPacked, _DamageNormalScale * damageMask);
+				o.Normal = BlendNormals(o.Normal, damageNormal);
+				
+				o.Smoothness = lerp(o.Smoothness, clamp(o.Smoothness, _DamageSmoothMin, _DamageSmoothMax), damageMask);
+				#endif
+				
+				#if !defined(DIRT_MODE_NONE)
+				dirtMask = pow(dirtMask, _DirtMaskPower);
+				
+				#if defined(DIRT_MODE_LOCAL_SPACE)
+				half gradMask = (d.localSpacePosition).y;
+				gradMask += _DirtGradPosition;
+				gradMask = 1 - gradMask;
+				gradMask = pow(gradMask, _DirtGradPower);
+				dirtMask *= saturate(gradMask);
+				#endif
+				#if defined(DIRT_MODE_WORLD_SPACE)
+				half gradMask = (d.worldSpacePosition - TransformObjectToWorld(half3(0, 0, 0))).y;
+				gradMask = (gradMask - _DirtGradientMax) / (_DirtGradientMin - _DirtGradientMax);
+				gradMask = saturate(gradMask);
+				dirtMask *= gradMask;
+				#endif
+				
+				dirtMask = clamp(dirtMask, 0, saturate(_DirtOpacity));
+				
+				if (_DirtPlanarMask)
+				{
+					half planarMask = dot(d.worldNormal, half3(0, -1, 0));
+					planarMask = pow(planarMask, 0.5);
+					planarMask = lerp(-1, 1, planarMask);
+					planarMask = saturate(planarMask);
+					dirtMask *= planarMask;
+				}
+				
+				o.Albedo = lerp(o.Albedo, _DirtColor, dirtMask);
+				o.Metallic = lerp(o.Metallic, 0, dirtMask);
+				o.Smoothness = lerp(o.Smoothness, _DirtSmooth, dirtMask);
+				#endif
+				
+				#endif
+			}
+			
+			void ORLLighting()
+			{
+				#if !defined(UNITY_PASS_SHADOWCASTER)
+				half reflectance = 0.5;
+				half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
+				half3 pixelLight = 0;
+				half3 indirectDiffuse = 1;
+				half3 indirectSpecular = 0;
+				half3 directSpecular = 0;
+				half occlusion = o.Occlusion;
+				half perceptualRoughness = 1 - o.Smoothness;
+				half3 tangentNormal = o.Normal;
+				o.Normal = normalize(mul(o.Normal, d.TBNMatrix));
+				
+				#ifndef USING_DIRECTIONAL_LIGHT
+				fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
+				#else
+				fixed3 lightDir = _WorldSpaceLightPos0.xyz;
+				#endif
+				
+				#if defined(GSAA)
+				perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness, _GSAAVariance, _GSAAThreshold);
+				#endif
+				
+				UNITY_LIGHT_ATTENUATION(lightAttenuation, FragData, d.worldSpacePosition);
+				half3 lightColor = lightAttenuation * _LightColor0.rgb;
+				
+				half3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
+				half lightNoL = saturate(dot(o.Normal, lightDir));
+				half lightLoH = saturate(dot(lightDir, lightHalfVector));
+				
+				half NoV = abs(dot(o.Normal, d.worldSpaceViewDir)) + 1e-5;
+				pixelLight = lightNoL * lightColor * Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
+				
+				// READ THE LIGHTMAP
+				#if defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
+				half3 lightMap = 0;
+				half4 bakedColorTex = 0;
+				half2 lightmapUV = FragData.lightmapUv.xy;
+				
+				// UNITY LIGHTMAPPING
+				#if !defined(BAKERYLM_ENABLED) || !defined(BAKERY_ENABLED)
+				lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
+				#endif
+				
+				// BAKERY RNM MODE (why do we even support it??)
+				#if defined(BAKERY_RNM) && defined(BAKERY_ENABLED)
+				half3 rnm0 = DecodeLightmap(BakeryTex2D(_RNM0, lightmapUV, _RNM0_TexelSize));
+				half3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize));
+				half3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize));
+				
+				lightMap = saturate(dot(rnmBasis0, tangentNormal)) * rnm0 +
+				saturate(dot(rnmBasis1, tangentNormal)) * rnm1 +
+				saturate(dot(rnmBasis2, tangentNormal)) * rnm2;
+				#endif
+				
+				// BAKERY SH MODE (these are also used for the specular)
+				#if defined(BAKERY_SH) && defined(BAKERY_ENABLED)
+				half3 L0 = DecodeLightmap(BakeryTex2D(unity_Lightmap, samplerunity_Lightmap, lightmapUV, _RNM0_TexelSize));
+				
+				half3 nL1x = BakeryTex2D(_RNM0, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
+				half3 nL1y = BakeryTex2D(_RNM1, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
+				half3 nL1z = BakeryTex2D(_RNM2, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
+				half3 L1x = nL1x * L0 * 2.0;
+				half3 L1y = nL1y * L0 * 2.0;
+				half3 L1z = nL1z * L0 * 2.0;
+				
+				// Non-Linear mode
+				#if defined(BAKERY_SHNONLINEAR)
+				half lumaL0 = dot(L0, half(1));
+				half lumaL1x = dot(L1x, half(1));
+				half lumaL1y = dot(L1y, half(1));
+				half lumaL1z = dot(L1z, half(1));
+				half lumaSH = shEvaluateDiffuseL1Geomerics_local(lumaL0, half3(lumaL1x, lumaL1y, lumaL1z), o.Normal);
+				
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				half regularLumaSH = dot(lightMap, 1.0);
+				lightMap *= lerp(1.0, lumaSH / regularLumaSH, saturate(regularLumaSH * 16.0));
+				#else
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				#endif
+				
+				#endif
+				
+				#if defined(DIRLIGHTMAP_COMBINED)
+				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
+				lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
+				#endif
+				
+				#if defined(DYNAMICLIGHTMAP_ON) && !defined(UNITY_PBS_USE_BRDF2)
+				half3 realtimeLightMap = getRealtimeLightmap(FragData.lightmapUv.zw, o.Normal);
+				lightMap += realtimeLightMap;
+				#endif
+				
+				#if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
+				pixelLight = 0;
+				lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap(lightMap, lightAttenuation, bakedColorTex, o.Normal);
+				#endif
+				indirectDiffuse = lightMap;
+				#else
+				#if UNITY_LIGHT_PROBE_PROXY_VOLUME
+				UNITY_BRANCH
+				if (unity_ProbeVolumeParams.x == 1)
+				{
+					indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), FragData.worldPos);
+				}
+				else
+				{
+					#endif
+					indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
+					#if UNITY_LIGHT_PROBE_PROXY_VOLUME
+				}
+				#endif
+				#endif
+				
+				#if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
+				pixelLight *= UnityComputeForwardShadows(FragData.lightmapUv.xy, d.worldSpacePosition, d.screenPos);
+				#endif
+				
+				half3 dfguv = half3(NoV, perceptualRoughness, 0);
+				half2 dfg = SAMPLE_TEXTURE2D(_DFG, sampler_DFG, dfguv).xy;
+				half3 energyCompensation = 1.0 + f0 * (1.0 / dfg.y - 1.0);
+				
+				half rough = perceptualRoughness * perceptualRoughness;
+				half clampedRoughness = max(rough, 0.002);
+				
+				#if !defined(SPECULAR_HIGHLIGHTS_OFF) && defined(USING_LIGHT_MULTI_COMPILE)
+				half NoH = saturate(dot(o.Normal, lightHalfVector));
+				half3 F = F_Schlick(lightLoH, f0);
+				half D = D_GGX(NoH, clampedRoughness);
+				half V = V_SmithGGXCorrelated(NoV, lightNoL, clampedRoughness);
+				
+				F *= energyCompensation;
+				
+				directSpecular = max(0, D * V * F) * pixelLight * UNITY_PI;
+				#endif
+				
+				// BAKED SPECULAR
+				#if defined(BAKED_SPECULAR) && !defined(BAKERYLM_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
+				{
+					half3 bakedDominantDirection = 1;
+					half3 bakedSpecularColor = 0;
+					
+					// only do it if we have a directional lightmap
+					#if defined(DIRLIGHTMAP_COMBINED) && defined(LIGHTMAP_ON)
+					bakedDominantDirection = (lightMapDirection.xyz) * 2 - 1;
+					half directionality = max(0.001, length(bakedDominantDirection));
+					bakedDominantDirection /= directionality;
+					bakedSpecularColor = indirectDiffuse;
+					#endif
+					
+					// if we do not have lightmap - derive the specular from probes
+					//#ifndef LIGHTMAP_ON
+					//bakedSpecularColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+					//bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+					// #endif
+					
+					bakedDominantDirection = normalize(bakedDominantDirection);
+					directSpecular += GetSpecularHighlights(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+				}
+				#endif
+				
+				half3 fresnel = F_Schlick(NoV, f0);
+				
+				// BAKERY DIRECT SPECULAR
+				#if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
+				#if defined(BAKERY_RNM)
+				{
+					half3 viewDirTangent = -normalize(d.tangentSpaceViewDir);
+					half3 dominantDirTangent = rnmBasis0 * dot(rnm0, lumaConv) +
+					rnmBasis1 * dot(rnm1, lumaConv) +
+					rnmBasis2 * dot(rnm2, lumaConv);
+					
+					half3 dominantDirTangentNormalized = normalize(dominantDirTangent);
+					half3 specColor = saturate(dot(rnmBasis0, dominantDirTangentNormalized)) * rnm0 +
+					saturate(dot(rnmBasis1, dominantDirTangentNormalized)) * rnm1 +
+					saturate(dot(rnmBasis2, dominantDirTangentNormalized)) * rnm2;
+					half3 halfDir = Unity_SafeNormalize(dominantDirTangentNormalized - viewDirTangent);
+					half NoH = saturate(dot(tangentNormal, halfDir));
+					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+					directSpecular += spec * specColor * fresnel;
+				}
+				#endif
+				
+				#if defined(BAKERY_SH)
+				{
+					half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
+					half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + d.worldSpaceViewDir);
+					half NoH = saturate(dot(o.Normal, halfDir));
+					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+					half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
+					dominantDir = normalize(dominantDir);
+					directSpecular += max(spec * sh, 0.0) * fresnel;
+				}
+				#endif
+				#endif
+				
+				// REFLECTIONS
+				#if !defined(UNITY_PASS_FORWARDADD)
+				half3 reflDir = reflect(-d.worldSpaceViewDir, o.Normal);
+				reflDir = lerp(reflDir, o.Normal, rough * rough);
+				
+				Unity_GlossyEnvironmentData envData;
+				envData.roughness = perceptualRoughness;
+				envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
+				
+				half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+				indirectSpecular = probe0;
+				
+				#if defined(UNITY_SPECCUBE_BLENDING)
+				UNITY_BRANCH
+				if (unity_SpecCube0_BoxMin.w < 0.99999)
+				{
+					envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
+					half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
+					indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
+				}
+				#endif
+				
+				half horizon = min(1 + dot(reflDir, o.Normal), 1);
+				dfg.x *= saturate(pow(dot(indirectDiffuse, 1), _SpecOcclusion));
+				indirectSpecular = indirectSpecular * horizon * horizon * energyCompensation * EnvBRDFMultiscatter(dfg, f0);
+				
+				#if defined(_MASKMAP_SAMPLED)
+				indirectSpecular *= computeSpecularAO(NoV, o.Occlusion, perceptualRoughness * perceptualRoughness);
+				#endif
+				#endif
+				
+				#if defined(_INTEGRATE_CUSTOMGI) && !defined(UNITY_PASS_FORWARDADD)
+				IntegrateCustomGI(d, o, indirectSpecular, indirectDiffuse);
+				#endif
+				
+				// FINAL COLOR
+				FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
+				
+				FinalColor.rgb += o.Emission;
+				#endif
+			}
+			
 			// Shadow Vertex
 			FragmentData Vertex(VertexData v)
 			{
@@ -11222,7 +11781,9 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
 				
 				vD = v;
+				FragData = i;
 				
+				i = FragData;
 				v = vD;
 				#if defined(UNITY_PASS_SHADOWCASTER)
 				i.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -11251,15 +11812,19 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 				i.vertexColor = v.color;
 				
 				#if defined(EDITOR_VISUALIZATION)
-				o.vizUV = 0;
-				o.lightCoord = 0;
+				i.vizUV = 0;
+				i.lightCoord = 0;
 				if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-				o.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
+				i.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
 				else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
 				{
-					o.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-					o.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
+					i.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+					i.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
 				}
+				#endif
+				
+				#if defined(NEED_SCREEN_POS)
+				i.screenPos = ComputeScreenPos(i.pos);
 				#endif
 				
 				#if !defined(UNITY_PASS_META)
@@ -11296,6 +11861,23 @@ Shader "orels1/Standard Layered Material Triplanar Effects"
 			half4 Fragment(FragmentData i) : SV_TARGET
 			{
 				UNITY_SETUP_INSTANCE_ID(i);
+				
+				#if defined(NEED_FRAGMENT_IN_SHADOW)
+				FragData = i;
+				o = (SurfaceData) 0;
+				d = CreateMeshData(i);
+				o.Albedo = half3(0.5, 0.5, 0.5);
+				o.Normal = half3(0, 0, 1);
+				o.Smoothness = 0.5;
+				o.Occlusion = 1;
+				o.Alpha = 1;
+				FinalColor = half4(o.Albedo, o.Alpha);
+				
+				LayeredMaterialFragment();
+				TriplanarFragment();
+				
+				#endif
+				
 				SHADOW_CASTER_FRAGMENT(i);
 			}
 			

@@ -187,6 +187,8 @@ Shader "orels1/Standard Cutout"
 		#endif
 		#endif
 		
+		#define NEED_SCREEN_POS
+		
 		// Credit to Jason Booth for digging this all up
 		// This originally comes from CoreRP, see Jason's comment below
 		
@@ -1285,6 +1287,10 @@ Shader "orels1/Standard Cutout"
 			float4 lightCoord : TEXCOORD10;
 			#endif
 			
+			#if defined(NEED_SCREEN_POS)
+			float4 screenPos: SCREENPOS;
+			#endif
+			
 			#if defined(EXTRA_V2F_0)
 			#if defined(UNITY_PASS_SHADOWCASTER)
 			float4 extraV2F0 : TEXCOORD8;
@@ -1352,6 +1358,7 @@ Shader "orels1/Standard Cutout"
 			float4 extraV2F0;
 			float4 extraV2F1;
 			float4 extraV2F2;
+			float4 screenPos;
 		};
 		
 		MeshData CreateMeshData(FragmentData i)
@@ -1382,6 +1389,9 @@ Shader "orels1/Standard Cutout"
 			#endif
 			#if defined(EXTRA_V2F_2)
 			m.extraV2F2 = i.extraV2F2;
+			#endif
+			#if defined(NEED_SCREEN_POS)
+			m.screenPos = i.screenPos;
 			#endif
 			
 			return m;
@@ -2330,6 +2340,10 @@ Shader "orels1/Standard Cutout"
 		#endif
 		#endif
 		//BAKERY_ENABLED
+		
+		#if defined(NEED_DEPTH)
+		UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+		#endif
 		
 		half _Smoothness;
 		half _Metallic;
@@ -2777,7 +2791,9 @@ Shader "orels1/Standard Cutout"
 			UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
 			
 			vD = v;
+			FragData = i;
 			
+			i = FragData;
 			v = vD;
 			#if defined(UNITY_PASS_SHADOWCASTER)
 			i.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -2806,15 +2822,19 @@ Shader "orels1/Standard Cutout"
 			i.vertexColor = v.color;
 			
 			#if defined(EDITOR_VISUALIZATION)
-			o.vizUV = 0;
-			o.lightCoord = 0;
+			i.vizUV = 0;
+			i.lightCoord = 0;
 			if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-			o.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
+			i.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
 			else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
 			{
-				o.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-				o.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
+				i.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+				i.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
 			}
+			#endif
+			
+			#if defined(NEED_SCREEN_POS)
+			i.screenPos = ComputeScreenPos(i.pos);
 			#endif
 			
 			#if !defined(UNITY_PASS_META)
@@ -2953,6 +2973,8 @@ Shader "orels1/Standard Cutout"
 		#define BAKERY_LMSPEC
 		#endif
 		#endif
+		
+		#define NEED_SCREEN_POS
 		
 		// Credit to Jason Booth for digging this all up
 		// This originally comes from CoreRP, see Jason's comment below
@@ -4052,6 +4074,10 @@ Shader "orels1/Standard Cutout"
 			float4 lightCoord : TEXCOORD10;
 			#endif
 			
+			#if defined(NEED_SCREEN_POS)
+			float4 screenPos: SCREENPOS;
+			#endif
+			
 			#if defined(EXTRA_V2F_0)
 			#if defined(UNITY_PASS_SHADOWCASTER)
 			float4 extraV2F0 : TEXCOORD8;
@@ -4119,6 +4145,7 @@ Shader "orels1/Standard Cutout"
 			float4 extraV2F0;
 			float4 extraV2F1;
 			float4 extraV2F2;
+			float4 screenPos;
 		};
 		
 		MeshData CreateMeshData(FragmentData i)
@@ -4149,6 +4176,9 @@ Shader "orels1/Standard Cutout"
 			#endif
 			#if defined(EXTRA_V2F_2)
 			m.extraV2F2 = i.extraV2F2;
+			#endif
+			#if defined(NEED_SCREEN_POS)
+			m.screenPos = i.screenPos;
 			#endif
 			
 			return m;
@@ -5097,6 +5127,10 @@ Shader "orels1/Standard Cutout"
 		#endif
 		#endif
 		//BAKERY_ENABLED
+		
+		#if defined(NEED_DEPTH)
+		UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+		#endif
 		
 		half _Smoothness;
 		half _Metallic;
@@ -5544,7 +5578,9 @@ Shader "orels1/Standard Cutout"
 			UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
 			
 			vD = v;
+			FragData = i;
 			
+			i = FragData;
 			v = vD;
 			#if defined(UNITY_PASS_SHADOWCASTER)
 			i.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -5573,15 +5609,19 @@ Shader "orels1/Standard Cutout"
 			i.vertexColor = v.color;
 			
 			#if defined(EDITOR_VISUALIZATION)
-			o.vizUV = 0;
-			o.lightCoord = 0;
+			i.vizUV = 0;
+			i.lightCoord = 0;
 			if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-			o.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
+			i.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
 			else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
 			{
-				o.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-				o.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
+				i.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+				i.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
 			}
+			#endif
+			
+			#if defined(NEED_SCREEN_POS)
+			i.screenPos = ComputeScreenPos(i.pos);
 			#endif
 			
 			#if !defined(UNITY_PASS_META)
@@ -5721,6 +5761,8 @@ Shader "orels1/Standard Cutout"
 		#define BAKERY_LMSPEC
 		#endif
 		#endif
+		
+		#define NEED_SCREEN_POS
 		
 		// Credit to Jason Booth for digging this all up
 		// This originally comes from CoreRP, see Jason's comment below
@@ -6820,6 +6862,10 @@ Shader "orels1/Standard Cutout"
 			float4 lightCoord : TEXCOORD10;
 			#endif
 			
+			#if defined(NEED_SCREEN_POS)
+			float4 screenPos: SCREENPOS;
+			#endif
+			
 			#if defined(EXTRA_V2F_0)
 			#if defined(UNITY_PASS_SHADOWCASTER)
 			float4 extraV2F0 : TEXCOORD8;
@@ -6887,6 +6933,7 @@ Shader "orels1/Standard Cutout"
 			float4 extraV2F0;
 			float4 extraV2F1;
 			float4 extraV2F2;
+			float4 screenPos;
 		};
 		
 		MeshData CreateMeshData(FragmentData i)
@@ -6917,6 +6964,9 @@ Shader "orels1/Standard Cutout"
 			#endif
 			#if defined(EXTRA_V2F_2)
 			m.extraV2F2 = i.extraV2F2;
+			#endif
+			#if defined(NEED_SCREEN_POS)
+			m.screenPos = i.screenPos;
 			#endif
 			
 			return m;
@@ -7865,6 +7915,10 @@ Shader "orels1/Standard Cutout"
 		#endif
 		#endif
 		//BAKERY_ENABLED
+		
+		#if defined(NEED_DEPTH)
+		UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+		#endif
 		
 		half _Smoothness;
 		half _Metallic;
@@ -8312,7 +8366,9 @@ Shader "orels1/Standard Cutout"
 			UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
 			
 			vD = v;
+			FragData = i;
 			
+			i = FragData;
 			v = vD;
 			#if defined(UNITY_PASS_SHADOWCASTER)
 			i.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -8341,15 +8397,19 @@ Shader "orels1/Standard Cutout"
 			i.vertexColor = v.color;
 			
 			#if defined(EDITOR_VISUALIZATION)
-			o.vizUV = 0;
-			o.lightCoord = 0;
+			i.vizUV = 0;
+			i.lightCoord = 0;
 			if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-			o.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
+			i.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
 			else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
 			{
-				o.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-				o.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
+				i.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+				i.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
 			}
+			#endif
+			
+			#if defined(NEED_SCREEN_POS)
+			i.screenPos = ComputeScreenPos(i.pos);
 			#endif
 			
 			#if !defined(UNITY_PASS_META)
@@ -8506,6 +8566,8 @@ Shader "orels1/Standard Cutout"
 		#define BAKERY_LMSPEC
 		#endif
 		#endif
+		
+		#define NEED_SCREEN_POS
 		
 		// Credit to Jason Booth for digging this all up
 		// This originally comes from CoreRP, see Jason's comment below
@@ -9605,6 +9667,10 @@ Shader "orels1/Standard Cutout"
 			float4 lightCoord : TEXCOORD10;
 			#endif
 			
+			#if defined(NEED_SCREEN_POS)
+			float4 screenPos: SCREENPOS;
+			#endif
+			
 			#if defined(EXTRA_V2F_0)
 			#if defined(UNITY_PASS_SHADOWCASTER)
 			float4 extraV2F0 : TEXCOORD8;
@@ -9672,6 +9738,7 @@ Shader "orels1/Standard Cutout"
 			float4 extraV2F0;
 			float4 extraV2F1;
 			float4 extraV2F2;
+			float4 screenPos;
 		};
 		
 		MeshData CreateMeshData(FragmentData i)
@@ -9702,6 +9769,9 @@ Shader "orels1/Standard Cutout"
 			#endif
 			#if defined(EXTRA_V2F_2)
 			m.extraV2F2 = i.extraV2F2;
+			#endif
+			#if defined(NEED_SCREEN_POS)
+			m.screenPos = i.screenPos;
 			#endif
 			
 			return m;
@@ -10651,6 +10721,10 @@ Shader "orels1/Standard Cutout"
 		#endif
 		//BAKERY_ENABLED
 		
+		#if defined(NEED_DEPTH)
+		UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+		#endif
+		
 		half _Smoothness;
 		half _Metallic;
 		half _OcclusionStrength;
@@ -11097,7 +11171,9 @@ Shader "orels1/Standard Cutout"
 			UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
 			
 			vD = v;
+			FragData = i;
 			
+			i = FragData;
 			v = vD;
 			#if defined(UNITY_PASS_SHADOWCASTER)
 			i.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -11126,15 +11202,19 @@ Shader "orels1/Standard Cutout"
 			i.vertexColor = v.color;
 			
 			#if defined(EDITOR_VISUALIZATION)
-			o.vizUV = 0;
-			o.lightCoord = 0;
+			i.vizUV = 0;
+			i.lightCoord = 0;
 			if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
-			o.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
+			i.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
 			else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
 			{
-				o.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-				o.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
+				i.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+				i.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
 			}
+			#endif
+			
+			#if defined(NEED_SCREEN_POS)
+			i.screenPos = ComputeScreenPos(i.pos);
 			#endif
 			
 			#if !defined(UNITY_PASS_META)
