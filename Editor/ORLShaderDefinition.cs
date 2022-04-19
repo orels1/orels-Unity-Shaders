@@ -80,14 +80,29 @@ namespace ORL
       string pathToCurrentFolder = obj.ToString();
       string uniquePath = AssetDatabase.GenerateUniqueAssetPath($"{pathToCurrentFolder}/New Shader.orlshader");
 
-      ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAsset>(), uniquePath, null, (string)null);
+      ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAsset>(), uniquePath, null, (string) null);
     }
 
     internal class DoCreateNewAsset : EndNameEditAction
     {
       public override void Action(int instanceId, string pathName, string resourceFile)
       {
-        File.WriteAllText(pathName, "");
+        var template = Resources.Load<TextAsset>("ORLShaderTemplate");
+        var templatesPath = AssetDatabase.GetAssetPath(template);
+        templatesPath = templatesPath.Substring(0, templatesPath.LastIndexOf("/"));
+        templatesPath = templatesPath.Replace("Assets/", "/");
+        templatesPath = templatesPath.Replace("/Resources", "/Sources/Editor");
+        
+        var currUri = new Uri(Application.dataPath + pathName.Replace("Assets/", "/"));
+        var templateUri = new Uri(Application.dataPath + templatesPath + "/ORL PBR Template.stemplate");
+        var utilitiesUri = new Uri(Application.dataPath + templatesPath + "/ORL Utility Functions.asset");
+        var moduleUri = new Uri(Application.dataPath + templatesPath + "/ORL PBR Module.asset");
+        // add modules with correct paths
+        var shaderContent = template.text;
+        shaderContent = shaderContent.Replace("TEMPLATE", Uri.UnescapeDataString(currUri.MakeRelativeUri(templateUri).ToString()));
+        shaderContent = shaderContent.Replace("UTILITIES", Uri.UnescapeDataString(currUri.MakeRelativeUri(utilitiesUri).ToString()));
+        shaderContent = shaderContent.Replace("PBR_MODULE", Uri.UnescapeDataString(currUri.MakeRelativeUri(moduleUri).ToString()));
+        File.WriteAllText(pathName, shaderContent);
         AssetDatabase.Refresh();
         Object o = AssetDatabase.LoadAssetAtPath<Object>(pathName);
         Selection.activeObject = o;
