@@ -47,6 +47,10 @@ struct FragmentData
     float2 vizUV : TEXCOORD9;
     float4 lightCoord : TEXCOORD10;
   #endif
+  
+  #if defined(NEED_SCREEN_POS)
+    float4 screenPos: SCREENPOS;
+  #endif
 
   #if defined(EXTRA_V2F_0)
     #if defined(UNITY_PASS_SHADOWCASTER)
@@ -128,6 +132,7 @@ struct MeshData
   float4 extraV2F0;
   float4 extraV2F1;
   float4 extraV2F2;
+  float4 screenPos;
 };
 
 MeshData CreateMeshData(FragmentData i)
@@ -158,6 +163,9 @@ MeshData CreateMeshData(FragmentData i)
   #endif
   #if defined(EXTRA_V2F_2)
     m.extraV2F2 = i.extraV2F2;
+  #endif
+  #if defined(NEED_SCREEN_POS)
+    m.screenPos = i.screenPos;
   #endif
 
 
