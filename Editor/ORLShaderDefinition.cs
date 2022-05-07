@@ -71,8 +71,31 @@ namespace ORL
       Templates = new List<TemplateAsset>();
     }
 
-    [MenuItem("Assets/Create/Shader/ORL/Shader Definition", priority = 9)]
-    private static void CreateTemplate()
+    [MenuItem("Assets/Create/Shader/ORL/PBR Shader", priority = 9)]
+    private static void CreatePBRTemplateShader()
+    {
+      CreateTemplate("ORLPBRShaderTemplateMarkdown");
+    }
+    
+    [MenuItem("Assets/Create/Shader/ORL/PBR Shader [No Editor]", priority = 9)]
+    private static void CreatePBRTemplateShaderPure()
+    {
+      CreateTemplate("ORLPBRShaderTemplate");
+    }
+    
+    [MenuItem("Assets/Create/Shader/ORL/VFX Shader", priority = 9)]
+    private static void CreateVFXTemplateShader()
+    {
+      CreateTemplate("ORLVFXShaderTemplateMarkdown");
+    }
+    
+    [MenuItem("Assets/Create/Shader/ORL/VFX Shader [No Editor]", priority = 9)]
+    private static void CreateVFXTemplateShaderPure()
+    {
+      CreateTemplate("ORLVFXShaderTemplate");
+    }
+    
+    private static void CreateTemplate(string templateName)
     {
       Type projectWindowUtilType = typeof(ProjectWindowUtil);
       MethodInfo getActiveFolderPath = projectWindowUtilType.GetMethod("GetActiveFolderPath", BindingFlags.Static | BindingFlags.NonPublic);
@@ -80,28 +103,46 @@ namespace ORL
       string pathToCurrentFolder = obj.ToString();
       string uniquePath = AssetDatabase.GenerateUniqueAssetPath($"{pathToCurrentFolder}/New Shader.orlshader");
 
-      ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAsset>(), uniquePath, null, (string) null);
+      ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAsset>(), uniquePath, null, (string) templateName);
     }
+
+    private static Dictionary<string, string> PBRTemplateMapping = new Dictionary<string, string>
+    {
+      {"TEMPLATE", "ORL PBR Template.stemplate"},
+      {"UTILITIES", "ORL Utility Functions.asset"},
+      {"BASE_MODULE", "ORL PBR Module.asset"}
+    };
+    
+    private static Dictionary<string, string> VFXemplateMapping = new Dictionary<string, string>
+    {
+      {"TEMPLATE", "ORL VFX Template.stemplate"},
+      {"UTILITIES", "ORL Utility Functions.asset"},
+      {"BASE_MODULE", "ORL VFX Module.asset"}
+    };
+
+    private static Dictionary<string, Dictionary<string, string>> templateMappings =
+      new Dictionary<string, Dictionary<string, string>>
+      {
+        {"ORLPBRShaderTemplate", PBRTemplateMapping},
+        {"ORLPBRShaderTemplateMarkdown", PBRTemplateMapping},
+        {"ORLVFXShaderTemplate", VFXemplateMapping},
+        {"ORLVFXShaderTemplateMarkdown", VFXemplateMapping}
+      };
 
     internal class DoCreateNewAsset : EndNameEditAction
     {
       public override void Action(int instanceId, string pathName, string resourceFile)
       {
-        var template = Resources.Load<TextAsset>("ORLShaderTemplate");
-        var templatesPath = AssetDatabase.GetAssetPath(template);
-        templatesPath = templatesPath.Substring(0, templatesPath.LastIndexOf("/"));
-        templatesPath = templatesPath.Replace("Assets/", "/");
-        templatesPath = templatesPath.Replace("/Resources", "/Sources/Editor");
-        
-        var currUri = new Uri(Application.dataPath + pathName.Replace("Assets/", "/"));
-        var templateUri = new Uri(Application.dataPath + templatesPath + "/ORL PBR Template.stemplate");
-        var utilitiesUri = new Uri(Application.dataPath + templatesPath + "/ORL Utility Functions.asset");
-        var moduleUri = new Uri(Application.dataPath + templatesPath + "/ORL PBR Module.asset");
+        var template = Resources.Load<TextAsset>(resourceFile);
         // add modules with correct paths
         var shaderContent = template.text;
-        shaderContent = shaderContent.Replace("TEMPLATE", Uri.UnescapeDataString(currUri.MakeRelativeUri(templateUri).ToString()));
-        shaderContent = shaderContent.Replace("UTILITIES", Uri.UnescapeDataString(currUri.MakeRelativeUri(utilitiesUri).ToString()));
-        shaderContent = shaderContent.Replace("PBR_MODULE", Uri.UnescapeDataString(currUri.MakeRelativeUri(moduleUri).ToString()));
+        var name = pathName.Substring(pathName.LastIndexOf("/") + 1).Replace(".orlshader", "");
+        shaderContent = shaderContent.Replace("SHADER_NAME", name);
+        var mappings = templateMappings[resourceFile];
+        foreach (var mapping in mappings)
+        {
+          shaderContent = shaderContent.Replace(mapping.Key, mapping.Value);
+        }
         File.WriteAllText(pathName, shaderContent);
         AssetDatabase.Refresh();
         Object o = AssetDatabase.LoadAssetAtPath<Object>(pathName);
