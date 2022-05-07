@@ -11,12 +11,12 @@ namespace ORL.ModularShaderSystem
 {
   public static class ShaderGenerator
   {
-    public static void GenerateShader(string path, ModularShader shader, bool hideVariants = false)
+    public static void GenerateShader(string path, ModularShader shader, string filename = "", bool hideVariants = false)
     {
-      GenerateShader(path, shader, null, hideVariants);
+      GenerateShader(path, shader, filename, null, hideVariants);
     }
 
-    public static void GenerateShader(string path, ModularShader shader, Action<StringBuilder, ShaderContext> postGeneration, bool hideVariants = false)
+    public static void GenerateShader(string path, ModularShader shader, string filename, Action<StringBuilder, ShaderContext> postGeneration, bool hideVariants = false)
     {
 
       path = GetPathRelativeToProject(path);
@@ -70,8 +70,16 @@ namespace ORL.ModularShaderSystem
 
         shader.LastGeneratedShaders = new List<Shader>();
 
-        foreach (var context in contexts)
-          File.WriteAllText($"{path}/" + context.VariantFileName, context.ShaderFile.ToString());
+        if (contexts.Count == 1 && !string.IsNullOrEmpty(filename))
+        {
+          File.WriteAllText($"{path}/{filename}.shader", contexts[0].ShaderFile.ToString());
+        }
+        else
+        {
+          foreach (var context in contexts)
+            File.WriteAllText($"{path}/" + context.VariantFileName, context.ShaderFile.ToString());
+        }
+
       }
       finally
       {
@@ -79,10 +87,24 @@ namespace ORL.ModularShaderSystem
       }
 
       AssetDatabase.Refresh();
-      ApplyDefaultTextures(contexts);
-
-      foreach (var context in contexts)
-        shader.LastGeneratedShaders.Add(AssetDatabase.LoadAssetAtPath<Shader>($"{path}/" + context.VariantFileName));
+      if (contexts.Count == 1 && !string.IsNullOrEmpty(filename))
+      {
+        ApplyDefaultTextures(contexts[0], $"{path}/{filename}.shader");
+      }
+      else
+      {
+        ApplyDefaultTextures(contexts);
+      }
+      
+      if (contexts.Count == 1 && !string.IsNullOrEmpty(filename))
+      {
+        shader.LastGeneratedShaders.Add(AssetDatabase.LoadAssetAtPath<Shader>($"{path}/{filename}.shader"));
+      }
+      else
+      {
+        foreach (var context in contexts)
+          shader.LastGeneratedShaders.Add(AssetDatabase.LoadAssetAtPath<Shader>($"{path}/" + context.VariantFileName));
+      }
       AssetDatabase.Refresh();
     }
 
@@ -786,6 +808,19 @@ namespace ORL.ModularShaderSystem
 
       block.AppendLine("}");
       return block.ToString();
+    }
+
+    private static void ApplyDefaultTextures(ShaderContext context, string fullPath)
+    {
+      var importedShader = AssetImporter.GetAtPath(fullPath) as ShaderImporter;
+      var customTextures = context.Modules.SelectMany(x => x.Properties).Where(x => x.DefaultTextureAsset != null).ToList();
+      customTextures.AddRange(context.Shader.Properties.Where(x => x.DefaultTextureAsset != null).ToList());
+      if (importedShader != null)
+      {
+        importedShader.SetDefaultTextures(customTextures.Select(x => x.Name).ToArray(), customTextures.Select(x => x.DefaultTextureAsset).ToArray());
+        importedShader.SetNonModifiableTextures(customTextures.Select(x => x.Name).ToArray(), customTextures.Select(x => x.DefaultTextureAsset).ToArray());
+      }
+      AssetDatabase.ImportAsset(fullPath);
     }
 
     private static void ApplyDefaultTextures(List<ShaderContext> contexts)
