@@ -3,11 +3,12 @@ Name "SHADER_NAME"
 Author "YOUR_NAME"
 Version "1.0.0"
 Template "TEMPLATE"
+CUSTOM_EDITOR
 
 #S#Includes
 "UTILITIES"
 "self"
-"PBR_MODULE"
+"BASE_MODULE"
 
 #S#Properties
 _MainTex("Main Texture", 2D) = "white" {}
