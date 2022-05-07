@@ -15,6 +15,94 @@ namespace ORL
   [ScriptedImporter(1, "orlshader")]
   public class ORLShaderDefinitionImporter : ScriptedImporter
   {
+    
+    // We collect .orlshader dependencies here to make sure they get processed beforehand
+    static string[] GatherDependenciesFromSourceFile(string path)
+    {
+      var depPaths = new List<string>();
+      using (var sr = new StringReader(File.ReadAllText(path)))
+      {
+        var builder = new StringBuilder();
+        string line;
+        var name = "";
+        var deleteEmptyLine = false;
+        var type = "";
+        while ((line = sr.ReadLine()) != null)
+        {
+          // skip commented out code
+          if (line.Trim().StartsWith("//"))
+          {
+            continue;
+          }
+          if (line.Contains("#T#") || line.Contains("#S#"))
+          {
+            if (builder.Length > 0 && !string.IsNullOrWhiteSpace(name) && type == "includes")
+            {
+              PreProcessIncludes(builder, ref depPaths, path);
+            }
+    
+            if (line.Contains("#T#"))
+            {
+              type = "template";
+            }
+            else
+            {
+              switch (line)
+              {
+                case "#S#Settings": type = "settings"; break;
+                case "#S#Includes": type = "includes"; break;
+                case "#S#Properties": type = "properties"; break;
+                case "#S#FragmentVariables": type = "fragVars"; break;
+                case "#S#VertexVariables": type = "vertVars"; break;
+                case "#S#ColorVariables": type = "colorVars"; break;
+                case "#S#ShadowVariables": type = "shadowVars"; break;
+              }
+            }
+    
+            builder = new StringBuilder();
+            name = line.Replace("#T#", "").Trim();
+            continue;
+          }
+    
+          if (string.IsNullOrEmpty(line))
+          {
+            if (deleteEmptyLine)
+              continue;
+            deleteEmptyLine = true;
+          }
+          else
+          {
+            deleteEmptyLine = false;
+          }
+    
+          if (!string.IsNullOrWhiteSpace(name))
+          {
+            builder.AppendLine(line);
+          }
+        }
+      }
+      
+      return depPaths.ToArray();
+    }
+
+    private static void PreProcessIncludes(StringBuilder builder, ref List<string> finalPaths, string assetPath)
+    {
+      var includeLines = builder.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+      var includes = new List<string>();
+      foreach (var line in includeLines)
+      {
+        if (line.Contains("#S#")) continue;
+        var cleaned = line.Trim().Replace("\"", "");
+        includes.Add(cleaned);
+      }
+
+      foreach (var include in includes)
+      {
+        if (!include.Contains(".orlshader")) continue;
+        finalPaths.Add(ResolveRequiredPath(include, assetPath));
+      }
+    }
+    
     public override void OnImportAsset(AssetImportContext ctx)
     {
       var subAsset = ScriptableObject.CreateInstance<ORLShaderDefinition>();
@@ -83,6 +171,8 @@ namespace ORL
         if (builder.Length > 0 && !string.IsNullOrWhiteSpace(name))
           SaveAssetForType(type, ctx, subAsset, builder, name);
       }
+      
+      var oldDefinition = ctx.mainObject as ORLShaderDefinition;
 
       // create a module
       var module = ScriptableObject.CreateInstance<ShaderModule>();
@@ -100,6 +190,20 @@ namespace ORL
       }).ToList();
       module.Functions = new List<ShaderFunction>();
       module.Templates = new List<ModuleTemplate>();
+
+      // migrate old default textures
+      if (oldDefinition?.GeneratedModule?.Properties != null)
+      {
+        foreach (var prop in oldDefinition.GeneratedModule.Properties)
+        {
+          var newProp = module.Properties.Find(p => p.Name == prop.Name);
+          if (newProp == null) continue;
+          if (newProp.Type == "2D" && prop.DefaultValue != null)
+          {
+            newProp.DefaultValue = prop.DefaultValue;
+          }
+        }
+      }
 
       SaveOptionalTemplate(ref module, ref subAsset, "ShaderFeatures", "SHADER_FEATURES");
       SaveOptionalTemplate(ref module, ref subAsset, "ShaderDefines", "SHADER_DEFINES");
@@ -145,6 +249,11 @@ namespace ORL
       );
 
       var shader = ScriptableObject.CreateInstance<ModularShader>();
+      
+      if (oldDefinition?.GeneratedShader?.LastGeneratedShaders != null)
+      {
+        shader.LastGeneratedShaders = oldDefinition.GeneratedShader.LastGeneratedShaders;
+      }
 
       shader.Name = subAsset.ShaderName;
       shader.Id = subAsset.ShaderName.Replace("/", ".");
@@ -152,8 +261,7 @@ namespace ORL
       shader.ShaderPath = subAsset.ShaderName;
       shader.Version = subAsset.Version;
       shader.CustomEditor = subAsset.CustomEditor;
-      shader.ShaderTemplate =
-        AssetDatabase.LoadAssetAtPath<TemplateAsset>(Path.Combine(Path.GetDirectoryName(assetPath), subAsset.Template));
+      shader.ShaderTemplate = ResolveBaseTemplate(subAsset.Template, assetPath);
       shader.BaseModules = new List<ShaderModule>();
       var selfIncluded = false;
       foreach (var include in subAsset.Includes)
@@ -164,17 +272,7 @@ namespace ORL
           selfIncluded = true;
           continue;
         }
-        // if we're trying to reference a subshader - extract its module
-        if (include.Contains(".orlshader"))
-        {
-          var subshader =
-          AssetDatabase.LoadAssetAtPath<ORLShaderDefinition>(Path.Combine(Path.GetDirectoryName(assetPath), include));
-          shader.BaseModules.Add(subshader.GeneratedModule);
-          continue;
-        }
-        var resolved =
-          AssetDatabase.LoadAssetAtPath<ShaderModule>(Path.Combine(Path.GetDirectoryName(assetPath), include));
-        shader.BaseModules.Add(resolved);
+        shader.BaseModules.Add(ResolveModuleInclude(include, assetPath));
       }
 
       if (!selfIncluded)
@@ -192,6 +290,46 @@ namespace ORL
 
       ctx.AddObjectToAsset("Collection", subAsset);
       ctx.SetMainObject(subAsset);
+    }
+
+    private static string ResolveRequiredPath(string name, string assetPath)
+    {
+      // absolute paths
+      var path = name.StartsWith("Assets/") ? name : Path.Combine(Path.GetDirectoryName(assetPath), name);
+      // first - try to find asset in the main directory
+      var folderRef = Resources.Load<TextAsset>("ORLLocator");
+      var templatesPath = AssetDatabase.GetAssetPath(folderRef);
+      templatesPath = templatesPath.Substring(0, templatesPath.LastIndexOf("/"));
+      // templatesPath = templatesPath.Replace("Assets/", "/");
+      templatesPath = templatesPath.Replace("/Resources", "/Sources/Editor/");
+
+      var potentialAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(templatesPath + name);
+      if (potentialAsset != null)
+      {
+        return templatesPath + name;
+      }
+
+      return path;
+    }
+
+    private static TemplateAsset ResolveBaseTemplate(string name, string assetPath)
+    {
+      var finalPath = ResolveRequiredPath(name, assetPath);
+      return AssetDatabase.LoadAssetAtPath<TemplateAsset>(finalPath);
+    }
+
+    private static ShaderModule ResolveModuleInclude(string name, string assetPath = "")
+    {
+      var finalPath = ResolveRequiredPath(name, assetPath);
+      
+      // handle .orlshader includes
+      if (name.Contains(".orlshader"))
+      {
+        var asset = AssetDatabase.LoadAssetAtPath<ORLShaderDefinition>(finalPath);
+        return asset.GeneratedModule;
+      }
+
+      return AssetDatabase.LoadAssetAtPath<ShaderModule>(finalPath);
     }
 
     private static void SaveAssetForType(string type, AssetImportContext ctx, ORLShaderDefinition asset, StringBuilder builder, string name)
