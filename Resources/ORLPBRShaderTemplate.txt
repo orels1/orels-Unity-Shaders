@@ -3,7 +3,6 @@ Name "SHADER_NAME"
 Author "YOUR_NAME"
 Version "1.0.0"
 Template "TEMPLATE"
-CUSTOM_EDITOR
 
 #S#Includes
 "UTILITIES"
@@ -21,8 +20,8 @@ SAMPLER(sampler_MainTex);
 
 #T#FragmentFunction
 void MyFragment() {
-  half2 uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
-  half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv).rgb;
-
-  o.Albedo = albedo;
+    half2 uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+    half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv).rgb;
+    
+    o.Albedo = albedo;
 }

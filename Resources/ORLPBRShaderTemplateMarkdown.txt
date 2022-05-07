@@ -1,0 +1,28 @@
+﻿#S#Settings
+Name "SHADER_NAME"
+Author "YOUR_NAME"
+Version "1.0.0"
+Template "TEMPLATE"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"UTILITIES"
+"self"
+"BASE_MODULE"
+
+#S#Properties
+_MainTex("Main Texture", 2D) = "white" {}
+
+#S#FragmentVariables
+float4 _MainTex_ST;
+
+TEXTURE2D(_MainTex);
+SAMPLER(sampler_MainTex);
+
+#T#FragmentFunction
+void MyFragment() {
+    half2 uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+    half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv).rgb;
+    
+    o.Albedo = albedo;
+}
