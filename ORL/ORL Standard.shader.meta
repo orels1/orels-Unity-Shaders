@@ -3,8 +3,18 @@ guid: 02b44cf07259bda4592d27f11536b39d
 ShaderImporter:
   externalObjects: {}
   defaultTextures:
+  - UI_BakeryHeader: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a, type: 3}
+  - _BakeryEnabled: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a, type: 3}
+  - BAKERY: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a, type: 3}
+  - _BakerySHNonLinear: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a,
+      type: 3}
   - _DFG: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a, type: 3}
   nonModifiableTextures:
+  - UI_BakeryHeader: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a, type: 3}
+  - _BakeryEnabled: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a, type: 3}
+  - BAKERY: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a, type: 3}
+  - _BakerySHNonLinear: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a,
+      type: 3}
   - _DFG: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a, type: 3}
   userData: 
   assetBundleName: 
