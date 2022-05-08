@@ -1,0 +1,16 @@
+﻿#S#Settings
+Name "SHADER_NAME"
+Author "YOUR_NAME"
+Version "1.0.0"
+
+#S#Properties
+// Put module properties here
+
+#S#FragmentVariables
+// Put module variables here
+
+#T#FragmentFunction
+void FRAGMENT_NAMEFragment() {
+  // Modify the surface / mesh data in some way
+  // e.g. o.Albedo *= 0.5;
+}

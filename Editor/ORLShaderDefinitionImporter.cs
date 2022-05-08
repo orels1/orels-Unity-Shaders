@@ -171,8 +171,6 @@ namespace ORL
         if (builder.Length > 0 && !string.IsNullOrWhiteSpace(name))
           SaveAssetForType(type, ctx, subAsset, builder, name);
       }
-      
-      var oldDefinition = ctx.mainObject as ORLShaderDefinition;
 
       // create a module
       var module = ScriptableObject.CreateInstance<ShaderModule>();
@@ -190,20 +188,6 @@ namespace ORL
       }).ToList();
       module.Functions = new List<ShaderFunction>();
       module.Templates = new List<ModuleTemplate>();
-
-      // migrate old default textures
-      if (oldDefinition?.GeneratedModule?.Properties != null)
-      {
-        foreach (var prop in oldDefinition.GeneratedModule.Properties)
-        {
-          var newProp = module.Properties.Find(p => p.Name == prop.Name);
-          if (newProp == null) continue;
-          if (newProp.Type == "2D" && prop.DefaultValue != null)
-          {
-            newProp.DefaultValue = prop.DefaultValue;
-          }
-        }
-      }
 
       SaveOptionalTemplate(ref module, ref subAsset, "ShaderFeatures", "SHADER_FEATURES");
       SaveOptionalTemplate(ref module, ref subAsset, "ShaderDefines", "SHADER_DEFINES");
@@ -249,11 +233,6 @@ namespace ORL
       );
 
       var shader = ScriptableObject.CreateInstance<ModularShader>();
-      
-      if (oldDefinition?.GeneratedShader?.LastGeneratedShaders != null)
-      {
-        shader.LastGeneratedShaders = oldDefinition.GeneratedShader.LastGeneratedShaders;
-      }
 
       shader.Name = subAsset.ShaderName;
       shader.Id = subAsset.ShaderName.Replace("/", ".");
@@ -261,7 +240,11 @@ namespace ORL
       shader.ShaderPath = subAsset.ShaderName;
       shader.Version = subAsset.Version;
       shader.CustomEditor = subAsset.CustomEditor;
-      shader.ShaderTemplate = ResolveBaseTemplate(subAsset.Template, assetPath);
+      // in case of pure modules - the template might not be defined
+      if (!string.IsNullOrEmpty(subAsset.Template))
+      {
+        shader.ShaderTemplate = ResolveBaseTemplate(subAsset.Template, assetPath);
+      }
       shader.BaseModules = new List<ShaderModule>();
       var selfIncluded = false;
       foreach (var include in subAsset.Includes)

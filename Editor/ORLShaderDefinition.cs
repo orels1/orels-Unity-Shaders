@@ -95,6 +95,12 @@ namespace ORL
       CreateTemplate("ORLVFXShaderTemplate");
     }
     
+    [MenuItem("Assets/Create/Shader/ORL/Shader Module", priority = 9)]
+    private static void CreateShaderModule()
+    {
+      CreateTemplate("ORLShaderModuleTemplate");
+    }
+    
     private static void CreateTemplate(string templateName)
     {
       Type projectWindowUtilType = typeof(ProjectWindowUtil);
@@ -120,13 +126,16 @@ namespace ORL
       {"BASE_MODULE", "ORL VFX Module.asset"}
     };
 
+    private static Dictionary<string, string> ModuleTemplateMapping = new Dictionary<string, string>();
+
     private static Dictionary<string, Dictionary<string, string>> templateMappings =
       new Dictionary<string, Dictionary<string, string>>
       {
         {"ORLPBRShaderTemplate", PBRTemplateMapping},
         {"ORLPBRShaderTemplateMarkdown", PBRTemplateMapping},
         {"ORLVFXShaderTemplate", VFXemplateMapping},
-        {"ORLVFXShaderTemplateMarkdown", VFXemplateMapping}
+        {"ORLVFXShaderTemplateMarkdown", VFXemplateMapping},
+        { "ORLShaderModuleTemplate", ModuleTemplateMapping }
       };
 
     internal class DoCreateNewAsset : EndNameEditAction
@@ -138,6 +147,10 @@ namespace ORL
         var shaderContent = template.text;
         var name = pathName.Substring(pathName.LastIndexOf("/") + 1).Replace(".orlshader", "");
         shaderContent = shaderContent.Replace("SHADER_NAME", name);
+        if (shaderContent.Contains("FRAGMENT_NAME"))
+        {
+          shaderContent = shaderContent.Replace("FRAGMENT_NAME", name.Replace("/", "_").Replace(" ", "_"));
+        }
         var mappings = templateMappings[resourceFile];
         foreach (var mapping in mappings)
         {
