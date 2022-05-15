@@ -80,6 +80,12 @@ namespace ORL
             builder.AppendLine(line);
           }
         }
+
+        // make sure that the last section is processed correctly before returning
+        if (builder.Length > 0 && !string.IsNullOrWhiteSpace(name))
+        {
+          PreProcessIncludes(builder, ref depPaths, path);
+        }
       }
       
       return depPaths.ToArray();
