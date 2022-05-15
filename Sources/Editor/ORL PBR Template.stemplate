@@ -230,6 +230,7 @@ Pass
 
 Pass
 {
+  Name "META"
   Tags { "LightMode" = "Meta" }
   Cull Off
 

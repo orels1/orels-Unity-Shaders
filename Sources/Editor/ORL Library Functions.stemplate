@@ -5,6 +5,17 @@ half D_GGX(half NoH, half roughness)
   return k * k * (1.0 / UNITY_PI);
 }
 
+half D_GGX_Anisotropic(half NoH, const half3 h, const half3 t, const half3 b, half at, half ab)
+{
+    half ToH = dot(t, h);
+    half BoH = dot(b, h);
+    half a2 = at * ab;
+    half3 v = half3(ab * ToH, at * BoH, a2 * NoH);
+    half v2 = dot(v, v);
+    half w2 = a2 / v2;
+    return a2 * w2 * w2 * (1.0 / UNITY_PI);
+}
+
 half V_SmithGGXCorrelated(half NoV, half NoL, half roughness)
 {
   half a2 = roughness * roughness;
