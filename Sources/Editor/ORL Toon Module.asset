@@ -1,0 +1,148 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94ed51d9b58df46b1a6bcd5e12ab3e38, type: 3}
+  m_Name: ORL Toon Module
+  m_EditorClassIdentifier: 
+  Id: ORL.Toon
+  Name: Toon Module
+  Version: 0.1
+  Author: orels1
+  Description: This is the base Toon module. It is derived from XSToon and is used
+    in all of the ORL Toon-based shaders
+  EnableProperties: []
+  Properties:
+  - Name: _Ramp
+    DisplayName: Shadow Ramp
+    Type: 2D
+    DefaultValue: '"white" {}'
+    DefaultTextureAsset: {fileID: 2800000, guid: ff0962e622d174a258105d546cd2a578,
+      type: 3}
+    Attributes:
+    - HideInInspector
+    - NoScaleOffset
+  - Name: UI_AdvancedHeader
+    DisplayName: '# Advanced Features'
+    Type: Float
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 0}
+    Attributes:
+    - ToggleUI
+  - Name: _CullMode
+    DisplayName: Culling Mode
+    Type: Int
+    DefaultValue: 2
+    DefaultTextureAsset: {fileID: 2800000, guid: ff0962e622d174a258105d546cd2a578,
+      type: 3}
+    Attributes:
+    - Enum(UnityEngine.Rendering.CullMode)
+  - Name: _ZWrite
+    DisplayName: Depth Write
+    Type: Int
+    DefaultValue: 1
+    DefaultTextureAsset: {fileID: 2800000, guid: ff0962e622d174a258105d546cd2a578,
+      type: 3}
+    Attributes:
+    - Enum(Off, 0, On, 1)
+  - Name: _ZTest
+    DisplayName: Depth Test
+    Type: Int
+    DefaultValue: 4
+    DefaultTextureAsset: {fileID: 2800000, guid: ff0962e622d174a258105d546cd2a578,
+      type: 3}
+    Attributes:
+    - Enum(UnityEngine.Rendering.CompareFunction)
+  ModuleDependencies: []
+  IncompatibleWith: []
+  Templates:
+  - Template: {fileID: -4916903605919031817, guid: 93c378b68af144f5906aaf1c76ab754a,
+      type: 3}
+    Keywords:
+    - VERTEX_BASE
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -796163221951580872, guid: 93c378b68af144f5906aaf1c76ab754a,
+      type: 3}
+    Keywords:
+    - MESH_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: 3730235994735770938, guid: 93c378b68af144f5906aaf1c76ab754a,
+      type: 3}
+    Keywords:
+    - SURFACE_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -544282384758852595, guid: 81007e1598f664b7b91bb9baf4b1bcde,
+      type: 3}
+    Keywords:
+    - SAMPLING_LIB
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -544282384758852595, guid: d9d90fad235e24b51ab1c2cdb3db5cc0,
+      type: 3}
+    Keywords:
+    - LIBRARY_FUNCTIONS
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: 61160338002701077, guid: 4b96e1386ff024c37a39f27e6ad667f6,
+      type: 3}
+    Keywords:
+    - VERTEX_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -7537978936044009380, guid: 4b96e1386ff024c37a39f27e6ad667f6,
+      type: 3}
+    Keywords:
+    - FRAGMENT_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -9184432099131695101, guid: 93c378b68af144f5906aaf1c76ab754a,
+      type: 3}
+    Keywords:
+    - SHADER_DEFINES
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -44383321320206647, guid: 93c378b68af144f5906aaf1c76ab754a,
+      type: 3}
+    Keywords:
+    - LIBRARY_FUNCTIONS
+    NeedsVariant: 0
+    Queue: 0
+  Functions:
+  - Name: XSToonLighting
+    AppendAfter: '#K#LIGHTING_FUNCTION'
+    Queue: 100
+    ShaderFunctionCode: {fileID: -5679828348219544688, guid: 93c378b68af144f5906aaf1c76ab754a,
+      type: 3}
+    UsedVariables:
+    - Name: _SpecOcclusion
+      Type: 0
+      CustomType: 
+    - Name: _SpecularRoughnessMod
+      Type: 0
+      CustomType: 
+    - Name: TEXTURE2D(_DFG)
+      Type: 999
+      CustomType: 
+    - Name: SAMPLER(sampler_DFG)
+      Type: 999
+      CustomType: 
+    - Name: _GSAAVariance
+      Type: 4
+      CustomType: 
+    - Name: _GSAAThreshold
+      Type: 4
+      CustomType: 
+    VariableKeywords: []
+    CodeKeywords:
+    - FRAGMENT_CODE
+  AdditionalSerializedData: 

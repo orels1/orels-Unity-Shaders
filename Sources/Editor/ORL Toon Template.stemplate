@@ -1,0 +1,342 @@
+﻿Tags { #K#SHADER_TAGS }
+
+ZTest[_ZTest]
+ZWrite[_ZWrite]
+Cull[_CullMode]
+
+Pass
+{
+  Tags { "LightMode" = "ForwardBase" #K#PASS_TAGS }
+  #K#PASS_MODS
+
+  // ForwardBase Pass Start
+  CGPROGRAM
+  #pragma target 4.5
+  #pragma multi_compile_instancing
+  #pragma multi_compile_fwdbase
+  #pragma multi_compile_fog
+  #pragma vertex Vertex
+  #pragma fragment Fragment
+  #K#SHADER_FEATURES
+
+  #define UNITY_INSTANCED_LOD_FADE
+  #define UNITY_INSTANCED_SH
+  #define UNITY_INSTANCED_LIGHTMAPSTS
+
+  #ifndef UNITY_PASS_FORWARDBASE
+    #define UNITY_PASS_FORWARDBASE
+  #endif
+
+  #include "UnityStandardUtils.cginc"
+  #include "Lighting.cginc"
+  #include "AutoLight.cginc"
+
+  #K#SHADER_DEFINES
+
+  #K#SAMPLING_LIB
+
+  #K#VERTEX_DATA_STRUCT
+  #K#FRAGMENT_DATA_STRUCT
+  #K#MESH_DATA_STRUCT
+  #K#SURFACE_DATA_STRUCT
+  
+  FragmentData FragData;
+  SurfaceData o;
+  MeshData d;
+  VertexData vD;
+  float4 FinalColor;
+
+  #K#LIBRARY_FUNCTIONS
+
+  #if defined(NEED_DEPTH)
+    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+  #endif
+  
+  #K#DEFAULT_VARIABLES
+  
+  #K#DEFAULT_CODE
+  #K#VERTEX_CODE
+  #K#FRAGMENT_CODE
+  #K#COLOR_CODE
+  
+  // ForwardBase Vertex
+  FragmentData Vertex(VertexData v)
+  {
+    UNITY_SETUP_INSTANCE_ID(v);
+    FragmentData i;
+    UNITY_INITIALIZE_OUTPUT(FragmentData, i);
+    UNITY_TRANSFER_INSTANCE_ID(v, i);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
+
+    vD = v;
+    FragData = i;
+    #K#VERTEX_FUNCTION
+    i = FragData;
+    v = vD;
+    #K#VERTEX_BASE
+    
+    return i;
+  }
+  
+  // ForwardBase Fragment
+  half4 Fragment(FragmentData i) : SV_TARGET
+  {
+    UNITY_SETUP_INSTANCE_ID(i);
+    #ifdef FOG_COMBINED_WITH_TSPACE
+      UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+    #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+      UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+    #else
+      UNITY_EXTRACT_FOG(i);
+    #endif
+
+    FragData = i;
+    o = (SurfaceData) 0;
+    d = CreateMeshData(i);
+    o.Albedo = half3(0.5, 0.5, 0.5);
+    o.Normal = half3(0, 0, 1);
+    o.Smoothness = 0;
+    o.Occlusion = 1;
+    o.Alpha = 1;
+    o.RimShadow = 1;
+    o.RimAttenuation = 1;
+    FinalColor = half4(o.Albedo, o.Alpha);
+    
+    #K#FRAGMENT_FUNCTION
+
+    #K#LIGHTING_FUNCTION
+
+    #K#FINAL_COLOR_MOD
+
+    UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+    
+    return FinalColor;
+  }
+
+  ENDCG
+  // ForwardBase Pass End
+
+}
+
+Pass
+{
+  Tags { "LightMode" = "ForwardAdd" #K#PASS_TAGS }
+  ZWrite Off
+  Blend One One
+
+  // ForwardAdd Pass Start
+  CGPROGRAM
+  #pragma target 4.5
+  #pragma multi_compile_instancing
+  #pragma multi_compile_fog
+  #pragma multi_compile_fwdadd_fullshadows
+  #pragma vertex Vertex
+  #pragma fragment Fragment
+
+  #define UNITY_INSTANCED_LOD_FADE
+  #define UNITY_INSTANCED_SH
+  #define UNITY_INSTANCED_LIGHTMAPSTS
+
+  #ifndef UNITY_PASS_FORWARDADD
+    #define UNITY_PASS_FORWARDADD
+  #endif
+
+  #include "UnityStandardUtils.cginc"
+  #include "Lighting.cginc"
+  #include "AutoLight.cginc"
+
+  #K#SHADER_DEFINES
+
+  #K#SAMPLING_LIB
+
+  #K#VERTEX_DATA_STRUCT
+  #K#FRAGMENT_DATA_STRUCT
+  #K#MESH_DATA_STRUCT
+  #K#SURFACE_DATA_STRUCT
+  
+  FragmentData FragData;
+  SurfaceData o;
+  MeshData d;
+  VertexData vD;
+  float4 FinalColor;
+
+  #K#LIBRARY_FUNCTIONS
+
+  #if defined(NEED_DEPTH)
+    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+  #endif
+  
+  #K#DEFAULT_VARIABLES
+  
+  #K#DEFAULT_CODE
+  #K#VERTEX_CODE
+  #K#FRAGMENT_CODE
+  #K#COLOR_CODE
+  
+  // ForwardAdd Vertex
+  FragmentData Vertex(VertexData v)
+  {
+    UNITY_SETUP_INSTANCE_ID(v);
+    FragmentData i;
+    UNITY_INITIALIZE_OUTPUT(FragmentData, i);
+    UNITY_TRANSFER_INSTANCE_ID(v, i);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
+    
+    vD = v;
+    FragData = i;
+    #K#VERTEX_FUNCTION
+    i = FragData;
+    v = vD;
+    #K#VERTEX_BASE
+    
+    return i;
+  }
+  
+  // ForwardAdd Fragment
+  half4 Fragment(FragmentData i) : SV_TARGET
+  {
+    UNITY_SETUP_INSTANCE_ID(i);
+    #ifdef FOG_COMBINED_WITH_TSPACE
+      UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+    #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+      UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+    #else
+      UNITY_EXTRACT_FOG(i);
+    #endif
+
+    FragData = i;
+    o = (SurfaceData) 0;
+    d = CreateMeshData(i);
+    o.Albedo = half3(0.5, 0.5, 0.5);
+    o.Normal = half3(0, 0, 1);
+    o.Smoothness = 0;
+    o.Occlusion = 1;
+    o.Alpha = 1;
+    o.RimShadow = 1;
+    o.RimAttenuation = 1;
+    FinalColor = half4(o.Albedo, o.Alpha);
+    
+    #K#FRAGMENT_FUNCTION
+
+    #K#LIGHTING_FUNCTION
+
+    #K#FINAL_COLOR_MOD
+
+    UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+    
+    return FinalColor;
+  }
+
+  ENDCG
+  // ForwardAdd Pass End
+
+}
+
+Pass
+{
+  Tags { "LightMode" = "ShadowCaster" #K#PASS_TAGS }
+  #K#PASS_MODS
+
+  // Shadow Pass Start
+  CGPROGRAM
+  #pragma target 4.5
+  #pragma multi_compile_instancing
+  #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
+  #pragma multi_compile_shadowcaster
+  #pragma vertex Vertex
+  #pragma fragment Fragment
+  #K#SHADER_FEATURES
+
+  #define UNITY_INSTANCED_LOD_FADE
+  #define UNITY_INSTANCED_SH
+  #define UNITY_INSTANCED_LIGHTMAPSTS
+
+  #ifndef UNITY_PASS_SHADOWCASTER
+    #define UNITY_PASS_SHADOWCASTER
+  #endif
+
+  #include "UnityStandardUtils.cginc"
+  #include "Lighting.cginc"
+  #include "UnityPBSLighting.cginc"
+
+  #K#SHADER_DEFINES
+
+  #K#SAMPLING_LIB
+
+  #K#VERTEX_DATA_STRUCT
+  #K#FRAGMENT_DATA_STRUCT
+  #K#MESH_DATA_STRUCT
+  #K#SURFACE_DATA_STRUCT
+  
+  FragmentData FragData;
+  SurfaceData o;
+  MeshData d;
+  VertexData vD;
+  float4 FinalColor;
+  
+  #K#LIBRARY_FUNCTIONS
+
+  #if defined(NEED_DEPTH)
+    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+  #endif
+  
+  #K#DEFAULT_VARIABLES
+  
+  #K#DEFAULT_CODE
+  #K#VERTEX_CODE
+  #K#FRAGMENT_CODE
+  #K#SHADOW_CODE
+  
+  // Shadow Vertex
+  FragmentData Vertex(VertexData v)
+  {
+    UNITY_SETUP_INSTANCE_ID(v);
+    FragmentData i;
+    UNITY_INITIALIZE_OUTPUT(FragmentData, i);
+    UNITY_TRANSFER_INSTANCE_ID(v, i);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
+    
+    vD = v;
+    FragData = i;
+    #K#VERTEX_FUNCTION
+    i = FragData;
+    v = vD;
+    #K#VERTEX_BASE
+
+    TRANSFER_SHADOW_CASTER_NORMALOFFSET(i);
+    
+    return i;
+  }
+  
+  // Shadow Fragment
+  half4 Fragment(FragmentData i) : SV_TARGET
+  {
+    UNITY_SETUP_INSTANCE_ID(i);
+
+    #if defined(NEED_FRAGMENT_IN_SHADOW)
+      FragData = i;
+      o = (SurfaceData) 0;
+      d = CreateMeshData(i);
+      o.Albedo = half3(0.5, 0.5, 0.5);
+      o.Normal = half3(0, 0, 1);
+      o.Smoothness = 0;
+      o.Occlusion = 1;
+      o.Alpha = 1;
+      o.RimShadow = 1;
+      o.RimAttenuation = 1;
+      FinalColor = half4(o.Albedo, o.Alpha);
+      
+      #K#FRAGMENT_FUNCTION
+
+      #K#FINAL_COLOR_MOD
+    #endif
+
+    #K#SHADOW_FUNCTION
+
+    SHADOW_CASTER_FRAGMENT(i);
+  }
+
+  ENDCG
+  // Shadow Pass End
+
+}
