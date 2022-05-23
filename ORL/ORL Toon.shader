@@ -37,8 +37,26 @@ Shader "orels1/Toon/Main"
 		[NoScaleOffset] _EmissionMap("Emission Map &&", 2D) =  "white" {}
 		[HDR] _EmissionColor("Emission Color", Color) =  (0,0,0,1)
 		_EmissionTintToDiffuse("Emission Tint To Diffuse", Range(0,1)) =  0
-		[Enum(Yes,0, No,1)] _EmissionScaleWithLight("Emission Scale w/ Light", Int) =  1
+		[Enum(Yes,0,No,1)] _EmissionScaleWithLight("Emission Scale w/ Light", Int) =  1
 		_EmissionScaleWithLightSensitivity("Scaling Sensitivity [_EmissionScaleWithLight == 0]", Range(0,1)) =  1
+		[ToggleUI] UI_AudioLink("# AudioLink Settings", Int) =  0
+		[Enum(None,0,Single Channel,1,Packed Map,2,UV Based,3)] _ALMode("Audio Link Mode", Int) =  0
+		[NoScaleOffset] _ALMap("Audio Link Map & [_ALMode != 0]", 2D) =  "white" {}
+		[HDR] _ALEmissionColor("Color [_ALMode != 0 && _ALMode != 2]", Color) =  (0,0,0,0)
+		[Enum(Bass,0,Low Mids,1,High Mids,3,Treble,4)] _ALBand("Frequency Band [_ALMode == 1]", Int) =  0
+		[ToggleUI] UI_ALPackedRedHeader("## Red Channel [_ALMode == 2]", Int) =  0
+		[ToggleUI] UI_ALPackedPropRed("!DRAWER MultiProperty _ALGradientOnRed _ALPackedRedColor [_ALMode == 2]", Int) =  0
+		[ToggleUI] _ALGradientOnRed("Gradient", Int) =  0
+		[HDR] _ALPackedRedColor("Color", Color) =  (0,0,0,0)
+		[ToggleUI] UI_ALPackedGreenHeader("## Green Channel [_ALMode == 2]", Int) =  0
+		[ToggleUI] UI_ALPackedPropGreen("!DRAWER MultiProperty _ALGradientOnGreen _ALPackedGreenColor [_ALMode == 2]", Int) =  0
+		[ToggleUI] _ALGradientOnGreen("Gradient", Int) =  0
+		[HDR] _ALPackedGreenColor("Color", Color) =  (0,0,0,0)
+		[ToggleUI] UI_ALPackedBlueHeader("## Blue Channel [_ALMode == 2]", Int) =  0
+		[ToggleUI] UI_ALPackedPropBlue("!DRAWER MultiProperty _ALGradientOnBlue _ALPackedBlueColor [_ALMode == 2]", Int) =  0
+		[ToggleUI] _ALGradientOnBlue("Gradient", Int) =  0
+		[HDR] _ALPackedBlueColor("Color", Color) =  (0,0,0,0)
+		[IntRange] _ALUVWidth("History Sample Amount [_ALMode == 3]", Range(0,128)) =  128
 		[ToggleUI] UI_RimLightHeader("# Rim Light Settings", Int) =  0
 		_RimTint("Tint", Color) =  (1,1,1,1)
 		_RimIntensity("Intensity", Float) =  0
@@ -1625,6 +1643,260 @@ Shader "orels1/Toon/Main"
 				return mul(finalMatrix, original) + center;
 			}
 			
+			// Map of where features in AudioLink are.
+			#define ALPASS_DFT                      uint2(0, 4)  //Size: 128, 2
+			#define ALPASS_WAVEFORM                 uint2(0, 6)  //Size: 128, 16
+			#define ALPASS_AUDIOLINK                uint2(0, 0)  //Size: 128, 4
+			#define ALPASS_AUDIOBASS                uint2(0, 0)  //Size: 128, 1
+			#define ALPASS_AUDIOLOWMIDS             uint2(0, 1)  //Size: 128, 1
+			#define ALPASS_AUDIOHIGHMIDS            uint2(0, 2)  //Size: 128, 1
+			#define ALPASS_AUDIOTREBLE              uint2(0, 3)  //Size: 128, 1
+			#define ALPASS_AUDIOLINKHISTORY         uint2(1, 0)  //Size: 127, 4
+			#define ALPASS_GENERALVU                uint2(0, 22) //Size: 12, 1
+			#define ALPASS_GENERALVU_INSTANCE_TIME  uint2(2, 22)
+			#define ALPASS_GENERALVU_LOCAL_TIME     uint2(3, 22)
+			#define ALPASS_GENERALVU_NETWORK_TIME   uint2(4, 22)
+			#define ALPASS_GENERALVU_PLAYERINFO     uint2(6, 22)
+			#define ALPASS_THEME_COLOR0             uint2(0, 23)
+			#define ALPASS_THEME_COLOR1             uint2(1, 23)
+			#define ALPASS_THEME_COLOR2             uint2(2, 23)
+			#define ALPASS_THEME_COLOR3             uint2(3, 23)
+			#define ALPASS_CCINTERNAL               uint2(12, 22) //Size: 12, 2
+			#define ALPASS_CCCOLORS                 uint2(25, 22) //Size: 12, 1 (Note Color #0 is always black, Colors start at 1)
+			#define ALPASS_CCSTRIP                  uint2(0, 24)  //Size: 128, 1
+			#define ALPASS_CCLIGHTS                 uint2(0, 25)  //Size: 128, 2
+			#define ALPASS_AUTOCORRELATOR           uint2(0, 27)  //Size: 128, 1
+			#define ALPASS_FILTEREDAUDIOLINK        uint2(0, 28)  //Size: 16, 4
+			#define ALPASS_CHRONOTENSITY            uint2(16, 28) //Size: 8, 4
+			#define ALPASS_FILTEREDVU               uint2(24, 28) //Size: 4, 4
+			#define ALPASS_FILTEREDVU_INTENSITY     uint2(24, 28) //Size: 4, 1
+			#define ALPASS_FILTEREDVU_MARKER        uint2(24, 29) //Size: 4, 1
+			
+			// Some basic constants to use (Note, these should be compatible with
+			// future version of AudioLink, but may change.
+			#define AUDIOLINK_SAMPHIST              3069        // Internal use for algos, do not change.
+			#define AUDIOLINK_SAMPLEDATA24          2046
+			#define AUDIOLINK_EXPBINS               24
+			#define AUDIOLINK_EXPOCT                10
+			#define AUDIOLINK_ETOTALBINS (AUDIOLINK_EXPBINS * AUDIOLINK_EXPOCT)
+			#define AUDIOLINK_WIDTH                 128
+			#define AUDIOLINK_SPS                   48000       // Samples per second
+			#define AUDIOLINK_ROOTNOTE              0
+			#define AUDIOLINK_4BAND_FREQFLOOR       0.123
+			#define AUDIOLINK_4BAND_FREQCEILING     1
+			#define AUDIOLINK_BOTTOM_FREQUENCY      13.75
+			#define AUDIOLINK_BASE_AMPLITUDE        2.5
+			#define AUDIOLINK_DELAY_COEFFICIENT_MIN 0.3
+			#define AUDIOLINK_DELAY_COEFFICIENT_MAX 0.9
+			#define AUDIOLINK_DFT_Q                 4.0
+			#define AUDIOLINK_TREBLE_CORRECTION     5.0
+			#define AUDIOLINK_4BAND_TARGET_RATE     90.0
+			
+			// ColorChord constants
+			#define COLORCHORD_EMAXBIN              192
+			#define COLORCHORD_NOTE_CLOSEST         3.0
+			#define COLORCHORD_NEW_NOTE_GAIN        8.0
+			#define COLORCHORD_MAX_NOTES            10
+			
+			// We use glsl_mod for most calculations because it behaves better
+			// on negative numbers, and in some situations actually outperforms
+			// HLSL's modf().
+			#ifndef glsl_mod
+			#define glsl_mod(x, y) (((x) - (y) * floor((x) / (y))))
+			#endif
+			
+			uniform float4               _AudioTexture_TexelSize;
+			
+			#ifdef SHADER_TARGET_SURFACE_ANALYSIS
+			#define AUDIOLINK_STANDARD_INDEXING
+			#endif
+			
+			// Mechanism to index into texture.
+			#ifdef AUDIOLINK_STANDARD_INDEXING
+			sampler2D _AudioTexture;
+			#define AudioLinkData(xycoord) tex2Dlod(_AudioTexture, float4(uint2(xycoord) * _AudioTexture_TexelSize.xy, 0, 0))
+			#else
+			uniform Texture2D<float4> _AudioTexture;
+			#define AudioLinkData(xycoord) _AudioTexture[uint2(xycoord)]
+			#endif
+			
+			// Convenient mechanism to read from the AudioLink texture that handles reading off the end of one line and onto the next above it.
+			float4 AudioLinkDataMultiline(uint2 xycoord)
+			{
+				return AudioLinkData(uint2(xycoord.x % AUDIOLINK_WIDTH, xycoord.y + xycoord.x / AUDIOLINK_WIDTH));
+			}
+			
+			// Mechanism to sample between two adjacent pixels and lerp between them, like "linear" supesampling
+			float4 AudioLinkLerp(float2 xy)
+			{
+				return lerp(AudioLinkData(xy), AudioLinkData(xy + int2(1, 0)), frac(xy.x));
+			}
+			
+			// Same as AudioLinkLerp but properly handles multiline reading.
+			float4 AudioLinkLerpMultiline(float2 xy)
+			{
+				return lerp(AudioLinkDataMultiline(xy), AudioLinkDataMultiline(xy + float2(1, 0)), frac(xy.x));
+			}
+			
+			//Tests to see if Audio Link texture is available
+			bool AudioLinkIsAvailable()
+			{
+				#if !defined(AUDIOLINK_STANDARD_INDEXING)
+				int width, height;
+				_AudioTexture.GetDimensions(width, height);
+				return width > 16;
+				#else
+				return _AudioTexture_TexelSize.z > 16;
+				#endif
+			}
+			
+			//Get version of audiolink present in the world, 0 if no audiolink is present
+			float AudioLinkGetVersion()
+			{
+				int2 dims;
+				#if !defined(AUDIOLINK_STANDARD_INDEXING)
+				_AudioTexture.GetDimensions(dims.x, dims.y);
+				#else
+				dims = _AudioTexture_TexelSize.zw;
+				#endif
+				
+				if (dims.x >= 128)
+				return AudioLinkData(ALPASS_GENERALVU).x;
+				else if (dims.x > 16)
+				return 1;
+				else
+				return 0;
+			}
+			
+			// This pulls data from this texture.
+			#define AudioLinkGetSelfPixelData(xy) _SelfTexture2D[xy]
+			
+			// Extra utility functions for time.
+			uint AudioLinkDecodeDataAsUInt(uint2 indexloc)
+			{
+				uint4 rpx = AudioLinkData(indexloc);
+				return rpx.r + rpx.g * 1024 + rpx.b * 1048576 + rpx.a * 1073741824;
+			}
+			
+			//Note: This will truncate time to every 134,217.728 seconds (~1.5 days of an instance being up) to prevent floating point aliasing.
+			// if your code will alias sooner, you will need to use a different function.  It should be safe to use this on all times.
+			float AudioLinkDecodeDataAsSeconds(uint2 indexloc)
+			{
+				uint time = AudioLinkDecodeDataAsUInt(indexloc) & 0x7ffffff;
+				//Can't just divide by float.  Bug in Unity's HLSL compiler.
+				return float(time / 1000) + float(time % 1000) / 1000.;
+			}
+			
+			#define ALDecodeDataAsSeconds(x) AudioLinkDecodeDataAsSeconds(x)
+			#define ALDecodeDataAsUInt(x) AudioLinkDecodeDataAsUInt(x)
+			
+			float AudioLinkRemap(float t, float a, float b, float u, float v)
+			{
+				return ((t - a) / (b - a)) * (v - u) + u;
+			}
+			
+			float3 AudioLinkHSVtoRGB(float3 HSV)
+			{
+				float3 RGB = 0;
+				float C = HSV.z * HSV.y;
+				float H = HSV.x * 6;
+				float X = C * (1 - abs(fmod(H, 2) - 1));
+				if (HSV.y != 0)
+				{
+					float I = floor(H);
+					if (I == 0)
+					{
+						RGB = float3(C, X, 0);
+					}
+					else if (I == 1)
+					{
+						RGB = float3(X, C, 0);
+					}
+					else if (I == 2)
+					{
+						RGB = float3(0, C, X);
+					}
+					else if (I == 3)
+					{
+						RGB = float3(0, X, C);
+					}
+					else if (I == 4)
+					{
+						RGB = float3(X, 0, C);
+					}
+					else
+					{
+						RGB = float3(C, 0, X);
+					}
+				}
+				float M = HSV.z - C;
+				return RGB + M;
+			}
+			
+			float3 AudioLinkCCtoRGB(float bin, float intensity, int rootNote)
+			{
+				float note = bin / AUDIOLINK_EXPBINS;
+				
+				float hue = 0.0;
+				note *= 12.0;
+				note = glsl_mod(4. - note + rootNote, 12.0);
+				{
+					if (note < 4.0)
+					{
+						//Needs to be YELLOW->RED
+						hue = (note) / 24.0;
+					}
+					else if (note < 8.0)
+					{
+						//            [4]  [8]
+						//Needs to be RED->BLUE
+						hue = (note - 2.0) / 12.0;
+					}
+					else
+					{
+						//             [8] [12]
+						//Needs to be BLUE->YELLOW
+						hue = (note - 4.0) / 8.0;
+					}
+				}
+				float val = intensity - 0.1;
+				return AudioLinkHSVtoRGB(float3(fmod(hue, 1.0), 1.0, clamp(val, 0.0, 1.0)));
+			}
+			
+			// Sample the amplitude of a given frequency in the DFT, supports frequencies in [13.75; 14080].
+			float4 AudioLinkGetAmplitudeAtFrequency(float hertz)
+			{
+				float note = AUDIOLINK_EXPBINS * log2(hertz / AUDIOLINK_BOTTOM_FREQUENCY);
+				return AudioLinkLerpMultiline(ALPASS_DFT + float2(note, 0));
+			}
+			
+			// Sample the amplitude of a given semitone in an octave. Octave is in [0; 9] while note is [0; 11].
+			float AudioLinkGetAmplitudeAtNote(float octave, float note)
+			{
+				float quarter = note * 2.0;
+				return AudioLinkLerpMultiline(ALPASS_DFT + float2(octave * AUDIOLINK_EXPBINS + quarter, 0));
+			}
+			
+			// Get a reasonable drop-in replacement time value for _Time.y with the
+			// given chronotensity index [0; 7] and AudioLink band [0; 3].
+			float AudioLinkGetChronoTime(uint index, uint band)
+			{
+				return (AudioLinkDecodeDataAsUInt(ALPASS_CHRONOTENSITY + uint2(index, band))) / 100000.0;
+			}
+			
+			// Get a chronotensity value in the interval [0; 1], modulated by the speed input,
+			// with the given chronotensity index [0; 7] and AudioLink band [0; 3].
+			float AudioLinkGetChronoTimeNormalized(uint index, uint band, float speed)
+			{
+				return frac(AudioLinkGetChronoTime(index, band) * speed);
+			}
+			
+			// Get a chronotensity value in the interval [0; interval], modulated by the speed input,
+			// with the given chronotensity index [0; 7] and AudioLink band [0; 3].
+			float AudioLinkGetChronoTimeInterval(uint index, uint band, float speed, float interval)
+			{
+				return AudioLinkGetChronoTimeNormalized(index, band, speed) * interval;
+			}
 			half D_GGX(half NoH, half roughness)
 			{
 				half a = NoH * roughness;
@@ -1689,6 +1961,38 @@ Shader "orels1/Toon/Main"
 				#endif
 				
 				return direction;
+			}
+			
+			half3 getEnvReflection(half3 worldSpaceViewDir, half3 worldSpacePosition, half3 normal, half smoothness, int mip)
+			{
+				half3 env = 0;
+				half3 reflDir = reflect(worldSpaceViewDir, normal);
+				half perceptualRoughness = 1 - smoothness;
+				half rough = perceptualRoughness * perceptualRoughness;
+				reflDir = lerp(reflDir, normal, rough * rough);
+				
+				half3 reflectionUV1 = getBoxProjection(reflDir, worldSpacePosition, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
+				half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, mip);
+				half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
+				
+				half3 indirectSpecular;
+				half interpolator = unity_SpecCube0_BoxMin.w;
+				
+				UNITY_BRANCH
+				if (interpolator < 0.99999)
+				{
+					half3 reflectionUV2 = getBoxProjection(reflDir, worldSpacePosition, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
+					half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, mip);
+					half3 probe1sample = DecodeHDR(probe1, unity_SpecCube1_HDR);
+					indirectSpecular = lerp(probe1sample, probe0sample, interpolator);
+				}
+				else
+				{
+					indirectSpecular = probe0sample;
+				}
+				
+				env = indirectSpecular;
+				return env;
 			}
 			
 			half3 EnvBRDFMultiscatter(half2 dfg, half3 f0)
@@ -2112,6 +2416,10 @@ half4 _MetallicRemap;
 half4 _SmoothnessRemap;
 half4 _MetallicGlossMap_TexelSize;
 half4 _EmissionColor;
+half4 _ALEmissionColor;
+half4 _ALPackedRedColor;
+half4 _ALPackedGreenColor;
+half4 _ALPackedBlueColor;
 half4 _RimTint;
 half4 _ShadowRimTint;
 float _GSAAVariance;
@@ -2122,6 +2430,12 @@ int _ReflectionMode;
 int _ReflectionBlendMode;
 int _RoughnessMode;
 int _EmissionScaleWithLight;
+int _ALMode;
+int _ALBand;
+int _ALGradientOnRed;
+int _ALGradientOnGreen;
+int _ALGradientOnBlue;
+int _ALUVWidth;
 TEXTURE2D(_MainTex);;
 SAMPLER(sampler_MainTex);;
 TEXTURE2D(_OcclusionMap);;
@@ -2131,6 +2445,8 @@ TEXTURECUBE(_BakedCubemap);;
 SAMPLER(sampler_BakedCubemap);;
 TEXTURE2D(_MetallicGlossMap);;
 TEXTURE2D(_EmissionMap);;
+TEXTURE2D(_ALMap);;
+SAMPLER(sampler_ALMap);;
 TEXTURE2D(_DFG);
 SAMPLER(sampler_DFG);
 
@@ -2183,6 +2499,34 @@ void ToonFragment() {
 	o.EmissionScaleWithLight = _EmissionScaleWithLight;
 	o.EmissionLightThreshold = _EmissionScaleWithLightSensitivity;
 	
+	UNITY_BRANCH
+	if(AudioLinkIsAvailable() && _ALMode != 0) {
+		half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, GLOBAL_uv);
+		if (_ALMode == 2) {
+			half audioDataBass = AudioLinkData(ALPASS_AUDIOBASS).x;
+			half audioDataMids = AudioLinkData(ALPASS_AUDIOLOWMIDS).x;
+			half audioDataHighs = (AudioLinkData(ALPASS_AUDIOHIGHMIDS).x + AudioLinkData(ALPASS_AUDIOTREBLE).x) * 0.5;
+			
+			half tLow = smoothstep((1-audioDataBass), (1-audioDataBass) + 0.01, alMask.r) * alMask.a;
+			half tMid = smoothstep((1-audioDataMids), (1-audioDataMids) + 0.01, alMask.g) * alMask.a;
+			half tHigh = smoothstep((1-audioDataHighs), (1-audioDataHighs) + 0.01, alMask.b) * alMask.a;
+			
+			half4 emissionChannelRed = lerp(alMask.r, tLow, _ALGradientOnRed) * _ALPackedRedColor * audioDataBass;
+			half4 emissionChannelGreen = lerp(alMask.g, tMid, _ALGradientOnGreen) * _ALPackedGreenColor * audioDataMids;
+			half4 emissionChannelBlue = lerp(alMask.b, tHigh, _ALGradientOnBlue) * _ALPackedBlueColor * audioDataHighs;
+			o.Emission += emissionChannelRed.rgb + emissionChannelGreen.rgb + emissionChannelBlue.rgb;
+		} else {
+			int2 aluv;
+			if (_ALMode == 1) {
+				aluv = int2(0, _ALBand);
+			} else {
+				aluv = int2(GLOBAL_uv.x * _ALUVWidth, GLOBAL_uv.y);
+			}
+			half sampledAL = AudioLinkData(aluv).x;
+			o.Emission +=  alMask.rgb * _ALEmissionColor.rgb * sampledAL;
+		}
+	}
+	
 	#ifndef USING_DIRECTIONAL_LIGHT
 	fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
 	#else
@@ -2197,34 +2541,8 @@ void ToonFragment() {
 	half4 rim = rimIntensity * _RimIntensity;
 	
 	half3 env = 0;
-	
 	#if defined(UNITY_PASS_FORWARDBASE)
-	half3 reflDir = reflect(-d.worldSpaceViewDir, properNormal);
-	half perceptualRoughness = 1 - o.Smoothness;
-	half rough = perceptualRoughness * perceptualRoughness;
-	reflDir = lerp(reflDir, properNormal, rough * rough);
-	
-	half3 reflectionUV1 = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
-	half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, 5);
-	half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
-	
-	half3 indirectSpecular;
-	half interpolator = unity_SpecCube0_BoxMin.w;
-	
-	UNITY_BRANCH
-	if (interpolator < 0.99999)
-	{
-		half3 reflectionUV2 = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
-		half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, 5);
-		half3 probe1sample = DecodeHDR(probe1, unity_SpecCube1_HDR);
-		indirectSpecular = lerp(probe1sample, probe0sample, interpolator);
-	}
-	else
-	{
-		indirectSpecular = probe0sample;
-	}
-	
-	env = indirectSpecular;
+	env = getEnvReflection(d.worldSpaceViewDir.xyz, d.worldSpacePosition.xyz, properNormal, o.Smoothness, 5);
 	#endif
 	
 	o.RimLight = rim * _RimTint * lerp(1, o.Albedo.rgbb, _RimAlbedoTint) * lerp(1, env.rgbb, _RimEnvironmentTint);
@@ -2307,30 +2625,6 @@ void XSToonLighting()
 	}
 	
 	half lightAvg = (dot(indirectDiffuse.rgb, grayscaleVec) + dot(lightColor.rgb, grayscaleVec)) / 2;
-	
-	// // Indirect Specular
-	// #if defined(UNITY_PASS_FORWARDBASE) //Indirect PBR specular should only happen in the forward base pass. Otherwise each extra light adds another indirect sample, which could mean you're getting too much light.
-	//   half3 reflectionUV1 = getReflectionUV(reflDir, d.worldSpacePosition, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
-	//   half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, 5);
-	//   half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
-	
-	//   half3 indirectSpecular;
-	//   half interpolator = unity_SpecCube0_BoxMin.w;
-	
-	//   UNITY_BRANCH
-	//   if (interpolator < 0.99999)
-	//   {
-	//       half3 reflectionUV2 = getReflectionUV(reflDir, d.worldSpacePosition, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
-	//   #endif
-	//       half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, 5);
-	//       half3 probe1sample = DecodeHDR(probe1, unity_SpecCube1_HDR);
-	//       indirectSpecular = lerp(probe1sample, probe0sample, interpolator);
-	//   }
-	//   else
-	//   {
-	//       indirectSpecular = probe0sample;
-	//   }
-	// #endif
 	
 	// Light Ramp
 	half4 ramp = 1;
@@ -4018,6 +4312,260 @@ float3 RotateAroundAxis(float3 center, float3 original, float3 u, float angle)
 	return mul(finalMatrix, original) + center;
 }
 
+// Map of where features in AudioLink are.
+#define ALPASS_DFT                      uint2(0, 4)  //Size: 128, 2
+#define ALPASS_WAVEFORM                 uint2(0, 6)  //Size: 128, 16
+#define ALPASS_AUDIOLINK                uint2(0, 0)  //Size: 128, 4
+#define ALPASS_AUDIOBASS                uint2(0, 0)  //Size: 128, 1
+#define ALPASS_AUDIOLOWMIDS             uint2(0, 1)  //Size: 128, 1
+#define ALPASS_AUDIOHIGHMIDS            uint2(0, 2)  //Size: 128, 1
+#define ALPASS_AUDIOTREBLE              uint2(0, 3)  //Size: 128, 1
+#define ALPASS_AUDIOLINKHISTORY         uint2(1, 0)  //Size: 127, 4
+#define ALPASS_GENERALVU                uint2(0, 22) //Size: 12, 1
+#define ALPASS_GENERALVU_INSTANCE_TIME  uint2(2, 22)
+#define ALPASS_GENERALVU_LOCAL_TIME     uint2(3, 22)
+#define ALPASS_GENERALVU_NETWORK_TIME   uint2(4, 22)
+#define ALPASS_GENERALVU_PLAYERINFO     uint2(6, 22)
+#define ALPASS_THEME_COLOR0             uint2(0, 23)
+#define ALPASS_THEME_COLOR1             uint2(1, 23)
+#define ALPASS_THEME_COLOR2             uint2(2, 23)
+#define ALPASS_THEME_COLOR3             uint2(3, 23)
+#define ALPASS_CCINTERNAL               uint2(12, 22) //Size: 12, 2
+#define ALPASS_CCCOLORS                 uint2(25, 22) //Size: 12, 1 (Note Color #0 is always black, Colors start at 1)
+#define ALPASS_CCSTRIP                  uint2(0, 24)  //Size: 128, 1
+#define ALPASS_CCLIGHTS                 uint2(0, 25)  //Size: 128, 2
+#define ALPASS_AUTOCORRELATOR           uint2(0, 27)  //Size: 128, 1
+#define ALPASS_FILTEREDAUDIOLINK        uint2(0, 28)  //Size: 16, 4
+#define ALPASS_CHRONOTENSITY            uint2(16, 28) //Size: 8, 4
+#define ALPASS_FILTEREDVU               uint2(24, 28) //Size: 4, 4
+#define ALPASS_FILTEREDVU_INTENSITY     uint2(24, 28) //Size: 4, 1
+#define ALPASS_FILTEREDVU_MARKER        uint2(24, 29) //Size: 4, 1
+
+// Some basic constants to use (Note, these should be compatible with
+// future version of AudioLink, but may change.
+#define AUDIOLINK_SAMPHIST              3069        // Internal use for algos, do not change.
+#define AUDIOLINK_SAMPLEDATA24          2046
+#define AUDIOLINK_EXPBINS               24
+#define AUDIOLINK_EXPOCT                10
+#define AUDIOLINK_ETOTALBINS (AUDIOLINK_EXPBINS * AUDIOLINK_EXPOCT)
+#define AUDIOLINK_WIDTH                 128
+#define AUDIOLINK_SPS                   48000       // Samples per second
+#define AUDIOLINK_ROOTNOTE              0
+#define AUDIOLINK_4BAND_FREQFLOOR       0.123
+#define AUDIOLINK_4BAND_FREQCEILING     1
+#define AUDIOLINK_BOTTOM_FREQUENCY      13.75
+#define AUDIOLINK_BASE_AMPLITUDE        2.5
+#define AUDIOLINK_DELAY_COEFFICIENT_MIN 0.3
+#define AUDIOLINK_DELAY_COEFFICIENT_MAX 0.9
+#define AUDIOLINK_DFT_Q                 4.0
+#define AUDIOLINK_TREBLE_CORRECTION     5.0
+#define AUDIOLINK_4BAND_TARGET_RATE     90.0
+
+// ColorChord constants
+#define COLORCHORD_EMAXBIN              192
+#define COLORCHORD_NOTE_CLOSEST         3.0
+#define COLORCHORD_NEW_NOTE_GAIN        8.0
+#define COLORCHORD_MAX_NOTES            10
+
+// We use glsl_mod for most calculations because it behaves better
+// on negative numbers, and in some situations actually outperforms
+// HLSL's modf().
+#ifndef glsl_mod
+#define glsl_mod(x, y) (((x) - (y) * floor((x) / (y))))
+#endif
+
+uniform float4               _AudioTexture_TexelSize;
+
+#ifdef SHADER_TARGET_SURFACE_ANALYSIS
+#define AUDIOLINK_STANDARD_INDEXING
+#endif
+
+// Mechanism to index into texture.
+#ifdef AUDIOLINK_STANDARD_INDEXING
+sampler2D _AudioTexture;
+#define AudioLinkData(xycoord) tex2Dlod(_AudioTexture, float4(uint2(xycoord) * _AudioTexture_TexelSize.xy, 0, 0))
+#else
+uniform Texture2D<float4> _AudioTexture;
+#define AudioLinkData(xycoord) _AudioTexture[uint2(xycoord)]
+#endif
+
+// Convenient mechanism to read from the AudioLink texture that handles reading off the end of one line and onto the next above it.
+float4 AudioLinkDataMultiline(uint2 xycoord)
+{
+	return AudioLinkData(uint2(xycoord.x % AUDIOLINK_WIDTH, xycoord.y + xycoord.x / AUDIOLINK_WIDTH));
+}
+
+// Mechanism to sample between two adjacent pixels and lerp between them, like "linear" supesampling
+float4 AudioLinkLerp(float2 xy)
+{
+	return lerp(AudioLinkData(xy), AudioLinkData(xy + int2(1, 0)), frac(xy.x));
+}
+
+// Same as AudioLinkLerp but properly handles multiline reading.
+float4 AudioLinkLerpMultiline(float2 xy)
+{
+	return lerp(AudioLinkDataMultiline(xy), AudioLinkDataMultiline(xy + float2(1, 0)), frac(xy.x));
+}
+
+//Tests to see if Audio Link texture is available
+bool AudioLinkIsAvailable()
+{
+	#if !defined(AUDIOLINK_STANDARD_INDEXING)
+	int width, height;
+	_AudioTexture.GetDimensions(width, height);
+	return width > 16;
+	#else
+	return _AudioTexture_TexelSize.z > 16;
+	#endif
+}
+
+//Get version of audiolink present in the world, 0 if no audiolink is present
+float AudioLinkGetVersion()
+{
+	int2 dims;
+	#if !defined(AUDIOLINK_STANDARD_INDEXING)
+	_AudioTexture.GetDimensions(dims.x, dims.y);
+	#else
+	dims = _AudioTexture_TexelSize.zw;
+	#endif
+	
+	if (dims.x >= 128)
+	return AudioLinkData(ALPASS_GENERALVU).x;
+	else if (dims.x > 16)
+	return 1;
+	else
+	return 0;
+}
+
+// This pulls data from this texture.
+#define AudioLinkGetSelfPixelData(xy) _SelfTexture2D[xy]
+
+// Extra utility functions for time.
+uint AudioLinkDecodeDataAsUInt(uint2 indexloc)
+{
+	uint4 rpx = AudioLinkData(indexloc);
+	return rpx.r + rpx.g * 1024 + rpx.b * 1048576 + rpx.a * 1073741824;
+}
+
+//Note: This will truncate time to every 134,217.728 seconds (~1.5 days of an instance being up) to prevent floating point aliasing.
+// if your code will alias sooner, you will need to use a different function.  It should be safe to use this on all times.
+float AudioLinkDecodeDataAsSeconds(uint2 indexloc)
+{
+	uint time = AudioLinkDecodeDataAsUInt(indexloc) & 0x7ffffff;
+	//Can't just divide by float.  Bug in Unity's HLSL compiler.
+	return float(time / 1000) + float(time % 1000) / 1000.;
+}
+
+#define ALDecodeDataAsSeconds(x) AudioLinkDecodeDataAsSeconds(x)
+#define ALDecodeDataAsUInt(x) AudioLinkDecodeDataAsUInt(x)
+
+float AudioLinkRemap(float t, float a, float b, float u, float v)
+{
+	return ((t - a) / (b - a)) * (v - u) + u;
+}
+
+float3 AudioLinkHSVtoRGB(float3 HSV)
+{
+	float3 RGB = 0;
+	float C = HSV.z * HSV.y;
+	float H = HSV.x * 6;
+	float X = C * (1 - abs(fmod(H, 2) - 1));
+	if (HSV.y != 0)
+	{
+		float I = floor(H);
+		if (I == 0)
+		{
+			RGB = float3(C, X, 0);
+		}
+		else if (I == 1)
+		{
+			RGB = float3(X, C, 0);
+		}
+		else if (I == 2)
+		{
+			RGB = float3(0, C, X);
+		}
+		else if (I == 3)
+		{
+			RGB = float3(0, X, C);
+		}
+		else if (I == 4)
+		{
+			RGB = float3(X, 0, C);
+		}
+		else
+		{
+			RGB = float3(C, 0, X);
+		}
+	}
+	float M = HSV.z - C;
+	return RGB + M;
+}
+
+float3 AudioLinkCCtoRGB(float bin, float intensity, int rootNote)
+{
+	float note = bin / AUDIOLINK_EXPBINS;
+	
+	float hue = 0.0;
+	note *= 12.0;
+	note = glsl_mod(4. - note + rootNote, 12.0);
+	{
+		if (note < 4.0)
+		{
+			//Needs to be YELLOW->RED
+			hue = (note) / 24.0;
+		}
+		else if (note < 8.0)
+		{
+			//            [4]  [8]
+			//Needs to be RED->BLUE
+			hue = (note - 2.0) / 12.0;
+		}
+		else
+		{
+			//             [8] [12]
+			//Needs to be BLUE->YELLOW
+			hue = (note - 4.0) / 8.0;
+		}
+	}
+	float val = intensity - 0.1;
+	return AudioLinkHSVtoRGB(float3(fmod(hue, 1.0), 1.0, clamp(val, 0.0, 1.0)));
+}
+
+// Sample the amplitude of a given frequency in the DFT, supports frequencies in [13.75; 14080].
+float4 AudioLinkGetAmplitudeAtFrequency(float hertz)
+{
+	float note = AUDIOLINK_EXPBINS * log2(hertz / AUDIOLINK_BOTTOM_FREQUENCY);
+	return AudioLinkLerpMultiline(ALPASS_DFT + float2(note, 0));
+}
+
+// Sample the amplitude of a given semitone in an octave. Octave is in [0; 9] while note is [0; 11].
+float AudioLinkGetAmplitudeAtNote(float octave, float note)
+{
+	float quarter = note * 2.0;
+	return AudioLinkLerpMultiline(ALPASS_DFT + float2(octave * AUDIOLINK_EXPBINS + quarter, 0));
+}
+
+// Get a reasonable drop-in replacement time value for _Time.y with the
+// given chronotensity index [0; 7] and AudioLink band [0; 3].
+float AudioLinkGetChronoTime(uint index, uint band)
+{
+	return (AudioLinkDecodeDataAsUInt(ALPASS_CHRONOTENSITY + uint2(index, band))) / 100000.0;
+}
+
+// Get a chronotensity value in the interval [0; 1], modulated by the speed input,
+// with the given chronotensity index [0; 7] and AudioLink band [0; 3].
+float AudioLinkGetChronoTimeNormalized(uint index, uint band, float speed)
+{
+	return frac(AudioLinkGetChronoTime(index, band) * speed);
+}
+
+// Get a chronotensity value in the interval [0; interval], modulated by the speed input,
+// with the given chronotensity index [0; 7] and AudioLink band [0; 3].
+float AudioLinkGetChronoTimeInterval(uint index, uint band, float speed, float interval)
+{
+	return AudioLinkGetChronoTimeNormalized(index, band, speed) * interval;
+}
 half D_GGX(half NoH, half roughness)
 {
 	half a = NoH * roughness;
@@ -4082,6 +4630,38 @@ half3 getBoxProjection(half3 direction, half3 position, half4 cubemapPosition, h
 	#endif
 	
 	return direction;
+}
+
+half3 getEnvReflection(half3 worldSpaceViewDir, half3 worldSpacePosition, half3 normal, half smoothness, int mip)
+{
+	half3 env = 0;
+	half3 reflDir = reflect(worldSpaceViewDir, normal);
+	half perceptualRoughness = 1 - smoothness;
+	half rough = perceptualRoughness * perceptualRoughness;
+	reflDir = lerp(reflDir, normal, rough * rough);
+	
+	half3 reflectionUV1 = getBoxProjection(reflDir, worldSpacePosition, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
+	half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, mip);
+	half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
+	
+	half3 indirectSpecular;
+	half interpolator = unity_SpecCube0_BoxMin.w;
+	
+	UNITY_BRANCH
+	if (interpolator < 0.99999)
+	{
+		half3 reflectionUV2 = getBoxProjection(reflDir, worldSpacePosition, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
+		half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, mip);
+		half3 probe1sample = DecodeHDR(probe1, unity_SpecCube1_HDR);
+		indirectSpecular = lerp(probe1sample, probe0sample, interpolator);
+	}
+	else
+	{
+		indirectSpecular = probe0sample;
+	}
+	
+	env = indirectSpecular;
+	return env;
 }
 
 half3 EnvBRDFMultiscatter(half2 dfg, half3 f0)
@@ -4505,6 +5085,10 @@ half4 _MetallicRemap;
 half4 _SmoothnessRemap;
 half4 _MetallicGlossMap_TexelSize;
 half4 _EmissionColor;
+half4 _ALEmissionColor;
+half4 _ALPackedRedColor;
+half4 _ALPackedGreenColor;
+half4 _ALPackedBlueColor;
 half4 _RimTint;
 half4 _ShadowRimTint;
 float _GSAAVariance;
@@ -4515,6 +5099,12 @@ int _ReflectionMode;
 int _ReflectionBlendMode;
 int _RoughnessMode;
 int _EmissionScaleWithLight;
+int _ALMode;
+int _ALBand;
+int _ALGradientOnRed;
+int _ALGradientOnGreen;
+int _ALGradientOnBlue;
+int _ALUVWidth;
 TEXTURE2D(_MainTex);;
 SAMPLER(sampler_MainTex);;
 TEXTURE2D(_OcclusionMap);;
@@ -4524,6 +5114,8 @@ TEXTURECUBE(_BakedCubemap);;
 SAMPLER(sampler_BakedCubemap);;
 TEXTURE2D(_MetallicGlossMap);;
 TEXTURE2D(_EmissionMap);;
+TEXTURE2D(_ALMap);;
+SAMPLER(sampler_ALMap);;
 TEXTURE2D(_DFG);
 SAMPLER(sampler_DFG);
 
@@ -4576,6 +5168,34 @@ o.Emission = emission;
 o.EmissionScaleWithLight = _EmissionScaleWithLight;
 o.EmissionLightThreshold = _EmissionScaleWithLightSensitivity;
 
+UNITY_BRANCH
+if(AudioLinkIsAvailable() && _ALMode != 0) {
+half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, GLOBAL_uv);
+if (_ALMode == 2) {
+half audioDataBass = AudioLinkData(ALPASS_AUDIOBASS).x;
+half audioDataMids = AudioLinkData(ALPASS_AUDIOLOWMIDS).x;
+half audioDataHighs = (AudioLinkData(ALPASS_AUDIOHIGHMIDS).x + AudioLinkData(ALPASS_AUDIOTREBLE).x) * 0.5;
+
+half tLow = smoothstep((1-audioDataBass), (1-audioDataBass) + 0.01, alMask.r) * alMask.a;
+half tMid = smoothstep((1-audioDataMids), (1-audioDataMids) + 0.01, alMask.g) * alMask.a;
+half tHigh = smoothstep((1-audioDataHighs), (1-audioDataHighs) + 0.01, alMask.b) * alMask.a;
+
+half4 emissionChannelRed = lerp(alMask.r, tLow, _ALGradientOnRed) * _ALPackedRedColor * audioDataBass;
+half4 emissionChannelGreen = lerp(alMask.g, tMid, _ALGradientOnGreen) * _ALPackedGreenColor * audioDataMids;
+half4 emissionChannelBlue = lerp(alMask.b, tHigh, _ALGradientOnBlue) * _ALPackedBlueColor * audioDataHighs;
+o.Emission += emissionChannelRed.rgb + emissionChannelGreen.rgb + emissionChannelBlue.rgb;
+} else {
+int2 aluv;
+if (_ALMode == 1) {
+	aluv = int2(0, _ALBand);
+} else {
+	aluv = int2(GLOBAL_uv.x * _ALUVWidth, GLOBAL_uv.y);
+}
+half sampledAL = AudioLinkData(aluv).x;
+o.Emission +=  alMask.rgb * _ALEmissionColor.rgb * sampledAL;
+}
+}
+
 #ifndef USING_DIRECTIONAL_LIGHT
 fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
 #else
@@ -4590,34 +5210,8 @@ rimIntensity = smoothstep(_RimRange - _RimSharpness, _RimRange + _RimSharpness, 
 half4 rim = rimIntensity * _RimIntensity;
 
 half3 env = 0;
-
 #if defined(UNITY_PASS_FORWARDBASE)
-half3 reflDir = reflect(-d.worldSpaceViewDir, properNormal);
-half perceptualRoughness = 1 - o.Smoothness;
-half rough = perceptualRoughness * perceptualRoughness;
-reflDir = lerp(reflDir, properNormal, rough * rough);
-
-half3 reflectionUV1 = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
-half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, 5);
-half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
-
-half3 indirectSpecular;
-half interpolator = unity_SpecCube0_BoxMin.w;
-
-UNITY_BRANCH
-if (interpolator < 0.99999)
-{
-half3 reflectionUV2 = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
-half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, 5);
-half3 probe1sample = DecodeHDR(probe1, unity_SpecCube1_HDR);
-indirectSpecular = lerp(probe1sample, probe0sample, interpolator);
-}
-else
-{
-indirectSpecular = probe0sample;
-}
-
-env = indirectSpecular;
+env = getEnvReflection(d.worldSpaceViewDir.xyz, d.worldSpacePosition.xyz, properNormal, o.Smoothness, 5);
 #endif
 
 o.RimLight = rim * _RimTint * lerp(1, o.Albedo.rgbb, _RimAlbedoTint) * lerp(1, env.rgbb, _RimEnvironmentTint);
@@ -4700,30 +5294,6 @@ indirectDiffuse = indirectDiffuse * 0.4;
 }
 
 half lightAvg = (dot(indirectDiffuse.rgb, grayscaleVec) + dot(lightColor.rgb, grayscaleVec)) / 2;
-
-// // Indirect Specular
-// #if defined(UNITY_PASS_FORWARDBASE) //Indirect PBR specular should only happen in the forward base pass. Otherwise each extra light adds another indirect sample, which could mean you're getting too much light.
-//   half3 reflectionUV1 = getReflectionUV(reflDir, d.worldSpacePosition, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
-//   half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, 5);
-//   half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
-
-//   half3 indirectSpecular;
-//   half interpolator = unity_SpecCube0_BoxMin.w;
-
-//   UNITY_BRANCH
-//   if (interpolator < 0.99999)
-//   {
-//       half3 reflectionUV2 = getReflectionUV(reflDir, d.worldSpacePosition, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
-//   #endif
-//       half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, 5);
-//       half3 probe1sample = DecodeHDR(probe1, unity_SpecCube1_HDR);
-//       indirectSpecular = lerp(probe1sample, probe0sample, interpolator);
-//   }
-//   else
-//   {
-//       indirectSpecular = probe0sample;
-//   }
-// #endif
 
 // Light Ramp
 half4 ramp = 1;
@@ -6409,6 +6979,260 @@ float3x3 finalMatrix = float3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
 return mul(finalMatrix, original) + center;
 }
 
+// Map of where features in AudioLink are.
+#define ALPASS_DFT                      uint2(0, 4)  //Size: 128, 2
+#define ALPASS_WAVEFORM                 uint2(0, 6)  //Size: 128, 16
+#define ALPASS_AUDIOLINK                uint2(0, 0)  //Size: 128, 4
+#define ALPASS_AUDIOBASS                uint2(0, 0)  //Size: 128, 1
+#define ALPASS_AUDIOLOWMIDS             uint2(0, 1)  //Size: 128, 1
+#define ALPASS_AUDIOHIGHMIDS            uint2(0, 2)  //Size: 128, 1
+#define ALPASS_AUDIOTREBLE              uint2(0, 3)  //Size: 128, 1
+#define ALPASS_AUDIOLINKHISTORY         uint2(1, 0)  //Size: 127, 4
+#define ALPASS_GENERALVU                uint2(0, 22) //Size: 12, 1
+#define ALPASS_GENERALVU_INSTANCE_TIME  uint2(2, 22)
+#define ALPASS_GENERALVU_LOCAL_TIME     uint2(3, 22)
+#define ALPASS_GENERALVU_NETWORK_TIME   uint2(4, 22)
+#define ALPASS_GENERALVU_PLAYERINFO     uint2(6, 22)
+#define ALPASS_THEME_COLOR0             uint2(0, 23)
+#define ALPASS_THEME_COLOR1             uint2(1, 23)
+#define ALPASS_THEME_COLOR2             uint2(2, 23)
+#define ALPASS_THEME_COLOR3             uint2(3, 23)
+#define ALPASS_CCINTERNAL               uint2(12, 22) //Size: 12, 2
+#define ALPASS_CCCOLORS                 uint2(25, 22) //Size: 12, 1 (Note Color #0 is always black, Colors start at 1)
+#define ALPASS_CCSTRIP                  uint2(0, 24)  //Size: 128, 1
+#define ALPASS_CCLIGHTS                 uint2(0, 25)  //Size: 128, 2
+#define ALPASS_AUTOCORRELATOR           uint2(0, 27)  //Size: 128, 1
+#define ALPASS_FILTEREDAUDIOLINK        uint2(0, 28)  //Size: 16, 4
+#define ALPASS_CHRONOTENSITY            uint2(16, 28) //Size: 8, 4
+#define ALPASS_FILTEREDVU               uint2(24, 28) //Size: 4, 4
+#define ALPASS_FILTEREDVU_INTENSITY     uint2(24, 28) //Size: 4, 1
+#define ALPASS_FILTEREDVU_MARKER        uint2(24, 29) //Size: 4, 1
+
+// Some basic constants to use (Note, these should be compatible with
+// future version of AudioLink, but may change.
+#define AUDIOLINK_SAMPHIST              3069        // Internal use for algos, do not change.
+#define AUDIOLINK_SAMPLEDATA24          2046
+#define AUDIOLINK_EXPBINS               24
+#define AUDIOLINK_EXPOCT                10
+#define AUDIOLINK_ETOTALBINS (AUDIOLINK_EXPBINS * AUDIOLINK_EXPOCT)
+#define AUDIOLINK_WIDTH                 128
+#define AUDIOLINK_SPS                   48000       // Samples per second
+#define AUDIOLINK_ROOTNOTE              0
+#define AUDIOLINK_4BAND_FREQFLOOR       0.123
+#define AUDIOLINK_4BAND_FREQCEILING     1
+#define AUDIOLINK_BOTTOM_FREQUENCY      13.75
+#define AUDIOLINK_BASE_AMPLITUDE        2.5
+#define AUDIOLINK_DELAY_COEFFICIENT_MIN 0.3
+#define AUDIOLINK_DELAY_COEFFICIENT_MAX 0.9
+#define AUDIOLINK_DFT_Q                 4.0
+#define AUDIOLINK_TREBLE_CORRECTION     5.0
+#define AUDIOLINK_4BAND_TARGET_RATE     90.0
+
+// ColorChord constants
+#define COLORCHORD_EMAXBIN              192
+#define COLORCHORD_NOTE_CLOSEST         3.0
+#define COLORCHORD_NEW_NOTE_GAIN        8.0
+#define COLORCHORD_MAX_NOTES            10
+
+// We use glsl_mod for most calculations because it behaves better
+// on negative numbers, and in some situations actually outperforms
+// HLSL's modf().
+#ifndef glsl_mod
+#define glsl_mod(x, y) (((x) - (y) * floor((x) / (y))))
+#endif
+
+uniform float4               _AudioTexture_TexelSize;
+
+#ifdef SHADER_TARGET_SURFACE_ANALYSIS
+#define AUDIOLINK_STANDARD_INDEXING
+#endif
+
+// Mechanism to index into texture.
+#ifdef AUDIOLINK_STANDARD_INDEXING
+sampler2D _AudioTexture;
+#define AudioLinkData(xycoord) tex2Dlod(_AudioTexture, float4(uint2(xycoord) * _AudioTexture_TexelSize.xy, 0, 0))
+#else
+uniform Texture2D<float4> _AudioTexture;
+#define AudioLinkData(xycoord) _AudioTexture[uint2(xycoord)]
+#endif
+
+// Convenient mechanism to read from the AudioLink texture that handles reading off the end of one line and onto the next above it.
+float4 AudioLinkDataMultiline(uint2 xycoord)
+{
+return AudioLinkData(uint2(xycoord.x % AUDIOLINK_WIDTH, xycoord.y + xycoord.x / AUDIOLINK_WIDTH));
+}
+
+// Mechanism to sample between two adjacent pixels and lerp between them, like "linear" supesampling
+float4 AudioLinkLerp(float2 xy)
+{
+return lerp(AudioLinkData(xy), AudioLinkData(xy + int2(1, 0)), frac(xy.x));
+}
+
+// Same as AudioLinkLerp but properly handles multiline reading.
+float4 AudioLinkLerpMultiline(float2 xy)
+{
+return lerp(AudioLinkDataMultiline(xy), AudioLinkDataMultiline(xy + float2(1, 0)), frac(xy.x));
+}
+
+//Tests to see if Audio Link texture is available
+bool AudioLinkIsAvailable()
+{
+#if !defined(AUDIOLINK_STANDARD_INDEXING)
+int width, height;
+_AudioTexture.GetDimensions(width, height);
+return width > 16;
+#else
+return _AudioTexture_TexelSize.z > 16;
+#endif
+}
+
+//Get version of audiolink present in the world, 0 if no audiolink is present
+float AudioLinkGetVersion()
+{
+int2 dims;
+#if !defined(AUDIOLINK_STANDARD_INDEXING)
+_AudioTexture.GetDimensions(dims.x, dims.y);
+#else
+dims = _AudioTexture_TexelSize.zw;
+#endif
+
+if (dims.x >= 128)
+return AudioLinkData(ALPASS_GENERALVU).x;
+else if (dims.x > 16)
+return 1;
+else
+return 0;
+}
+
+// This pulls data from this texture.
+#define AudioLinkGetSelfPixelData(xy) _SelfTexture2D[xy]
+
+// Extra utility functions for time.
+uint AudioLinkDecodeDataAsUInt(uint2 indexloc)
+{
+uint4 rpx = AudioLinkData(indexloc);
+return rpx.r + rpx.g * 1024 + rpx.b * 1048576 + rpx.a * 1073741824;
+}
+
+//Note: This will truncate time to every 134,217.728 seconds (~1.5 days of an instance being up) to prevent floating point aliasing.
+// if your code will alias sooner, you will need to use a different function.  It should be safe to use this on all times.
+float AudioLinkDecodeDataAsSeconds(uint2 indexloc)
+{
+uint time = AudioLinkDecodeDataAsUInt(indexloc) & 0x7ffffff;
+//Can't just divide by float.  Bug in Unity's HLSL compiler.
+return float(time / 1000) + float(time % 1000) / 1000.;
+}
+
+#define ALDecodeDataAsSeconds(x) AudioLinkDecodeDataAsSeconds(x)
+#define ALDecodeDataAsUInt(x) AudioLinkDecodeDataAsUInt(x)
+
+float AudioLinkRemap(float t, float a, float b, float u, float v)
+{
+return ((t - a) / (b - a)) * (v - u) + u;
+}
+
+float3 AudioLinkHSVtoRGB(float3 HSV)
+{
+float3 RGB = 0;
+float C = HSV.z * HSV.y;
+float H = HSV.x * 6;
+float X = C * (1 - abs(fmod(H, 2) - 1));
+if (HSV.y != 0)
+{
+float I = floor(H);
+if (I == 0)
+{
+RGB = float3(C, X, 0);
+}
+else if (I == 1)
+{
+RGB = float3(X, C, 0);
+}
+else if (I == 2)
+{
+RGB = float3(0, C, X);
+}
+else if (I == 3)
+{
+RGB = float3(0, X, C);
+}
+else if (I == 4)
+{
+RGB = float3(X, 0, C);
+}
+else
+{
+RGB = float3(C, 0, X);
+}
+}
+float M = HSV.z - C;
+return RGB + M;
+}
+
+float3 AudioLinkCCtoRGB(float bin, float intensity, int rootNote)
+{
+float note = bin / AUDIOLINK_EXPBINS;
+
+float hue = 0.0;
+note *= 12.0;
+note = glsl_mod(4. - note + rootNote, 12.0);
+{
+if (note < 4.0)
+{
+//Needs to be YELLOW->RED
+hue = (note) / 24.0;
+}
+else if (note < 8.0)
+{
+//            [4]  [8]
+//Needs to be RED->BLUE
+hue = (note - 2.0) / 12.0;
+}
+else
+{
+//             [8] [12]
+//Needs to be BLUE->YELLOW
+hue = (note - 4.0) / 8.0;
+}
+}
+float val = intensity - 0.1;
+return AudioLinkHSVtoRGB(float3(fmod(hue, 1.0), 1.0, clamp(val, 0.0, 1.0)));
+}
+
+// Sample the amplitude of a given frequency in the DFT, supports frequencies in [13.75; 14080].
+float4 AudioLinkGetAmplitudeAtFrequency(float hertz)
+{
+float note = AUDIOLINK_EXPBINS * log2(hertz / AUDIOLINK_BOTTOM_FREQUENCY);
+return AudioLinkLerpMultiline(ALPASS_DFT + float2(note, 0));
+}
+
+// Sample the amplitude of a given semitone in an octave. Octave is in [0; 9] while note is [0; 11].
+float AudioLinkGetAmplitudeAtNote(float octave, float note)
+{
+float quarter = note * 2.0;
+return AudioLinkLerpMultiline(ALPASS_DFT + float2(octave * AUDIOLINK_EXPBINS + quarter, 0));
+}
+
+// Get a reasonable drop-in replacement time value for _Time.y with the
+// given chronotensity index [0; 7] and AudioLink band [0; 3].
+float AudioLinkGetChronoTime(uint index, uint band)
+{
+return (AudioLinkDecodeDataAsUInt(ALPASS_CHRONOTENSITY + uint2(index, band))) / 100000.0;
+}
+
+// Get a chronotensity value in the interval [0; 1], modulated by the speed input,
+// with the given chronotensity index [0; 7] and AudioLink band [0; 3].
+float AudioLinkGetChronoTimeNormalized(uint index, uint band, float speed)
+{
+return frac(AudioLinkGetChronoTime(index, band) * speed);
+}
+
+// Get a chronotensity value in the interval [0; interval], modulated by the speed input,
+// with the given chronotensity index [0; 7] and AudioLink band [0; 3].
+float AudioLinkGetChronoTimeInterval(uint index, uint band, float speed, float interval)
+{
+return AudioLinkGetChronoTimeNormalized(index, band, speed) * interval;
+}
 half D_GGX(half NoH, half roughness)
 {
 half a = NoH * roughness;
@@ -6473,6 +7297,38 @@ direction = direction * scalar + (position - cubemapPosition.xyz);
 #endif
 
 return direction;
+}
+
+half3 getEnvReflection(half3 worldSpaceViewDir, half3 worldSpacePosition, half3 normal, half smoothness, int mip)
+{
+half3 env = 0;
+half3 reflDir = reflect(worldSpaceViewDir, normal);
+half perceptualRoughness = 1 - smoothness;
+half rough = perceptualRoughness * perceptualRoughness;
+reflDir = lerp(reflDir, normal, rough * rough);
+
+half3 reflectionUV1 = getBoxProjection(reflDir, worldSpacePosition, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
+half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, mip);
+half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
+
+half3 indirectSpecular;
+half interpolator = unity_SpecCube0_BoxMin.w;
+
+UNITY_BRANCH
+if (interpolator < 0.99999)
+{
+half3 reflectionUV2 = getBoxProjection(reflDir, worldSpacePosition, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
+half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, mip);
+half3 probe1sample = DecodeHDR(probe1, unity_SpecCube1_HDR);
+indirectSpecular = lerp(probe1sample, probe0sample, interpolator);
+}
+else
+{
+indirectSpecular = probe0sample;
+}
+
+env = indirectSpecular;
+return env;
 }
 
 half3 EnvBRDFMultiscatter(half2 dfg, half3 f0)
@@ -6896,6 +7752,10 @@ half4 _MetallicRemap;
 half4 _SmoothnessRemap;
 half4 _MetallicGlossMap_TexelSize;
 half4 _EmissionColor;
+half4 _ALEmissionColor;
+half4 _ALPackedRedColor;
+half4 _ALPackedGreenColor;
+half4 _ALPackedBlueColor;
 half4 _RimTint;
 half4 _ShadowRimTint;
 float _GSAAVariance;
@@ -6906,6 +7766,12 @@ int _ReflectionMode;
 int _ReflectionBlendMode;
 int _RoughnessMode;
 int _EmissionScaleWithLight;
+int _ALMode;
+int _ALBand;
+int _ALGradientOnRed;
+int _ALGradientOnGreen;
+int _ALGradientOnBlue;
+int _ALUVWidth;
 TEXTURE2D(_MainTex);;
 SAMPLER(sampler_MainTex);;
 TEXTURE2D(_OcclusionMap);;
@@ -6915,6 +7781,8 @@ TEXTURECUBE(_BakedCubemap);;
 SAMPLER(sampler_BakedCubemap);;
 TEXTURE2D(_MetallicGlossMap);;
 TEXTURE2D(_EmissionMap);;
+TEXTURE2D(_ALMap);;
+SAMPLER(sampler_ALMap);;
 TEXTURE2D(_DFG);
 SAMPLER(sampler_DFG);
 
@@ -6967,6 +7835,34 @@ o.Emission = emission;
 o.EmissionScaleWithLight = _EmissionScaleWithLight;
 o.EmissionLightThreshold = _EmissionScaleWithLightSensitivity;
 
+UNITY_BRANCH
+if(AudioLinkIsAvailable() && _ALMode != 0) {
+half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, GLOBAL_uv);
+if (_ALMode == 2) {
+half audioDataBass = AudioLinkData(ALPASS_AUDIOBASS).x;
+half audioDataMids = AudioLinkData(ALPASS_AUDIOLOWMIDS).x;
+half audioDataHighs = (AudioLinkData(ALPASS_AUDIOHIGHMIDS).x + AudioLinkData(ALPASS_AUDIOTREBLE).x) * 0.5;
+
+half tLow = smoothstep((1-audioDataBass), (1-audioDataBass) + 0.01, alMask.r) * alMask.a;
+half tMid = smoothstep((1-audioDataMids), (1-audioDataMids) + 0.01, alMask.g) * alMask.a;
+half tHigh = smoothstep((1-audioDataHighs), (1-audioDataHighs) + 0.01, alMask.b) * alMask.a;
+
+half4 emissionChannelRed = lerp(alMask.r, tLow, _ALGradientOnRed) * _ALPackedRedColor * audioDataBass;
+half4 emissionChannelGreen = lerp(alMask.g, tMid, _ALGradientOnGreen) * _ALPackedGreenColor * audioDataMids;
+half4 emissionChannelBlue = lerp(alMask.b, tHigh, _ALGradientOnBlue) * _ALPackedBlueColor * audioDataHighs;
+o.Emission += emissionChannelRed.rgb + emissionChannelGreen.rgb + emissionChannelBlue.rgb;
+} else {
+int2 aluv;
+if (_ALMode == 1) {
+aluv = int2(0, _ALBand);
+} else {
+aluv = int2(GLOBAL_uv.x * _ALUVWidth, GLOBAL_uv.y);
+}
+half sampledAL = AudioLinkData(aluv).x;
+o.Emission +=  alMask.rgb * _ALEmissionColor.rgb * sampledAL;
+}
+}
+
 #ifndef USING_DIRECTIONAL_LIGHT
 fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
 #else
@@ -6981,34 +7877,8 @@ rimIntensity = smoothstep(_RimRange - _RimSharpness, _RimRange + _RimSharpness, 
 half4 rim = rimIntensity * _RimIntensity;
 
 half3 env = 0;
-
 #if defined(UNITY_PASS_FORWARDBASE)
-half3 reflDir = reflect(-d.worldSpaceViewDir, properNormal);
-half perceptualRoughness = 1 - o.Smoothness;
-half rough = perceptualRoughness * perceptualRoughness;
-reflDir = lerp(reflDir, properNormal, rough * rough);
-
-half3 reflectionUV1 = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
-half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, 5);
-half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
-
-half3 indirectSpecular;
-half interpolator = unity_SpecCube0_BoxMin.w;
-
-UNITY_BRANCH
-if (interpolator < 0.99999)
-{
-half3 reflectionUV2 = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
-half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, 5);
-half3 probe1sample = DecodeHDR(probe1, unity_SpecCube1_HDR);
-indirectSpecular = lerp(probe1sample, probe0sample, interpolator);
-}
-else
-{
-indirectSpecular = probe0sample;
-}
-
-env = indirectSpecular;
+env = getEnvReflection(d.worldSpaceViewDir.xyz, d.worldSpacePosition.xyz, properNormal, o.Smoothness, 5);
 #endif
 
 o.RimLight = rim * _RimTint * lerp(1, o.Albedo.rgbb, _RimAlbedoTint) * lerp(1, env.rgbb, _RimEnvironmentTint);
@@ -7091,30 +7961,6 @@ indirectDiffuse = indirectDiffuse * 0.4;
 }
 
 half lightAvg = (dot(indirectDiffuse.rgb, grayscaleVec) + dot(lightColor.rgb, grayscaleVec)) / 2;
-
-// // Indirect Specular
-// #if defined(UNITY_PASS_FORWARDBASE) //Indirect PBR specular should only happen in the forward base pass. Otherwise each extra light adds another indirect sample, which could mean you're getting too much light.
-//   half3 reflectionUV1 = getReflectionUV(reflDir, d.worldSpacePosition, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
-//   half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, 5);
-//   half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
-
-//   half3 indirectSpecular;
-//   half interpolator = unity_SpecCube0_BoxMin.w;
-
-//   UNITY_BRANCH
-//   if (interpolator < 0.99999)
-//   {
-//       half3 reflectionUV2 = getReflectionUV(reflDir, d.worldSpacePosition, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
-//   #endif
-//       half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, 5);
-//       half3 probe1sample = DecodeHDR(probe1, unity_SpecCube1_HDR);
-//       indirectSpecular = lerp(probe1sample, probe0sample, interpolator);
-//   }
-//   else
-//   {
-//       indirectSpecular = probe0sample;
-//   }
-// #endif
 
 // Light Ramp
 half4 ramp = 1;
