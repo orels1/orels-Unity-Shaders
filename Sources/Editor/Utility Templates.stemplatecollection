@@ -192,7 +192,6 @@ float sq(float x)
   return x * x;
 }
 
-
 struct Gradient
 {
   int type;

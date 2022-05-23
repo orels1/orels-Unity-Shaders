@@ -342,16 +342,18 @@ namespace ORL.ModularShaderSystem
     {
       if ((object)asset == null) return;
       if (dictionary.ContainsKey(asset)) return;
+      // unity clears the original reference if you reload it as MainAsset;
+      string assetName = asset.name;
       string assetPath = AssetDatabase.GetAssetPath(asset);
       var genericAsset = AssetDatabase.LoadMainAssetAtPath(assetPath);
       TemplateAsset template = null;
       switch (genericAsset)
       {
         case ITemplateCollection genericCollection:
-          template = genericCollection.TemplatesList.FirstOrDefault(x => x.name.Equals(asset.name));
+          template = genericCollection.TemplatesList.FirstOrDefault(x => x.name.Equals(assetName));
           break;
         case TemplateCollectionAsset collection:
-          template = collection.Templates.FirstOrDefault(x => x.name.Equals(asset.name));
+          template = collection.Templates.FirstOrDefault(x => x.name.Equals(assetName));
           break;
         case TemplateAsset t:
           template = t;
