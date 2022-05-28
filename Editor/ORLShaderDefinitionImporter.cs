@@ -698,6 +698,7 @@ namespace ORL
         if (shaderList == null) return;
         var fullPath = AssetDatabase.GetAssetPath(t);
         EditorUtility.SetDirty(shaderList);
+        path = path.Replace('\\', '/');
         if (shaderList.shadersList.ContainsKey(fullPath))
         {
           shaderList.shadersList[fullPath] = path;
