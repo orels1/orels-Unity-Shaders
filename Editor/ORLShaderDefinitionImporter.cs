@@ -694,6 +694,20 @@ namespace ORL
         filename = filename.Substring(filename.LastIndexOf("/") + 1);
         filename = filename.Replace(".orlshader", "");
         ShaderGenerator.GenerateShader(path, t.GeneratedShader, filename);
+        var shaderList = Resources.Load<ORLShaderList>("ORLShaderList");
+        if (shaderList == null) return;
+        var fullPath = AssetDatabase.GetAssetPath(t);
+        EditorUtility.SetDirty(shaderList);
+        if (shaderList.shadersList.ContainsKey(fullPath))
+        {
+          shaderList.shadersList[fullPath] = path;
+        }
+        else
+        {
+          shaderList.shadersList.Add(fullPath,path);
+        }
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
       }
     }
   }
