@@ -1,0 +1,80 @@
+﻿#S#Settings
+Name "orels1/Toon/Modules/Reflections"
+Author "orels1"
+Version "1.0.0"
+Template "ORL Toon Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"self"
+"ORL Toon Module.asset"
+
+#S#Properties
+[ToggleUI]UI_ReflectionsHeader("# Reflection Settings", Int) = 0
+[Enum(PBR(Unity Metallic Standard),0,Baked Cubemap,1,Matcap,2,Off,3)]_ReflectionMode("Reflection Mode", Int) = 3
+[Enum(Additive,0,Multiply,1,Subtract,2)] _ReflectionBlendMode("Reflection Blend Mode [_ReflectionMode != 3]", Int) = 0
+_Matcap("Matcap & [_ReflectionMode == 2]", 2D) = "black" {}
+[ToggleUI]UI_FallbackNote("!NOTE Will be used if world has no reflections [_ReflectionMode == 0]", Int) = 0
+_MetallicGlossMap("Metallic Smoothness & [_ReflectionMode == 0]", 2D) = "white" {}
+[ToggleUI]UI_MetallicNote("!NOTE R - Metallic, A - Smoothness [_ReflectionMode == 0]", Int) = 0
+_Smoothness ("Smoothness [!_MetallicGlossMap && _ReflectionMode == 0]", Range(0, 1)) = 0.5
+[ToggleUI]_RoughnessMode ("Roughness Mode [_MetallicGlossMap && _ReflectionMode == 0]", Int) = 0
+[ToggleUI]UI_SmoothnessRemap ("!DRAWER MinMax _SmoothnessRemap.x _SmoothnessRemap.y [_MetallicGlossMap && _ReflectionMode == 0]", Float) = 0
+_Metallic ("Metallic [!_MetallicGlossMap && _ReflectionMode == 0]", Range(0, 1)) = 0
+[ToggleUI]UI_MetallicRemap ("!DRAWER MinMax _MetallicRemap.x _MetallicRemap.y [_MetallicGlossMap && _ReflectionMode == 0]", Float) = 0
+[HideInInspector]_MetallicRemap ("Metallic Remap", Vector) = (0, 1, 0, 1)
+[HideInInspector]_SmoothnessRemap ("Smoothness Remap", Vector) = (0, 1, 0, 1)
+_ReflectionAnisotropy("Anisotropy [_ReflectionMode == 0]", Range(-1, 1)) = 0
+_MatcapBlur("Matcap Blur Level [_ReflectionMode == 2]", Range(0, 1)) = 0
+_MatcapTintToDiffuse("Tint Matcap to Diffuse [_ReflectionMode == 2]", Range(0, 1)) = 0
+
+#S#FragmentVariables
+int _ReflectionMode;
+int _ReflectionBlendMode;
+half _Smoothness;
+half _Metallic;
+int _RoughnessMode;
+half4 _MetallicRemap;
+half4 _SmoothnessRemap;
+half4 _MetallicGlossMap_TexelSize;
+half _ReflectionAnisotropy;
+half _MatcapBlur;
+half _MatcapTintToDiffuse;
+
+TEXTURE2D(_Matcap);
+SAMPLER(sampler_Matcap);
+TEXTURE2D(_MetallicGlossMap);
+
+#T#FragmentFunction
+void ToonReflectionFragment() {
+    o.EnableReflections = _ReflectionMode != 3;
+    o.ReflectionBlendMode = _ReflectionBlendMode;
+    
+    UNITY_BRANCH
+    if (_ReflectionMode == 0) {
+        half4 metalSmooth = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MainTex, GLOBAL_uv);
+        int hasMetallicSmooth = _MetallicGlossMap_TexelSize.z > 8;
+        half metal = metalSmooth.r;
+        half smooth = metalSmooth.a;
+        if (_RoughnessMode)
+        {
+            smooth = 1 - smooth;
+        }
+        metal = remap(metal, 0, 1, _MetallicRemap.x, _MetallicRemap.y);
+        smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
+        o.Metallic = lerp(_Metallic, metal, hasMetallicSmooth);
+        o.Smoothness = lerp(_Smoothness, smooth, hasMetallicSmooth);
+        o.Anisotropy = _ReflectionAnisotropy;
+    }
+    UNITY_BRANCH
+    if (_ReflectionMode == 2) {
+        half3 upVector = half3(0,1,0);
+        half2 remapUV = calcMatcapUV(upVector, d.worldSpaceViewDir, GLOBAL_pixelNormal);
+        half4 spec = 0; 
+        spec = SAMPLE_TEXTURE2D_LOD(_Matcap, sampler_Matcap, remapUV, _MatcapBlur * UNITY_SPECCUBE_LOD_STEPS);
+
+        spec.rgb *= lerp(1, o.Albedo, _MatcapTintToDiffuse);
+        o.BakedReflection = spec.rgb;
+    }
+}

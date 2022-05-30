@@ -1,0 +1,36 @@
+﻿#S#Settings
+Name "orels1/Toon/Modules/Emission"
+Author "orels1"
+Version "1.0.0"
+Template "ORL Toon Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"self"
+"ORL Toon Module.asset"
+
+#S#Properties
+[ToggleUI]UI_EmissionHeader("# Emission Settings", Int) = 0
+[NoScaleOffset]_EmissionMap("Emission Map &&", 2D) = "white" {}
+[HDR]_EmissionColor("Emission Color", Color) = (0,0,0,1)
+_EmissionTintToDiffuse("Emission Tint To Diffuse", Range(0,1)) = 0
+[Enum(Yes,0,No,1)]_EmissionScaleWithLight("Emission Scale w/ Light", Int) = 1
+_EmissionScaleWithLightSensitivity("Scaling Sensitivity [_EmissionScaleWithLight == 0]", Range(0,1)) = 1
+
+#S#FragmentVariables
+half4 _EmissionColor;
+half _EmissionTintToDiffuse;
+int _EmissionScaleWithLight;
+half _EmissionScaleWithLightSensitivity;
+
+TEXTURE2D(_EmissionMap);
+
+#T#FragmentFunction
+void ToonEmissionFragment() {
+    half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_MainTex, GLOBAL_uv).rgb;
+    emission *= lerp(emission, emission * o.Albedo, _EmissionTintToDiffuse) * _EmissionColor;
+    o.Emission = emission;
+    o.EmissionScaleWithLight = _EmissionScaleWithLight;
+    o.EmissionLightThreshold = _EmissionScaleWithLightSensitivity;
+}

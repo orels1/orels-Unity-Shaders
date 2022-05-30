@@ -7,8 +7,15 @@ CustomEditor "Needle.MarkdownShaderGUI"
 
 #S#Includes
 "ORL Utility Functions.asset"
-"AudioLink Module.asset"
 "self"
+"AudioLink Module.asset"
+"Toon/Toon Normals.orlshader"
+"Toon/Toon Specular.orlshader"
+"Toon/Toon Reflections.orlshader"
+"Toon/Toon AudioLink.orlshader"
+"Toon/Toon Emission.orlshader"
+"Toon/Toon RimLight.orlshader"
+"Toon/Toon ShadowRim.orlshader"
 "ORL Toon Module.asset"
 
 #S#Properties
@@ -19,144 +26,17 @@ _MainTex ("Albedo", 2D) = "white" { }
 _ShadowSharpness("Shadow Sharpness", Range(0,1)) = 0.5
 _OcclusionMap("Occlusion &&", 2D) = "white" {}
 _OcclusionStrength("Occlusion Strength", Range(0,1)) = 0
-[NoScaleOffset]_BumpMap ("Normal Map &&", 2D) = "bump" {}
-_BumpScale ("Normal Map Scale", Range(-1, 1)) = 1
-[ToggleUI]_FlipBumpY ("Flip Y (UE Mode) [_BumpMap]", Int) = 0
-
-[ToggleUI]UI_SpecularHeader("# Specular Settings", Int) = 0
-_SpecularIntensity("Intensity", Float) = 0
-_SpecularRoughness("Roughness", Range(0, 1)) = 0
-_SpecularSharpness("Sharpness", Range(0, 1)) = 0
-_SpecularAnisotropy("Anisotropy", Range(-1.0, 1.0)) = 0
-_SpecularAlbedoTint("Albedo Tint", Range(0, 1)) = 1
-
-[ToggleUI]UI_ReflectionsHeader("# Reflection Settings", Int) = 0
-[Enum(PBR(Unity Metallic Standard),0,Baked Cubemap,1,Matcap,2,Off,3)]_ReflectionMode("Reflection Mode", Int) = 3
-[Enum(Additive,0,Multiply,1,Subtract,2)] _ReflectionBlendMode("Reflection Blend Mode", Int) = 0
-_BakedCubemap("Baked Cubemap & [_ReflectionMode != 3]", CUBE) = "black" {}
-[ToggleUI]UI_FallbackNote("!NOTE Will be used if world has no reflections [_ReflectionMode == 0]", Int) = 0
-_MetallicGlossMap("Metallic Smoothness & [_ReflectionMode == 0]", 2D) = "white" {}
-[ToggleUI]UI_MetallicNote("!NOTE R - Metallic, A - Smoothness [_ReflectionMode == 0]", Int) = 0
-_Smoothness ("Smoothness [!_MetallicGlossMap && _ReflectionMode == 0]", Range(0, 1)) = 0.5
-[ToggleUI]_RoughnessMode ("Roughness Mode [_MetallicGlossMap && _ReflectionMode == 0]", Int) = 0
-[ToggleUI]UI_SmoothnessRemap ("!DRAWER MinMax _SmoothnessRemap.x _SmoothnessRemap.y [_MetallicGlossMap && _ReflectionMode == 0]", Float) = 0
-_Metallic ("Metallic [!_MetallicGlossMap && _ReflectionMode == 0]", Range(0, 1)) = 0
-[ToggleUI]UI_MetallicRemap ("!DRAWER MinMax _MetallicRemap.x _MetallicRemap.y [_MetallicGlossMap && _ReflectionMode == 0]", Float) = 0
-[HideInInspector]_MetallicRemap ("Metallic Remap", Vector) = (0, 1, 0, 1)
-[HideInInspector]_SmoothnessRemap ("Smoothness Remap", Vector) = (0, 1, 0, 1)
-_ReflectionAnisotropy("Anisotropy [_ReflectionMode == 0]", Range(-1, 1)) = 0
-
-[ToggleUI]UI_EmissionHeader("# Emission Settings", Int) = 0
-[NoScaleOffset]_EmissionMap("Emission Map &&", 2D) = "white" {}
-[HDR]_EmissionColor("Emission Color", Color) = (0,0,0,1)
-_EmissionTintToDiffuse("Emission Tint To Diffuse", Range(0,1)) = 0
-[Enum(Yes,0,No,1)]_EmissionScaleWithLight("Emission Scale w/ Light", Int) = 1
-_EmissionScaleWithLightSensitivity("Scaling Sensitivity [_EmissionScaleWithLight == 0]", Range(0,1)) = 1
-
-[ToggleUI]UI_AudioLink("# AudioLink Settings", Int) = 0
-[Enum(None,0,Single Channel,1,Packed Map,2,UV Based,3)]_ALMode("Audio Link Mode", Int) = 0
-[NoScaleOffset]_ALMap("Audio Link Map & [_ALMode != 0]", 2D) = "white" {}
-[HDR]_ALEmissionColor("Color [_ALMode != 0 && _ALMode != 2]", Color) = (0,0,0,0)
-[Enum(Bass,0,Low Mids,1,High Mids,3,Treble,4)]_ALBand("Frequency Band [_ALMode == 1]", Int) = 0
-[ToggleUI]UI_ALPackedRedHeader("## Red Channel [_ALMode == 2]", Int) = 0
-[ToggleUI]UI_ALPackedPropRed("!DRAWER MultiProperty _ALGradientOnRed _ALPackedRedColor [_ALMode == 2]", Int) = 0
-[ToggleUI]_ALGradientOnRed("Gradient", Int) = 0
-[HDR]_ALPackedRedColor("Color", Color) = (0,0,0,0)
-[ToggleUI]UI_ALPackedGreenHeader("## Green Channel [_ALMode == 2]", Int) = 0
-[ToggleUI]UI_ALPackedPropGreen("!DRAWER MultiProperty _ALGradientOnGreen _ALPackedGreenColor [_ALMode == 2]", Int) = 0
-[ToggleUI]_ALGradientOnGreen("Gradient", Int) = 0
-[HDR]_ALPackedGreenColor("Color", Color) = (0,0,0,0)
-[ToggleUI]UI_ALPackedBlueHeader("## Blue Channel [_ALMode == 2]", Int) = 0
-[ToggleUI]UI_ALPackedPropBlue("!DRAWER MultiProperty _ALGradientOnBlue _ALPackedBlueColor [_ALMode == 2]", Int) = 0
-[ToggleUI]_ALGradientOnBlue("Gradient", Int) = 0
-[HDR]_ALPackedBlueColor("Color", Color) = (0,0,0,0)
-[IntRange]_ALUVWidth("History Sample Amount [_ALMode == 3]", Range(0,128)) = 128
-
-[ToggleUI]UI_RimLightHeader("# Rim Light Settings", Int) = 0
-_RimTint("Tint", Color) = (1,1,1,1)
-_RimIntensity("Intensity", Float) = 0
-_RimAlbedoTint("Albedo Tint", Range(0,1)) = 0
-_RimEnvironmentTint("Environment Tint", Range(0,1)) = 0
-_RimAttenuation("Attenuation", Range(0,1)) = 1
-_RimRange("Range", Range(0, 1)) = 0.7
-_RimThreshold("Threshold", Range(0, 1)) = 0.1
-_RimSharpness("Sarpness", Range(0,1)) = 0.1
-
-[ToggleUI]UI_RimShadowHeader("# Rim Shadow Settings", Int) = 0
-_ShadowRimTint("Tint", Color) = (1,1,1,1)
-_ShadowRimRange("Range", Range(0,1)) = 0.7
-_ShadowRimThreshold("Threshold", Range(0,1)) = 0.1
-_ShadowRimSharpness("Sarpness", Range(0,1)) = 0.3
-_ShadowRimAlbedoTint("Albedo Tint", Range(0,1)) = 0
 
 #S#FragmentVariables
 float4 _MainTex_ST;
 half4 _Color;
 half _ShadowSharpness;
 half _OcclusionStrength;
-half _BumpScale;
-int _FlipBumpY;
-
-half _SpecularIntensity;
-half _SpecularRoughness;
-half _SpecularSharpness;
-half _SpecularAnisotropy;
-half _SpecularAlbedoTint;
-
-int _ReflectionMode;
-int _ReflectionBlendMode;
-half _Smoothness;
-half _Metallic;
-int _RoughnessMode;
-half4 _MetallicRemap;
-half4 _SmoothnessRemap;
-half4 _MetallicGlossMap_TexelSize;
-half _ReflectionAnisotropy;
-
-half4 _EmissionColor;
-half _EmissionTintToDiffuse;
-int _EmissionScaleWithLight;
-half _EmissionScaleWithLightSensitivity;
-
-int _ALMode;
-int _ALBand;
-half4 _ALEmissionColor;
-int _ALGradientOnRed;
-int _ALGradientOnGreen;
-int _ALGradientOnBlue;
-half4 _ALPackedRedColor;
-half4 _ALPackedGreenColor;
-half4 _ALPackedBlueColor;
-int _ALUVWidth;
-
-half4 _RimTint;
-half _RimIntensity;
-half _RimAlbedoTint;
-half _RimEnvironmentTint;
-half _RimAttenuation;
-half _RimRange;
-half _RimThreshold;
-half _RimSharpness;
-
-half4 _ShadowRimTint;
-half _ShadowRimRange;
-half _ShadowRimThreshold;
-half _ShadowRimSharpness;
-half _ShadowRimAlbedoTint;
-
 half2 GLOBAL_uv;
 
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 TEXTURE2D(_OcclusionMap);
-TEXTURE2D(_BumpMap);
-SAMPLER(sampler_BumpMap);
-TEXTURECUBE(_BakedCubemap);
-SAMPLER(sampler_BakedCubemap);
-TEXTURE2D(_MetallicGlossMap);
-TEXTURE2D(_EmissionMap);
-TEXTURE2D(_ALMap);
-SAMPLER(sampler_ALMap);
 
 #T#FragmentFunction
 void ToonFragment() {
@@ -169,101 +49,4 @@ void ToonFragment() {
     o.Albedo = albedo;
     o.ShadowSharpness = _ShadowSharpness;
     o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
-
-    half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
-    if (_FlipBumpY)
-    {
-        normalTex.y = 1 - normalTex.y;
-    }
-    half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
-
-    o.Normal = normal;
-
-    o.SpecularIntensity = _SpecularIntensity;
-    o.SpecularArea = _SpecularRoughness;
-    o.SpecularAnisotropy = _SpecularAnisotropy;
-    o.SpecularAlbedoTint = _SpecularAlbedoTint;
-    o.SpecularSharpness = _SpecularSharpness;
-
-    o.EnableReflections = _ReflectionMode != 3;
-    o.ReflectionBlendMode = _ReflectionBlendMode;
-
-    half4 metalSmooth = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MainTex, GLOBAL_uv);
-    int hasMetallicSmooth = _MetallicGlossMap_TexelSize.z > 8;
-    half metal = metalSmooth.r;
-    half smooth = metalSmooth.a;
-    if (_RoughnessMode)
-    {
-        smooth = 1 - smooth;
-    }
-    metal = remap(metal, 0, 1, _MetallicRemap.x, _MetallicRemap.y);
-    smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
-    o.Metallic = lerp(_Metallic, metal, hasMetallicSmooth);
-    o.Smoothness = lerp(_Smoothness, smooth, hasMetallicSmooth);
-    o.Anisotropy = _ReflectionAnisotropy;
-
-    // Emission
-    half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_MainTex, GLOBAL_uv).rgb;
-    emission *= lerp(emission, emission * o.Albedo, _EmissionTintToDiffuse) * _EmissionColor;
-    o.Emission = emission;
-    o.EmissionScaleWithLight = _EmissionScaleWithLight;
-    o.EmissionLightThreshold = _EmissionScaleWithLightSensitivity;
-
-    // AudioLink
-    UNITY_BRANCH
-    if(AudioLinkIsAvailable() && _ALMode != 0) {
-        half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, GLOBAL_uv);
-        if (_ALMode == 2) {
-            half audioDataBass = AudioLinkData(ALPASS_AUDIOBASS).x;
-            half audioDataMids = AudioLinkData(ALPASS_AUDIOLOWMIDS).x;
-            half audioDataHighs = (AudioLinkData(ALPASS_AUDIOHIGHMIDS).x + AudioLinkData(ALPASS_AUDIOTREBLE).x) * 0.5;
-
-            half tLow = smoothstep((1-audioDataBass), (1-audioDataBass) + 0.01, alMask.r) * alMask.a;
-            half tMid = smoothstep((1-audioDataMids), (1-audioDataMids) + 0.01, alMask.g) * alMask.a;
-            half tHigh = smoothstep((1-audioDataHighs), (1-audioDataHighs) + 0.01, alMask.b) * alMask.a;
-
-            half4 emissionChannelRed = lerp(alMask.r, tLow, _ALGradientOnRed) * _ALPackedRedColor * audioDataBass;
-            half4 emissionChannelGreen = lerp(alMask.g, tMid, _ALGradientOnGreen) * _ALPackedGreenColor * audioDataMids;
-            half4 emissionChannelBlue = lerp(alMask.b, tHigh, _ALGradientOnBlue) * _ALPackedBlueColor * audioDataHighs;
-            o.Emission += emissionChannelRed.rgb + emissionChannelGreen.rgb + emissionChannelBlue.rgb;
-        } else {
-            int2 aluv;
-            if (_ALMode == 1) {
-                aluv = int2(0, _ALBand);
-            } else {
-                aluv = int2(GLOBAL_uv.x * _ALUVWidth, GLOBAL_uv.y);
-            }
-            half sampledAL = AudioLinkData(aluv).x;
-            o.Emission +=  alMask.rgb * _ALEmissionColor.rgb * sampledAL;
-        }
-    }
-
-    // Rim Light
-    #ifndef USING_DIRECTIONAL_LIGHT
-        fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
-    #else
-        fixed3 lightDir = _WorldSpaceLightPos0.xyz;
-    #endif
-    half3 properNormal = normalize(mul(o.Normal, d.TBNMatrix));
-    half lightNoL = saturate(dot(properNormal, lightDir));
-    half SVDNoN = abs(dot(d.svdn, properNormal));
-
-    half rimIntensity = saturate((1 - SVDNoN)) * pow(lightNoL, _RimThreshold);
-    rimIntensity = smoothstep(_RimRange - _RimSharpness, _RimRange + _RimSharpness, rimIntensity);
-    half4 rim = rimIntensity * _RimIntensity;
-
-    // Rim Light Env Tint
-    half3 env = 0;
-    #if defined(UNITY_PASS_FORWARDBASE)
-        env = getEnvReflection(d.worldSpaceViewDir.xyz, d.worldSpacePosition.xyz, properNormal, o.Smoothness, 5);
-    #endif
-    
-    o.RimLight = rim * _RimTint * lerp(1, o.Albedo.rgbb, _RimAlbedoTint) * lerp(1, env.rgbb, _RimEnvironmentTint);
-    o.RimAttenuation = _RimAttenuation;
-
-    //Rim Shadow
-    half shadowRimIntensity = saturate((1 - SVDNoN)) * pow(1 - lightNoL, _ShadowRimThreshold * 2);
-    shadowRimIntensity = smoothstep(_ShadowRimRange - _ShadowRimSharpness, _ShadowRimRange + _ShadowRimSharpness, shadowRimIntensity);
-
-    o.RimShadow = lerp(1, (_ShadowRimTint * lerp(1, o.Albedo.rgbb, _ShadowRimAlbedoTint)), shadowRimIntensity);
 }

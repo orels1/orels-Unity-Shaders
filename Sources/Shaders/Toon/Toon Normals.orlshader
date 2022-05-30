@@ -1,0 +1,70 @@
+﻿#S#Settings
+Name "orels1/Toon/Modules/Normals"
+Author "orels1"
+Version "1.0.0"
+Template "ORL Toon Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"self"
+"ORL Toon Module.asset"
+
+#S#Properties
+[ToggleUI]UI_NormalsHeader("# Normals", Int) = 0
+[NoScaleOffset]_BumpMap("Normal Map &&", 2D) = "bump" {}
+_BumpScale("Normal Map Scale", Range(-1, 1)) = 1
+[ToggleUI]_FlipBumpY ("Flip Y (UE Mode) [_BumpMap]", Int) = 0
+[ToggleUI]UI_DetailNormalsHeader("## Detail Normals", Int) = 0
+_DetailNormalMap("Detail Normal", 2D) = "bump" {}
+[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_DetailNormalsUVSet("UV Set [_DetailNormalMap]", Int) = 0
+_DetailNormalScale("Detail Normal Map Scale [_DetailNormalMap]", Range(-1, 1)) = 1
+[ToggleUI]_FlipDetailNormalY("Flip Y (UE Mode) [_DetailNormalMap]", Int) = 0
+
+#S#FragmentVariables
+half _BumpScale;
+int _FlipBumpY;
+half4 _DetailNormalMap_ST;
+int _DetailNormalsUVSet;
+half _DetailNormalScale;
+half _FlipDetailNormalY;
+
+
+TEXTURE2D(_BumpMap);
+SAMPLER(sampler_BumpMap);
+TEXTURE2D(_DetailNormalMap)
+SAMPLER(sampler_DetailNormalMap);
+
+half3 GLOBAL_pixelNormal;
+
+#T#FragmentFunction
+void ToonNormalsFragment() {
+    half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
+    if (_FlipBumpY)
+    {
+        normalTex.y = 1 - normalTex.y;
+    }
+    half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
+
+    o.Normal = BlendNormals(o.Normal, normal);
+	
+	half2 detailUV = 0;
+	switch (_DetailNormalsUVSet) {
+		case 0: detailUV = d.uv0; break;
+		case 1: detailUV = d.uv1; break;
+		case 2: detailUV = d.uv2; break;
+		case 3: detailUV = d.uv3; break;
+	}
+	detailUV = detailUV * _DetailNormalMap_ST.xy + _DetailNormalMap_ST.zw;
+	half4 detailNormalTex = SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, detailUV);
+    if (_FlipDetailNormalY)
+    {
+        detailNormalTex.y = 1 - detailNormalTex.y;
+    }
+    half3 detailNormal = UnpackScaleNormal(detailNormalTex, _DetailNormalScale);
+	
+	o.Normal = BlendNormals(o.Normal, detailNormal);
+
+    half3 properNormal = normalize(mul(o.Normal, d.TBNMatrix));
+    GLOBAL_pixelNormal = properNormal;
+}

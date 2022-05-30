@@ -1,0 +1,35 @@
+﻿#S#Settings
+Name "orels1/Toon/Modules/Specular"
+Author "orels1"
+Version "1.0.0"
+Template "ORL Toon Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"self"
+"ORL Toon Module.asset"
+
+#S#Properties
+[ToggleUI]UI_SpecularHeader("# Specular Settings", Int) = 0
+_SpecularIntensity("Intensity", Float) = 0
+_SpecularRoughness("Roughness", Range(0, 1)) = 0
+_SpecularSharpness("Sharpness", Range(0, 1)) = 0
+_SpecularAnisotropy("Anisotropy", Range(-1.0, 1.0)) = 0
+_SpecularAlbedoTint("Albedo Tint", Range(0, 1)) = 1
+
+#S#FragmentVariables
+half _SpecularIntensity;
+half _SpecularRoughness;
+half _SpecularSharpness;
+half _SpecularAnisotropy;
+half _SpecularAlbedoTint;
+
+#T#FragmentFunction
+void ToonSpecularFragment() {
+    o.SpecularIntensity = _SpecularIntensity;
+    o.SpecularArea = _SpecularRoughness;
+    o.SpecularAnisotropy = _SpecularAnisotropy;
+    o.SpecularAlbedoTint = _SpecularAlbedoTint;
+    o.SpecularSharpness = _SpecularSharpness;
+}

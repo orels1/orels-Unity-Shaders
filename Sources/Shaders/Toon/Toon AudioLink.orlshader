@@ -1,0 +1,77 @@
+﻿#S#Settings
+Name "orels1/Toon/Modules/AudioLink"
+Author "orels1"
+Version "1.0.0"
+Template "ORL Toon Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"AudioLink Module.asset"
+"self"
+"ORL Toon Module.asset"
+
+#S#Properties
+[ToggleUI]UI_AudioLink("# AudioLink Settings", Int) = 0
+[Enum(None,0,Single Channel,1,Packed Map,2,UV Based,3)]_ALMode("Audio Link Mode", Int) = 0
+[NoScaleOffset]_ALMap("Audio Link Map & [_ALMode != 0]", 2D) = "white" {}
+[HDR]_ALEmissionColor("Color [_ALMode != 0 && _ALMode != 2]", Color) = (0,0,0,0)
+[Enum(Bass,0,Low Mids,1,High Mids,3,Treble,4)]_ALBand("Frequency Band [_ALMode == 1]", Int) = 0
+[ToggleUI]UI_ALPackedRedHeader("## Red Channel [_ALMode == 2]", Int) = 0
+[ToggleUI]UI_ALPackedPropRed("!DRAWER MultiProperty _ALGradientOnRed _ALPackedRedColor [_ALMode == 2]", Int) = 0
+[ToggleUI]_ALGradientOnRed("Gradient", Int) = 0
+[HDR]_ALPackedRedColor("Color", Color) = (0,0,0,0)
+[ToggleUI]UI_ALPackedGreenHeader("## Green Channel [_ALMode == 2]", Int) = 0
+[ToggleUI]UI_ALPackedPropGreen("!DRAWER MultiProperty _ALGradientOnGreen _ALPackedGreenColor [_ALMode == 2]", Int) = 0
+[ToggleUI]_ALGradientOnGreen("Gradient", Int) = 0
+[HDR]_ALPackedGreenColor("Color", Color) = (0,0,0,0)
+[ToggleUI]UI_ALPackedBlueHeader("## Blue Channel [_ALMode == 2]", Int) = 0
+[ToggleUI]UI_ALPackedPropBlue("!DRAWER MultiProperty _ALGradientOnBlue _ALPackedBlueColor [_ALMode == 2]", Int) = 0
+[ToggleUI]_ALGradientOnBlue("Gradient", Int) = 0
+[HDR]_ALPackedBlueColor("Color", Color) = (0,0,0,0)
+[IntRange]_ALUVWidth("History Sample Amount [_ALMode == 3]", Range(0,128)) = 128
+
+#S#FragmentVariables
+int _ALMode;
+int _ALBand;
+half4 _ALEmissionColor;
+int _ALGradientOnRed;
+int _ALGradientOnGreen;
+int _ALGradientOnBlue;
+half4 _ALPackedRedColor;
+half4 _ALPackedGreenColor;
+half4 _ALPackedBlueColor;
+int _ALUVWidth;
+
+TEXTURE2D(_ALMap);
+SAMPLER(sampler_ALMap);
+
+#T#FragmentFunction
+void ToonALFragment() {
+    if(AudioLinkIsAvailable() && _ALMode != 0) {
+        half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, GLOBAL_uv);
+        if (_ALMode == 2) {
+            half audioDataBass = AudioLinkData(ALPASS_AUDIOBASS).x;
+            half audioDataMids = AudioLinkData(ALPASS_AUDIOLOWMIDS).x;
+            half audioDataHighs = (AudioLinkData(ALPASS_AUDIOHIGHMIDS).x + AudioLinkData(ALPASS_AUDIOTREBLE).x) * 0.5;
+
+            half tLow = smoothstep((1-audioDataBass), (1-audioDataBass) + 0.01, alMask.r) * alMask.a;
+            half tMid = smoothstep((1-audioDataMids), (1-audioDataMids) + 0.01, alMask.g) * alMask.a;
+            half tHigh = smoothstep((1-audioDataHighs), (1-audioDataHighs) + 0.01, alMask.b) * alMask.a;
+
+            half4 emissionChannelRed = lerp(alMask.r, tLow, _ALGradientOnRed) * _ALPackedRedColor * audioDataBass;
+            half4 emissionChannelGreen = lerp(alMask.g, tMid, _ALGradientOnGreen) * _ALPackedGreenColor * audioDataMids;
+            half4 emissionChannelBlue = lerp(alMask.b, tHigh, _ALGradientOnBlue) * _ALPackedBlueColor * audioDataHighs;
+            o.Emission += emissionChannelRed.rgb + emissionChannelGreen.rgb + emissionChannelBlue.rgb;
+        } else {
+            int2 aluv;
+            if (_ALMode == 1) {
+                aluv = int2(0, _ALBand);
+            } else {
+                aluv = int2(GLOBAL_uv.x * _ALUVWidth, GLOBAL_uv.y);
+            }
+            half sampledAL = AudioLinkData(aluv).x;
+            o.Emission +=  alMask.rgb * _ALEmissionColor.rgb * sampledAL;
+        }
+    }
+}
