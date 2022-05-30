@@ -443,10 +443,15 @@ namespace ORL
           prop.Description = descMatch.Value;
         }
         // Type
-        var typeMatch = Regex.Match(line, "(?<=\",)(?:\\s*)([\\w\\d\\s(),\\.]+)(?=\\))");
+        var typeMatch = Regex.Match(line, "(?<=\",)(?:\\s*)([\\w\\d\\s(),\\-\\.]+)(?=\\))");
         if (typeMatch.Success)
         {
-          prop.Type = typeMatch.Value.Trim();
+          var formatted = typeMatch.Value.Trim();
+          if (formatted == "CUBE")
+          {
+            formatted = "Cube";
+          }
+          prop.Type = formatted;
         }
         // Default Value
         var defaultMatch = Regex.Match(line, "(?<==)(?:\\s*)([\\w\\d\\(\\)\\-,.\"{}\\s]+)(?:\\s*)$");
@@ -471,7 +476,7 @@ namespace ORL
         var variable = new ShaderVariable();
         if (line.Contains("TEXTURE") || line.Contains("SAMPLER"))
         {
-          variable.Name = line.Trim();
+          variable.Name = line.Trim().Replace(";", "");
           variable.Type = "custom";
           vars.Add(variable);
           continue;
