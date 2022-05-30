@@ -29,6 +29,16 @@ MonoBehaviour:
     Attributes:
     - HideInInspector
     - NoScaleOffset
+  - Name: _BakedCubemap
+    DisplayName: Baked Cubemap
+    Type: Cube
+    DefaultValue: '""{}'
+    DefaultTextureAsset: {fileID: 2800000, guid: ff0962e622d174a258105d546cd2a578,
+      type: 3}
+    Attributes:
+    - HideInInspector
+    - NoTilingOffset
+    - SingleLineTexture
   - Name: UI_AdvancedHeader
     DisplayName: '# Advanced Features'
     Type: Float
@@ -123,25 +133,7 @@ MonoBehaviour:
     Queue: 100
     ShaderFunctionCode: {fileID: -5679828348219544688, guid: 93c378b68af144f5906aaf1c76ab754a,
       type: 3}
-    UsedVariables:
-    - Name: _SpecOcclusion
-      Type: 0
-      CustomType: 
-    - Name: _SpecularRoughnessMod
-      Type: 0
-      CustomType: 
-    - Name: TEXTURE2D(_DFG)
-      Type: 999
-      CustomType: 
-    - Name: SAMPLER(sampler_DFG)
-      Type: 999
-      CustomType: 
-    - Name: _GSAAVariance
-      Type: 4
-      CustomType: 
-    - Name: _GSAAThreshold
-      Type: 4
-      CustomType: 
+    UsedVariables: []
     VariableKeywords: []
     CodeKeywords:
     - FRAGMENT_CODE

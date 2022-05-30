@@ -9,7 +9,9 @@ CustomEditor "Needle.MarkdownShaderGUI"
 "ORL Utility Functions.asset"
 "self"
 "AudioLink Module.asset"
+"Toon/Toon Occlusion.orlshader"
 "Toon/Toon Normals.orlshader"
+"Toon/Toon Outline.orlshader"
 "Toon/Toon Specular.orlshader"
 "Toon/Toon Reflections.orlshader"
 "Toon/Toon AudioLink.orlshader"
@@ -21,22 +23,18 @@ CustomEditor "Needle.MarkdownShaderGUI"
 #S#Properties
 [ToggleUI]UI_MainHeader ("# Main Settings", Int) = 0
 _Color ("Main Color", Color) = (1, 1, 1, 1)
-_MainTex ("Albedo", 2D) = "white" { }
+_MainTex ("Albedo", 2D) = "white" {}
 [ToggleUI]UI_RampRef("!REF _Ramp", Int) = 0
 _ShadowSharpness("Shadow Sharpness", Range(0,1)) = 0.5
-_OcclusionMap("Occlusion &&", 2D) = "white" {}
-_OcclusionStrength("Occlusion Strength", Range(0,1)) = 0
 
 #S#FragmentVariables
 float4 _MainTex_ST;
 half4 _Color;
-half _ShadowSharpness;
-half _OcclusionStrength;
+half _ShadowSharpness; 
 half2 GLOBAL_uv;
 
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
-TEXTURE2D(_OcclusionMap);
 
 #T#FragmentFunction
 void ToonFragment() {
@@ -44,9 +42,6 @@ void ToonFragment() {
     GLOBAL_uv = uv;
     half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv).rgb;
     albedo *= _Color;
-    half occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_MainTex, GLOBAL_uv).r;
-    
     o.Albedo = albedo;
     o.ShadowSharpness = _ShadowSharpness;
-    o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
 }

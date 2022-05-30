@@ -1,0 +1,31 @@
+﻿#S#Settings
+Name "orels1/Toon/Modules/Occlusion"
+Author "orels1"
+Version "1.0.0"
+Template "ORL Toon Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"self"
+"ORL Toon Module.asset"
+
+#S#Properties
+_OcclusionMap("Occlusion &&", 2D) = "white" {}
+_OcclusionStrength("Occlusion Strength", Range(0,1)) = 0
+[Enum(Classic, 0, Integrated, 1)]_OcclusionMode("Occlusion Mode", Int) = 0
+[ToggleUI]UI_OcclusionIndirectModeNote("!NOTE Classic - Multiplies indirect light by occlusion", Int) = 0
+[ToggleUI]UI_OcclusionIntegrateModeNote("!NOTE Integrated - Multiplies the shadow ramp by occlusion", Int) = 0
+
+#S#FragmentVariables
+int _OcclusionMode;
+half _OcclusionStrength;
+
+TEXTURE2D(_OcclusionMap);
+
+#T#FragmentFunction
+void ToonOcclusionFragment() {
+    half occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_MainTex, GLOBAL_uv).r;
+    o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
+    o.OcclusionMode = _OcclusionMode;
+}

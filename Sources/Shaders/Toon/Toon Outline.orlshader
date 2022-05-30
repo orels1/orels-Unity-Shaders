@@ -1,0 +1,50 @@
+#S#Settings
+Name "orels1/Toon/Modules/Outline"
+Author "orels1"
+Version "1.0.0"
+Template "ORL Toon Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"self"
+"ORL Toon Module.asset"
+
+#S#Properties
+[ToggleUI]UI_OutlineHeader("# Outline", Int) = 0
+[Toggle(OUTLINE_ENABLED)]_Outline("Enable Outline", Int) = 0
+[HDR]_OutlineColor("Color [OUTLINE_ENABLED]", Color) = (0.5, 0.5, 0.5, 1)
+[Enum(Lit, 0, Emissive, 1)]_OutlineLightingMode("Lighting Mode [OUTLINE_ENABLED]", Int) = 0
+_OutlineAlbedoTint("Albedo Tint [OUTLINE_ENABLED]", Range(0, 1)) = 0
+_OutlineMask("Width Mask [OUTLINE_ENABLED]", 2D) = "white" {}
+_OutlineWidth("Width [OUTLINE_ENABLED]", Range(0, 5)) = 1
+
+#T#ShaderFeatures
+#pragma shader_feature_local OUTLINE_ENABLED
+
+#S#FragmentVariables
+half4 _OutlineColor;
+int _OutlineLightingMode;
+half _OutlineAlbedoTint;
+
+#T#FragmentFunction
+void ToonOutlineFragment() {
+  o.OutlineColor = lerp(_OutlineColor, _OutlineColor * o.Albedo, _OutlineAlbedoTint);
+  o.OutlineLightingMode = _OutlineLightingMode;
+}
+
+#S#VertexVariables
+half _OutlineWidth;
+
+TEXTURE2D(_OutlineMask);
+SAMPLER(sampler_OutlineMask);
+
+#T#VertexFunction
+void ToonOutlineVertex() {
+  #if defined(PASS_OUTLINE)
+  half mask = SAMPLE_TEXTURE2D_LOD(_OutlineMask, sampler_OutlineMask, vD.uv0, 0);
+  half3 width = mask * _OutlineWidth * .01;
+  width *= min(distance(mul(unity_ObjectToWorld, vD.vertex), _WorldSpaceCameraPos) * 3, 1);
+  vD.vertex.xyz += vD.normal.xyz * width;
+  #endif
+}

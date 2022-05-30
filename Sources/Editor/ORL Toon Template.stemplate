@@ -340,3 +340,129 @@ Pass
   // Shadow Pass End
 
 }
+
+Pass
+{
+  Name "Outline"
+  Tags { "LightMode" = "ForwardBase" #K#PASS_TAGS }
+  Cull Front
+  #K#PASS_MODS
+
+  // Outline Pass Start
+  CGPROGRAM
+  #pragma target 4.5
+  #pragma multi_compile_instancing
+  #pragma multi_compile_fwdbase
+  #pragma multi_compile_fog
+  #pragma vertex Vertex
+  #pragma fragment Fragment
+  #K#SHADER_FEATURES
+
+  #define UNITY_INSTANCED_LOD_FADE
+  #define UNITY_INSTANCED_SH
+  #define UNITY_INSTANCED_LIGHTMAPSTS
+
+  #ifndef PASS_OUTLINE
+    #define PASS_OUTLINE
+  #endif
+
+  #include "UnityStandardUtils.cginc"
+  #include "Lighting.cginc"
+  #include "AutoLight.cginc"
+
+  #K#SHADER_DEFINES
+
+  #K#SAMPLING_LIB
+
+  #K#VERTEX_DATA_STRUCT
+  #K#FRAGMENT_DATA_STRUCT
+  #K#MESH_DATA_STRUCT
+  #K#SURFACE_DATA_STRUCT
+  
+  FragmentData FragData;
+  SurfaceData o;
+  MeshData d;
+  VertexData vD;
+  float4 FinalColor;
+
+  #K#LIBRARY_FUNCTIONS
+
+  #if defined(NEED_DEPTH)
+    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+  #endif
+  
+  #K#DEFAULT_VARIABLES
+  
+  #K#DEFAULT_CODE
+  #K#VERTEX_CODE
+  #K#FRAGMENT_CODE
+  #K#COLOR_CODE
+  
+  // Outline Vertex
+  FragmentData Vertex(VertexData v)
+  {
+    #if defined(OUTLINE_ENABLED)
+      UNITY_SETUP_INSTANCE_ID(v);
+      FragmentData i;
+      UNITY_INITIALIZE_OUTPUT(FragmentData, i);
+      UNITY_TRANSFER_INSTANCE_ID(v, i);
+      UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(i);
+
+      vD = v;
+      FragData = i;
+      #K#VERTEX_FUNCTION
+      i = FragData;
+      v = vD;
+      #K#VERTEX_BASE
+      
+      return i;
+    #else
+      FragmentData i;
+      i.pos = 0.0/0.0;
+      return i;
+    #endif
+  }
+  
+  // Outline Fragment
+  half4 Fragment(FragmentData i) : SV_TARGET
+  {
+    #if defined(OUTLINE_ENABLED)
+      UNITY_SETUP_INSTANCE_ID(i);
+      #ifdef FOG_COMBINED_WITH_TSPACE
+        UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+      #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+        UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+      #else
+        UNITY_EXTRACT_FOG(i);
+      #endif
+
+      FragData = i;
+      o = (SurfaceData) 0;
+      d = CreateMeshData(i);
+      o.Albedo = half3(0.5, 0.5, 0.5);
+      o.Normal = half3(0, 0, 1);
+      o.Smoothness = 0;
+      o.Occlusion = 1;
+      o.Alpha = 1;
+      o.RimShadow = 1;
+      o.RimAttenuation = 1;
+      FinalColor = half4(o.Albedo, o.Alpha);
+      
+      #K#FRAGMENT_FUNCTION
+
+      #K#LIGHTING_FUNCTION
+
+      #K#FINAL_COLOR_MOD
+
+      UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+      
+      return FinalColor;
+    #else
+      return half4(0.2,0.2,0.2,0);
+    #endif
+  }
+
+  ENDCG
+  // Outline Pass End
+
+}

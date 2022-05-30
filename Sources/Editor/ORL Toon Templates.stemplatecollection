@@ -47,6 +47,7 @@ struct SurfaceData
   half Metallic;
   half Smoothness;
   half Occlusion;
+  int OcclusionMode;
   half3 Normal;
   half Alpha;
   half Anisotropy;
@@ -62,6 +63,8 @@ struct SurfaceData
   half3 BakedReflection;
   int ReflectionBlendMode;
   int EnableReflections;
+  half3 OutlineColor;
+  int OutlineLightingMode;
 };
 
 #T#MeshData
@@ -186,6 +189,8 @@ MeshData CreateMeshData(FragmentData i)
 #T#ToonLibraryFunctions
 TEXTURE2D(_Ramp);
 SAMPLER(sampler_Ramp);
+TEXTURECUBE(_BakedCubemap);
+SAMPLER(sampler_BakedCubemap);
 
 half3 getReflectionUV(half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
 {
@@ -215,10 +220,11 @@ half3 calcStereoViewDir(half3 worldPos)
     return normalize(viewDir);
 }
 
-half4 calcRamp(half NdL, half attenuation)
+half4 calcRamp(half NdL, half attenuation, half occlusion, int occlusionMode)
 {
     half remapRamp;
     remapRamp = NdL * 0.5 + 0.5;
+    remapRamp *= lerp(1, occlusion, occlusionMode);
     #if defined(UNITY_PASS_FORWARDBASE)
     remapRamp *= attenuation;
     #endif
@@ -247,7 +253,7 @@ half2 calcMatcapUV(half3 worldUp, half3 viewDirection, half3 normalDirection)
     return matcapUV;
 }
 
-half3 calcIndirectSpecular(half lightAttentuation, MeshData d, SurfaceData o, half roughness, half3 reflDir, half3 indirectLight, float3 fresnel, half4 ramp)
+half3 calcIndirectSpecular(half lightAttenuation, MeshData d, SurfaceData o, half roughness, half3 reflDir, half3 indirectLight, float3 fresnel, half4 ramp)
 {//This function handls Unity style reflections, Matcaps, and a baked in fallback cubemap.
     half3 spec = half3(0,0,0);
 
@@ -256,6 +262,10 @@ half3 calcIndirectSpecular(half lightAttentuation, MeshData d, SurfaceData o, ha
       spec = 0;
     } else if(any(o.BakedReflection.rgb)) {
       spec = o.BakedReflection;
+      if(o.ReflectionBlendMode != 1)
+      {
+          spec *= (indirectLight + (_LightColor0 * lightAttenuation) * 0.5);
+      }
     } else
     {
         #if defined(UNITY_PASS_FORWARDBASE) //Indirect PBR specular should only happen in the forward base pass. Otherwise each extra light adds another indirect sample, which could mean you're getting too much light.
@@ -281,7 +291,7 @@ half3 calcIndirectSpecular(half lightAttentuation, MeshData d, SurfaceData o, ha
 
             if (!any(indirectSpecular))
             {
-                indirectSpecular = o.BakedReflection;
+                indirectSpecular = SAMPLE_TEXTURECUBE_LOD(_BakedCubemap, sampler_BakedCubemap, reflDir, roughness * UNITY_SPECCUBE_LOD_STEPS);
                 indirectSpecular *= indirectLight;
             }
             spec = indirectSpecular * fresnel;
@@ -410,7 +420,7 @@ void XSToonLighting()
       lightAttenuation = smoothstep(sharp, 1 - sharp, lightAttenuation); //Converge at the center line
   #endif
   
-  half3 lightColor =  _LightColor0.rgb;
+  half3 lightColor = _LightColor0.rgb;
   
   half3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
   half lightNoL = saturate(dot(o.Normal, lightDir));
@@ -437,7 +447,7 @@ void XSToonLighting()
   #else
     indirectDiffuse = 0;
   #endif
-  indirectDiffuse *= occlusion;
+  indirectDiffuse *= lerp(occlusion, 1, o.OcclusionMode);
 
   bool lightEnv = any(lightDir.xyz);
   // if there is no realtime light - we create it from indirect diffuse
@@ -451,7 +461,7 @@ void XSToonLighting()
   // Light Ramp
   half4 ramp = 1;
   half4 diffuse = 1;
-  ramp = calcRamp(lightNoL, lightAttenuation);
+  ramp = calcRamp(lightNoL, lightAttenuation, occlusion, _OcclusionMode);
   diffuse = calcDiffuse(lightAttenuation, o.Albedo.rgb * perceptualRoughness, indirectDiffuse, lightColor, ramp);
 
   // Rims
@@ -468,5 +478,16 @@ void XSToonLighting()
   FinalColor = calcReflectionBlending(o, 1, FinalColor, indirectSpecular);
   FinalColor += max(directSpecular.xyzz, rimLight);
   FinalColor.rgb += calcEmission(o, lightAvg);
+  
+  // Outline
+  #if defined(PASS_OUTLINE)
+    half3 outlineColor = 0;
+    half3 ol = o.OutlineColor;
+    outlineColor = ol * saturate(lightAttenuation * lightNoL) * lightColor.rgb;
+    outlineColor += indirectDiffuse * ol;
+    outlineColor = lerp(outlineColor, ol, o.OutlineLightingMode);
+    FinalColor.rgb = outlineColor;
+  #endif
+
   #endif
 }
