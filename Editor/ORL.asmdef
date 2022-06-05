@@ -2,7 +2,9 @@
     "name": "ORL",
     "references": [
         "GUID:ea7564d28e28f657d6bfa3d42bf5a47e",
-        "GUID:6ca005ac1568d4fe3a8036fc405bdad5"
+        "GUID:6ca005ac1568d4fe3a8036fc405bdad5",
+        "GUID:381ea92d5c3a57b43bf4b68aab88232d",
+        "GUID:e89de4e5a0e0c0b47a8506136f6d550d"
     ],
     "includePlatforms": [
         "Editor"
@@ -13,6 +15,17 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.looooong.asyncimageloader",
+            "expression": "",
+            "define": "IMAGE_LOADER_PRESENT"
+        },
+        {
+            "name": "com.needle.shadergraph-markdown",
+            "expression": "",
+            "define": "MARKDOWN_PRESENT"
+        }
+    ],
     "noEngineReferences": false
 }
