@@ -104,7 +104,9 @@ namespace ORL
             EditorGUILayout.EndHorizontal();
             
             if (!packerExpanded) return;
-            
+
+            var oldIndent = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
             using (var v = new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
                 DrawPackerHeader();
@@ -129,8 +131,8 @@ namespace ORL
                     }
                 }
                 EditorGUILayout.Space();
-
-                GUILayout.Label("New Texture Name");
+                
+                EditorGUILayout.LabelField("New Texture Name");
                 savedTexName = EditorGUILayout.TextField(savedTexName);
                 texSize = EditorGUILayout.IntPopup(texSize, sizeOptionLabels, sizeOptions);
                 if (linearSwitch == "linear")
@@ -174,6 +176,8 @@ namespace ORL
                     }, materialEditor.target as Material, textureProperty.name, savePath);
                 }
             }
+
+            EditorGUI.indentLevel = oldIndent;
         }
 
         public struct PackParams
