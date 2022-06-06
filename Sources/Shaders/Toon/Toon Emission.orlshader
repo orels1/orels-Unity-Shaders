@@ -30,7 +30,7 @@ TEXTURE2D(_EmissionMap);
 void ToonEmissionFragment() {
     half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_MainTex, GLOBAL_uv).rgb;
     emission *= lerp(emission, emission * o.Albedo, _EmissionTintToDiffuse) * _EmissionColor;
-    o.Emission = emission;
+    o.Emission += emission;
     o.EmissionScaleWithLight = _EmissionScaleWithLight;
     o.EmissionLightThreshold = _EmissionScaleWithLightSensitivity;
 }
