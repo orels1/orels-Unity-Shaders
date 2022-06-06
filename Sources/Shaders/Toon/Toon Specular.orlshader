@@ -12,24 +12,40 @@ CustomEditor "Needle.MarkdownShaderGUI"
 
 #S#Properties
 [ToggleUI]UI_SpecularHeader("# Specular Settings", Int) = 0
-_SpecularIntensity("Intensity", Float) = 0
+[ToggleUI]UI_SpecularMapPacker("!DRAWER TexturePacker _SpecularMap", Int) = 0
+_SpecularMap("Specular Map", 2D) = "white" {}
+[ToggleUI]UI_SpecMapdNote("!NOTE Red - Intensity, Green - Albedo Tint, Blue - Smoothness", Int) = 0
+[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_SpecularMapUVSet("UV Set", Int) = 0
+[Space(10)]_SpecularIntensity("Intensity", Float) = 0
 _SpecularRoughness("Roughness", Range(0, 1)) = 0
 _SpecularSharpness("Sharpness", Range(0, 1)) = 0
 _SpecularAnisotropy("Anisotropy", Range(-1.0, 1.0)) = 0
 _SpecularAlbedoTint("Albedo Tint", Range(0, 1)) = 1
 
 #S#FragmentVariables
+int _SpecularMapUVSet;
 half _SpecularIntensity;
 half _SpecularRoughness;
 half _SpecularSharpness;
 half _SpecularAnisotropy;
 half _SpecularAlbedoTint;
 
+TEXTURE2D(_SpecularMap);
+
 #T#FragmentFunction
 void ToonSpecularFragment() {
-    o.SpecularIntensity = _SpecularIntensity;
-    o.SpecularArea = _SpecularRoughness;
+    half2 maskUV = 0;
+    switch (_DetailNormalsUVSet) {
+		case 0: maskUV = d.uv0; break;
+		case 1: maskUV = d.uv1; break;
+		case 2: maskUV = d.uv2; break;
+		case 3: maskUV = d.uv3; break;
+	}
+
+    half3 specMap = SAMPLE_TEXTURE2D(_SpecularMap, sampler_MainTex, maskUV);
+    o.SpecularIntensity = _SpecularIntensity * specMap.r;
+    o.SpecularArea = max(0.01, _SpecularRoughness * specMap.b);
     o.SpecularAnisotropy = _SpecularAnisotropy;
-    o.SpecularAlbedoTint = _SpecularAlbedoTint;
+    o.SpecularAlbedoTint = _SpecularAlbedoTint * specMap.g;
     o.SpecularSharpness = _SpecularSharpness;
 }
