@@ -13,13 +13,15 @@ CustomEditor "Needle.MarkdownShaderGUI"
 #S#Properties
 [ToggleUI]UI_NormalsHeader("# Normals", Int) = 0
 [NoScaleOffset]_BumpMap("Normal Map &&", 2D) = "bump" {}
-_BumpScale("Normal Map Scale", Range(-1, 1)) = 1
+_BumpScale("Normal Map Scale", Range(-2, 2)) = 1
 [ToggleUI]_FlipBumpY ("Flip Y (UE Mode) [_BumpMap]", Int) = 0
 [ToggleUI]UI_DetailNormalsHeader("## Detail Normals", Int) = 0
 _DetailNormalMap("Detail Normal", 2D) = "bump" {}
 [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_DetailNormalsUVSet("UV Set [_DetailNormalMap]", Int) = 0
-_DetailNormalScale("Detail Normal Map Scale [_DetailNormalMap]", Range(-1, 1)) = 1
+_DetailNormalScale("Detail Normal Map Scale [_DetailNormalMap]", Range(-2, 2)) = 1
 [ToggleUI]_FlipDetailNormalY("Flip Y (UE Mode) [_DetailNormalMap]", Int) = 0
+_DetailNormalsMask("Detail Normal Mask && [_DetailNormalMap]", 2D) = "white" {}
+[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_DetailNormalUVSet("UV Set [_DetailNormalMap]", Int) = 0
 
 #S#FragmentVariables
 half _BumpScale;
@@ -28,12 +30,15 @@ half4 _DetailNormalMap_ST;
 int _DetailNormalsUVSet;
 half _DetailNormalScale;
 half _FlipDetailNormalY;
+int _DetailNormalUVSet;
 
 
 TEXTURE2D(_BumpMap);
 SAMPLER(sampler_BumpMap);
 TEXTURE2D(_DetailNormalMap)
 SAMPLER(sampler_DetailNormalMap);
+TEXTURE2D(_DetailNormalsMask);
+SAMPLER(sampler_DetailNormalsMask);
 
 half3 GLOBAL_pixelNormal;
 
@@ -61,10 +66,23 @@ void ToonNormalsFragment() {
     {
         detailNormalTex.y = 1 - detailNormalTex.y;
     }
+
+    half2 detailMaskUV = 0;
+    switch (_DetailNormalUVSet) {
+		case 0: detailMaskUV = d.uv0; break;
+		case 1: detailMaskUV = d.uv1; break;
+		case 2: detailMaskUV = d.uv2; break;
+		case 3: detailMaskUV = d.uv3; break;
+	}
+    half detailMask = SAMPLE_TEXTURE2D(_DetailNormalsMask, sampler_MainTex, GLOBAL_uv).r;
+
     half3 detailNormal = UnpackScaleNormal(detailNormalTex, _DetailNormalScale);
 	
-	o.Normal = BlendNormals(o.Normal, detailNormal);
+	o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), detailMask);
 
-    half3 properNormal = normalize(mul(o.Normal, d.TBNMatrix));
+    half3 properNormal = normalize(o.Normal.x * d.worldSpaceTangent.xyz + o.Normal.y * d.bitangent.xyz + o.Normal.z * d.worldNormal.xyz);
+    d.worldSpaceTangent.xyz = cross(d.bitangent.xyz, properNormal);
+    d.bitangent.xyz = cross(properNormal, d.worldSpaceTangent.xyz);
+    d.TBNMatrix = float3x3(normalize(d.worldSpaceTangent.xyz), d.bitangent, d.worldNormal);
     GLOBAL_pixelNormal = properNormal;
 }
