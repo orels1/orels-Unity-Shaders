@@ -60,6 +60,7 @@ struct SurfaceData
   half SpecularAlbedoTint;
   half SpecularAnisotropy;
   half SpecularSharpness;
+  half Reflectivity;
   half3 BakedReflection;
   int ReflectionBlendMode;
   int EnableReflections;
@@ -389,7 +390,7 @@ half4 calcEmission(SurfaceData o, half lightAvg)
 void XSToonLighting()
 {
   #if !defined(UNITY_PASS_SHADOWCASTER)
-  half reflectance = 0.5;
+  half reflectance = o.Reflectivity;
   half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
   half3 indirectDiffuse = 1;
   half3 indirectSpecular = 0;
@@ -475,7 +476,7 @@ void XSToonLighting()
   directSpecular = calcDirectSpecular(d, o, lightNoL, NoH, NoV, lightLoH, lightColor, lightHalfVector, o.SpecularAnisotropy) * lightNoL * occlusion * lightAttenuation;
 
   FinalColor = diffuse * o.RimShadow;
-  FinalColor = calcReflectionBlending(o, 1, FinalColor, indirectSpecular);
+  FinalColor = calcReflectionBlending(o, reflectance, FinalColor, indirectSpecular);
   FinalColor += max(directSpecular.xyzz, rimLight);
   FinalColor.rgb += calcEmission(o, lightAvg);
   

@@ -27,10 +27,12 @@ _Metallic ("Metallic [!_MetallicGlossMap && (_ReflectionMode == 0 || _Reflection
 [HideInInspector]_SmoothnessRemap ("Smoothness Remap", Vector) = (0, 1, 0, 1)
 _ReflectionAnisotropy("Anisotropy [_ReflectionMode == 0]", Range(-1, 1)) = 0
 
-
 _Matcap("Matcap & [_ReflectionMode == 2]", 2D) = "black" {}
 _MatcapBlur("Matcap Blur Level [_ReflectionMode == 2]", Range(0, 1)) = 0
 _MatcapTintToDiffuse("Tint Matcap to Diffuse [_ReflectionMode == 2]", Range(0, 1)) = 0
+
+_ReflectivityMask("Reflectivity Mask && [_ReflectionMode != 3]", 2D) = "white" {}
+_ReflectivityLevel("Reflectivity [_ReflectionMode != 3]", Range(0, 1)) = 0.5
 
 #S#FragmentVariables
 int _ReflectionMode;
@@ -44,15 +46,20 @@ half4 _MetallicGlossMap_TexelSize;
 half _ReflectionAnisotropy;
 half _MatcapBlur;
 half _MatcapTintToDiffuse;
+half _ReflectivityLevel;
 
 TEXTURE2D(_Matcap);
 SAMPLER(sampler_Matcap);
 TEXTURE2D(_MetallicGlossMap);
+TEXTURE2D(_ReflectivityMask);
 
 #T#FragmentFunction
 void ToonReflectionFragment() {
     o.EnableReflections = _ReflectionMode != 3;
     o.ReflectionBlendMode = _ReflectionBlendMode;
+
+    half mask = SAMPLE_TEXTURE2D(_ReflectivityMask, sampler_MainTex, GLOBAL_uv).r;
+    mask *= _ReflectivityLevel;
     
     UNITY_BRANCH
     if (_ReflectionMode == 0) {
@@ -80,4 +87,5 @@ void ToonReflectionFragment() {
         spec.rgb *= lerp(1, o.Albedo, _MatcapTintToDiffuse);
         o.BakedReflection = spec.rgb;
     }
+    o.Reflectivity = mask;
 }
