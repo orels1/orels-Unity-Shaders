@@ -4,7 +4,8 @@ Shader "orels1/Toon/Main"
 	{
 		[ToggleUI] UI_MainHeader("# Main Settings", Int) =  0
 		_Color("Main Color", Color) =  (1, 1, 1, 1)
-		_MainTex("Albedo", 2D) = "white" {}
+		[ToggleUI] _TintByVertexColor("Tint By Vertex Color", Int) =  0
+		_MainTex("Albedo", 2D) =  "white" {}
 		[ToggleUI] UI_RampRef("!REF _Ramp", Int) =  0
 		_ShadowSharpness("Shadow Sharpness", Range(0,1)) =  0.5
 		_OcclusionMap("Occlusion &&", 2D) =  "white" {}
@@ -14,13 +15,15 @@ Shader "orels1/Toon/Main"
 		[ToggleUI] UI_OcclusionIntegrateModeNote("!NOTE Integrated - Multiplies the shadow ramp by occlusion", Int) =  0
 		[ToggleUI] UI_NormalsHeader("# Normals", Int) =  0
 		[NoScaleOffset] _BumpMap("Normal Map &&", 2D) =  "bump" {}
-		_BumpScale("Normal Map Scale", Range(-1, 1)) =  1
+		_BumpScale("Normal Map Scale", Range(-2, 2)) =  1
 		[ToggleUI][_BumpMap] _FlipBumpY("Flip Y (UE Mode) [_BumpMap]", Int) =  0
 		[ToggleUI] UI_DetailNormalsHeader("## Detail Normals", Int) =  0
 		_DetailNormalMap("Detail Normal", 2D) =  "bump" {}
 		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)][_DetailNormalMap] _DetailNormalsUVSet("UV Set [_DetailNormalMap]", Int) =  0
-		[_DetailNormalMap] _DetailNormalScale("Detail Normal Map Scale [_DetailNormalMap]", Range(-1, 1)) =  1
+		[_DetailNormalMap] _DetailNormalScale("Detail Normal Map Scale [_DetailNormalMap]", Range(-2, 2)) =  1
 		[ToggleUI][_DetailNormalMap] _FlipDetailNormalY("Flip Y (UE Mode) [_DetailNormalMap]", Int) =  0
+		[_DetailNormalMap] _DetailNormalsMask("Detail Normal Mask && [_DetailNormalMap]", 2D) =  "white" {}
+		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)][_DetailNormalMap] _DetailNormalUVSet("UV Set [_DetailNormalMap]", Int) =  0
 		[ToggleUI] UI_OutlineHeader("# Outline", Int) =  0
 		[Toggle(OUTLINE_ENABLED)] _Outline("Enable Outline", Int) =  0
 		[HDR][OUTLINE_ENABLED] _OutlineColor("Color [OUTLINE_ENABLED]", Color) =  (0.5, 0.5, 0.5, 1)
@@ -29,7 +32,11 @@ Shader "orels1/Toon/Main"
 		[OUTLINE_ENABLED] _OutlineMask("Width Mask [OUTLINE_ENABLED]", 2D) =  "white" {}
 		[OUTLINE_ENABLED] _OutlineWidth("Width [OUTLINE_ENABLED]", Range(0, 5)) =  1
 		[ToggleUI] UI_SpecularHeader("# Specular Settings", Int) =  0
-		_SpecularIntensity("Intensity", Float) =  0
+		[ToggleUI] UI_SpecularMapPacker("!DRAWER TexturePacker _SpecularMap", Int) =  0
+		_SpecularMap("Specular Map", 2D) =  "white" {}
+		[ToggleUI] UI_SpecMapdNote("!NOTE Red - Intensity, Green - Albedo Tint, Blue - Smoothness", Int) =  0
+		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _SpecularMapUVSet("UV Set", Int) =  0
+		[Space(10)] _SpecularIntensity("Intensity", Float) =  0
 		_SpecularRoughness("Roughness", Range(0, 1)) =  0
 		_SpecularSharpness("Sharpness", Range(0, 1)) =  0
 		_SpecularAnisotropy("Anisotropy", Range(-1.0, 1.0)) =  0
@@ -52,9 +59,12 @@ Shader "orels1/Toon/Main"
 		_Matcap("Matcap & [_ReflectionMode == 2]", 2D) =  "black" {}
 		_MatcapBlur("Matcap Blur Level [_ReflectionMode == 2]", Range(0, 1)) =  0
 		_MatcapTintToDiffuse("Tint Matcap to Diffuse [_ReflectionMode == 2]", Range(0, 1)) =  0
+		_ReflectivityMask("Reflectivity Mask && [_ReflectionMode != 3]", 2D) =  "white" {}
+		_ReflectivityLevel("Reflectivity [_ReflectionMode != 3]", Range(0, 1)) =  0.5
 		[ToggleUI] UI_AudioLink("# AudioLink Settings", Int) =  0
 		[Enum(None,0,Single Channel,1,Packed Map,2,UV Based,3)] _ALMode("Audio Link Mode", Int) =  0
-		[NoScaleOffset] _ALMap("Audio Link Map & [_ALMode != 0]", 2D) =  "white" {}
+		[NoScaleOffset] _ALMap("Audio Link Map && [_ALMode != 0]", 2D) =  "white" {}
+		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _ALMapUVSet("UV Set [_ALMode != 0]", Int) =  0
 		[HDR] _ALEmissionColor("Color [_ALMode != 0 && _ALMode != 2]", Color) =  (0,0,0,0)
 		[Enum(Bass,0,Low Mids,1,High Mids,3,Treble,4)] _ALBand("Frequency Band [_ALMode == 1]", Int) =  0
 		[ToggleUI] UI_ALPackedRedHeader("## Red Channel [_ALMode == 2]", Int) =  0
@@ -1387,6 +1397,7 @@ Shader "orels1/Toon/Main"
 				half SpecularAlbedoTint;
 				half SpecularAnisotropy;
 				half SpecularSharpness;
+				half Reflectivity;
 				half3 BakedReflection;
 				int ReflectionBlendMode;
 				int EnableReflections;
@@ -2432,6 +2443,7 @@ half _Metallic;
 half _ReflectionAnisotropy;
 half _MatcapBlur;
 half _MatcapTintToDiffuse;
+half _ReflectivityLevel;
 half _EmissionTintToDiffuse;
 half _EmissionScaleWithLightSensitivity;
 half _RimIntensity;
@@ -2461,35 +2473,43 @@ half4 _EmissionColor;
 half4 _RimTint;
 half4 _ShadowRimTint;
 float4 _MainTex_ST;
+int _TintByVertexColor;
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 int _OcclusionMode;
 TEXTURE2D(_OcclusionMap);
 int _FlipBumpY;
 int _DetailNormalsUVSet;
+int _DetailNormalUVSet;
 TEXTURE2D(_BumpMap);
 SAMPLER(sampler_BumpMap);
 TEXTURE2D(_DetailNormalMap);
 SAMPLER(sampler_DetailNormalMap);
+TEXTURE2D(_DetailNormalsMask);
+SAMPLER(sampler_DetailNormalsMask);
 int _OutlineLightingMode;
 TEXTURE2D(_OutlineMask);
 SAMPLER(sampler_OutlineMask);
+int _SpecularMapUVSet;
+TEXTURE2D(_SpecularMap);
 int _ReflectionMode;
 int _ReflectionBlendMode;
 int _RoughnessMode;
 TEXTURE2D(_Matcap);
 SAMPLER(sampler_Matcap);
 TEXTURE2D(_MetallicGlossMap);
+TEXTURE2D(_ReflectivityMask);
 int _ALMode;
 int _ALBand;
 int _ALGradientOnRed;
 int _ALGradientOnGreen;
 int _ALGradientOnBlue;
 int _ALUVWidth;
-TEXTURE2D(_ALMap);;
-SAMPLER(sampler_ALMap);;
+int _ALMapUVSet;
+TEXTURE2D(_ALMap);
+SAMPLER(sampler_ALMap);
 int _EmissionScaleWithLight;
-TEXTURE2D(_EmissionMap);;
+TEXTURE2D(_EmissionMap);
 
 void ToonOutlineVertex() {
 	#if defined(PASS_OUTLINE)
@@ -2505,6 +2525,9 @@ void ToonFragment() {
 	GLOBAL_uv = uv;
 	half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv).rgb;
 	albedo *= _Color;
+	if (_TintByVertexColor) {
+		albedo *= d.vertexColor.rgb;
+	}
 	o.Albedo = albedo;
 	o.ShadowSharpness = _ShadowSharpness;
 }
@@ -2538,11 +2561,24 @@ void ToonNormalsFragment() {
 	{
 		detailNormalTex.y = 1 - detailNormalTex.y;
 	}
+	
+	half2 detailMaskUV = 0;
+	switch (_DetailNormalUVSet) {
+		case 0: detailMaskUV = d.uv0; break;
+		case 1: detailMaskUV = d.uv1; break;
+		case 2: detailMaskUV = d.uv2; break;
+		case 3: detailMaskUV = d.uv3; break;
+	}
+	half detailMask = SAMPLE_TEXTURE2D(_DetailNormalsMask, sampler_MainTex, GLOBAL_uv).r;
+	
 	half3 detailNormal = UnpackScaleNormal(detailNormalTex, _DetailNormalScale);
 	
-	o.Normal = BlendNormals(o.Normal, detailNormal);
+	o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), detailMask);
 	
-	half3 properNormal = normalize(mul(o.Normal, d.TBNMatrix));
+	half3 properNormal = normalize(o.Normal.x * d.worldSpaceTangent.xyz + o.Normal.y * d.bitangent.xyz + o.Normal.z * d.worldNormal.xyz);
+	d.worldSpaceTangent.xyz = cross(d.bitangent.xyz, properNormal);
+	d.bitangent.xyz = cross(properNormal, d.worldSpaceTangent.xyz);
+	d.TBNMatrix = float3x3(normalize(d.worldSpaceTangent.xyz), d.bitangent, d.worldNormal);
 	GLOBAL_pixelNormal = properNormal;
 }
 
@@ -2552,16 +2588,28 @@ void ToonOutlineFragment() {
 }
 
 void ToonSpecularFragment() {
-	o.SpecularIntensity = _SpecularIntensity;
-	o.SpecularArea = _SpecularRoughness;
+	half2 maskUV = 0;
+	switch (_DetailNormalsUVSet) {
+		case 0: maskUV = d.uv0; break;
+		case 1: maskUV = d.uv1; break;
+		case 2: maskUV = d.uv2; break;
+		case 3: maskUV = d.uv3; break;
+	}
+	
+	half3 specMap = SAMPLE_TEXTURE2D(_SpecularMap, sampler_MainTex, maskUV);
+	o.SpecularIntensity = _SpecularIntensity * specMap.r;
+	o.SpecularArea = max(0.01, _SpecularRoughness * specMap.b);
 	o.SpecularAnisotropy = _SpecularAnisotropy;
-	o.SpecularAlbedoTint = _SpecularAlbedoTint;
+	o.SpecularAlbedoTint = _SpecularAlbedoTint * specMap.g;
 	o.SpecularSharpness = _SpecularSharpness;
 }
 
 void ToonReflectionFragment() {
 	o.EnableReflections = _ReflectionMode != 3;
 	o.ReflectionBlendMode = _ReflectionBlendMode;
+	
+	half mask = SAMPLE_TEXTURE2D(_ReflectivityMask, sampler_MainTex, GLOBAL_uv).r;
+	mask *= _ReflectivityLevel;
 	
 	UNITY_BRANCH
 	if (_ReflectionMode == 0) {
@@ -2589,11 +2637,19 @@ void ToonReflectionFragment() {
 		spec.rgb *= lerp(1, o.Albedo, _MatcapTintToDiffuse);
 		o.BakedReflection = spec.rgb;
 	}
+	o.Reflectivity = mask;
 }
 
 void ToonALFragment() {
 	if(AudioLinkIsAvailable() && _ALMode != 0) {
-		half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, GLOBAL_uv);
+		half2 alUV = 0;
+		switch (_ALMapUVSet) {
+			case 0: alUV = GLOBAL_uv; break;
+			case 1: alUV = d.uv1; break;
+			case 2: alUV = d.uv2; break;
+			case 3: alUV = d.uv3; break;
+		}
+		half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, alUV);
 		if (_ALMode == 2) {
 			half audioDataBass = AudioLinkData(ALPASS_AUDIOBASS).x;
 			half audioDataMids = AudioLinkData(ALPASS_AUDIOLOWMIDS).x;
@@ -2623,7 +2679,7 @@ void ToonALFragment() {
 void ToonEmissionFragment() {
 	half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_MainTex, GLOBAL_uv).rgb;
 	emission *= lerp(emission, emission * o.Albedo, _EmissionTintToDiffuse) * _EmissionColor;
-	o.Emission = emission;
+	o.Emission += emission;
 	o.EmissionScaleWithLight = _EmissionScaleWithLight;
 	o.EmissionLightThreshold = _EmissionScaleWithLightSensitivity;
 }
@@ -2667,7 +2723,7 @@ void ToonShadowRimFragment() {
 void XSToonLighting()
 {
 	#if !defined(UNITY_PASS_SHADOWCASTER)
-	half reflectance = 0.5;
+	half reflectance = o.Reflectivity;
 	half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 	half3 indirectDiffuse = 1;
 	half3 indirectSpecular = 0;
@@ -2753,7 +2809,7 @@ void XSToonLighting()
 	directSpecular = calcDirectSpecular(d, o, lightNoL, NoH, NoV, lightLoH, lightColor, lightHalfVector, o.SpecularAnisotropy) * lightNoL * occlusion * lightAttenuation;
 	
 	FinalColor = diffuse * o.RimShadow;
-	FinalColor = calcReflectionBlending(o, 1, FinalColor, indirectSpecular);
+	FinalColor = calcReflectionBlending(o, reflectance, FinalColor, indirectSpecular);
 	FinalColor += max(directSpecular.xyzz, rimLight);
 	FinalColor.rgb += calcEmission(o, lightAvg);
 	
@@ -4166,6 +4222,7 @@ struct SurfaceData
 	half SpecularAlbedoTint;
 	half SpecularAnisotropy;
 	half SpecularSharpness;
+	half Reflectivity;
 	half3 BakedReflection;
 	int ReflectionBlendMode;
 	int EnableReflections;
@@ -5211,6 +5268,7 @@ half _Metallic;
 half _ReflectionAnisotropy;
 half _MatcapBlur;
 half _MatcapTintToDiffuse;
+half _ReflectivityLevel;
 half _EmissionTintToDiffuse;
 half _EmissionScaleWithLightSensitivity;
 half _RimIntensity;
@@ -5240,35 +5298,43 @@ half4 _EmissionColor;
 half4 _RimTint;
 half4 _ShadowRimTint;
 float4 _MainTex_ST;
+int _TintByVertexColor;
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 int _OcclusionMode;
 TEXTURE2D(_OcclusionMap);
 int _FlipBumpY;
 int _DetailNormalsUVSet;
+int _DetailNormalUVSet;
 TEXTURE2D(_BumpMap);
 SAMPLER(sampler_BumpMap);
 TEXTURE2D(_DetailNormalMap);
 SAMPLER(sampler_DetailNormalMap);
+TEXTURE2D(_DetailNormalsMask);
+SAMPLER(sampler_DetailNormalsMask);
 int _OutlineLightingMode;
 TEXTURE2D(_OutlineMask);
 SAMPLER(sampler_OutlineMask);
+int _SpecularMapUVSet;
+TEXTURE2D(_SpecularMap);
 int _ReflectionMode;
 int _ReflectionBlendMode;
 int _RoughnessMode;
 TEXTURE2D(_Matcap);
 SAMPLER(sampler_Matcap);
 TEXTURE2D(_MetallicGlossMap);
+TEXTURE2D(_ReflectivityMask);
 int _ALMode;
 int _ALBand;
 int _ALGradientOnRed;
 int _ALGradientOnGreen;
 int _ALGradientOnBlue;
 int _ALUVWidth;
-TEXTURE2D(_ALMap);;
-SAMPLER(sampler_ALMap);;
+int _ALMapUVSet;
+TEXTURE2D(_ALMap);
+SAMPLER(sampler_ALMap);
 int _EmissionScaleWithLight;
-TEXTURE2D(_EmissionMap);;
+TEXTURE2D(_EmissionMap);
 
 void ToonOutlineVertex() {
 #if defined(PASS_OUTLINE)
@@ -5284,6 +5350,9 @@ half2 uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 GLOBAL_uv = uv;
 half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv).rgb;
 albedo *= _Color;
+if (_TintByVertexColor) {
+albedo *= d.vertexColor.rgb;
+}
 o.Albedo = albedo;
 o.ShadowSharpness = _ShadowSharpness;
 }
@@ -5317,11 +5386,24 @@ if (_FlipDetailNormalY)
 {
 detailNormalTex.y = 1 - detailNormalTex.y;
 }
+
+half2 detailMaskUV = 0;
+switch (_DetailNormalUVSet) {
+case 0: detailMaskUV = d.uv0; break;
+case 1: detailMaskUV = d.uv1; break;
+case 2: detailMaskUV = d.uv2; break;
+case 3: detailMaskUV = d.uv3; break;
+}
+half detailMask = SAMPLE_TEXTURE2D(_DetailNormalsMask, sampler_MainTex, GLOBAL_uv).r;
+
 half3 detailNormal = UnpackScaleNormal(detailNormalTex, _DetailNormalScale);
 
-o.Normal = BlendNormals(o.Normal, detailNormal);
+o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), detailMask);
 
-half3 properNormal = normalize(mul(o.Normal, d.TBNMatrix));
+half3 properNormal = normalize(o.Normal.x * d.worldSpaceTangent.xyz + o.Normal.y * d.bitangent.xyz + o.Normal.z * d.worldNormal.xyz);
+d.worldSpaceTangent.xyz = cross(d.bitangent.xyz, properNormal);
+d.bitangent.xyz = cross(properNormal, d.worldSpaceTangent.xyz);
+d.TBNMatrix = float3x3(normalize(d.worldSpaceTangent.xyz), d.bitangent, d.worldNormal);
 GLOBAL_pixelNormal = properNormal;
 }
 
@@ -5331,16 +5413,28 @@ o.OutlineLightingMode = _OutlineLightingMode;
 }
 
 void ToonSpecularFragment() {
-o.SpecularIntensity = _SpecularIntensity;
-o.SpecularArea = _SpecularRoughness;
+half2 maskUV = 0;
+switch (_DetailNormalsUVSet) {
+case 0: maskUV = d.uv0; break;
+case 1: maskUV = d.uv1; break;
+case 2: maskUV = d.uv2; break;
+case 3: maskUV = d.uv3; break;
+}
+
+half3 specMap = SAMPLE_TEXTURE2D(_SpecularMap, sampler_MainTex, maskUV);
+o.SpecularIntensity = _SpecularIntensity * specMap.r;
+o.SpecularArea = max(0.01, _SpecularRoughness * specMap.b);
 o.SpecularAnisotropy = _SpecularAnisotropy;
-o.SpecularAlbedoTint = _SpecularAlbedoTint;
+o.SpecularAlbedoTint = _SpecularAlbedoTint * specMap.g;
 o.SpecularSharpness = _SpecularSharpness;
 }
 
 void ToonReflectionFragment() {
 o.EnableReflections = _ReflectionMode != 3;
 o.ReflectionBlendMode = _ReflectionBlendMode;
+
+half mask = SAMPLE_TEXTURE2D(_ReflectivityMask, sampler_MainTex, GLOBAL_uv).r;
+mask *= _ReflectivityLevel;
 
 UNITY_BRANCH
 if (_ReflectionMode == 0) {
@@ -5368,11 +5462,19 @@ spec = SAMPLE_TEXTURE2D_LOD(_Matcap, sampler_Matcap, remapUV, _MatcapBlur * UNIT
 spec.rgb *= lerp(1, o.Albedo, _MatcapTintToDiffuse);
 o.BakedReflection = spec.rgb;
 }
+o.Reflectivity = mask;
 }
 
 void ToonALFragment() {
 if(AudioLinkIsAvailable() && _ALMode != 0) {
-half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, GLOBAL_uv);
+half2 alUV = 0;
+switch (_ALMapUVSet) {
+case 0: alUV = GLOBAL_uv; break;
+case 1: alUV = d.uv1; break;
+case 2: alUV = d.uv2; break;
+case 3: alUV = d.uv3; break;
+}
+half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, alUV);
 if (_ALMode == 2) {
 half audioDataBass = AudioLinkData(ALPASS_AUDIOBASS).x;
 half audioDataMids = AudioLinkData(ALPASS_AUDIOLOWMIDS).x;
@@ -5402,7 +5504,7 @@ o.Emission +=  alMask.rgb * _ALEmissionColor.rgb * sampledAL;
 void ToonEmissionFragment() {
 half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_MainTex, GLOBAL_uv).rgb;
 emission *= lerp(emission, emission * o.Albedo, _EmissionTintToDiffuse) * _EmissionColor;
-o.Emission = emission;
+o.Emission += emission;
 o.EmissionScaleWithLight = _EmissionScaleWithLight;
 o.EmissionLightThreshold = _EmissionScaleWithLightSensitivity;
 }
@@ -5446,7 +5548,7 @@ o.RimShadow = lerp(1, (_ShadowRimTint * lerp(1, o.Albedo.rgbb, _ShadowRimAlbedoT
 void XSToonLighting()
 {
 #if !defined(UNITY_PASS_SHADOWCASTER)
-half reflectance = 0.5;
+half reflectance = o.Reflectivity;
 half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 half3 indirectDiffuse = 1;
 half3 indirectSpecular = 0;
@@ -5532,7 +5634,7 @@ indirectSpecular = calcIndirectSpecular(lightAttenuation, d, o, perceptualRoughn
 directSpecular = calcDirectSpecular(d, o, lightNoL, NoH, NoV, lightLoH, lightColor, lightHalfVector, o.SpecularAnisotropy) * lightNoL * occlusion * lightAttenuation;
 
 FinalColor = diffuse * o.RimShadow;
-FinalColor = calcReflectionBlending(o, 1, FinalColor, indirectSpecular);
+FinalColor = calcReflectionBlending(o, reflectance, FinalColor, indirectSpecular);
 FinalColor += max(directSpecular.xyzz, rimLight);
 FinalColor.rgb += calcEmission(o, lightAvg);
 
@@ -6944,6 +7046,7 @@ half SpecularArea;
 half SpecularAlbedoTint;
 half SpecularAnisotropy;
 half SpecularSharpness;
+half Reflectivity;
 half3 BakedReflection;
 int ReflectionBlendMode;
 int EnableReflections;
@@ -7989,6 +8092,7 @@ half _Metallic;
 half _ReflectionAnisotropy;
 half _MatcapBlur;
 half _MatcapTintToDiffuse;
+half _ReflectivityLevel;
 half _EmissionTintToDiffuse;
 half _EmissionScaleWithLightSensitivity;
 half _RimIntensity;
@@ -8018,35 +8122,43 @@ half4 _EmissionColor;
 half4 _RimTint;
 half4 _ShadowRimTint;
 float4 _MainTex_ST;
+int _TintByVertexColor;
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 int _OcclusionMode;
 TEXTURE2D(_OcclusionMap);
 int _FlipBumpY;
 int _DetailNormalsUVSet;
+int _DetailNormalUVSet;
 TEXTURE2D(_BumpMap);
 SAMPLER(sampler_BumpMap);
 TEXTURE2D(_DetailNormalMap);
 SAMPLER(sampler_DetailNormalMap);
+TEXTURE2D(_DetailNormalsMask);
+SAMPLER(sampler_DetailNormalsMask);
 int _OutlineLightingMode;
 TEXTURE2D(_OutlineMask);
 SAMPLER(sampler_OutlineMask);
+int _SpecularMapUVSet;
+TEXTURE2D(_SpecularMap);
 int _ReflectionMode;
 int _ReflectionBlendMode;
 int _RoughnessMode;
 TEXTURE2D(_Matcap);
 SAMPLER(sampler_Matcap);
 TEXTURE2D(_MetallicGlossMap);
+TEXTURE2D(_ReflectivityMask);
 int _ALMode;
 int _ALBand;
 int _ALGradientOnRed;
 int _ALGradientOnGreen;
 int _ALGradientOnBlue;
 int _ALUVWidth;
-TEXTURE2D(_ALMap);;
-SAMPLER(sampler_ALMap);;
+int _ALMapUVSet;
+TEXTURE2D(_ALMap);
+SAMPLER(sampler_ALMap);
 int _EmissionScaleWithLight;
-TEXTURE2D(_EmissionMap);;
+TEXTURE2D(_EmissionMap);
 
 void ToonOutlineVertex() {
 #if defined(PASS_OUTLINE)
@@ -8062,6 +8174,9 @@ half2 uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 GLOBAL_uv = uv;
 half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv).rgb;
 albedo *= _Color;
+if (_TintByVertexColor) {
+albedo *= d.vertexColor.rgb;
+}
 o.Albedo = albedo;
 o.ShadowSharpness = _ShadowSharpness;
 }
@@ -8095,11 +8210,24 @@ if (_FlipDetailNormalY)
 {
 detailNormalTex.y = 1 - detailNormalTex.y;
 }
+
+half2 detailMaskUV = 0;
+switch (_DetailNormalUVSet) {
+case 0: detailMaskUV = d.uv0; break;
+case 1: detailMaskUV = d.uv1; break;
+case 2: detailMaskUV = d.uv2; break;
+case 3: detailMaskUV = d.uv3; break;
+}
+half detailMask = SAMPLE_TEXTURE2D(_DetailNormalsMask, sampler_MainTex, GLOBAL_uv).r;
+
 half3 detailNormal = UnpackScaleNormal(detailNormalTex, _DetailNormalScale);
 
-o.Normal = BlendNormals(o.Normal, detailNormal);
+o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), detailMask);
 
-half3 properNormal = normalize(mul(o.Normal, d.TBNMatrix));
+half3 properNormal = normalize(o.Normal.x * d.worldSpaceTangent.xyz + o.Normal.y * d.bitangent.xyz + o.Normal.z * d.worldNormal.xyz);
+d.worldSpaceTangent.xyz = cross(d.bitangent.xyz, properNormal);
+d.bitangent.xyz = cross(properNormal, d.worldSpaceTangent.xyz);
+d.TBNMatrix = float3x3(normalize(d.worldSpaceTangent.xyz), d.bitangent, d.worldNormal);
 GLOBAL_pixelNormal = properNormal;
 }
 
@@ -8109,16 +8237,28 @@ o.OutlineLightingMode = _OutlineLightingMode;
 }
 
 void ToonSpecularFragment() {
-o.SpecularIntensity = _SpecularIntensity;
-o.SpecularArea = _SpecularRoughness;
+half2 maskUV = 0;
+switch (_DetailNormalsUVSet) {
+case 0: maskUV = d.uv0; break;
+case 1: maskUV = d.uv1; break;
+case 2: maskUV = d.uv2; break;
+case 3: maskUV = d.uv3; break;
+}
+
+half3 specMap = SAMPLE_TEXTURE2D(_SpecularMap, sampler_MainTex, maskUV);
+o.SpecularIntensity = _SpecularIntensity * specMap.r;
+o.SpecularArea = max(0.01, _SpecularRoughness * specMap.b);
 o.SpecularAnisotropy = _SpecularAnisotropy;
-o.SpecularAlbedoTint = _SpecularAlbedoTint;
+o.SpecularAlbedoTint = _SpecularAlbedoTint * specMap.g;
 o.SpecularSharpness = _SpecularSharpness;
 }
 
 void ToonReflectionFragment() {
 o.EnableReflections = _ReflectionMode != 3;
 o.ReflectionBlendMode = _ReflectionBlendMode;
+
+half mask = SAMPLE_TEXTURE2D(_ReflectivityMask, sampler_MainTex, GLOBAL_uv).r;
+mask *= _ReflectivityLevel;
 
 UNITY_BRANCH
 if (_ReflectionMode == 0) {
@@ -8146,11 +8286,19 @@ spec = SAMPLE_TEXTURE2D_LOD(_Matcap, sampler_Matcap, remapUV, _MatcapBlur * UNIT
 spec.rgb *= lerp(1, o.Albedo, _MatcapTintToDiffuse);
 o.BakedReflection = spec.rgb;
 }
+o.Reflectivity = mask;
 }
 
 void ToonALFragment() {
 if(AudioLinkIsAvailable() && _ALMode != 0) {
-half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, GLOBAL_uv);
+half2 alUV = 0;
+switch (_ALMapUVSet) {
+case 0: alUV = GLOBAL_uv; break;
+case 1: alUV = d.uv1; break;
+case 2: alUV = d.uv2; break;
+case 3: alUV = d.uv3; break;
+}
+half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, alUV);
 if (_ALMode == 2) {
 half audioDataBass = AudioLinkData(ALPASS_AUDIOBASS).x;
 half audioDataMids = AudioLinkData(ALPASS_AUDIOLOWMIDS).x;
@@ -8180,7 +8328,7 @@ o.Emission +=  alMask.rgb * _ALEmissionColor.rgb * sampledAL;
 void ToonEmissionFragment() {
 half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_MainTex, GLOBAL_uv).rgb;
 emission *= lerp(emission, emission * o.Albedo, _EmissionTintToDiffuse) * _EmissionColor;
-o.Emission = emission;
+o.Emission += emission;
 o.EmissionScaleWithLight = _EmissionScaleWithLight;
 o.EmissionLightThreshold = _EmissionScaleWithLightSensitivity;
 }
@@ -8224,7 +8372,7 @@ o.RimShadow = lerp(1, (_ShadowRimTint * lerp(1, o.Albedo.rgbb, _ShadowRimAlbedoT
 void XSToonLighting()
 {
 #if !defined(UNITY_PASS_SHADOWCASTER)
-half reflectance = 0.5;
+half reflectance = o.Reflectivity;
 half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 half3 indirectDiffuse = 1;
 half3 indirectSpecular = 0;
@@ -8310,7 +8458,7 @@ indirectSpecular = calcIndirectSpecular(lightAttenuation, d, o, perceptualRoughn
 directSpecular = calcDirectSpecular(d, o, lightNoL, NoH, NoV, lightLoH, lightColor, lightHalfVector, o.SpecularAnisotropy) * lightNoL * occlusion * lightAttenuation;
 
 FinalColor = diffuse * o.RimShadow;
-FinalColor = calcReflectionBlending(o, 1, FinalColor, indirectSpecular);
+FinalColor = calcReflectionBlending(o, reflectance, FinalColor, indirectSpecular);
 FinalColor += max(directSpecular.xyzz, rimLight);
 FinalColor.rgb += calcEmission(o, lightAvg);
 
@@ -9718,6 +9866,7 @@ half SpecularArea;
 half SpecularAlbedoTint;
 half SpecularAnisotropy;
 half SpecularSharpness;
+half Reflectivity;
 half3 BakedReflection;
 int ReflectionBlendMode;
 int EnableReflections;
@@ -10763,6 +10912,7 @@ half _Metallic;
 half _ReflectionAnisotropy;
 half _MatcapBlur;
 half _MatcapTintToDiffuse;
+half _ReflectivityLevel;
 half _EmissionTintToDiffuse;
 half _EmissionScaleWithLightSensitivity;
 half _RimIntensity;
@@ -10792,35 +10942,43 @@ half4 _EmissionColor;
 half4 _RimTint;
 half4 _ShadowRimTint;
 float4 _MainTex_ST;
+int _TintByVertexColor;
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 int _OcclusionMode;
 TEXTURE2D(_OcclusionMap);
 int _FlipBumpY;
 int _DetailNormalsUVSet;
+int _DetailNormalUVSet;
 TEXTURE2D(_BumpMap);
 SAMPLER(sampler_BumpMap);
 TEXTURE2D(_DetailNormalMap);
 SAMPLER(sampler_DetailNormalMap);
+TEXTURE2D(_DetailNormalsMask);
+SAMPLER(sampler_DetailNormalsMask);
 int _OutlineLightingMode;
 TEXTURE2D(_OutlineMask);
 SAMPLER(sampler_OutlineMask);
+int _SpecularMapUVSet;
+TEXTURE2D(_SpecularMap);
 int _ReflectionMode;
 int _ReflectionBlendMode;
 int _RoughnessMode;
 TEXTURE2D(_Matcap);
 SAMPLER(sampler_Matcap);
 TEXTURE2D(_MetallicGlossMap);
+TEXTURE2D(_ReflectivityMask);
 int _ALMode;
 int _ALBand;
 int _ALGradientOnRed;
 int _ALGradientOnGreen;
 int _ALGradientOnBlue;
 int _ALUVWidth;
-TEXTURE2D(_ALMap);;
-SAMPLER(sampler_ALMap);;
+int _ALMapUVSet;
+TEXTURE2D(_ALMap);
+SAMPLER(sampler_ALMap);
 int _EmissionScaleWithLight;
-TEXTURE2D(_EmissionMap);;
+TEXTURE2D(_EmissionMap);
 
 void ToonOutlineVertex() {
 #if defined(PASS_OUTLINE)
@@ -10836,6 +10994,9 @@ half2 uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 GLOBAL_uv = uv;
 half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv).rgb;
 albedo *= _Color;
+if (_TintByVertexColor) {
+albedo *= d.vertexColor.rgb;
+}
 o.Albedo = albedo;
 o.ShadowSharpness = _ShadowSharpness;
 }
@@ -10869,11 +11030,24 @@ if (_FlipDetailNormalY)
 {
 detailNormalTex.y = 1 - detailNormalTex.y;
 }
+
+half2 detailMaskUV = 0;
+switch (_DetailNormalUVSet) {
+case 0: detailMaskUV = d.uv0; break;
+case 1: detailMaskUV = d.uv1; break;
+case 2: detailMaskUV = d.uv2; break;
+case 3: detailMaskUV = d.uv3; break;
+}
+half detailMask = SAMPLE_TEXTURE2D(_DetailNormalsMask, sampler_MainTex, GLOBAL_uv).r;
+
 half3 detailNormal = UnpackScaleNormal(detailNormalTex, _DetailNormalScale);
 
-o.Normal = BlendNormals(o.Normal, detailNormal);
+o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), detailMask);
 
-half3 properNormal = normalize(mul(o.Normal, d.TBNMatrix));
+half3 properNormal = normalize(o.Normal.x * d.worldSpaceTangent.xyz + o.Normal.y * d.bitangent.xyz + o.Normal.z * d.worldNormal.xyz);
+d.worldSpaceTangent.xyz = cross(d.bitangent.xyz, properNormal);
+d.bitangent.xyz = cross(properNormal, d.worldSpaceTangent.xyz);
+d.TBNMatrix = float3x3(normalize(d.worldSpaceTangent.xyz), d.bitangent, d.worldNormal);
 GLOBAL_pixelNormal = properNormal;
 }
 
@@ -10883,16 +11057,28 @@ o.OutlineLightingMode = _OutlineLightingMode;
 }
 
 void ToonSpecularFragment() {
-o.SpecularIntensity = _SpecularIntensity;
-o.SpecularArea = _SpecularRoughness;
+half2 maskUV = 0;
+switch (_DetailNormalsUVSet) {
+case 0: maskUV = d.uv0; break;
+case 1: maskUV = d.uv1; break;
+case 2: maskUV = d.uv2; break;
+case 3: maskUV = d.uv3; break;
+}
+
+half3 specMap = SAMPLE_TEXTURE2D(_SpecularMap, sampler_MainTex, maskUV);
+o.SpecularIntensity = _SpecularIntensity * specMap.r;
+o.SpecularArea = max(0.01, _SpecularRoughness * specMap.b);
 o.SpecularAnisotropy = _SpecularAnisotropy;
-o.SpecularAlbedoTint = _SpecularAlbedoTint;
+o.SpecularAlbedoTint = _SpecularAlbedoTint * specMap.g;
 o.SpecularSharpness = _SpecularSharpness;
 }
 
 void ToonReflectionFragment() {
 o.EnableReflections = _ReflectionMode != 3;
 o.ReflectionBlendMode = _ReflectionBlendMode;
+
+half mask = SAMPLE_TEXTURE2D(_ReflectivityMask, sampler_MainTex, GLOBAL_uv).r;
+mask *= _ReflectivityLevel;
 
 UNITY_BRANCH
 if (_ReflectionMode == 0) {
@@ -10920,11 +11106,19 @@ spec = SAMPLE_TEXTURE2D_LOD(_Matcap, sampler_Matcap, remapUV, _MatcapBlur * UNIT
 spec.rgb *= lerp(1, o.Albedo, _MatcapTintToDiffuse);
 o.BakedReflection = spec.rgb;
 }
+o.Reflectivity = mask;
 }
 
 void ToonALFragment() {
 if(AudioLinkIsAvailable() && _ALMode != 0) {
-half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, GLOBAL_uv);
+half2 alUV = 0;
+switch (_ALMapUVSet) {
+case 0: alUV = GLOBAL_uv; break;
+case 1: alUV = d.uv1; break;
+case 2: alUV = d.uv2; break;
+case 3: alUV = d.uv3; break;
+}
+half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, alUV);
 if (_ALMode == 2) {
 half audioDataBass = AudioLinkData(ALPASS_AUDIOBASS).x;
 half audioDataMids = AudioLinkData(ALPASS_AUDIOLOWMIDS).x;
@@ -10954,7 +11148,7 @@ o.Emission +=  alMask.rgb * _ALEmissionColor.rgb * sampledAL;
 void ToonEmissionFragment() {
 half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_MainTex, GLOBAL_uv).rgb;
 emission *= lerp(emission, emission * o.Albedo, _EmissionTintToDiffuse) * _EmissionColor;
-o.Emission = emission;
+o.Emission += emission;
 o.EmissionScaleWithLight = _EmissionScaleWithLight;
 o.EmissionLightThreshold = _EmissionScaleWithLightSensitivity;
 }
@@ -10998,7 +11192,7 @@ o.RimShadow = lerp(1, (_ShadowRimTint * lerp(1, o.Albedo.rgbb, _ShadowRimAlbedoT
 void XSToonLighting()
 {
 #if !defined(UNITY_PASS_SHADOWCASTER)
-half reflectance = 0.5;
+half reflectance = o.Reflectivity;
 half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
 half3 indirectDiffuse = 1;
 half3 indirectSpecular = 0;
@@ -11084,7 +11278,7 @@ indirectSpecular = calcIndirectSpecular(lightAttenuation, d, o, perceptualRoughn
 directSpecular = calcDirectSpecular(d, o, lightNoL, NoH, NoV, lightLoH, lightColor, lightHalfVector, o.SpecularAnisotropy) * lightNoL * occlusion * lightAttenuation;
 
 FinalColor = diffuse * o.RimShadow;
-FinalColor = calcReflectionBlending(o, 1, FinalColor, indirectSpecular);
+FinalColor = calcReflectionBlending(o, reflectance, FinalColor, indirectSpecular);
 FinalColor += max(directSpecular.xyzz, rimLight);
 FinalColor.rgb += calcEmission(o, lightAvg);
 
