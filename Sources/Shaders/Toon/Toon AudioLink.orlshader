@@ -14,7 +14,8 @@ CustomEditor "Needle.MarkdownShaderGUI"
 #S#Properties
 [ToggleUI]UI_AudioLink("# AudioLink Settings", Int) = 0
 [Enum(None,0,Single Channel,1,Packed Map,2,UV Based,3)]_ALMode("Audio Link Mode", Int) = 0
-[NoScaleOffset]_ALMap("Audio Link Map & [_ALMode != 0]", 2D) = "white" {}
+[NoScaleOffset]_ALMap("Audio Link Map && [_ALMode != 0]", 2D) = "white" {}
+[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ALMapUVSet("UV Set [_ALMode != 0]", Int) = 0
 [HDR]_ALEmissionColor("Color [_ALMode != 0 && _ALMode != 2]", Color) = (0,0,0,0)
 [Enum(Bass,0,Low Mids,1,High Mids,3,Treble,4)]_ALBand("Frequency Band [_ALMode == 1]", Int) = 0
 [ToggleUI]UI_ALPackedRedHeader("## Red Channel [_ALMode == 2]", Int) = 0
@@ -42,6 +43,7 @@ half4 _ALPackedRedColor;
 half4 _ALPackedGreenColor;
 half4 _ALPackedBlueColor;
 int _ALUVWidth;
+int _ALMapUVSet;
 
 TEXTURE2D(_ALMap);
 SAMPLER(sampler_ALMap);
@@ -49,7 +51,14 @@ SAMPLER(sampler_ALMap);
 #T#FragmentFunction
 void ToonALFragment() {
     if(AudioLinkIsAvailable() && _ALMode != 0) {
-        half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, GLOBAL_uv);
+        half2 alUV = 0;
+        switch (_ALMapUVSet) {
+            case 0: alUV = GLOBAL_uv; break;
+            case 1: alUV = d.uv1; break;
+            case 2: alUV = d.uv2; break;
+            case 3: alUV = d.uv3; break;
+        }
+        half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, alUV);
         if (_ALMode == 2) {
             half audioDataBass = AudioLinkData(ALPASS_AUDIOBASS).x;
             half audioDataMids = AudioLinkData(ALPASS_AUDIOLOWMIDS).x;
