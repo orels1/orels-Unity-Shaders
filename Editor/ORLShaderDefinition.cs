@@ -34,6 +34,8 @@ namespace ORL
     public List<ShaderVariable> ShadowVariables;
     public string ShadowFunction;
     public int ShadowQueue;
+    public List<ShaderVariable> TessFactorsVariables;
+    public string TessFactorsFunction;
 
     // this mimics TemplateAssetCollection, as we essentially build on top of it
     public List<TemplateAsset> Templates;
@@ -68,6 +70,8 @@ namespace ORL
       ShadowVariables = new List<ShaderVariable>();
       ShadowFunction = "";
       ShadowQueue = 0;
+      TessFactorsVariables = new List<ShaderVariable>();
+      TessFactorsFunction = "";
       Templates = new List<TemplateAsset>();
     }
 
@@ -192,6 +196,7 @@ namespace ORL
     private bool fragVarsOpen = false;
     private bool colorVarsOpen = false;
     private bool shadowVarsOpen = false;
+    private bool tessFactorsVarsOpen = false;
     public override void OnInspectorGUI()
     {
       var t = target as ORLShaderDefinition;
@@ -282,6 +287,22 @@ namespace ORL
       if (shadowVarsOpen)
       {
         foreach (var prop in t.ShadowVariables)
+        {
+          using (var h = new EditorGUILayout.HorizontalScope(box))
+          {
+            EditorGUILayout.LabelField(prop.Name, prop.Type);
+          }
+        }
+      }
+      
+      EditorGUILayout.Space();
+      EditorGUILayout.LabelField("Tessellation Stage", EditorStyles.largeLabel);
+      EditorGUILayout.TextField("Tessellation Factors Function:", t.TessFactorsFunction);
+
+      tessFactorsVarsOpen = EditorGUILayout.Foldout(tessFactorsVarsOpen, "Tessellation Factors Function Variables");
+      if (tessFactorsVarsOpen)
+      {
+        foreach (var prop in t.TessFactorsVariables)
         {
           using (var h = new EditorGUILayout.HorizontalScope(box))
           {

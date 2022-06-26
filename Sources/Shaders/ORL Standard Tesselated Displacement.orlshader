@@ -1,0 +1,15 @@
+#S#Settings
+Name "orels1/Standard Tesselated Displacement"
+Author "orels1"
+Version "1.0.0"
+Template "ORL PBR Tessellated Template.stemplate"
+CustomEditor "Needle.MarkdownShaderGUI"
+
+#S#Includes
+"ORL Utility Functions.asset"
+"self"
+"ORL Standard.orlshader"
+"Parallax.orlshader"
+"Details.orlshader"
+"Tessellation.orlshader"
+"ORL PBR Tessellated Module.asset"

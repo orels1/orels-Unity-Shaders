@@ -1,0 +1,81 @@
+#S#Settings
+Name "Tessellation"
+Author "orels1"
+Version "1.0.0"
+
+#S#Properties
+[ToggleUI]UI_TessellationHeader("# Tessellation", Int) = 0
+[ToggleUI]UI_TessSHNote("!NOTE Bakery SH does not show up correctly on tessellated meshes at this point [BAKERY_SH]", Int) = 0
+[KeywordEnum(DistanceBased, EdgeLength)]TESS_MODE("Tessellation Mode", Int) = 0
+[IntRange]_TessFactor("Tessellation Factor [TESS_MODE_DISTANCEBASED]", Range(3, 64)) = 3
+[ToggleUI]UI_TessFactorNote("!NOTE It is recommended to keep this around or below 16 for performance", Int) = 0
+[ToggleUI]UI_TessNote("!NOTE Some AMD GPUs can have issues with tessellation, be weary when using this", Int) = 0
+_TessMinDist("Start Distance [TESS_MODE_DISTANCEBASED]", Float) = 3
+_TessMaxDist("End Distance [TESS_MODE_DISTANCEBASED]", Float) = 20
+_TessEdgeLength("Max Edge Length [TESS_MODE_EDGELENGTH]", Float) = 80
+_TessMaxDisplacement("Max Displacement [TESS_MODE_EDGELENGTH]", Float) = 0.1
+[ToggleUI]UI_MaxDisplacementNote("!NOTE This defines how much you will be displacing the mesh to help with optimisations", Int) = 0
+[Toggle(PHONG)]_TessPhong("Enable Phong", Int) = 0
+[ToggleUI]UI_PhongNote("!NOTE Phong smoothes the mesh along its normals", Int) = 0
+[ToggleUI]UI_VertexHeightHeader("# Displacement", Int) = 0
+_VertexHeight("Displacement Map", 2D) = "gray" {}
+_VertexHeightAmount("Displacement Amount", Range(0, 3)) = 0
+_VertexHeightOffset("Displacement Offset", Range(-1, 1)) = 0.5
+
+#T#ShaderDefines
+#define TESS_FACTORS_FUNC_DEFINED
+
+#T#ShaderFeatures
+#pragma shader_feature_local _ TESS_MODE_DISTANCEBASED TESS_MODE_EDGELENGTH
+#pragma shader_feature_local PHONG
+
+#S#VertexVariables
+half _VertexHeightAmount;
+half _VertexHeightOffset;
+half4 _MainTex_ST;
+
+TEXTURE2D(_VertexHeight);
+SAMPLER(sampler_VertexHeight);
+
+#T#VertexFunction
+void VHVertex() {
+  half2 uv = vD.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+  half height = (SAMPLE_TEXTURE2D_LOD(_VertexHeight, sampler_VertexHeight, uv, 0).r * 2 - 1);
+  half3 mainOffset = vD.vertex.xyz + vD.normal * (height + _VertexHeightOffset) * _VertexHeightAmount;
+  vD.vertex.xyz = mainOffset;
+}
+
+#S#TessFactorsVariables
+half _TessFactor;
+half _TessMinDist;
+half _TessMaxDist;
+half _TessEdgeLength;
+half _TessMaxDisplacement;
+
+#T#TessFactorsFunction
+float4 GetTessFactors(InputPatch<TessVertex, 3> patch)
+{
+  // This MUST be called GetTessFactors, tesselation is an edge case
+  #if defined(TESS_MODE_DISTANCEBASED)
+    float4 tessFactors = UnityDistanceBasedTess(
+      patch[0].vertex,
+      patch[1].vertex,
+      patch[2].vertex,
+      _TessMinDist,
+      _TessMaxDist,
+      _TessFactor
+    );
+    return tessFactors;
+  #elif defined(TESS_MODE_EDGELENGTH)
+    float4 tessFactors = UnityEdgeLengthBasedTessCull(
+      patch[0].vertex,
+      patch[1].vertex,
+      patch[2].vertex,
+      _TessEdgeLength,
+      _TessMaxDisplacement
+    );
+    return tessFactors;
+  #endif
+
+  return 1..xxxx;
+}

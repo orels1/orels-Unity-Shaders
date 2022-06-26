@@ -1,0 +1,304 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94ed51d9b58df46b1a6bcd5e12ab3e38, type: 3}
+  m_Name: ORL PBR Tessellated Module
+  m_EditorClassIdentifier: 
+  Id: ORL.PBRTess
+  Name: PBR Tessellated Module
+  Version: 0.1
+  Author: orels1
+  Description: This is the base PBR module, most of the ORL Standard family shaders
+    will use this as a base
+  EnableProperties: []
+  Properties:
+  - Name: UI_AdvancedHeader
+    DisplayName: '# Advanced Features'
+    Type: Float
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 0}
+    Attributes:
+    - ToggleUI
+  - Name: _CullMode
+    DisplayName: Culling Mode
+    Type: Int
+    DefaultValue: 2
+    DefaultTextureAsset: {fileID: 2800000, guid: ff0962e622d174a258105d546cd2a578,
+      type: 3}
+    Attributes:
+    - Enum(UnityEngine.Rendering.CullMode)
+  - Name: _ZWrite
+    DisplayName: Depth Write
+    Type: Int
+    DefaultValue: 1
+    DefaultTextureAsset: {fileID: 2800000, guid: ff0962e622d174a258105d546cd2a578,
+      type: 3}
+    Attributes:
+    - Enum(Off, 0, On, 1)
+  - Name: _ZTest
+    DisplayName: Depth Test
+    Type: Int
+    DefaultValue: 4
+    DefaultTextureAsset: {fileID: 2800000, guid: ff0962e622d174a258105d546cd2a578,
+      type: 3}
+    Attributes:
+    - Enum(UnityEngine.Rendering.CompareFunction)
+  - Name: UI_GSAAHeader
+    DisplayName: '## GSAA'
+    Type: Float
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 0}
+    Attributes:
+    - ToggleUI
+  - Name: _EnableGSAA
+    DisplayName: GSAA Enabled
+    Type: Int
+    DefaultValue: 1
+    DefaultTextureAsset: {fileID: 0}
+    Attributes:
+    - Toggle(GSAA)
+  - Name: UI_GSAANote
+    DisplayName: '!NOTE GSAA dramatically reduces specular aliasing'
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 0}
+    Attributes:
+    - ToggleUI
+  - Name: _GSAAVariance
+    DisplayName: '- GSAA Variance [GSAA]'
+    Type: Range(0, 1)
+    DefaultValue: 0.05
+    DefaultTextureAsset: {fileID: 0}
+    Attributes: []
+  - Name: _GSAAThreshold
+    DisplayName: '- GSAA Threshold [GSAA]'
+    Type: Range(0, 1)
+    DefaultValue: 0.1
+    DefaultTextureAsset: {fileID: 0}
+    Attributes: []
+  - Name: _ForceBoxPorject
+    DisplayName: Force Box Projection
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 0}
+    Attributes:
+    - Toggle(FORCE_BOX_PROJECTION)
+  - Name: UI_ForceBoxProjectionNote
+    DisplayName: '!NOTE Forces the shader to use box projection for reflection probes
+      even if its disabled, e.g. for Quest'
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 0}
+    Attributes:
+    - ToggleUI
+  - Name: UI_LightmappingHeader
+    DisplayName: '# Lightmapping'
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 0}
+    Attributes:
+    - ToggleUI
+  - Name: _SpecOcclusion
+    DisplayName: Specular Occlusion
+    Type: Range(0, 1)
+    DefaultValue: 1
+    DefaultTextureAsset: {fileID: 0}
+    Attributes: []
+  - Name: _SpecularRoughnessMod
+    DisplayName: Specular Roughness Mod
+    Type: Range(0, 1)
+    DefaultValue: 1
+    DefaultTextureAsset: {fileID: 0}
+    Attributes: []
+  - Name: _Bicubic
+    DisplayName: Bicubic Sampling
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 0}
+    Attributes:
+    - Toggle(BICUBIC_LIGHTMAP)
+  - Name: _BakedSpecular
+    DisplayName: Baked Specular
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 0}
+    Attributes:
+    - Toggle(BAKED_SPECULAR)
+  - Name: UI_BakeryHeader
+    DisplayName: '## Bakery Features'
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a,
+      type: 3}
+    Attributes:
+    - ToggleUI
+  - Name: _BakeryEnabled
+    DisplayName: Enable Bakery Features
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a,
+      type: 3}
+    Attributes:
+    - Toggle(BAKERY_ENABLED)
+  - Name: BAKERY
+    DisplayName: Bakery Mode
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a,
+      type: 3}
+    Attributes:
+    - KeywordEnum(None, SH, RNM)
+  - Name: _BakerySHNonLinear
+    DisplayName: Bakery Non-Linear SH [BAKERY_ENABLED]
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a,
+      type: 3}
+    Attributes:
+    - Toggle(BAKERY_SHNONLINEAR)
+  - Name: UI_InternalsHeader
+    DisplayName: '# Internal'
+    Type: Int
+    DefaultValue: 0
+    DefaultTextureAsset: {fileID: 2800000, guid: ff0962e622d174a258105d546cd2a578,
+      type: 3}
+    Attributes:
+    - ToggleUI
+  - Name: _DFG
+    DisplayName: DFG LUT &
+    Type: 2D
+    DefaultValue: '"black" {}'
+    DefaultTextureAsset: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a,
+      type: 3}
+    Attributes:
+    - NonModifiableTextureData
+  - Name: _RNM0
+    DisplayName: RNM0 &
+    Type: 2D
+    DefaultValue: '"black" {}'
+    DefaultTextureAsset: {fileID: 0}
+    Attributes: []
+  - Name: _RNM1
+    DisplayName: RNM1 &
+    Type: 2D
+    DefaultValue: '"black" {}'
+    DefaultTextureAsset: {fileID: 0}
+    Attributes: []
+  - Name: _RNM2
+    DisplayName: RNM2 &
+    Type: 2D
+    DefaultValue: '"black" {}'
+    DefaultTextureAsset: {fileID: 0}
+    Attributes: []
+  ModuleDependencies: []
+  IncompatibleWith: []
+  Templates:
+  - Template: {fileID: -4916903605919031817, guid: 46224ac53ff644b4ab396d02e3155fe1,
+      type: 3}
+    Keywords:
+    - VERTEX_BASE
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -3735074904893084285, guid: 46224ac53ff644b4ab396d02e3155fe1,
+      type: 3}
+    Keywords:
+    - SHADER_FEATURES
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -796163221951580872, guid: 4b96e1386ff024c37a39f27e6ad667f6,
+      type: 3}
+    Keywords:
+    - MESH_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: 3730235994735770938, guid: 4b96e1386ff024c37a39f27e6ad667f6,
+      type: 3}
+    Keywords:
+    - SURFACE_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -544282384758852595, guid: 81007e1598f664b7b91bb9baf4b1bcde,
+      type: 3}
+    Keywords:
+    - SAMPLING_LIB
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -544282384758852595, guid: d9d90fad235e24b51ab1c2cdb3db5cc0,
+      type: 3}
+    Keywords:
+    - LIBRARY_FUNCTIONS
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: 61160338002701077, guid: 4b96e1386ff024c37a39f27e6ad667f6,
+      type: 3}
+    Keywords:
+    - VERTEX_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -7537978936044009380, guid: 4b96e1386ff024c37a39f27e6ad667f6,
+      type: 3}
+    Keywords:
+    - FRAGMENT_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -9184432099131695101, guid: 46224ac53ff644b4ab396d02e3155fe1,
+      type: 3}
+    Keywords:
+    - SHADER_DEFINES
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -544282384758852595, guid: 89f58f23addd2af488e887784899656d,
+      type: 3}
+    Keywords:
+    - LIBRARY_FUNCTIONS
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -6567082244330987414, guid: 4b96e1386ff024c37a39f27e6ad667f6,
+      type: 3}
+    Keywords:
+    - TESS_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 0
+  - Template: {fileID: -4585668461877863559, guid: 4b96e1386ff024c37a39f27e6ad667f6,
+      type: 3}
+    Keywords:
+    - TESS_DATA_STRUCT
+    NeedsVariant: 0
+    Queue: 0
+  Functions:
+  - Name: ORLLighting
+    AppendAfter: '#K#LIGHTING_FUNCTION'
+    Queue: 100
+    ShaderFunctionCode: {fileID: -5679828348219544688, guid: 46224ac53ff644b4ab396d02e3155fe1,
+      type: 3}
+    UsedVariables:
+    - Name: _SpecOcclusion
+      Type: 0
+      CustomType: 
+    - Name: _SpecularRoughnessMod
+      Type: 0
+      CustomType: 
+    - Name: TEXTURE2D(_DFG)
+      Type: 999
+      CustomType: 
+    - Name: SAMPLER(sampler_DFG)
+      Type: 999
+      CustomType: 
+    - Name: _GSAAVariance
+      Type: 4
+      CustomType: 
+    - Name: _GSAAThreshold
+      Type: 4
+      CustomType: 
+    VariableKeywords: []
+    CodeKeywords:
+    - FRAGMENT_CODE
+  AdditionalSerializedData: 

@@ -149,6 +149,7 @@ namespace ORL
                 case "#S#VertexVariables": type = "vertVars"; break;
                 case "#S#ColorVariables": type = "colorVars"; break;
                 case "#S#ShadowVariables": type = "shadowVars"; break;
+                case "#S#TessFactorsVariables": type = "tessFactorsVars"; break;
               }
             }
 
@@ -201,6 +202,7 @@ namespace ORL
       SaveOptionalTemplate(ref module, ref subAsset, "ShaderTags", "SHADER_TAGS");
       SaveOptionalTemplate(ref module, ref subAsset, "PassTags", "PASS_TAGS");
       SaveOptionalTemplate(ref module, ref subAsset, "PassModifiers", "PASS_MODS");
+      SaveOptionalTemplate(ref module, ref subAsset, "TessFactorsFunction", "TESS_FACTORS_FUNCTION");
 
       SaveModuleFunction(
         ref module, ref subAsset, 
@@ -236,6 +238,15 @@ namespace ORL
         "Shadow",
         ref subAsset.ShadowVariables,
         subAsset.ShadowFunction, subAsset.ShadowQueue
+      );
+      
+      SaveModuleFunction(
+        ref module, ref subAsset, 
+        "NOT_INCLUDED", // we inject the template directly instead of using function chaining
+        "NOT_INCLUDED",
+        "TessFactors",
+        ref subAsset.TessFactorsVariables,
+        subAsset.TessFactorsFunction, 0
       );
 
       var shader = ScriptableObject.CreateInstance<ModularShader>();
@@ -348,6 +359,9 @@ namespace ORL
           break;
         case "shadowVars":
           SaveShadowVars(asset, builder);
+          break;
+        case "tessFactorsVars":
+          SaveTessFactorsVars(asset, builder);
           break;
       }
     }
@@ -517,6 +531,11 @@ namespace ORL
     {
       SaveVarsForStage(ref asset.ShadowVariables, builder);
     }
+    
+    private static void SaveTessFactorsVars(ORLShaderDefinition asset, StringBuilder builder)
+    {
+      SaveVarsForStage(ref asset.TessFactorsVariables, builder);
+    }
 
     private static void SaveTemplateAsset(AssetImportContext ctx, ORLShaderDefinition asset, StringBuilder builder,
       string name)
@@ -528,7 +547,7 @@ namespace ORL
       var lines = templateAsset.Template.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
       if (lines.Length > 0)
       {
-        var nameMatch = Regex.Match(lines[0], "(?<=\\s)([\\w\\d]+)(?=\\(\\))");
+        var nameMatch = Regex.Match(lines[0], "(?<=\\s)([\\w\\d]+)(?=\\(.*\\))");
         if (nameMatch.Success)
         {
           switch (name)
@@ -544,6 +563,9 @@ namespace ORL
               break;
             case "ShadowFunction":
               asset.ShadowFunction = nameMatch.Value;
+              break;
+            case "TessFactorsFunction":
+              asset.TessFactorsFunction = nameMatch.Value;
               break;
           }
         }

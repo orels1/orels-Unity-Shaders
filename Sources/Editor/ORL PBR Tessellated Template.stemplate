@@ -1,0 +1,775 @@
+﻿Tags { #K#SHADER_TAGS }
+
+ZTest[_ZTest]
+ZWrite[_ZWrite]
+Cull[_CullMode]
+
+CGINCLUDE
+#K#SAMPLING_LIB
+ENDCG
+
+Pass
+{
+  Tags { "LightMode" = "ForwardBase" #K#PASS_TAGS }
+  #K#PASS_MODS
+
+  // ForwardBase Pass Start
+  CGPROGRAM
+  #pragma target 4.6
+  #pragma require tesshw
+  #pragma multi_compile_instancing
+  #pragma multi_compile_fwdbase
+  #pragma multi_compile_fog
+  #pragma vertex Vertex
+  #pragma fragment Fragment
+  #pragma hull Hull
+  #pragma domain Domain
+  #K#SHADER_FEATURES
+
+  #define UNITY_INSTANCED_LOD_FADE
+  #define UNITY_INSTANCED_SH
+  #define UNITY_INSTANCED_LIGHTMAPSTS
+
+  #ifndef UNITY_PASS_FORWARDBASE
+    #define UNITY_PASS_FORWARDBASE
+  #endif
+
+  #if defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL)
+  #define MAX_TESSELLATION_FACTORS 15.0
+  #else
+    #define MAX_TESSELLATION_FACTORS 64.0
+  #endif
+
+  #include "UnityStandardUtils.cginc"
+  #include "Lighting.cginc"
+  #include "AutoLight.cginc"
+  #include "Tessellation.cginc"
+
+  #K#SHADER_DEFINES
+
+  #K#VERTEX_DATA_STRUCT
+  #K#FRAGMENT_DATA_STRUCT
+  #K#MESH_DATA_STRUCT
+  #K#SURFACE_DATA_STRUCT
+  #K#TESS_DATA_STRUCT
+  
+  FragmentData FragData;
+  SurfaceData o;
+  MeshData d;
+  VertexData vD;
+  float4 FinalColor;
+
+  #K#LIBRARY_FUNCTIONS
+
+  #if defined(NEED_DEPTH)
+    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+  #endif
+  
+  #K#DEFAULT_VARIABLES
+  
+  #K#DEFAULT_CODE
+  #K#VERTEX_CODE
+  #K#FRAGMENT_CODE
+  #K#COLOR_CODE
+  #K#TESS_FACTORS_CODE
+  
+  // ForwardBase Vertex
+  TessVertex Vertex(VertexData v)
+  {
+    UNITY_SETUP_INSTANCE_ID(v);
+    TessVertex o = (TessVertex) 0;
+    UNITY_TRANSFER_INSTANCE_ID(v, o);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+    o.vertex = v.vertex;
+    o.normal = v.normal;
+    o.tangent = v.tangent;
+    o.color = v.color;
+    o.uv0 = v.uv0;
+    o.uv1 = v.uv1;
+    o.uv2 = v.uv2;
+    o.uv3 = v.uv3;
+
+    return o;
+  }
+
+  // ForwardBase Hull
+  [UNITY_maxtessfactor(MAX_TESSELLATION_FACTORS)]
+  [UNITY_domain("tri")]
+  [UNITY_outputcontrolpoints(3)]
+  [UNITY_outputtopology("triangle_cw")]
+  [UNITY_partitioning("integer")]
+  [UNITY_patchconstantfunc("TessFactorsFunction")]
+  TessVertex Hull(InputPatch<TessVertex, 3> patch, uint id : SV_OutputControlPointID)
+  {
+    return patch[id];
+  }
+
+  #K#TESS_FACTORS_FUNCTION
+
+  // ForwardBase TessFactor
+  TessellationFactors TessFactorsFunction(InputPatch<TessVertex, 3> patch)
+  {
+    TessellationFactors f;
+    float4 TessFactorsOutput = 0;
+    #if defined(TESS_FACTORS_FUNC_DEFINED)
+        TessFactorsOutput = GetTessFactors(patch);
+    #else 
+        TessFactorsOutput = 1..xxxx;
+    #endif
+    f.edge[0] = TessFactorsOutput.x;
+    f.edge[1] = TessFactorsOutput.y;
+    f.edge[2] = TessFactorsOutput.z;
+    f.inside = TessFactorsOutput.w;
+    return f;
+  }
+
+  // ForwardBase Domain
+  [UNITY_domain("tri")]
+  FragmentData Domain(TessellationFactors factors, OutputPatch<TessVertex, 3> patch, float3 baryCoords : SV_DomainLocation)
+  {
+    VertexData v = (VertexData) 0;
+    UNITY_TRANSFER_INSTANCE_ID(patch[0], v);
+    v.vertex = patch[0].vertex * baryCoords.x + patch[1].vertex * baryCoords.y + patch[2].vertex * baryCoords.z;
+    
+    #if defined(PHONG)
+    float3 pp[3];
+      for (int index = 0; index < 3; ++index)
+      {
+        pp[index] = v.vertex.xyz - patch[index].normal * (dot(v.vertex.xyz, patch[index].normal) - dot(patch[index].vertex.xyz, patch[index].normal));
+      }
+      v.vertex.xyz = 0.5 * (pp[0]*baryCoords.x + pp[1]*baryCoords.y + pp[2]*baryCoords.z) + (0.5) * v.vertex.xyz;
+    #endif
+
+    v.normal = patch[0].normal * baryCoords.x + patch[1].normal * baryCoords.y + patch[2].normal * baryCoords.z;
+    v.tangent = patch[0].tangent * baryCoords.x + patch[1].tangent * baryCoords.y + patch[2].tangent * baryCoords.z;
+    v.color = patch[0].color * baryCoords.x + patch[1].color * baryCoords.y + patch[2].color * baryCoords.z;
+    v.uv0 = patch[0].uv0 * baryCoords.x + patch[1].uv0 * baryCoords.y + patch[2].uv0 * baryCoords.z;
+    v.uv1 = patch[0].uv1 * baryCoords.x + patch[1].uv1 * baryCoords.y + patch[2].uv1 * baryCoords.z;
+    v.uv2 = patch[0].uv2 * baryCoords.x + patch[1].uv2 * baryCoords.y + patch[2].uv2 * baryCoords.z;
+    v.uv3 = patch[0].uv3 * baryCoords.x + patch[1].uv3 * baryCoords.y + patch[2].uv3 * baryCoords.z;
+
+    FragmentData i;
+    UNITY_INITIALIZE_OUTPUT(FragmentData, i);
+    UNITY_TRANSFER_INSTANCE_ID(patch[0], i);
+
+    vD = v;
+    FragData = i;
+    #K#VERTEX_FUNCTION
+    i = FragData;
+    v = vD;
+    #K#VERTEX_BASE
+    return i;
+  }
+
+  
+  // ForwardBase Fragment
+  half4 Fragment(FragmentData i) : SV_TARGET
+  {
+    UNITY_SETUP_INSTANCE_ID(i);
+    #ifdef FOG_COMBINED_WITH_TSPACE
+      UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+    #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+      UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+    #else
+      UNITY_EXTRACT_FOG(i);
+    #endif
+
+    FragData = i;
+    o = (SurfaceData) 0;
+    d = CreateMeshData(i);
+    o.Albedo = half3(0.5, 0.5, 0.5);
+    o.Normal = half3(0, 0, 1);
+    o.Smoothness = 0.5;
+    o.Occlusion = 1;
+    o.Alpha = 1;
+    FinalColor = half4(o.Albedo, o.Alpha);
+    
+    #K#FRAGMENT_FUNCTION
+
+    #K#LIGHTING_FUNCTION
+
+    #K#FINAL_COLOR_MOD
+
+    UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+    
+    return FinalColor;
+  }
+
+  ENDCG
+  // ForwardBase Pass End
+
+}
+
+Pass
+{
+  Tags { "LightMode" = "ForwardAdd" #K#PASS_TAGS }
+  ZWrite Off
+  Blend One One
+
+  // ForwardAdd Pass Start
+  CGPROGRAM
+  #pragma target 4.6
+  #pragma require tesshw
+  #pragma multi_compile_instancing
+  #pragma multi_compile_fog
+  #pragma multi_compile_fwdadd_fullshadows
+  #pragma vertex Vertex
+  #pragma fragment Fragment
+  #pragma hull Hull
+  #pragma domain Domain
+
+  #define UNITY_INSTANCED_LOD_FADE
+  #define UNITY_INSTANCED_SH
+  #define UNITY_INSTANCED_LIGHTMAPSTS
+
+  #ifndef UNITY_PASS_FORWARDADD
+    #define UNITY_PASS_FORWARDADD
+  #endif
+
+  #if defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL)
+    #define MAX_TESSELLATION_FACTORS 15.0
+  #else
+    #define MAX_TESSELLATION_FACTORS 64.0
+  #endif
+
+  #include "UnityStandardUtils.cginc"
+  #include "Lighting.cginc"
+  #include "AutoLight.cginc"
+  #include "Tessellation.cginc"
+
+  #K#SHADER_DEFINES
+
+  #K#VERTEX_DATA_STRUCT
+  #K#FRAGMENT_DATA_STRUCT
+  #K#MESH_DATA_STRUCT
+  #K#SURFACE_DATA_STRUCT
+  #K#TESS_DATA_STRUCT
+  
+  FragmentData FragData;
+  SurfaceData o;
+  MeshData d;
+  VertexData vD;
+  float4 FinalColor;
+
+  #K#LIBRARY_FUNCTIONS
+
+  #if defined(NEED_DEPTH)
+    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+  #endif
+  
+  #K#DEFAULT_VARIABLES
+  
+  #K#DEFAULT_CODE
+  #K#VERTEX_CODE
+  #K#FRAGMENT_CODE
+  #K#COLOR_CODE
+  #K#TESS_FACTORS_CODE
+  
+  // ForwardAdd Vertex
+  TessVertex Vertex(VertexData v)
+  {
+    UNITY_SETUP_INSTANCE_ID(v);
+    TessVertex o = (TessVertex) 0;
+    UNITY_TRANSFER_INSTANCE_ID(v, o);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+    o.vertex = v.vertex;
+    o.normal = v.normal;
+    o.tangent = v.tangent;
+    o.color = v.color;
+    o.uv0 = v.uv0;
+    o.uv1 = v.uv1;
+    o.uv2 = v.uv2;
+    o.uv3 = v.uv3;
+
+    return o;
+  }
+
+  // ForwardAdd Hull
+  [UNITY_maxtessfactor(MAX_TESSELLATION_FACTORS)]
+  [UNITY_domain("tri")]
+  [UNITY_outputcontrolpoints(3)]
+  [UNITY_outputtopology("triangle_cw")]
+  [UNITY_partitioning("integer")]
+  [UNITY_patchconstantfunc("TessFactorsFunction")]
+  TessVertex Hull(InputPatch<TessVertex, 3> patch, uint id : SV_OutputControlPointID)
+  {
+    return patch[id];
+  }
+
+  #K#TESS_FACTORS_FUNCTION
+
+  // ForwardAdd TessFactor
+  TessellationFactors TessFactorsFunction(InputPatch<TessVertex, 3> patch)
+  {
+    TessellationFactors f;
+    float4 TessFactorsOutput = 0;
+    #if defined(TESS_FACTORS_FUNC_DEFINED)
+        TessFactorsOutput = GetTessFactors(patch);
+    #else 
+        TessFactorsOutput = 1..xxxx;
+    #endif
+    f.edge[0] = TessFactorsOutput.x;
+    f.edge[1] = TessFactorsOutput.y;
+    f.edge[2] = TessFactorsOutput.z;
+    f.inside = TessFactorsOutput.w;
+    return f;
+  }
+
+  // ForwardAdd Domain
+  [UNITY_domain("tri")]
+  FragmentData Domain(TessellationFactors factors, OutputPatch<TessVertex, 3> patch, float3 baryCoords : SV_DomainLocation)
+  {
+    VertexData v = (VertexData) 0;
+    UNITY_TRANSFER_INSTANCE_ID(patch[0], v);
+    v.vertex = patch[0].vertex * baryCoords.x + patch[1].vertex * baryCoords.y + patch[2].vertex * baryCoords.z;
+    
+    #if defined(PHONG)
+    float3 pp[3];
+      for (int index = 0; index < 3; ++index)
+      {
+        pp[index] = v.vertex.xyz - patch[index].normal * (dot(v.vertex.xyz, patch[index].normal) - dot(patch[index].vertex.xyz, patch[index].normal));
+      }
+      v.vertex.xyz = 0.5 * (pp[0]*baryCoords.x + pp[1]*baryCoords.y + pp[2]*baryCoords.z) + (0.5) * v.vertex.xyz;
+    #endif
+
+    v.normal = patch[0].normal * baryCoords.x + patch[1].normal * baryCoords.y + patch[2].normal * baryCoords.z;
+    v.tangent = patch[0].tangent * baryCoords.x + patch[1].tangent * baryCoords.y + patch[2].tangent * baryCoords.z;
+    v.color = patch[0].color * baryCoords.x + patch[1].color * baryCoords.y + patch[2].color * baryCoords.z;
+    v.uv0 = patch[0].uv0 * baryCoords.x + patch[1].uv0 * baryCoords.y + patch[2].uv0 * baryCoords.z;
+    v.uv1 = patch[0].uv1 * baryCoords.x + patch[1].uv1 * baryCoords.y + patch[2].uv1 * baryCoords.z;
+    v.uv2 = patch[0].uv2 * baryCoords.x + patch[1].uv2 * baryCoords.y + patch[2].uv2 * baryCoords.z;
+    v.uv3 = patch[0].uv3 * baryCoords.x + patch[1].uv3 * baryCoords.y + patch[2].uv3 * baryCoords.z;
+
+    FragmentData i;
+    UNITY_INITIALIZE_OUTPUT(FragmentData, i);
+    UNITY_TRANSFER_INSTANCE_ID(patch[0], i);
+
+    vD = v;
+    FragData = i;
+    #K#VERTEX_FUNCTION
+    i = FragData;
+    v = vD;
+    #K#VERTEX_BASE
+    return i;
+  }
+  
+  // ForwardAdd Fragment
+  half4 Fragment(FragmentData i) : SV_TARGET
+  {
+    UNITY_SETUP_INSTANCE_ID(i);
+    #ifdef FOG_COMBINED_WITH_TSPACE
+      UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+    #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+      UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+    #else
+      UNITY_EXTRACT_FOG(i);
+    #endif
+
+    FragData = i;
+    o = (SurfaceData) 0;
+    d = CreateMeshData(i);
+    o.Albedo = half3(0.5, 0.5, 0.5);
+    o.Normal = half3(0, 0, 1);
+    o.Smoothness = 0.5;
+    o.Occlusion = 1;
+    o.Alpha = 1;
+    FinalColor = half4(o.Albedo, o.Alpha);
+    
+    #K#FRAGMENT_FUNCTION
+
+    #K#LIGHTING_FUNCTION
+
+    #K#FINAL_COLOR_MOD
+
+    UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+    
+    return FinalColor;
+  }
+
+  ENDCG
+  // ForwardAdd Pass End
+
+}
+
+Pass
+{
+  Name "META"
+  Tags { "LightMode" = "Meta" }
+  Cull Off
+
+  // Meta Pass Start
+  CGPROGRAM
+  #pragma target 4.6
+  #pragma require tesshw
+  #pragma multi_compile_instancing
+  #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
+  #pragma shader_feature EDITOR_VISUALISATION
+  #pragma vertex Vertex
+  #pragma fragment Fragment
+  #pragma hull Hull
+  #pragma domain Domain
+
+  #define UNITY_INSTANCED_LOD_FADE
+  #define UNITY_INSTANCED_SH
+  #define UNITY_INSTANCED_LIGHTMAPSTS
+
+  #ifndef UNITY_PASS_META
+    #define UNITY_PASS_META
+  #endif
+
+  #if defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL)
+    #define MAX_TESSELLATION_FACTORS 15.0
+  #else
+    #define MAX_TESSELLATION_FACTORS 64.0
+  #endif
+
+  #include "UnityStandardUtils.cginc"
+  #include "Lighting.cginc"
+  #include "AutoLight.cginc"
+  #include "Tessellation.cginc"
+  #include "UnityPBSLighting.cginc"
+  #include "UnityMetaPass.cginc"
+
+  #K#SHADER_DEFINES
+
+  #K#VERTEX_DATA_STRUCT
+  #K#FRAGMENT_DATA_STRUCT
+  #K#MESH_DATA_STRUCT
+  #K#SURFACE_DATA_STRUCT
+  #K#TESS_DATA_STRUCT
+  
+  FragmentData FragData;
+  SurfaceData o;
+  MeshData d;
+  VertexData vD;
+  float4 FinalColor;
+
+  #K#LIBRARY_FUNCTIONS
+
+  #if defined(NEED_DEPTH)
+    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+  #endif
+  
+  #K#DEFAULT_VARIABLES
+  
+  #K#DEFAULT_CODE
+  #K#VERTEX_CODE
+  #K#FRAGMENT_CODE
+  #K#COLOR_CODE
+  #K#TESS_FACTORS_CODE
+  
+  // Meta Vertex
+  TessVertex Vertex(VertexData v)
+  {
+    UNITY_SETUP_INSTANCE_ID(v);
+    TessVertex o = (TessVertex) 0;
+    UNITY_TRANSFER_INSTANCE_ID(v, o);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+    o.vertex = v.vertex;
+    o.normal = v.normal;
+    o.tangent = v.tangent;
+    o.color = v.color;
+    o.uv0 = v.uv0;
+    o.uv1 = v.uv1;
+    o.uv2 = v.uv2;
+    o.uv3 = v.uv3;
+
+    return o;
+  }
+
+  // Meta Hull
+  [UNITY_maxtessfactor(MAX_TESSELLATION_FACTORS)]
+  [UNITY_domain("tri")]
+  [UNITY_outputcontrolpoints(3)]
+  [UNITY_outputtopology("triangle_cw")]
+  [UNITY_partitioning("integer")]
+  [UNITY_patchconstantfunc("TessFactorsFunction")]
+  TessVertex Hull(InputPatch<TessVertex, 3> patch, uint id : SV_OutputControlPointID)
+  {
+    return patch[id];
+  }
+
+  #K#TESS_FACTORS_FUNCTION
+
+  // Meta TessFactor
+  TessellationFactors TessFactorsFunction(InputPatch<TessVertex, 3> patch)
+  {
+    TessellationFactors f;
+    float4 TessFactorsOutput = 0;
+    #if defined(TESS_FACTORS_FUNC_DEFINED)
+        TessFactorsOutput = GetTessFactors(patch);
+    #else 
+        TessFactorsOutput = 1..xxxx;
+    #endif
+    f.edge[0] = TessFactorsOutput.x;
+    f.edge[1] = TessFactorsOutput.y;
+    f.edge[2] = TessFactorsOutput.z;
+    f.inside = TessFactorsOutput.w;
+    return f;
+  }
+
+  // Meta Domain
+  [UNITY_domain("tri")]
+  FragmentData Domain(TessellationFactors factors, OutputPatch<TessVertex, 3> patch, float3 baryCoords : SV_DomainLocation)
+  {
+    VertexData v = (VertexData) 0;
+    UNITY_TRANSFER_INSTANCE_ID(patch[0], v);
+    v.vertex = patch[0].vertex * baryCoords.x + patch[1].vertex * baryCoords.y + patch[2].vertex * baryCoords.z;
+    
+    #if defined(PHONG)
+    float3 pp[3];
+      for (int index = 0; index < 3; ++index)
+      {
+        pp[index] = v.vertex.xyz - patch[index].normal * (dot(v.vertex.xyz, patch[index].normal) - dot(patch[index].vertex.xyz, patch[index].normal));
+      }
+      v.vertex.xyz = 0.5 * (pp[0]*baryCoords.x + pp[1]*baryCoords.y + pp[2]*baryCoords.z) + (0.5) * v.vertex.xyz;
+    #endif
+
+    v.normal = patch[0].normal * baryCoords.x + patch[1].normal * baryCoords.y + patch[2].normal * baryCoords.z;
+    v.tangent = patch[0].tangent * baryCoords.x + patch[1].tangent * baryCoords.y + patch[2].tangent * baryCoords.z;
+    v.color = patch[0].color * baryCoords.x + patch[1].color * baryCoords.y + patch[2].color * baryCoords.z;
+    v.uv0 = patch[0].uv0 * baryCoords.x + patch[1].uv0 * baryCoords.y + patch[2].uv0 * baryCoords.z;
+    v.uv1 = patch[0].uv1 * baryCoords.x + patch[1].uv1 * baryCoords.y + patch[2].uv1 * baryCoords.z;
+    v.uv2 = patch[0].uv2 * baryCoords.x + patch[1].uv2 * baryCoords.y + patch[2].uv2 * baryCoords.z;
+    v.uv3 = patch[0].uv3 * baryCoords.x + patch[1].uv3 * baryCoords.y + patch[2].uv3 * baryCoords.z;
+
+    FragmentData i;
+    UNITY_INITIALIZE_OUTPUT(FragmentData, i);
+    UNITY_TRANSFER_INSTANCE_ID(patch[0], i);
+
+    vD = v;
+    FragData = i;
+    #K#VERTEX_FUNCTION
+    i = FragData;
+    v = vD;
+    #K#VERTEX_BASE
+    return i;
+  }
+  
+  // Meta Fragment
+  half4 Fragment(FragmentData i) : SV_TARGET
+  {
+    UNITY_SETUP_INSTANCE_ID(i);
+
+    FragData = i;
+    o = (SurfaceData) 0;
+    d = CreateMeshData(i);
+    o.Albedo = half3(0.5, 0.5, 0.5);
+    o.Normal = half3(0, 0, 1);
+    o.Smoothness = 0.5;
+    o.Occlusion = 1;
+    o.Alpha = 1;
+    
+    #K#FRAGMENT_FUNCTION
+
+    FinalColor = half4(o.Albedo, o.Alpha);
+
+    UnityMetaInput metaIN;
+    UNITY_INITIALIZE_OUTPUT(UnityMetaInput, metaIN);
+    #K#FINAL_COLOR_MOD
+
+    metaIN.Albedo = FinalColor;
+    metaIN.Emission = o.Emission;
+
+    #if defined(EDITOR_VISUALISATION)
+      metaIN.VizUV = i.vizUV;
+      metaIN.LightCoord = i.lightCoord;
+    #endif
+
+    
+    return UnityMetaFragment(metaIN);
+  }
+
+  ENDCG
+  // Meta Pass End
+
+}
+
+Pass
+{
+  Tags { "LightMode" = "ShadowCaster" #K#PASS_TAGS }
+  #K#PASS_MODS
+
+  // Shadow Pass Start
+  CGPROGRAM
+  #pragma target 4.6
+  #pragma require tesshw
+  #pragma multi_compile_instancing
+  #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
+  #pragma multi_compile_shadowcaster
+  #pragma vertex Vertex
+  #pragma fragment Fragment
+  #pragma hull Hull
+  #pragma domain Domain
+  #K#SHADER_FEATURES
+
+  #define UNITY_INSTANCED_LOD_FADE
+  #define UNITY_INSTANCED_SH
+  #define UNITY_INSTANCED_LIGHTMAPSTS
+
+  #ifndef UNITY_PASS_SHADOWCASTER
+    #define UNITY_PASS_SHADOWCASTER
+  #endif
+
+  #if defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL)
+    #define MAX_TESSELLATION_FACTORS 15.0
+  #else
+    #define MAX_TESSELLATION_FACTORS 64.0
+  #endif
+
+  #include "UnityStandardUtils.cginc"
+  #include "Lighting.cginc"
+  #include "UnityPBSLighting.cginc"
+  #include "Tessellation.cginc"
+
+  #K#SHADER_DEFINES
+
+  #K#VERTEX_DATA_STRUCT
+  #K#FRAGMENT_DATA_STRUCT
+  #K#MESH_DATA_STRUCT
+  #K#SURFACE_DATA_STRUCT
+  #K#TESS_DATA_STRUCT
+  
+  FragmentData FragData;
+  SurfaceData o;
+  MeshData d;
+  VertexData vD;
+  float4 FinalColor;
+  
+  #K#LIBRARY_FUNCTIONS
+
+  #if defined(NEED_DEPTH)
+    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+  #endif
+  
+  #K#DEFAULT_VARIABLES
+  
+  #K#DEFAULT_CODE
+  #K#VERTEX_CODE
+  #K#FRAGMENT_CODE
+  #K#SHADOW_CODE
+  #K#TESS_FACTORS_CODE
+  
+  // Shadow Vertex
+  TessVertex Vertex(VertexData v)
+  {
+    UNITY_SETUP_INSTANCE_ID(v);
+    TessVertex o = (TessVertex) 0;
+    UNITY_TRANSFER_INSTANCE_ID(v, o);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+    o.vertex = v.vertex;
+    o.normal = v.normal;
+    o.tangent = v.tangent;
+    o.color = v.color;
+    o.uv0 = v.uv0;
+    o.uv1 = v.uv1;
+    o.uv2 = v.uv2;
+    o.uv3 = v.uv3;
+
+    return o;
+  }
+
+  // Shadow Hull
+  [UNITY_maxtessfactor(MAX_TESSELLATION_FACTORS)]
+  [UNITY_domain("tri")]
+  [UNITY_outputcontrolpoints(3)]
+  [UNITY_outputtopology("triangle_cw")]
+  [UNITY_partitioning("integer")]
+  [UNITY_patchconstantfunc("TessFactorsFunction")]
+  TessVertex Hull(InputPatch<TessVertex, 3> patch, uint id : SV_OutputControlPointID)
+  {
+    return patch[id];
+  }
+
+  #K#TESS_FACTORS_FUNCTION
+
+  // Shadow TessFactor
+  TessellationFactors TessFactorsFunction(InputPatch<TessVertex, 3> patch)
+  {
+    TessellationFactors f;
+    float4 TessFactorsOutput = 0;
+    #if defined(TESS_FACTORS_FUNC_DEFINED)
+        TessFactorsOutput = GetTessFactors(patch);
+    #else 
+        TessFactorsOutput = 1..xxxx;
+    #endif
+    f.edge[0] = TessFactorsOutput.x;
+    f.edge[1] = TessFactorsOutput.y;
+    f.edge[2] = TessFactorsOutput.z;
+    f.inside = TessFactorsOutput.w;
+    return f;
+  }
+
+  // Shadow Domain
+  [UNITY_domain("tri")]
+  FragmentData Domain(TessellationFactors factors, OutputPatch<TessVertex, 3> patch, float3 baryCoords : SV_DomainLocation)
+  {
+    VertexData v = (VertexData) 0;
+    UNITY_TRANSFER_INSTANCE_ID(patch[0], v);
+    v.vertex = patch[0].vertex * baryCoords.x + patch[1].vertex * baryCoords.y + patch[2].vertex * baryCoords.z;
+    
+    #if defined(PHONG)
+    float3 pp[3];
+      for (int index = 0; index < 3; ++index)
+      {
+        pp[index] = v.vertex.xyz - patch[index].normal * (dot(v.vertex.xyz, patch[index].normal) - dot(patch[index].vertex.xyz, patch[index].normal));
+      }
+      v.vertex.xyz = 0.5 * (pp[0]*baryCoords.x + pp[1]*baryCoords.y + pp[2]*baryCoords.z) + (0.5) * v.vertex.xyz;
+    #endif
+
+    v.normal = patch[0].normal * baryCoords.x + patch[1].normal * baryCoords.y + patch[2].normal * baryCoords.z;
+    v.tangent = patch[0].tangent * baryCoords.x + patch[1].tangent * baryCoords.y + patch[2].tangent * baryCoords.z;
+    v.color = patch[0].color * baryCoords.x + patch[1].color * baryCoords.y + patch[2].color * baryCoords.z;
+    v.uv0 = patch[0].uv0 * baryCoords.x + patch[1].uv0 * baryCoords.y + patch[2].uv0 * baryCoords.z;
+    v.uv1 = patch[0].uv1 * baryCoords.x + patch[1].uv1 * baryCoords.y + patch[2].uv1 * baryCoords.z;
+    v.uv2 = patch[0].uv2 * baryCoords.x + patch[1].uv2 * baryCoords.y + patch[2].uv2 * baryCoords.z;
+    v.uv3 = patch[0].uv3 * baryCoords.x + patch[1].uv3 * baryCoords.y + patch[2].uv3 * baryCoords.z;
+
+    FragmentData i;
+    UNITY_INITIALIZE_OUTPUT(FragmentData, i);
+    UNITY_TRANSFER_INSTANCE_ID(patch[0], i);
+
+    vD = v;
+    FragData = i;
+    #K#VERTEX_FUNCTION
+    i = FragData;
+    v = vD;
+    #K#VERTEX_BASE
+    TRANSFER_SHADOW_CASTER_NORMALOFFSET(i);
+    return i;
+  }
+  
+  // Shadow Fragment
+  half4 Fragment(FragmentData i) : SV_TARGET
+  {
+    UNITY_SETUP_INSTANCE_ID(i);
+
+    #if defined(NEED_FRAGMENT_IN_SHADOW)
+      FragData = i;
+      o = (SurfaceData) 0;
+      d = CreateMeshData(i);
+      o.Albedo = half3(0.5, 0.5, 0.5);
+      o.Normal = half3(0, 0, 1);
+      o.Smoothness = 0.5;
+      o.Occlusion = 1;
+      o.Alpha = 1;
+      FinalColor = half4(o.Albedo, o.Alpha);
+      
+      #K#FRAGMENT_FUNCTION
+
+      #K#FINAL_COLOR_MOD
+    #endif
+
+    #K#SHADOW_FUNCTION
+
+    SHADOW_CASTER_FRAGMENT(i);
+  }
+
+  ENDCG
+  // Shadow Pass End
+
+}
