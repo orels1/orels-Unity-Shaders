@@ -94,7 +94,7 @@ Pass
   }
 
   // ForwardBase Hull
-  [UNITY_maxtessfactor(MAX_TESSELLATION_FACTORS)]
+  [maxtessfactor(MAX_TESSELLATION_FACTORS)]
   [UNITY_domain("tri")]
   [UNITY_outputcontrolpoints(3)]
   [UNITY_outputtopology("triangle_cw")]
@@ -287,7 +287,7 @@ Pass
   }
 
   // ForwardAdd Hull
-  [UNITY_maxtessfactor(MAX_TESSELLATION_FACTORS)]
+  [maxtessfactor(MAX_TESSELLATION_FACTORS)]
   [UNITY_domain("tri")]
   [UNITY_outputcontrolpoints(3)]
   [UNITY_outputtopology("triangle_cw")]
@@ -481,7 +481,7 @@ Pass
   }
 
   // Meta Hull
-  [UNITY_maxtessfactor(MAX_TESSELLATION_FACTORS)]
+  [maxtessfactor(MAX_TESSELLATION_FACTORS)]
   [UNITY_domain("tri")]
   [UNITY_outputcontrolpoints(3)]
   [UNITY_outputtopology("triangle_cw")]
@@ -674,7 +674,7 @@ Pass
   }
 
   // Shadow Hull
-  [UNITY_maxtessfactor(MAX_TESSELLATION_FACTORS)]
+  [maxtessfactor(MAX_TESSELLATION_FACTORS)]
   [UNITY_domain("tri")]
   [UNITY_outputcontrolpoints(3)]
   [UNITY_outputtopology("triangle_cw")]
