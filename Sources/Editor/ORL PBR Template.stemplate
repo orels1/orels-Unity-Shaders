@@ -4,6 +4,10 @@ ZTest[_ZTest]
 ZWrite[_ZWrite]
 Cull[_CullMode]
 
+CGINCLUDE
+#K#SAMPLING_LIB
+ENDCG
+
 Pass
 {
   Tags { "LightMode" = "ForwardBase" #K#PASS_TAGS }
@@ -32,8 +36,6 @@ Pass
   #include "AutoLight.cginc"
 
   #K#SHADER_DEFINES
-
-  #K#SAMPLING_LIB
 
   #K#VERTEX_DATA_STRUCT
   #K#FRAGMENT_DATA_STRUCT
@@ -144,8 +146,6 @@ Pass
   #include "AutoLight.cginc"
 
   #K#SHADER_DEFINES
-
-  #K#SAMPLING_LIB
 
   #K#VERTEX_DATA_STRUCT
   #K#FRAGMENT_DATA_STRUCT
@@ -259,8 +259,6 @@ Pass
 
   #K#SHADER_DEFINES
 
-  #K#SAMPLING_LIB
-
   #K#VERTEX_DATA_STRUCT
   #K#FRAGMENT_DATA_STRUCT
   #K#MESH_DATA_STRUCT
@@ -371,8 +369,6 @@ Pass
   #include "UnityPBSLighting.cginc"
 
   #K#SHADER_DEFINES
-
-  #K#SAMPLING_LIB
 
   #K#VERTEX_DATA_STRUCT
   #K#FRAGMENT_DATA_STRUCT

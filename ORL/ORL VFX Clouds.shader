@@ -1261,7 +1261,7 @@ Shader "orels1/VFX/Clouds"
 			half2 uv1;
 			half2 uv2;
 			half2 uv3;
-			half3 vertexColor;
+			half4 vertexColor;
 			half3 normal;
 			half3 worldNormal;
 			half3 localSpacePosition;

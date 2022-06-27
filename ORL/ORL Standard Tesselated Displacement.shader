@@ -2897,7 +2897,7 @@ Shader "orels1/Standard Tesselated Displacement"
 			}
 			
 			// ForwardBase Hull
-			[UNITY_maxtessfactor(MAX_TESSELLATION_FACTORS)]
+			[maxtessfactor(MAX_TESSELLATION_FACTORS)]
 			[UNITY_domain("tri")]
 			[UNITY_outputcontrolpoints(3)]
 			[UNITY_outputtopology("triangle_cw")]
@@ -4809,7 +4809,7 @@ Shader "orels1/Standard Tesselated Displacement"
 			}
 			
 			// ForwardAdd Hull
-			[UNITY_maxtessfactor(MAX_TESSELLATION_FACTORS)]
+			[maxtessfactor(MAX_TESSELLATION_FACTORS)]
 			[UNITY_domain("tri")]
 			[UNITY_outputcontrolpoints(3)]
 			[UNITY_outputtopology("triangle_cw")]
@@ -6723,7 +6723,7 @@ Shader "orels1/Standard Tesselated Displacement"
 			}
 			
 			// Meta Hull
-			[UNITY_maxtessfactor(MAX_TESSELLATION_FACTORS)]
+			[maxtessfactor(MAX_TESSELLATION_FACTORS)]
 			[UNITY_domain("tri")]
 			[UNITY_outputcontrolpoints(3)]
 			[UNITY_outputtopology("triangle_cw")]
@@ -8653,7 +8653,7 @@ Shader "orels1/Standard Tesselated Displacement"
 			}
 			
 			// Shadow Hull
-			[UNITY_maxtessfactor(MAX_TESSELLATION_FACTORS)]
+			[maxtessfactor(MAX_TESSELLATION_FACTORS)]
 			[UNITY_domain("tri")]
 			[UNITY_outputcontrolpoints(3)]
 			[UNITY_outputtopology("triangle_cw")]
