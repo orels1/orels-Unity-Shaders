@@ -74,7 +74,7 @@ Shader "orels1/Standard Layered Parallax"
 		[Toggle(BAKED_SPECULAR)] _BakedSpecular("Baked Specular", Int) = 0
 		[ToggleUI] UI_BakeryHeader("## Bakery Features", Int) = 0
 		[Toggle(BAKERY_ENABLED)] _BakeryEnabled("Enable Bakery Features", Int) = 0
-		[KeywordEnum(None, SH, RNM)] BAKERY("Bakery Mode", Int) = 0
+		[KeywordEnum(None, MONOSH, SH, RNM)] BAKERY("Bakery Mode [BAKERY_ENABLED]", Int) = 0
 		[Toggle(BAKERY_SHNONLINEAR)] _BakerySHNonLinear("Bakery Non-Linear SH [BAKERY_ENABLED]", Int) = 0
 		[ToggleUI] UI_InternalsHeader("# Internal", Int) = 0
 		[NonModifiableTextureData] _DFG("DFG LUT &", 2D) = "black" {}
@@ -1162,7 +1162,7 @@ Shader "orels1/Standard Layered Parallax"
 			
 			// Bakery Stuff
 			#pragma shader_feature_local BAKERY_ENABLED
-			#pragma shader_feature_local _ BAKERY_RNM BAKERY_SH
+			#pragma shader_feature_local _ BAKERY_RNM BAKERY_SH BAKERY_MONOSH
 			#pragma shader_feature_local BAKERY_SHNONLINEAR
 			
 			#define UNITY_INSTANCED_LOD_FADE
@@ -1964,6 +1964,7 @@ Shader "orels1/Standard Layered Parallax"
 			#if defined(BAKERY_DOMINANT)
 			#undef BAKERY_RNM
 			#undef BAKERY_SH
+			#undef BAKERY_MONOSH
 			#endif
 			
 			#ifdef BICUBIC_LIGHTMAP
@@ -1984,6 +1985,7 @@ Shader "orels1/Standard Layered Parallax"
 			
 			#undef BAKERY_RNM
 			#undef BAKERY_SH
+			#undef BAKERY_MONOSH
 			#undef BAKERY_VERTEXLM
 			#endif
 			
@@ -2007,7 +2009,7 @@ Shader "orels1/Standard Layered Parallax"
 			
 			#define lumaConv float3(0.2125f, 0.7154f, 0.0721f)
 			
-			#if defined(BAKERY_SH) || defined(BAKERY_VERTEXLMSH) || defined(BAKERY_PROBESHNONLINEAR) || defined(BAKERY_VOLUME)
+			#if defined(BAKERY_SH) || defined(BAKERY_MONOSH) || defined(BAKERY_VERTEXLMSH) || defined(BAKERY_PROBESHNONLINEAR) || defined(BAKERY_VOLUME)
 			float shEvaluateDiffuseL1Geomerics(float L0, float3 L1, float3 n)
 			{
 				// average energy
@@ -2048,6 +2050,52 @@ Shader "orels1/Standard Layered Parallax"
 				return float3(r, g, b);
 			}
 			#if defined(BAKERY_VERTEXLMDIR)
+			
+			#ifdef BAKERY_MONOSH
+			void BakeryVertexLMMonoSH(inout float3 diffuseColor, inout float3 specularColor, float3 nL1, float3 normalWorld, float3 viewDir, float smoothness)
+			{
+				nL1 = nL1;
+				float3 L0 = diffuseColor;
+				float3 L1x = nL1.x * L0 * 2;
+				float3 L1y = nL1.y * L0 * 2;
+				float3 L1z = nL1.z * L0 * 2;
+				
+				float3 sh;
+				#if BAKERY_SHNONLINEAR
+				//sh.r = shEvaluateDiffuseL1Geomerics(L0.r, float3(L1x.r, L1y.r, L1z.r), normalWorld);
+				//sh.g = shEvaluateDiffuseL1Geomerics(L0.g, float3(L1x.g, L1y.g, L1z.g), normalWorld);
+				//sh.b = shEvaluateDiffuseL1Geomerics(L0.b, float3(L1x.b, L1y.b, L1z.b), normalWorld);
+				
+				float lumaL0 = dot(L0, 1);
+				float lumaL1x = dot(L1x, 1);
+				float lumaL1y = dot(L1y, 1);
+				float lumaL1z = dot(L1z, 1);
+				float lumaSH = shEvaluateDiffuseL1Geomerics(lumaL0, float3(lumaL1x, lumaL1y, lumaL1z), normalWorld);
+				
+				sh = L0 + normalWorld.x * L1x + normalWorld.y * L1y + normalWorld.z * L1z;
+				float regularLumaSH = dot(sh, 1);
+				//sh *= regularLumaSH < 0.001 ? 1 : (lumaSH / regularLumaSH);
+				sh *= lerp(1, lumaSH / regularLumaSH, saturate(regularLumaSH*16));
+				
+				#else
+				sh = L0 + normalWorld.x * L1x + normalWorld.y * L1y + normalWorld.z * L1z;
+				#endif
+				
+				diffuseColor = max(sh, 0.0);
+				
+				#ifdef BAKERY_LMSPEC
+				float3 dominantDir = nL1;
+				float focus = saturate(length(dominantDir));
+				half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) - viewDir);
+				half nh = saturate(dot(normalWorld, halfDir));
+				half perceptualRoughness = SmoothnessToPerceptualRoughness(smoothness );//* sqrt(focus));
+				half roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+				half spec = GGXTerm(nh, roughness);
+				specularColor = max(spec * sh, 0.0);
+				#endif
+			}
+			#endif
+			
 			void BakeryVertexLMDirection(inout float3 diffuseColor, inout float3 specularColor, float3 lightDirection, float3 vertexNormalWorld, float3 normalWorld, float3 viewDir, float smoothness)
 			{
 				float3 dominantDir = Unity_SafeNormalize(lightDirection);
@@ -2344,6 +2392,7 @@ Shader "orels1/Standard Layered Parallax"
 				#endif
 			}
 			#endif
+			
 			#endif
 			//BAKERY_ENABLED
 			
@@ -2656,7 +2705,33 @@ Shader "orels1/Standard Layered Parallax"
 				
 				#if defined(DIRLIGHTMAP_COMBINED)
 				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
+				#if !defined(BAKERY_MONOSH)
 				lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
+				#endif
+				#endif
+				
+				#if defined(BAKERY_MONOSH) && defined(BAKERY_ENABLED) && defined(DIRLIGHTMAP_COMBINED)
+				half3 L0 = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
+				half3 nL1 = lightMapDirection.xyz * 2.0 - 1.0;
+				half3 L1x = nL1.x * L0 * 2.0;
+				half3 L1y = nL1.y * L0 * 2.0;
+				half3 L1z = nL1.z * L0 * 2.0;
+				
+				#if defined(BAKERY_SHNONLINEAR)
+				half lumaL0 = dot(L0, 1);
+				half lumaL1x = dot(L1x, 1);
+				half lumaL1y = dot(L1y, 1);
+				half lumaL1z = dot(L1z, 1);
+				half lumaSH = shEvaluateDiffuseL1Geomerics(lumaL0, half3(lumaL1x, lumaL1y, lumaL1z), o.Normal);
+				
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				half regularLumaSH = dot(lightMap, 1);
+				lightMap *= lerp(1, lumaSH / regularLumaSH, saturate(regularLumaSH*16));
+				#else
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				#endif
+				
+				lightMap = max(lightMap, 0.0);
 				#endif
 				
 				#if defined(DYNAMICLIGHTMAP_ON) && !defined(UNITY_PBS_USE_BRDF2)
@@ -2758,6 +2833,19 @@ Shader "orels1/Standard Layered Parallax"
 				{
 					half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
 					half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + d.worldSpaceViewDir);
+					half NoH = saturate(dot(o.Normal, halfDir));
+					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+					half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
+					dominantDir = normalize(dominantDir);
+					directSpecular += max(spec * sh, 0.0) * fresnel;
+				}
+				#endif
+				
+				#if defined(BAKERY_MONOSH)
+				{
+					half3 dominantDir = nL1;
+					half focus = saturate(length(dominantDir));
+					half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) - d.worldSpaceViewDir);
 					half NoH = saturate(dot(o.Normal, halfDir));
 					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
 					half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
@@ -3743,6 +3831,7 @@ Shader "orels1/Standard Layered Parallax"
 			#if defined(BAKERY_DOMINANT)
 			#undef BAKERY_RNM
 			#undef BAKERY_SH
+			#undef BAKERY_MONOSH
 			#endif
 			
 			#ifdef BICUBIC_LIGHTMAP
@@ -3763,6 +3852,7 @@ Shader "orels1/Standard Layered Parallax"
 			
 			#undef BAKERY_RNM
 			#undef BAKERY_SH
+			#undef BAKERY_MONOSH
 			#undef BAKERY_VERTEXLM
 			#endif
 			
@@ -3786,7 +3876,7 @@ Shader "orels1/Standard Layered Parallax"
 			
 			#define lumaConv float3(0.2125f, 0.7154f, 0.0721f)
 			
-			#if defined(BAKERY_SH) || defined(BAKERY_VERTEXLMSH) || defined(BAKERY_PROBESHNONLINEAR) || defined(BAKERY_VOLUME)
+			#if defined(BAKERY_SH) || defined(BAKERY_MONOSH) || defined(BAKERY_VERTEXLMSH) || defined(BAKERY_PROBESHNONLINEAR) || defined(BAKERY_VOLUME)
 			float shEvaluateDiffuseL1Geomerics(float L0, float3 L1, float3 n)
 			{
 				// average energy
@@ -3827,6 +3917,52 @@ Shader "orels1/Standard Layered Parallax"
 				return float3(r, g, b);
 			}
 			#if defined(BAKERY_VERTEXLMDIR)
+			
+			#ifdef BAKERY_MONOSH
+			void BakeryVertexLMMonoSH(inout float3 diffuseColor, inout float3 specularColor, float3 nL1, float3 normalWorld, float3 viewDir, float smoothness)
+			{
+				nL1 = nL1;
+				float3 L0 = diffuseColor;
+				float3 L1x = nL1.x * L0 * 2;
+				float3 L1y = nL1.y * L0 * 2;
+				float3 L1z = nL1.z * L0 * 2;
+				
+				float3 sh;
+				#if BAKERY_SHNONLINEAR
+				//sh.r = shEvaluateDiffuseL1Geomerics(L0.r, float3(L1x.r, L1y.r, L1z.r), normalWorld);
+				//sh.g = shEvaluateDiffuseL1Geomerics(L0.g, float3(L1x.g, L1y.g, L1z.g), normalWorld);
+				//sh.b = shEvaluateDiffuseL1Geomerics(L0.b, float3(L1x.b, L1y.b, L1z.b), normalWorld);
+				
+				float lumaL0 = dot(L0, 1);
+				float lumaL1x = dot(L1x, 1);
+				float lumaL1y = dot(L1y, 1);
+				float lumaL1z = dot(L1z, 1);
+				float lumaSH = shEvaluateDiffuseL1Geomerics(lumaL0, float3(lumaL1x, lumaL1y, lumaL1z), normalWorld);
+				
+				sh = L0 + normalWorld.x * L1x + normalWorld.y * L1y + normalWorld.z * L1z;
+				float regularLumaSH = dot(sh, 1);
+				//sh *= regularLumaSH < 0.001 ? 1 : (lumaSH / regularLumaSH);
+				sh *= lerp(1, lumaSH / regularLumaSH, saturate(regularLumaSH*16));
+				
+				#else
+				sh = L0 + normalWorld.x * L1x + normalWorld.y * L1y + normalWorld.z * L1z;
+				#endif
+				
+				diffuseColor = max(sh, 0.0);
+				
+				#ifdef BAKERY_LMSPEC
+				float3 dominantDir = nL1;
+				float focus = saturate(length(dominantDir));
+				half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) - viewDir);
+				half nh = saturate(dot(normalWorld, halfDir));
+				half perceptualRoughness = SmoothnessToPerceptualRoughness(smoothness );//* sqrt(focus));
+				half roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+				half spec = GGXTerm(nh, roughness);
+				specularColor = max(spec * sh, 0.0);
+				#endif
+			}
+			#endif
+			
 			void BakeryVertexLMDirection(inout float3 diffuseColor, inout float3 specularColor, float3 lightDirection, float3 vertexNormalWorld, float3 normalWorld, float3 viewDir, float smoothness)
 			{
 				float3 dominantDir = Unity_SafeNormalize(lightDirection);
@@ -4123,6 +4259,7 @@ Shader "orels1/Standard Layered Parallax"
 				#endif
 			}
 			#endif
+			
 			#endif
 			//BAKERY_ENABLED
 			
@@ -4435,7 +4572,33 @@ Shader "orels1/Standard Layered Parallax"
 				
 				#if defined(DIRLIGHTMAP_COMBINED)
 				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
+				#if !defined(BAKERY_MONOSH)
 				lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
+				#endif
+				#endif
+				
+				#if defined(BAKERY_MONOSH) && defined(BAKERY_ENABLED) && defined(DIRLIGHTMAP_COMBINED)
+				half3 L0 = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
+				half3 nL1 = lightMapDirection.xyz * 2.0 - 1.0;
+				half3 L1x = nL1.x * L0 * 2.0;
+				half3 L1y = nL1.y * L0 * 2.0;
+				half3 L1z = nL1.z * L0 * 2.0;
+				
+				#if defined(BAKERY_SHNONLINEAR)
+				half lumaL0 = dot(L0, 1);
+				half lumaL1x = dot(L1x, 1);
+				half lumaL1y = dot(L1y, 1);
+				half lumaL1z = dot(L1z, 1);
+				half lumaSH = shEvaluateDiffuseL1Geomerics(lumaL0, half3(lumaL1x, lumaL1y, lumaL1z), o.Normal);
+				
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				half regularLumaSH = dot(lightMap, 1);
+				lightMap *= lerp(1, lumaSH / regularLumaSH, saturate(regularLumaSH*16));
+				#else
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				#endif
+				
+				lightMap = max(lightMap, 0.0);
 				#endif
 				
 				#if defined(DYNAMICLIGHTMAP_ON) && !defined(UNITY_PBS_USE_BRDF2)
@@ -4537,6 +4700,19 @@ Shader "orels1/Standard Layered Parallax"
 				{
 					half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
 					half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + d.worldSpaceViewDir);
+					half NoH = saturate(dot(o.Normal, halfDir));
+					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+					half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
+					dominantDir = normalize(dominantDir);
+					directSpecular += max(spec * sh, 0.0) * fresnel;
+				}
+				#endif
+				
+				#if defined(BAKERY_MONOSH)
+				{
+					half3 dominantDir = nL1;
+					half focus = saturate(length(dominantDir));
+					half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) - d.worldSpaceViewDir);
 					half NoH = saturate(dot(o.Normal, halfDir));
 					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
 					half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
@@ -5524,6 +5700,7 @@ Shader "orels1/Standard Layered Parallax"
 			#if defined(BAKERY_DOMINANT)
 			#undef BAKERY_RNM
 			#undef BAKERY_SH
+			#undef BAKERY_MONOSH
 			#endif
 			
 			#ifdef BICUBIC_LIGHTMAP
@@ -5544,6 +5721,7 @@ Shader "orels1/Standard Layered Parallax"
 			
 			#undef BAKERY_RNM
 			#undef BAKERY_SH
+			#undef BAKERY_MONOSH
 			#undef BAKERY_VERTEXLM
 			#endif
 			
@@ -5567,7 +5745,7 @@ Shader "orels1/Standard Layered Parallax"
 			
 			#define lumaConv float3(0.2125f, 0.7154f, 0.0721f)
 			
-			#if defined(BAKERY_SH) || defined(BAKERY_VERTEXLMSH) || defined(BAKERY_PROBESHNONLINEAR) || defined(BAKERY_VOLUME)
+			#if defined(BAKERY_SH) || defined(BAKERY_MONOSH) || defined(BAKERY_VERTEXLMSH) || defined(BAKERY_PROBESHNONLINEAR) || defined(BAKERY_VOLUME)
 			float shEvaluateDiffuseL1Geomerics(float L0, float3 L1, float3 n)
 			{
 				// average energy
@@ -5608,6 +5786,52 @@ Shader "orels1/Standard Layered Parallax"
 				return float3(r, g, b);
 			}
 			#if defined(BAKERY_VERTEXLMDIR)
+			
+			#ifdef BAKERY_MONOSH
+			void BakeryVertexLMMonoSH(inout float3 diffuseColor, inout float3 specularColor, float3 nL1, float3 normalWorld, float3 viewDir, float smoothness)
+			{
+				nL1 = nL1;
+				float3 L0 = diffuseColor;
+				float3 L1x = nL1.x * L0 * 2;
+				float3 L1y = nL1.y * L0 * 2;
+				float3 L1z = nL1.z * L0 * 2;
+				
+				float3 sh;
+				#if BAKERY_SHNONLINEAR
+				//sh.r = shEvaluateDiffuseL1Geomerics(L0.r, float3(L1x.r, L1y.r, L1z.r), normalWorld);
+				//sh.g = shEvaluateDiffuseL1Geomerics(L0.g, float3(L1x.g, L1y.g, L1z.g), normalWorld);
+				//sh.b = shEvaluateDiffuseL1Geomerics(L0.b, float3(L1x.b, L1y.b, L1z.b), normalWorld);
+				
+				float lumaL0 = dot(L0, 1);
+				float lumaL1x = dot(L1x, 1);
+				float lumaL1y = dot(L1y, 1);
+				float lumaL1z = dot(L1z, 1);
+				float lumaSH = shEvaluateDiffuseL1Geomerics(lumaL0, float3(lumaL1x, lumaL1y, lumaL1z), normalWorld);
+				
+				sh = L0 + normalWorld.x * L1x + normalWorld.y * L1y + normalWorld.z * L1z;
+				float regularLumaSH = dot(sh, 1);
+				//sh *= regularLumaSH < 0.001 ? 1 : (lumaSH / regularLumaSH);
+				sh *= lerp(1, lumaSH / regularLumaSH, saturate(regularLumaSH*16));
+				
+				#else
+				sh = L0 + normalWorld.x * L1x + normalWorld.y * L1y + normalWorld.z * L1z;
+				#endif
+				
+				diffuseColor = max(sh, 0.0);
+				
+				#ifdef BAKERY_LMSPEC
+				float3 dominantDir = nL1;
+				float focus = saturate(length(dominantDir));
+				half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) - viewDir);
+				half nh = saturate(dot(normalWorld, halfDir));
+				half perceptualRoughness = SmoothnessToPerceptualRoughness(smoothness );//* sqrt(focus));
+				half roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+				half spec = GGXTerm(nh, roughness);
+				specularColor = max(spec * sh, 0.0);
+				#endif
+			}
+			#endif
+			
 			void BakeryVertexLMDirection(inout float3 diffuseColor, inout float3 specularColor, float3 lightDirection, float3 vertexNormalWorld, float3 normalWorld, float3 viewDir, float smoothness)
 			{
 				float3 dominantDir = Unity_SafeNormalize(lightDirection);
@@ -5904,6 +6128,7 @@ Shader "orels1/Standard Layered Parallax"
 				#endif
 			}
 			#endif
+			
 			#endif
 			//BAKERY_ENABLED
 			
@@ -6216,7 +6441,33 @@ Shader "orels1/Standard Layered Parallax"
 				
 				#if defined(DIRLIGHTMAP_COMBINED)
 				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
+				#if !defined(BAKERY_MONOSH)
 				lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
+				#endif
+				#endif
+				
+				#if defined(BAKERY_MONOSH) && defined(BAKERY_ENABLED) && defined(DIRLIGHTMAP_COMBINED)
+				half3 L0 = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
+				half3 nL1 = lightMapDirection.xyz * 2.0 - 1.0;
+				half3 L1x = nL1.x * L0 * 2.0;
+				half3 L1y = nL1.y * L0 * 2.0;
+				half3 L1z = nL1.z * L0 * 2.0;
+				
+				#if defined(BAKERY_SHNONLINEAR)
+				half lumaL0 = dot(L0, 1);
+				half lumaL1x = dot(L1x, 1);
+				half lumaL1y = dot(L1y, 1);
+				half lumaL1z = dot(L1z, 1);
+				half lumaSH = shEvaluateDiffuseL1Geomerics(lumaL0, half3(lumaL1x, lumaL1y, lumaL1z), o.Normal);
+				
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				half regularLumaSH = dot(lightMap, 1);
+				lightMap *= lerp(1, lumaSH / regularLumaSH, saturate(regularLumaSH*16));
+				#else
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				#endif
+				
+				lightMap = max(lightMap, 0.0);
 				#endif
 				
 				#if defined(DYNAMICLIGHTMAP_ON) && !defined(UNITY_PBS_USE_BRDF2)
@@ -6318,6 +6569,19 @@ Shader "orels1/Standard Layered Parallax"
 				{
 					half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
 					half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + d.worldSpaceViewDir);
+					half NoH = saturate(dot(o.Normal, halfDir));
+					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+					half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
+					dominantDir = normalize(dominantDir);
+					directSpecular += max(spec * sh, 0.0) * fresnel;
+				}
+				#endif
+				
+				#if defined(BAKERY_MONOSH)
+				{
+					half3 dominantDir = nL1;
+					half focus = saturate(length(dominantDir));
+					half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) - d.worldSpaceViewDir);
 					half NoH = saturate(dot(o.Normal, halfDir));
 					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
 					half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
@@ -6509,7 +6773,7 @@ Shader "orels1/Standard Layered Parallax"
 			
 			// Bakery Stuff
 			#pragma shader_feature_local BAKERY_ENABLED
-			#pragma shader_feature_local _ BAKERY_RNM BAKERY_SH
+			#pragma shader_feature_local _ BAKERY_RNM BAKERY_SH BAKERY_MONOSH
 			#pragma shader_feature_local BAKERY_SHNONLINEAR
 			
 			#define UNITY_INSTANCED_LOD_FADE
@@ -7311,6 +7575,7 @@ Shader "orels1/Standard Layered Parallax"
 			#if defined(BAKERY_DOMINANT)
 			#undef BAKERY_RNM
 			#undef BAKERY_SH
+			#undef BAKERY_MONOSH
 			#endif
 			
 			#ifdef BICUBIC_LIGHTMAP
@@ -7331,6 +7596,7 @@ Shader "orels1/Standard Layered Parallax"
 			
 			#undef BAKERY_RNM
 			#undef BAKERY_SH
+			#undef BAKERY_MONOSH
 			#undef BAKERY_VERTEXLM
 			#endif
 			
@@ -7354,7 +7620,7 @@ Shader "orels1/Standard Layered Parallax"
 			
 			#define lumaConv float3(0.2125f, 0.7154f, 0.0721f)
 			
-			#if defined(BAKERY_SH) || defined(BAKERY_VERTEXLMSH) || defined(BAKERY_PROBESHNONLINEAR) || defined(BAKERY_VOLUME)
+			#if defined(BAKERY_SH) || defined(BAKERY_MONOSH) || defined(BAKERY_VERTEXLMSH) || defined(BAKERY_PROBESHNONLINEAR) || defined(BAKERY_VOLUME)
 			float shEvaluateDiffuseL1Geomerics(float L0, float3 L1, float3 n)
 			{
 				// average energy
@@ -7395,6 +7661,52 @@ Shader "orels1/Standard Layered Parallax"
 				return float3(r, g, b);
 			}
 			#if defined(BAKERY_VERTEXLMDIR)
+			
+			#ifdef BAKERY_MONOSH
+			void BakeryVertexLMMonoSH(inout float3 diffuseColor, inout float3 specularColor, float3 nL1, float3 normalWorld, float3 viewDir, float smoothness)
+			{
+				nL1 = nL1;
+				float3 L0 = diffuseColor;
+				float3 L1x = nL1.x * L0 * 2;
+				float3 L1y = nL1.y * L0 * 2;
+				float3 L1z = nL1.z * L0 * 2;
+				
+				float3 sh;
+				#if BAKERY_SHNONLINEAR
+				//sh.r = shEvaluateDiffuseL1Geomerics(L0.r, float3(L1x.r, L1y.r, L1z.r), normalWorld);
+				//sh.g = shEvaluateDiffuseL1Geomerics(L0.g, float3(L1x.g, L1y.g, L1z.g), normalWorld);
+				//sh.b = shEvaluateDiffuseL1Geomerics(L0.b, float3(L1x.b, L1y.b, L1z.b), normalWorld);
+				
+				float lumaL0 = dot(L0, 1);
+				float lumaL1x = dot(L1x, 1);
+				float lumaL1y = dot(L1y, 1);
+				float lumaL1z = dot(L1z, 1);
+				float lumaSH = shEvaluateDiffuseL1Geomerics(lumaL0, float3(lumaL1x, lumaL1y, lumaL1z), normalWorld);
+				
+				sh = L0 + normalWorld.x * L1x + normalWorld.y * L1y + normalWorld.z * L1z;
+				float regularLumaSH = dot(sh, 1);
+				//sh *= regularLumaSH < 0.001 ? 1 : (lumaSH / regularLumaSH);
+				sh *= lerp(1, lumaSH / regularLumaSH, saturate(regularLumaSH*16));
+				
+				#else
+				sh = L0 + normalWorld.x * L1x + normalWorld.y * L1y + normalWorld.z * L1z;
+				#endif
+				
+				diffuseColor = max(sh, 0.0);
+				
+				#ifdef BAKERY_LMSPEC
+				float3 dominantDir = nL1;
+				float focus = saturate(length(dominantDir));
+				half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) - viewDir);
+				half nh = saturate(dot(normalWorld, halfDir));
+				half perceptualRoughness = SmoothnessToPerceptualRoughness(smoothness );//* sqrt(focus));
+				half roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+				half spec = GGXTerm(nh, roughness);
+				specularColor = max(spec * sh, 0.0);
+				#endif
+			}
+			#endif
+			
 			void BakeryVertexLMDirection(inout float3 diffuseColor, inout float3 specularColor, float3 lightDirection, float3 vertexNormalWorld, float3 normalWorld, float3 viewDir, float smoothness)
 			{
 				float3 dominantDir = Unity_SafeNormalize(lightDirection);
@@ -7691,6 +8003,7 @@ Shader "orels1/Standard Layered Parallax"
 				#endif
 			}
 			#endif
+			
 			#endif
 			//BAKERY_ENABLED
 			
@@ -8003,7 +8316,33 @@ Shader "orels1/Standard Layered Parallax"
 				
 				#if defined(DIRLIGHTMAP_COMBINED)
 				half4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, lightmapUV);
+				#if !defined(BAKERY_MONOSH)
 				lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
+				#endif
+				#endif
+				
+				#if defined(BAKERY_MONOSH) && defined(BAKERY_ENABLED) && defined(DIRLIGHTMAP_COMBINED)
+				half3 L0 = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
+				half3 nL1 = lightMapDirection.xyz * 2.0 - 1.0;
+				half3 L1x = nL1.x * L0 * 2.0;
+				half3 L1y = nL1.y * L0 * 2.0;
+				half3 L1z = nL1.z * L0 * 2.0;
+				
+				#if defined(BAKERY_SHNONLINEAR)
+				half lumaL0 = dot(L0, 1);
+				half lumaL1x = dot(L1x, 1);
+				half lumaL1y = dot(L1y, 1);
+				half lumaL1z = dot(L1z, 1);
+				half lumaSH = shEvaluateDiffuseL1Geomerics(lumaL0, half3(lumaL1x, lumaL1y, lumaL1z), o.Normal);
+				
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				half regularLumaSH = dot(lightMap, 1);
+				lightMap *= lerp(1, lumaSH / regularLumaSH, saturate(regularLumaSH*16));
+				#else
+				lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
+				#endif
+				
+				lightMap = max(lightMap, 0.0);
 				#endif
 				
 				#if defined(DYNAMICLIGHTMAP_ON) && !defined(UNITY_PBS_USE_BRDF2)
@@ -8105,6 +8444,19 @@ Shader "orels1/Standard Layered Parallax"
 				{
 					half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
 					half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + d.worldSpaceViewDir);
+					half NoH = saturate(dot(o.Normal, halfDir));
+					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+					half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
+					dominantDir = normalize(dominantDir);
+					directSpecular += max(spec * sh, 0.0) * fresnel;
+				}
+				#endif
+				
+				#if defined(BAKERY_MONOSH)
+				{
+					half3 dominantDir = nL1;
+					half focus = saturate(length(dominantDir));
+					half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) - d.worldSpaceViewDir);
 					half NoH = saturate(dot(o.Normal, halfDir));
 					half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
 					half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;

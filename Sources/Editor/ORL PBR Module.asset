@@ -149,13 +149,13 @@ MonoBehaviour:
     Attributes:
     - Toggle(BAKERY_ENABLED)
   - Name: BAKERY
-    DisplayName: Bakery Mode
+    DisplayName: Bakery Mode [BAKERY_ENABLED]
     Type: Int
     DefaultValue: 0
     DefaultTextureAsset: {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a,
       type: 3}
     Attributes:
-    - KeywordEnum(None, SH, RNM)
+    - KeywordEnum(None, MONOSH, SH, RNM)
   - Name: _BakerySHNonLinear
     DisplayName: Bakery Non-Linear SH [BAKERY_ENABLED]
     Type: Int
