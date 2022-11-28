@@ -18,7 +18,7 @@
     #if !defined(UNITY_PASS_SHADOWCASTER)
     float4 lightmapUv : LM_UV;
     #endif
-    float4 vertexColor : VERTEX_COLOR;
+    centroid float4 vertexColor : VERTEX_COLOR;
 
     #if !defined(UNITY_PASS_META)
     UNITY_LIGHTING_COORDS(5, 6)

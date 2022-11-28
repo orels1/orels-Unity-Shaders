@@ -203,8 +203,9 @@ namespace ORL.ShaderInspector
 
         private void DrawFooter(MaterialEditor editor)
         {
+            EditorGUI.indentLevel = 1;
             editor.EnableInstancingField();
-            editor.LightmapEmissionFlagsProperty(EditorGUI.indentLevel - 1, true);
+            editor.LightmapEmissionFlagsProperty(0, true, true);
             editor.DoubleSidedGIField();
         }
     }

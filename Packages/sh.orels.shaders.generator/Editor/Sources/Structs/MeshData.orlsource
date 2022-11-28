@@ -4,6 +4,9 @@
     half2 uv1;
     half2 uv2;
     half2 uv3;
+    #if !defined(UNITY_PASS_SHADOWCASTER)
+    half4 lightmapUv;
+    #endif
     half4 vertexColor;
     half3 normal;
     half3 worldNormal;
@@ -26,6 +29,9 @@ MeshData CreateMeshData(FragmentData i)
     d.uv1 = i.uv1;
     d.uv2 = i.uv2;
     d.uv3 = i.uv3;
+    #if !defined(UNITY_PASS_SHADOWCASTER)
+    d.lightmapUv = i.lightmapUv;
+    #endif
     d.worldNormal = normalize(i.worldNormal);
     d.localSpacePosition = mul(unity_WorldToObject, float4(i.worldPos, 1)).xyz;
     d.worldSpacePosition = i.worldPos;
@@ -35,7 +41,7 @@ MeshData CreateMeshData(FragmentData i)
     d.vertexColor = i.vertexColor;
 
     #if !defined(UNITY_PASS_SHADOWCASTER)
-    float3 bitangent = cross(i.worldTangent.xyz, i.worldNormal) * i.worldTangent.w * - 1;
+    float3 bitangent = cross(i.worldTangent.xyz, d.worldNormal) * i.worldTangent.w * - 1;
     d.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, d.worldNormal);
     d.tangentSpaceViewDir = mul(d.TBNMatrix, d.worldSpaceViewDir);
     #endif

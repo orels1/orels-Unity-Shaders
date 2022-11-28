@@ -19,20 +19,20 @@ namespace ORL.ShaderGenerator
 
         private HashSet<string> _paramsOnlyBlock = new HashSet<string>
         {
-            "ShaderName"
+            "ShaderName",
+            "CustomEditor"
         };
 
         private List<ShaderBlock> _builtInBlocks;
 
-        private string[] _dataStructs = new[]
-        {
+        private string[] _dataStructs = {
             "@/Structs/VertexData",
             "@/Structs/FragmentData",
             "@/Structs/SurfaceData",
             "@/Structs/MeshData"
         };
         
-        public List<ShaderBlock> BuiltInBlocks
+        private List<ShaderBlock> BuiltInBlocks
         {
             get
             {
@@ -64,11 +64,12 @@ namespace ORL.ShaderGenerator
         
         private Dictionary<string, string> _functions = new Dictionary<string, string>
         {
-            { "VertexBase", "@/Functions/VertexBase" }
+            { "VertexBase", "@/Functions/VertexBase" },
+            { "FragmentBase", "@/Functions/FragmentBase" }
         };
 
         private Regex _callSignRegex = new Regex(@"(?:^void\s*)(?<fnName>[\w]+)\((?<params>[\w\,\s]+)\)");
-        public List<ShaderBlock> BuiltInFunctions
+        private List<ShaderBlock> BuiltInFunctions
         {
             get
             {
@@ -101,7 +102,54 @@ namespace ORL.ShaderGenerator
             }
         }
 
-        private Regex replacerRegex = new Regex(@"(?<!\/\/\s*)(%[a-zA-Z]+[\w\d]+)");
+        private string[] _libraries = {
+            "@/Libraries/LightingHelpers",
+            "@/Libraries/Utilities"
+        };
+
+        private string _samplingLib = "@/Libraries/SamplingLibrary";
+        
+        private List<ShaderBlock> _builtInLibraries;
+        
+        private List<ShaderBlock> BuiltInLibraries
+        {
+            get
+            {
+                if (_builtInLibraries != null) return _builtInLibraries;
+                var blocks = new List<ShaderBlock>();
+                var libraryBlock = new ShaderBlock
+                {
+                    Name = "LibraryFunctions",
+                    Params = new List<string>(),
+                    Contents = ""
+                };
+                var library = new StringBuilder();
+                foreach (var block in _libraries)
+                {
+                    var blockSource = Utils.GetORLSource(block);
+                    library.Append(string.Join("\n", blockSource));
+                    // avoiding appending \r\n at the end of the file
+                    library.Append('\n');
+                }
+                libraryBlock.Contents = library.ToString();
+                blocks.Add(libraryBlock);
+                
+                // Add sampling lib directly as well, we want it everywhere
+                var samplingLibBlock = new ShaderBlock
+                {
+                    Name = "SamplingLibrary",
+                    Params = new List<string>(),
+                    Contents = string.Join("\n", Utils.GetORLSource(_samplingLib)) + "\n"
+                };
+                blocks.Add(samplingLibBlock);
+                
+                _builtInLibraries = blocks;
+                return _builtInLibraries;
+            }
+        }
+        
+        // Matches %BlockName without nuking %FunctionName()
+        private Regex _replacerRegex = new Regex(@"(?<!\/\/\s*)(%[a-zA-Z]+[\w\d]+)(?:$|[""\;\s])");
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
@@ -132,10 +180,26 @@ namespace ORL.ShaderGenerator
                     ctx.DependsOnSourceAsset(path);
                 }
             }
+            
+            foreach (var s in _libraries)
+            {
+                var path = Utils.ResolveORLAsset($"{s}.orlsource");
+                if (!string.IsNullOrEmpty(path))
+                {
+                    ctx.DependsOnSourceAsset(path);
+                }
+            }
+
+            var samplingLibPath = Utils.ResolveORLAsset($"{_samplingLib}.orlsource");
+            if (!string.IsNullOrEmpty(samplingLibPath))
+            {
+                ctx.DependsOnSourceAsset(samplingLibPath);
+            }
 
             var blocks = Parser.ParseShaderDefinition(textContent);
             blocks.AddRange(BuiltInBlocks);
             blocks.AddRange(BuiltInFunctions);
+            blocks.AddRange(BuiltInLibraries);
             
             var functionBlocks = blocks.Where(b => b.IsFunction).Reverse().ToList();
 
@@ -144,13 +208,15 @@ namespace ORL.ShaderGenerator
             {
                 var newLine = new StringBuilder(line);
                 var hadMatch = false;
-                while (replacerRegex.IsMatch(newLine.ToString()))
+                while (_replacerRegex.IsMatch(newLine.ToString()))
                 {
                     hadMatch = true;
-                    var match = replacerRegex.Match(newLine.ToString());
-                    if (match.Value == "%Functions")
+                    var match = _replacerRegex.Match(newLine.ToString());
+                    var matchVal = match.Groups[1].Value;
+                    var matchLen = matchVal.Length;
+                    if (matchVal == "%Functions")
                     {
-                        newLine.Remove(match.Index, match.Length);
+                        newLine.Remove(match.Index, matchLen);
                         var i = 0;
                         foreach (var functionBlock in functionBlocks)
                         {
@@ -166,10 +232,10 @@ namespace ORL.ShaderGenerator
                         continue;
                     }
 
-                    if (match.Value == "%FragmentFunctions")
+                    if (matchVal == "%FragmentFunctions")
                     {
                         var fragmentFns = functionBlocks.FindAll(b => b.Name == "Fragment");
-                        newLine.Remove(match.Index, match.Length);
+                        newLine.Remove(match.Index, matchLen);
                         var i = 0;
                         foreach (var functionBlock in fragmentFns)
                         {
@@ -183,15 +249,22 @@ namespace ORL.ShaderGenerator
                         }
                         continue;
                     }
-                    var foundBlockIndex = blocks.FindIndex(b => $"%{b.Name}" == match.Value);
+                    var foundBlockIndex = blocks.FindIndex(b => $"%{b.Name}" == matchVal);
                     if (foundBlockIndex != -1)
                     {
                         var block = blocks[foundBlockIndex];
                         // These are special single-line blocks that only insert their params value
                         if (_paramsOnlyBlock.Contains(block.Name))
                         {
-                            newLine.Remove(match.Index, match.Length);
-                            newLine.Insert(match.Index, string.Join("", block.Params));
+                            newLine.Remove(match.Index, matchLen);
+                            if (block.Name == "CustomEditor")
+                            {
+                                newLine.Insert(match.Index, block.Params[0].Replace("\"", ""));
+                            }
+                            else
+                            {
+                                newLine.Insert(match.Index, string.Join("", block.Params));
+                            }
                             continue;
                         }
 
@@ -200,7 +273,7 @@ namespace ORL.ShaderGenerator
                         // These are handled for unique blocks like Vert/Fragment base
                         if (block.IsFunction)
                         {
-                            newLine.Remove(match.Index, match.Length);
+                            newLine.Remove(match.Index, matchLen);
                             newLine.Insert(match.Index, block.CallSign);
                             continue;
                         }
@@ -229,14 +302,14 @@ namespace ORL.ShaderGenerator
                             i++;
                         }
 
-                        newLine.Remove(match.Index, match.Length);
+                        newLine.Remove(match.Index, matchLen);
                         newLine.Insert(match.Index, sb.ToString());
                         continue;
                     }
                     
                     // if nothing matched - clear out the current template hook and move on
                     {
-                        newLine.Remove(match.Index, match.Length);
+                        newLine.Remove(match.Index, matchLen);
                     }
                 }
 
@@ -257,7 +330,7 @@ namespace ORL.ShaderGenerator
                 var errors = ShaderUtil.GetShaderMessages(shader);
                 foreach (var error in errors)
                 {
-                    ctx.LogImportError(error.message);
+                    ctx.LogImportError(error.message + $"on line {error.line} in {ctx.assetPath}");
                 }
             }
             else

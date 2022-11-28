@@ -29,10 +29,10 @@ public class ShaderDefinitionImporterEditor : ScriptedImporterEditor
                 {
                     var text = textAsset.text;
                     var split = text.Split('\n');
-                    // for (int i = 0; i < split.Length; i++)
-                    // {
-                    //     split[i] = $"{(i + 1).ToString(),4}    {split[i]}";
-                    // }
+                    for (int i = 0; i < split.Length; i++)
+                    {
+                        split[i] = $"{(i + 1).ToString(),4}    {split[i]}";
+                    }
 
                     text = string.Join("\n", split);
                     var style = new GUIStyle(EditorStyles.textArea)
