@@ -1,0 +1,59 @@
+void VertexBase(inout VertexData v, inout FragmentData o) {
+    #if defined(UNITY_PASS_META)
+    o.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
+    #else
+    o.pos = UnityObjectToClipPos(v.vertex);
+    #endif
+    o.normal = v.normal;
+    o.uv0 = v.uv0;
+    o.uv1 = v.uv1;
+    o.uv2 = v.uv2;
+    o.uv3 = v.uv3;
+    o.worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1));
+    o.worldNormal = UnityObjectToWorldNormal(v.normal.xyz);
+    o.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
+    o.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
+    o.vertexColor = v.color;
+
+    #if defined(EDITOR_VISUALIZATION)
+    o.vizUV = 0;
+    o.lightCoord = 0;
+    if (unity_VisualizationMode == EDITORVIZ_TEXTURE)
+    {
+        o.vizUV = UnityMetaVizUV(unity_EditorViz_UVIndex, v.uv0.xy, v.uv1.xy, v.uv2.xy, unity_EditorViz_Texture_ST);
+    }
+    else if (unity_VisualizationMode == EDITORVIZ_SHOWLIGHTMASK)
+    {
+        o.vizUV = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+        o.lightCoord = mul(unity_EditorViz_WorldToLight, mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1)));
+    }
+    #endif
+
+    #if defined(NEED_SCREEN_POS)
+    o.screenPos = ComputeScreenPos(o.pos);
+    #endif
+
+    #if !defined(UNITY_PASS_META)
+        #if defined(LIGHTMAP_ON)
+        o.lightmapUv.xy = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+        #endif
+        #if defined(DYNAMICLIGHTMAP_ON)
+        o.lightmapUv.zw = v.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+        #endif
+        
+        UNITY_TRANSFER_LIGHTING(o, v.uv1.xy);
+    
+        #if !defined(UNITY_PASS_FORWARDADD)
+            // unity does some funky stuff for different platforms with these macros
+            #ifdef FOG_COMBINED_WITH_TSPACE
+                UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i, o.pos);
+            #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+                UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i, o.pos);
+            #else
+                UNITY_TRANSFER_FOG(i, o.pos);
+            #endif
+        #else
+            UNITY_TRANSFER_FOG(i, o.pos);
+        #endif
+    #endif
+}

@@ -1,0 +1,10 @@
+﻿struct SurfaceData
+{
+  half3 Albedo;
+  half3 Emission;
+  half Metallic;
+  half Smoothness;
+  half Occlusion;
+  half3 Normal;
+  half Alpha;
+};

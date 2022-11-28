@@ -1,0 +1,19 @@
+{
+  "name": "sh.orels.shaders.generator",
+  "displayName": "ORL Shader Generator",
+  "description": "A template-based shader generator utilizing scripted importers",
+  "version": "1.0.0",
+  "unity": "2019.4",
+  "author": {
+    "name": "orels1",
+    "url": "https://github.com/orels1"
+  },
+  "documentationUrl": "https://shaders.orels.sh/docs/development",
+  "keywords": [
+    "shaders",
+    "generator",
+    "editor script"
+  ],
+  "license": "MIT",
+  "type": "tool"
+}
