@@ -19,8 +19,8 @@ namespace ORL.ShaderGenerator
 
         private HashSet<string> _paramsOnlyBlock = new HashSet<string>
         {
-            "ShaderName",
-            "CustomEditor"
+            "%ShaderName",
+            "%CustomEditor"
         };
 
         private List<ShaderBlock> _builtInBlocks;
@@ -40,20 +40,17 @@ namespace ORL.ShaderGenerator
                 var blocks = new List<ShaderBlock>();
                 var structsBlock = new ShaderBlock
                 {
-                    Name = "DataStructs",
+                    Name = "%DataStructs",
                     Params = new List<string>(),
-                    Contents = ""
+                    Contents = new List<string>(),
                 };
-                var structs = new StringBuilder();
                 foreach (var block in _dataStructs)
                 {
                     var blockSource = Utils.GetORLSource(block);
-                    structs.Append(string.Join("\n", blockSource));
+                    structsBlock.Contents.AddRange(blockSource);
                     // avoiding appending \r\n at the end of the file
-                    structs.Append('\n');
+                    structsBlock.Contents.Add("\n");
                 }
-
-                structsBlock.Contents = structs.ToString();
                 blocks.Add(structsBlock);
                 _builtInBlocks = blocks;
                 return _builtInBlocks;
@@ -64,8 +61,8 @@ namespace ORL.ShaderGenerator
         
         private Dictionary<string, string> _functions = new Dictionary<string, string>
         {
-            { "VertexBase", "@/Functions/VertexBase" },
-            { "FragmentBase", "@/Functions/FragmentBase" }
+            { "%VertexBase", "@/Functions/VertexBase" },
+            { "%FragmentBase", "@/Functions/FragmentBase" }
         };
 
         private Regex _callSignRegex = new Regex(@"(?:^void\s*)(?<fnName>[\w]+)\((?<params>[\w\,\s]+)\)");
@@ -81,11 +78,12 @@ namespace ORL.ShaderGenerator
                     {
                         Name = function.Key,
                         Params = new List<string>(),
-                        Contents = "",
+                        Contents = new List<string>(),
                         IsFunction = true
                     };
-                    functionBlock.Contents = string.Join("\n", Utils.GetORLSource(function.Value)) + "\n";
-                    var callSignMatch = _callSignRegex.Match(functionBlock.Contents.Split('\n')[0]);
+                    functionBlock.Contents.AddRange(Utils.GetORLSource(function.Value));
+                    functionBlock.Contents.Add("\n");
+                    var callSignMatch = _callSignRegex.Match(functionBlock.Contents[0]);
                     if (callSignMatch.Success)
                     {
                         var fnName = callSignMatch.Groups["fnName"].Value;
@@ -119,28 +117,27 @@ namespace ORL.ShaderGenerator
                 var blocks = new List<ShaderBlock>();
                 var libraryBlock = new ShaderBlock
                 {
-                    Name = "LibraryFunctions",
+                    Name = "%LibraryFunctions",
                     Params = new List<string>(),
-                    Contents = ""
+                    Contents = new List<string>()
                 };
-                var library = new StringBuilder();
                 foreach (var block in _libraries)
                 {
                     var blockSource = Utils.GetORLSource(block);
-                    library.Append(string.Join("\n", blockSource));
+                    libraryBlock.Contents.AddRange(blockSource);
                     // avoiding appending \r\n at the end of the file
-                    library.Append('\n');
+                    libraryBlock.Contents.Add("\n");
                 }
-                libraryBlock.Contents = library.ToString();
                 blocks.Add(libraryBlock);
                 
                 // Add sampling lib directly as well, we want it everywhere
                 var samplingLibBlock = new ShaderBlock
                 {
-                    Name = "SamplingLibrary",
+                    Name = "%SamplingLibrary",
                     Params = new List<string>(),
-                    Contents = string.Join("\n", Utils.GetORLSource(_samplingLib)) + "\n"
+                    Contents = Utils.GetORLSource(_samplingLib).ToList()
                 };
+                samplingLibBlock.Contents.Add("\n");
                 blocks.Add(samplingLibBlock);
                 
                 _builtInLibraries = blocks;
@@ -196,7 +193,9 @@ namespace ORL.ShaderGenerator
                 ctx.DependsOnSourceAsset(samplingLibPath);
             }
 
-            var blocks = Parser.ParseShaderDefinition(textContent);
+            // var blocks = Parser.ParseShaderDefinition(textContent);
+            var parser = new Parser();
+            var blocks = parser.Parse(textContent);
             blocks.AddRange(BuiltInBlocks);
             blocks.AddRange(BuiltInFunctions);
             blocks.AddRange(BuiltInLibraries);
@@ -234,7 +233,7 @@ namespace ORL.ShaderGenerator
 
                     if (matchVal == "%FragmentFunctions")
                     {
-                        var fragmentFns = functionBlocks.FindAll(b => b.Name == "Fragment");
+                        var fragmentFns = functionBlocks.FindAll(b => b.Name == "%Fragment");
                         newLine.Remove(match.Index, matchLen);
                         var i = 0;
                         foreach (var functionBlock in fragmentFns)
@@ -249,7 +248,7 @@ namespace ORL.ShaderGenerator
                         }
                         continue;
                     }
-                    var foundBlockIndex = blocks.FindIndex(b => $"%{b.Name}" == matchVal);
+                    var foundBlockIndex = blocks.FindIndex(b => b.Name == matchVal);
                     if (foundBlockIndex != -1)
                     {
                         var block = blocks[foundBlockIndex];
@@ -257,7 +256,7 @@ namespace ORL.ShaderGenerator
                         if (_paramsOnlyBlock.Contains(block.Name))
                         {
                             newLine.Remove(match.Index, matchLen);
-                            if (block.Name == "CustomEditor")
+                            if (block.Name == "%CustomEditor")
                             {
                                 newLine.Insert(match.Index, block.Params[0].Replace("\"", ""));
                             }
@@ -279,7 +278,7 @@ namespace ORL.ShaderGenerator
                         }
 
                         var baseOffset = match.Index;
-                        var contents = block.Contents.Split('\n');
+                        var contents = block.Contents;
                         var sb = new StringBuilder();
                         var i = 0;
                         foreach (var contentLine in contents)
@@ -291,13 +290,13 @@ namespace ORL.ShaderGenerator
                                 continue;
                             }
 
-                            if (i == contents.Length - 1)
+                            if (i == contents.Count - 1)
                             {
-                                sb.Append(contentLine.Insert(0, new string(' ', baseOffset)));
+                                sb.Append(new string(' ', baseOffset) + contentLine);
                             }
                             else
                             {
-                                sb.Append(contentLine.Insert(0, new string(' ', baseOffset)) + '\n');
+                                sb.Append(new string(' ', baseOffset) + contentLine + '\n');
                             }
                             i++;
                         }
@@ -349,12 +348,11 @@ namespace ORL.ShaderGenerator
             ctx.AddObjectToAsset("Shader Source", textAsset);
         }
 
-        private string IndentContents(string contents, int indentLevel)
+        private string IndentContents(List<string> contents, int indentLevel)
         {
-            var split = contents.Split('\n');
             var sb = new StringBuilder();
             var i = 0;
-            foreach (var contentLine in split)
+            foreach (var contentLine in contents)
             {
                 if (i == 0)
                 {
@@ -363,13 +361,13 @@ namespace ORL.ShaderGenerator
                     continue;
                 }
 
-                if (i == split.Length - 1)
+                if (i == contents.Count - 1)
                 {
-                    sb.Append(contentLine.Insert(0, new string(' ', indentLevel)));
+                    sb.Append(new string(' ', indentLevel) + contentLine);
                 }
                 else
                 {
-                    sb.Append(contentLine.Insert(0, new string(' ', indentLevel)) + '\n');
+                    sb.Append(new string(' ', indentLevel) + contentLine + '\n');
                 }
                 i++;
             }

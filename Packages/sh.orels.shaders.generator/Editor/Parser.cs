@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace ORL.ShaderGenerator
 {
@@ -10,7 +12,7 @@ namespace ORL.ShaderGenerator
     {
         public string Name { get; set; }
         public List<string> Params { get; set; }
-        public string Contents { get; set; }
+        public List<string> Contents { get; set; }
 
         public bool IsFunction { get; set; }
         
@@ -21,235 +23,206 @@ namespace ORL.ShaderGenerator
     {
         private static HashSet<string> _functionIdentifiers = new HashSet<string>
         {
-            "Fragment",
-            "Vertex",
-            "TessFactor",
-            "Color",
-            "Shadow"
+            "%Fragment",
+            "%Vertex",
+            "%TessFactor",
+            "%Color",
+            "%Shadow"
         };
         
         private static Regex _callSignRegex = new Regex(@"(?<fnName>[\w]+)\((?<params>[\w\,\s]+)\)");
-        public static List<ShaderBlock> ParseShaderDefinition(string[] lines)
+
+        private int current;
+        private int start;
+        private int total;
+        private int lineNumber;
+        private string[] lines;
+        private string currentLine;
+
+        public List<ShaderBlock> Parse(string[] source)
         {
-            var current = 0;
-            var source = string.Join("\n", lines);
-            var length = source.Length;
-            var results = new List<ShaderBlock>();
-            
-            var newLine = true;
-            while (current < length)
+            lines = source;
+            var blocks = new List<ShaderBlock>();
+            for (lineNumber = 0; lineNumber <= lines.Length; lineNumber++)
             {
-                switch (source[current])
+                var line = lines[lineNumber];
+                current = 0;
+                start = 0;
+                total = line.Length;
+                currentLine = line;
+                while (current < total)
                 {
-                    case '%':
-                        if (!newLine)
-                        {
+                    switch (currentLine[current])
+                    {
+                        case ' ':
+                            current++;
                             break;
-                        }
-                        if (IsLetter(Peek(current, source)))
-                        {
-                            var blockName = ConsumeUntil('(', ref current, source);
-                            if (!string.IsNullOrEmpty(blockName))
+                        case '\t':
+                            current++;
+                            break;
+                        case '%':
+                            if (start != 0)
                             {
-                                blockName = blockName.Substring(1);
                                 current++;
-                                var paramsString = ConsumeUntil(')', ref current, source);
+                                break;
+                            }
+                            start = current;
+                            if (IsLetter(Peek()))
+                            {
+                                var blockName = ConsumeUntil('(');
+                                if (string.IsNullOrEmpty(blockName))
+                                {
+                                    current++;
+                                    break;
+                                }
+                                Debug.Log($"Found Block: {blockName}");
+
+                                start = current + 1;
+                                var paramsString = ConsumeUntil(')');
                                 var paramsList = new List<string>();
                                 if (!string.IsNullOrEmpty(paramsString))
                                 {
-                                    // paramsString = paramsString.Substring(1);
                                     paramsList.AddRange(paramsString.Split(',').Select(s => s.Trim()));
                                 }
-                                var contents = "";
-                                if (ExistsInBlock('{', current, source))
-                                {
-                                    SeekUntilChar('{', ref current, source);
-                                    SeekToNextLine(ref current, source);
-                                    current++;
-                                    var start = current;
-                                    SeekUntilBlockEnd(ref current, source);
-                                    contents = source.Substring(start, current - start);
-                                    var split = contents.Split('\n');
-                                    var baseOffset = 0;
-                                    for (int i = 0; i < split.Length; i++)
-                                    {
-                                        if (string.IsNullOrWhiteSpace(split[i])) continue;
-                                        var converted = split[i].Replace("\t", "    ");
-                                        var offset = converted.TakeWhile(c => c == ' ').Count();
-                                        baseOffset = offset;
-                                        break;
-                                    }
-                                    for (int i = 0; i < split.Length; i++)
-                                    {
-                                        var lineStart = Mathf.Min(baseOffset, split[i].Replace("\t", "    ").TakeWhile(c => c == ' ').Count());
-                                        split[i] = split[i].Substring(lineStart);
-                                    }
-                                    contents = string.Join("\n", split);
-                                }
+                                Debug.Log($"{blockName} params: ({paramsString})");
 
+                                var contentOffset = BlockHasContent();
+                                var blockContent = new List<string>();
+                                if (contentOffset > 0)
+                                {
+                                    lineNumber += contentOffset;
+                                    Debug.Log($"{blockName} Has block content");
+                                    blockContent = ConsumeBlockContent();
+                                    if (blockContent != null)
+                                    {
+                                        Debug.Log($"{blockName} block content: {string.Join(",",blockContent)}");
+                                    }
+                                }
+                                
                                 var newBlock = new ShaderBlock
                                 {
                                     Name = blockName,
                                     Params = paramsList,
-                                    Contents = contents
+                                    Contents = blockContent
                                 };
                                 if (_functionIdentifiers.Contains(blockName))
                                 {
                                     newBlock.IsFunction = true;
-                                    var fnStartIndex = newBlock.Contents.IndexOf(newBlock.Params[0].Replace("\"", ""),StringComparison.InvariantCulture);
+                                    var fnName = newBlock.Params[0].Replace("\"", "");
+                                    var fnLine = newBlock.Contents.Find(s => s.Contains($"void {fnName}"));
+                                    var fnStartIndex = fnLine.IndexOf(fnName);
                                     if (fnStartIndex > 0)
                                     {
-                                        var callSignLine = newBlock.Contents.Substring(fnStartIndex, newBlock.Contents.Substring(fnStartIndex).IndexOf(')') + 1) + ";";
+                                        var callSignLine = fnLine.Substring(fnStartIndex, fnLine.Substring(fnStartIndex).IndexOf(')') + 1) + ";";
                                         var callSignMatch = _callSignRegex.Match(callSignLine);
-                                        var fnName = callSignMatch.Groups["fnName"].Value;
                                         var paramsStr = callSignMatch.Groups["params"].Value;
                                         var fnParams = paramsStr.Split(',');
                                         fnParams = fnParams.Select(p => p.Split(' ').Last().Trim()).ToArray();
                                         newBlock.CallSign = $"{fnName}({string.Join(", ", fnParams)});";
                                     }
                                 }
-                                
-                                // Debug.Log($"{newBlock.Name}  ({paramsString})\n{contents}");
-                                results.Add(newBlock);
+                                blocks.Add(newBlock);
                             }
-                        }
-
-                        break;
-                    case ' ':
-                        break;
-                    case '\t':
-                        break;
-                    case '/':
-                        if (Match('/', current, source))
-                        {
-                            SeekToNextLine(ref current, source);
-                            newLine = true;
-                        }
-                        break;
-                    case '\n':
-                        newLine = true;
-                        break;
-                    default:
-                        newLine = false;
-                        break;
+                            current++;
+                            break;
+                        default:
+                            current++;
+                            break;
+                    }
                 }
-                current++;
+
+                lineNumber++;
             }
 
-            return results;
+            return blocks;
         }
 
-        private static bool IsLetter(char source)
+        private bool IsLetter(char source)
         {
             return char.IsLetter(source);
         }
 
-        private static char Peek(int current, string source)
+        private char Peek()
         {
-            if (current + 1 >= source.Length)
+            if (current + 1 >= currentLine.Length)
             {
                 return '\0';
             }
-            return source[current + 1];
+            return currentLine[current + 1];
         }
 
-        private static bool Match(char toMatch, int current, string source)
+        private int BlockHasContent()
         {
-            if (current + 1 >= source.Length)
+            var line = currentLine.Trim();
+            if (line[total - 1] == '{')
             {
-                return false;
+                return 1;
+            }
+            if (lineNumber + 1 >= lines.Length)
+            {
+                return 0;
             }
 
-            return source[current + 1] == toMatch;
+            if (string.IsNullOrEmpty(lines[lineNumber + 1].Trim()))
+            {
+                return 0;
+            }
+            if (lines[lineNumber + 1].Trim()[0] == '{')
+            {
+                return 2;
+            }
+
+            return 0;
         }
 
-        private static void SeekToNextLine(ref int current, string source)
+        private List<string> ConsumeBlockContent()
         {
-            while (source[current] != '\n')
-            {
-                if (current + 1 < source.Length)
-                {
-                    current++;
-                }
-            }
-        }
+            var result = new List<string>();
+            if (lineNumber + 1 >= lines.Length) return null;
 
-        private static bool ExistsInBlock(char toFind, int current, string source)
-        {
-            var pos = current;
-            while (pos + 1 < source.Length)
-            {
-                if (source[pos + 1] == toFind)
-                {
-                    return true;
-                }
-
-                if (source[pos + 1] == '%')
-                {
-                    return false;
-                }
-                pos++;
-            }
-
-            return false;
-        }
-
-        private static void SeekUntilChar(char toMatch, ref int current, string source)
-        {
-            if (current + 1 >= source.Length)
-            {
-                return;
-            }
-            while (source[current + 1] != toMatch)
-            {
-                if (current + 1 < source.Length)
-                {
-                    current++;
-                }
-                else
-                {
-                    return;
-                }
-            }
-
-            current++;
-        }
-
-        private static void SeekUntilBlockEnd(ref int current, string source)
-        {
+            var subset = lines.Skip(lineNumber).ToList();
+            var linesSkipped = 0;
             var nestLevel = 1;
-            while (current + 1 < source.Length)
+            foreach (var line in subset)
             {
-                switch (source[current + 1])
+                var curr = 0;
+                while (curr + 1 <= line.Length)
                 {
-                    case '{':
-                        nestLevel++;
-                        break;
-                    case '}':
-                        nestLevel--;
-                        break;
-                }
-                if (nestLevel == 0)
-                {
-                    return;
+                    switch (line[curr])
+                    {
+                        case '{':
+                            nestLevel++;
+                            break;
+                        case '}':
+                            nestLevel--;
+                            break;
+                    }
+
+                    curr++;
+                    if (nestLevel == 0)
+                    {
+                        lineNumber += linesSkipped;
+                        return result;
+                    }
                 }
 
-                current++;
+                linesSkipped++;
+                result.Add(line);
             }
+            return null;
         }
 
-        private static string ConsumeUntil(char endMarker, ref int current, string source)
+        private string ConsumeUntil(char endMarker)
         {
-            var start = current;
-            while (source[current] != '\n')
+            while (current < total)
             {
-                if (current + 1 >= source.Length)
+                if (current + 1 >= total)
                 {
                     return null;
                 }
-                if (source[current + 1] == endMarker)
+                if (currentLine[current + 1] == endMarker)
                 {
-                    var result = source.Substring(start, current + 1 - start);
+                    var result = currentLine.Substring(start, current + 1 - start);
                     current++;
                     return result;
                 }
