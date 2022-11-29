@@ -32,52 +32,52 @@ namespace ORL.ShaderGenerator
         
         private static Regex _callSignRegex = new Regex(@"(?<fnName>[\w]+)\((?<params>[\w\,\s]+)\)");
 
-        private int current;
-        private int start;
-        private int total;
-        private int lineNumber;
-        private string[] lines;
-        private string currentLine;
+        private int _current;
+        private int _start;
+        private int _total;
+        private int _lineNumber;
+        private string[] _lines;
+        private string _currentLine;
 
         public List<ShaderBlock> Parse(string[] source)
         {
-            lines = source;
+            _lines = source;
             var blocks = new List<ShaderBlock>();
-            for (lineNumber = 0; lineNumber <= lines.Length; lineNumber++)
+            for (_lineNumber = 0; _lineNumber <= _lines.Length; _lineNumber++)
             {
-                var line = lines[lineNumber];
-                current = 0;
-                start = 0;
-                total = line.Length;
-                currentLine = line;
-                while (current < total)
+                var line = _lines[_lineNumber];
+                _current = 0;
+                _start = 0;
+                _total = line.Length;
+                _currentLine = line;
+                while (_current < _total)
                 {
-                    switch (currentLine[current])
+                    switch (_currentLine[_current])
                     {
                         case ' ':
-                            current++;
+                            _current++;
                             break;
                         case '\t':
-                            current++;
+                            _current++;
                             break;
                         case '%':
-                            if (start != 0)
+                            if (_start != 0)
                             {
-                                current++;
+                                _current++;
                                 break;
                             }
-                            start = current;
+                            _start = _current;
                             if (IsLetter(Peek()))
                             {
                                 var blockName = ConsumeUntil('(');
                                 if (string.IsNullOrEmpty(blockName))
                                 {
-                                    current++;
+                                    _current++;
                                     break;
                                 }
                                 Debug.Log($"Found Block: {blockName}");
 
-                                start = current + 1;
+                                _start = _current + 1;
                                 var paramsString = ConsumeUntil(')');
                                 var paramsList = new List<string>();
                                 if (!string.IsNullOrEmpty(paramsString))
@@ -90,11 +90,12 @@ namespace ORL.ShaderGenerator
                                 var blockContent = new List<string>();
                                 if (contentOffset > 0)
                                 {
-                                    lineNumber += contentOffset;
+                                    _lineNumber += contentOffset;
                                     Debug.Log($"{blockName} Has block content");
-                                    blockContent = ConsumeBlockContent();
-                                    if (blockContent != null)
+                                    var contents = ConsumeBlockContent();
+                                    if (contents != null)
                                     {
+                                        blockContent = contents;
                                         Debug.Log($"{blockName} block content: {string.Join(",",blockContent)}");
                                     }
                                 }
@@ -110,7 +111,7 @@ namespace ORL.ShaderGenerator
                                     newBlock.IsFunction = true;
                                     var fnName = newBlock.Params[0].Replace("\"", "");
                                     var fnLine = newBlock.Contents.Find(s => s.Contains($"void {fnName}"));
-                                    var fnStartIndex = fnLine.IndexOf(fnName);
+                                    var fnStartIndex = fnLine.IndexOf(fnName, StringComparison.InvariantCulture);
                                     if (fnStartIndex > 0)
                                     {
                                         var callSignLine = fnLine.Substring(fnStartIndex, fnLine.Substring(fnStartIndex).IndexOf(')') + 1) + ";";
@@ -123,15 +124,15 @@ namespace ORL.ShaderGenerator
                                 }
                                 blocks.Add(newBlock);
                             }
-                            current++;
+                            _current++;
                             break;
                         default:
-                            current++;
+                            _current++;
                             break;
                     }
                 }
 
-                lineNumber++;
+                _lineNumber++;
             }
 
             return blocks;
@@ -144,30 +145,30 @@ namespace ORL.ShaderGenerator
 
         private char Peek()
         {
-            if (current + 1 >= currentLine.Length)
+            if (_current + 1 >= _currentLine.Length)
             {
                 return '\0';
             }
-            return currentLine[current + 1];
+            return _currentLine[_current + 1];
         }
 
         private int BlockHasContent()
         {
-            var line = currentLine.Trim();
-            if (line[total - 1] == '{')
+            var line = _currentLine.Trim();
+            if (line[_total - 1] == '{')
             {
                 return 1;
             }
-            if (lineNumber + 1 >= lines.Length)
+            if (_lineNumber + 1 >= _lines.Length)
             {
                 return 0;
             }
 
-            if (string.IsNullOrEmpty(lines[lineNumber + 1].Trim()))
+            if (string.IsNullOrEmpty(_lines[_lineNumber + 1].Trim()))
             {
                 return 0;
             }
-            if (lines[lineNumber + 1].Trim()[0] == '{')
+            if (_lines[_lineNumber + 1].Trim()[0] == '{')
             {
                 return 2;
             }
@@ -178,9 +179,9 @@ namespace ORL.ShaderGenerator
         private List<string> ConsumeBlockContent()
         {
             var result = new List<string>();
-            if (lineNumber + 1 >= lines.Length) return null;
+            if (_lineNumber + 1 >= _lines.Length) return null;
 
-            var subset = lines.Skip(lineNumber).ToList();
+            var subset = _lines.Skip(_lineNumber).ToList();
             var linesSkipped = 0;
             var nestLevel = 1;
             foreach (var line in subset)
@@ -201,7 +202,7 @@ namespace ORL.ShaderGenerator
                     curr++;
                     if (nestLevel == 0)
                     {
-                        lineNumber += linesSkipped;
+                        _lineNumber += linesSkipped;
                         return result;
                     }
                 }
@@ -214,19 +215,19 @@ namespace ORL.ShaderGenerator
 
         private string ConsumeUntil(char endMarker)
         {
-            while (current < total)
+            while (_current < _total)
             {
-                if (current + 1 >= total)
+                if (_current + 1 >= _total)
                 {
                     return null;
                 }
-                if (currentLine[current + 1] == endMarker)
+                if (_currentLine[_current + 1] == endMarker)
                 {
-                    var result = currentLine.Substring(start, current + 1 - start);
-                    current++;
+                    var result = _currentLine.Substring(_start, _current + 1 - _start);
+                    _current++;
                     return result;
                 }
-                current++;
+                _current++;
             }
 
             return null;
