@@ -67,8 +67,6 @@
 
             // Textures
             %Textures
-            TEXTURE2D(_DFG);
-            SAMPLER(sampler_DFG);
 
             // Functions
             %Functions

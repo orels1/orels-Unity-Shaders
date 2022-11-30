@@ -1,273 +1,276 @@
-﻿#define FLT_EPSILON     1.192092896e-07
-
-half invLerp(half a, half b, half v)
+﻿%LibraryFunctions()
 {
-    return (v - a) / (b - a);
-}
+    #define FLT_EPSILON     1.192092896e-07
 
-half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
-{
-    half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
-    half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
-    uv.y *= -1;
-    p.xy = noiseTex.SampleLevel(noiseTexSampler, uv, 0).yx;
-    return lerp(p.x, p.y, p.z);
-}
-
-half3 TransformObjectToWorld(half3 pos)
-{
-    return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
-};
-
-// mostly taken from the Amplify shader reference
-half2 POM(Texture2D heightMap, SamplerState heightSampler, half2 uvs, half2 dx, half2 dy, half3 normalWorld, half3 viewWorld, half3 viewDirTan, int minSamples, int maxSamples, half parallax, half refPlane, half2 tilling, half2 curv, int index, inout half finalHeight)
-{
-    half3 result = 0;
-    int stepIndex = 0;
-    int numSteps = (int)lerp((half)maxSamples, (half)minSamples, saturate(dot(normalWorld, viewWorld)));
-    half layerHeight = 1.0 / numSteps;
-    half2 plane = parallax * (viewDirTan.xy / viewDirTan.z);
-    uvs.xy += refPlane * plane;
-    half2 deltaTex = -plane * layerHeight;
-    half2 prevTexOffset = 0;
-    half prevRayZ = 1.0f;
-    half prevHeight = 0.0f;
-    half2 currTexOffset = deltaTex;
-    half currRayZ = 1.0f - layerHeight;
-    half currHeight = 0.0f;
-    half intersection = 0;
-    half2 finalTexOffset = 0;
-    while (stepIndex < numSteps + 1)
+    half invLerp(half a, half b, half v)
     {
-        currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy).r;
-        if (currHeight > currRayZ)
+        return (v - a) / (b - a);
+    }
+
+    half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+    {
+        half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+        half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
+        uv.y *= -1;
+        p.xy = noiseTex.SampleLevel(noiseTexSampler, uv, 0).yx;
+        return lerp(p.x, p.y, p.z);
+    }
+
+    half3 TransformObjectToWorld(half3 pos)
+    {
+        return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
+    };
+
+    // mostly taken from the Amplify shader reference
+    half2 POM(Texture2D heightMap, SamplerState heightSampler, half2 uvs, half2 dx, half2 dy, half3 normalWorld, half3 viewWorld, half3 viewDirTan, int minSamples, int maxSamples, half parallax, half refPlane, half2 tilling, half2 curv, int index, inout half finalHeight)
+    {
+        half3 result = 0;
+        int stepIndex = 0;
+        int numSteps = (int)lerp((half)maxSamples, (half)minSamples, saturate(dot(normalWorld, viewWorld)));
+        half layerHeight = 1.0 / numSteps;
+        half2 plane = parallax * (viewDirTan.xy / viewDirTan.z);
+        uvs.xy += refPlane * plane;
+        half2 deltaTex = -plane * layerHeight;
+        half2 prevTexOffset = 0;
+        half prevRayZ = 1.0f;
+        half prevHeight = 0.0f;
+        half2 currTexOffset = deltaTex;
+        half currRayZ = 1.0f - layerHeight;
+        half currHeight = 0.0f;
+        half intersection = 0;
+        half2 finalTexOffset = 0;
+        while (stepIndex < numSteps + 1)
         {
-            stepIndex = numSteps + 1;
+            currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy).r;
+            if (currHeight > currRayZ)
+            {
+                stepIndex = numSteps + 1;
+            }
+            else
+            {
+                stepIndex++;
+                prevTexOffset = currTexOffset;
+                prevRayZ = currRayZ;
+                prevHeight = currHeight;
+                currTexOffset += deltaTex;
+                currRayZ -= layerHeight;
+            }
         }
+        int sectionSteps = 2;
+        int sectionIndex = 0;
+        half newZ = 0;
+        half newHeight = 0;
+        while (sectionIndex < sectionSteps)
+        {
+            intersection = (prevHeight - prevRayZ) / (prevHeight - currHeight + currRayZ - prevRayZ);
+            finalTexOffset = prevTexOffset +intersection * deltaTex;
+            newZ = prevRayZ - intersection * layerHeight;
+            newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy).r;
+            if (newHeight > newZ)
+            {
+                currTexOffset = finalTexOffset;
+                currHeight = newHeight;
+                currRayZ = newZ;
+                deltaTex = intersection * deltaTex;
+                layerHeight = intersection * layerHeight;
+            }
+            else
+            {
+                prevTexOffset = finalTexOffset;
+                prevHeight = newHeight;
+                prevRayZ = newZ;
+                deltaTex = (1 - intersection) * deltaTex;
+                layerHeight = (1 - intersection) * layerHeight;
+            }
+            sectionIndex++;
+        }
+        finalHeight = newHeight;
+        return uvs.xy + finalTexOffset;
+    }
+
+    half remap(half s, half a1, half a2, half b1, half b2)
+    {
+        return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
+    }
+
+    half3 ApplyLut2D(Texture2D LUT2D, SamplerState lutSampler, half3 uvw)
+    {
+        half3 scaleOffset = half3(1.0 / 1024.0, 1.0 / 32.0, 31.0);
+        // Strip format where `height = sqrt(width)`
+        uvw.z *= scaleOffset.z;
+        half shift = floor(uvw.z);
+        uvw.xy = uvw.xy * scaleOffset.z * scaleOffset.xy + scaleOffset.xy * 0.5;
+        uvw.x += shift * scaleOffset.y;
+        uvw.xyz = lerp(
+            SAMPLE_TEXTURE2D(LUT2D, lutSampler, uvw.xy).rgb,
+            SAMPLE_TEXTURE2D(LUT2D, lutSampler, uvw.xy + half2(scaleOffset.y, 0.0)).rgb,
+            uvw.z - shift
+        );
+        return uvw;
+    }
+
+    half3 AdjustContrast(half3 color, half contrast)
+    {
+        color = saturate(lerp(half3(0.5, 0.5, 0.5), color, contrast));
+        return color;
+    }
+
+    half3 AdjustSaturation(half3 color, half saturation)
+    {
+        half3 intensity = dot(color.rgb, half3(0.299, 0.587, 0.114));
+        color = lerp(intensity, color.rgb, saturation);
+        return color;
+    }
+
+    half3 AdjustBrightness(half3 color, half brightness)
+    {
+        color += brightness;
+        return color;
+    }
+
+    struct ParamsLogC
+    {
+        half cut;
+        half a, b, c, d, e, f;
+    };
+
+    static const ParamsLogC LogC = {
+        0.011361, // cut
+        5.555556, // a
+        0.047996, // b
+        0.244161, // c
+        0.386036, // d
+        5.301883, // e
+        0.092819  // f
+
+    };
+
+    half LinearToLogC_Precise(half x)
+    {
+        half o;
+        if (x > LogC.cut)
+            o = LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
         else
-        {
-            stepIndex++;
-            prevTexOffset = currTexOffset;
-            prevRayZ = currRayZ;
-            prevHeight = currHeight;
-            currTexOffset += deltaTex;
-            currRayZ -= layerHeight;
-        }
+            o = LogC.e * x + LogC.f;
+        return o;
     }
-    int sectionSteps = 2;
-    int sectionIndex = 0;
-    half newZ = 0;
-    half newHeight = 0;
-    while (sectionIndex < sectionSteps)
+
+    half PositivePow(half base, half power)
     {
-        intersection = (prevHeight - prevRayZ) / (prevHeight - currHeight + currRayZ - prevRayZ);
-        finalTexOffset = prevTexOffset +intersection * deltaTex;
-        newZ = prevRayZ - intersection * layerHeight;
-        newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy).r;
-        if (newHeight > newZ)
-        {
-            currTexOffset = finalTexOffset;
-            currHeight = newHeight;
-            currRayZ = newZ;
-            deltaTex = intersection * deltaTex;
-            layerHeight = intersection * layerHeight;
-        }
-        else
-        {
-            prevTexOffset = finalTexOffset;
-            prevHeight = newHeight;
-            prevRayZ = newZ;
-            deltaTex = (1 - intersection) * deltaTex;
-            layerHeight = (1 - intersection) * layerHeight;
-        }
-        sectionIndex++;
+        return pow(max(abs(base), half(FLT_EPSILON)), power);
     }
-    finalHeight = newHeight;
-    return uvs.xy + finalTexOffset;
-}
 
-half remap(half s, half a1, half a2, half b1, half b2)
-{
-    return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
-}
-
-half3 ApplyLut2D(Texture2D LUT2D, SamplerState lutSampler, half3 uvw)
-{
-    half3 scaleOffset = half3(1.0 / 1024.0, 1.0 / 32.0, 31.0);
-    // Strip format where `height = sqrt(width)`
-    uvw.z *= scaleOffset.z;
-    half shift = floor(uvw.z);
-    uvw.xy = uvw.xy * scaleOffset.z * scaleOffset.xy + scaleOffset.xy * 0.5;
-    uvw.x += shift * scaleOffset.y;
-    uvw.xyz = lerp(
-        SAMPLE_TEXTURE2D(LUT2D, lutSampler, uvw.xy).rgb,
-        SAMPLE_TEXTURE2D(LUT2D, lutSampler, uvw.xy + half2(scaleOffset.y, 0.0)).rgb,
-        uvw.z - shift
-    );
-    return uvw;
-}
-
-half3 AdjustContrast(half3 color, half contrast)
-{
-    color = saturate(lerp(half3(0.5, 0.5, 0.5), color, contrast));
-    return color;
-}
-
-half3 AdjustSaturation(half3 color, half saturation)
-{
-    half3 intensity = dot(color.rgb, half3(0.299, 0.587, 0.114));
-    color = lerp(intensity, color.rgb, saturation);
-    return color;
-}
-
-half3 AdjustBrightness(half3 color, half brightness)
-{
-    color += brightness;
-    return color;
-}
-
-struct ParamsLogC
-{
-    half cut;
-    half a, b, c, d, e, f;
-};
-
-static const ParamsLogC LogC = {
-    0.011361, // cut
-    5.555556, // a
-    0.047996, // b
-    0.244161, // c
-    0.386036, // d
-    5.301883, // e
-    0.092819  // f
-
-};
-
-half LinearToLogC_Precise(half x)
-{
-    half o;
-    if (x > LogC.cut)
-        o = LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
-    else
-        o = LogC.e * x + LogC.f;
-    return o;
-}
-
-half PositivePow(half base, half power)
-{
-    return pow(max(abs(base), half(FLT_EPSILON)), power);
-}
-
-half3 LinearToLogC(half3 x)
-{
-    return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
-}
-
-half3 LinerToSRGB(half3 c)
-{
-    return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
-}
-
-half3 SRGBToLinear(half3 c)
-{
-    return max(1.055 * PositivePow(c, 0.416666667) - 0.055, 0.0);
-}
-
-half3 LogCToLinear(half3 c)
-{
-    return (pow(10.0, (c - LogC.d) / LogC.c) - LogC.b) / LogC.a;
-}
-
-// Specular stuff taken from https://github.com/z3y/shaders/
-float pow5(float x)
-{
-    float x2 = x * x;
-    return x2 * x2 * x;
-}
-
-float sq(float x)
-{
-    return x * x;
-}
-
-struct Gradient
-{
-    int type;
-    int colorsLength;
-    int alphasLength;
-    half4 colors[8];
-    half2 alphas[8];
-};
-
-Gradient NewGradient(
-    int type, int colorsLength, int alphasLength,
-    half4 colors0, half4 colors1, half4 colors2, half4 colors3, half4 colors4, half4 colors5, half4 colors6, half4 colors7,
-    half2 alphas0, half2 alphas1, half2 alphas2, half2 alphas3, half2 alphas4, half2 alphas5, half2 alphas6, half2 alphas7)
-{
-    Gradient g;
-    g.type = type;
-    g.colorsLength = colorsLength;
-    g.alphasLength = alphasLength;
-    g.colors[ 0 ] = colors0;
-    g.colors[ 1 ] = colors1;
-    g.colors[ 2 ] = colors2;
-    g.colors[ 3 ] = colors3;
-    g.colors[ 4 ] = colors4;
-    g.colors[ 5 ] = colors5;
-    g.colors[ 6 ] = colors6;
-    g.colors[ 7 ] = colors7;
-    g.alphas[ 0 ] = alphas0;
-    g.alphas[ 1 ] = alphas1;
-    g.alphas[ 2 ] = alphas2;
-    g.alphas[ 3 ] = alphas3;
-    g.alphas[ 4 ] = alphas4;
-    g.alphas[ 5 ] = alphas5;
-    g.alphas[ 6 ] = alphas6;
-    g.alphas[ 7 ] = alphas7;
-    return g;
-}
-
-half4 SampleGradient(Gradient gradient, half time)
-{
-    half3 color = gradient.colors[0].rgb;
-
-    UNITY_UNROLL
-    for (int c = 1; c < 8; c++)
+    half3 LinearToLogC(half3 x)
     {
-        half colorPos = saturate((time - gradient.colors[c - 1].w) / (0.00001 + (gradient.colors[c].w - gradient.colors[c - 1].w)) * step(c, (half)gradient.colorsLength - 1));
-        color = lerp(color, gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), gradient.type));
+        return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
     }
 
-    #ifndef UNITY_COLORSPACE_GAMMA
-    color = half3(GammaToLinearSpaceExact(color.r), GammaToLinearSpaceExact(color.g), GammaToLinearSpaceExact(color.b));
-    #endif
-
-    half alpha = gradient.alphas[0].x;
-
-    UNITY_UNROLL
-    for (int a = 1; a < 8; a++)
+    half3 LinerToSRGB(half3 c)
     {
-        half alphaPos = saturate((time - gradient.alphas[a - 1].y) / (0.00001 + (gradient.alphas[a].y - gradient.alphas[a - 1].y)) * step(a, (half)gradient.alphasLength - 1));
-        alpha = lerp(alpha, gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), gradient.type));
+        return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
     }
-    return half4(color, alpha);
-}
 
-float3 RotateAroundAxis(float3 center, float3 original, float3 u, float angle)
-{
-    original -= center;
-    float C = cos(angle);
-    float S = sin(angle);
-    float t = 1 - C;
-    float m00 = t * u.x * u.x + C;
-    float m01 = t * u.x * u.y - S * u.z;
-    float m02 = t * u.x * u.z + S * u.y;
-    float m10 = t * u.x * u.y + S * u.z;
-    float m11 = t * u.y * u.y + C;
-    float m12 = t * u.y * u.z - S * u.x;
-    float m20 = t * u.x * u.z - S * u.y;
-    float m21 = t * u.y * u.z + S * u.x;
-    float m22 = t * u.z * u.z + C;
-    float3x3 finalMatrix = float3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
-    return mul(finalMatrix, original) + center;
+    half3 SRGBToLinear(half3 c)
+    {
+        return max(1.055 * PositivePow(c, 0.416666667) - 0.055, 0.0);
+    }
+
+    half3 LogCToLinear(half3 c)
+    {
+        return (pow(10.0, (c - LogC.d) / LogC.c) - LogC.b) / LogC.a;
+    }
+
+    // Specular stuff taken from https://github.com/z3y/shaders/
+    float pow5(float x)
+    {
+        float x2 = x * x;
+        return x2 * x2 * x;
+    }
+
+    float sq(float x)
+    {
+        return x * x;
+    }
+
+    struct Gradient
+    {
+        int type;
+        int colorsLength;
+        int alphasLength;
+        half4 colors[8];
+        half2 alphas[8];
+    };
+
+    Gradient NewGradient(
+        int type, int colorsLength, int alphasLength,
+        half4 colors0, half4 colors1, half4 colors2, half4 colors3, half4 colors4, half4 colors5, half4 colors6, half4 colors7,
+        half2 alphas0, half2 alphas1, half2 alphas2, half2 alphas3, half2 alphas4, half2 alphas5, half2 alphas6, half2 alphas7)
+    {
+        Gradient g;
+        g.type = type;
+        g.colorsLength = colorsLength;
+        g.alphasLength = alphasLength;
+        g.colors[ 0 ] = colors0;
+        g.colors[ 1 ] = colors1;
+        g.colors[ 2 ] = colors2;
+        g.colors[ 3 ] = colors3;
+        g.colors[ 4 ] = colors4;
+        g.colors[ 5 ] = colors5;
+        g.colors[ 6 ] = colors6;
+        g.colors[ 7 ] = colors7;
+        g.alphas[ 0 ] = alphas0;
+        g.alphas[ 1 ] = alphas1;
+        g.alphas[ 2 ] = alphas2;
+        g.alphas[ 3 ] = alphas3;
+        g.alphas[ 4 ] = alphas4;
+        g.alphas[ 5 ] = alphas5;
+        g.alphas[ 6 ] = alphas6;
+        g.alphas[ 7 ] = alphas7;
+        return g;
+    }
+
+    half4 SampleGradient(Gradient gradient, half time)
+    {
+        half3 color = gradient.colors[0].rgb;
+
+        UNITY_UNROLL
+        for (int c = 1; c < 8; c++)
+        {
+            half colorPos = saturate((time - gradient.colors[c - 1].w) / (0.00001 + (gradient.colors[c].w - gradient.colors[c - 1].w)) * step(c, (half)gradient.colorsLength - 1));
+            color = lerp(color, gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), gradient.type));
+        }
+
+        #ifndef UNITY_COLORSPACE_GAMMA
+        color = half3(GammaToLinearSpaceExact(color.r), GammaToLinearSpaceExact(color.g), GammaToLinearSpaceExact(color.b));
+        #endif
+
+        half alpha = gradient.alphas[0].x;
+
+        UNITY_UNROLL
+        for (int a = 1; a < 8; a++)
+        {
+            half alphaPos = saturate((time - gradient.alphas[a - 1].y) / (0.00001 + (gradient.alphas[a].y - gradient.alphas[a - 1].y)) * step(a, (half)gradient.alphasLength - 1));
+            alpha = lerp(alpha, gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), gradient.type));
+        }
+        return half4(color, alpha);
+    }
+
+    float3 RotateAroundAxis(float3 center, float3 original, float3 u, float angle)
+    {
+        original -= center;
+        float C = cos(angle);
+        float S = sin(angle);
+        float t = 1 - C;
+        float m00 = t * u.x * u.x + C;
+        float m01 = t * u.x * u.y - S * u.z;
+        float m02 = t * u.x * u.z + S * u.y;
+        float m10 = t * u.x * u.y + S * u.z;
+        float m11 = t * u.y * u.y + C;
+        float m12 = t * u.y * u.z - S * u.x;
+        float m20 = t * u.x * u.z - S * u.y;
+        float m21 = t * u.y * u.z + S * u.x;
+        float m22 = t * u.z * u.z + C;
+        float3x3 finalMatrix = float3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
+        return mul(finalMatrix, original) + center;
+    }
 }

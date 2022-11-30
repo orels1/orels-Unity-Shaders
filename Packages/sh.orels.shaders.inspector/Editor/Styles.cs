@@ -90,5 +90,25 @@ namespace ORL.ShaderInspector
                 background = Resources.Load<Texture2D>("Arrow_D"),
             }
         };
+
+        public static void DrawStaticHeader(string text)
+        {
+            EditorGUI.indentLevel = 0;
+            EditorGUILayout.Space(8f * EditorGUIUtility.pixelsPerPoint);
+            var rect = EditorGUILayout.GetControlRect();
+            rect.yMax += 1f * EditorGUIUtility.pixelsPerPoint;
+            rect.xMin -= 15f * EditorGUIUtility.pixelsPerPoint;
+            rect.xMax += 5f * EditorGUIUtility.pixelsPerPoint;
+            var dividerRect = rect;
+            dividerRect.y -= 1f;
+            dividerRect.height = 1f;
+            GUI.Box(dividerRect, "", Divider);
+            GUI.Box(rect, "", Header1BgStye);
+            var labelRect = rect;
+            labelRect.y -= 1f * EditorGUIUtility.pixelsPerPoint;
+            labelRect.xMin += 27f * EditorGUIUtility.pixelsPerPoint;
+            GUI.Label(labelRect, text, Header1TextStyle);
+            EditorGUILayout.Space(8f * EditorGUIUtility.pixelsPerPoint);
+        }
     }
 }

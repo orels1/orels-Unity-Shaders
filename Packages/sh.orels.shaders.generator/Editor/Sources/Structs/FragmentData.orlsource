@@ -1,52 +1,55 @@
-﻿struct FragmentData
+﻿%DataStructs()
 {
-    #if defined(UNITY_PASS_SHADOWCASTER)
-    V2F_SHADOW_CASTER;
-    #else
-    float4 pos : SV_POSITION;
-    #endif
-    
-    float3 normal : RAW_NORMAL;
-    float2 uv0 : TEXCOORD1;
-    float2 uv1 : TEXCOORD2;
-    float2 uv2 : TEXCOORD3;
-    float2 uv3 : TEXCOORD4;
-    float3 worldPos : WORLD_POS;
-    float3 worldNormal : WORLD_NORMAL;
-    float4 worldTangent : WORLD_TANGENT;
+    struct FragmentData
+    {
+        #if defined(UNITY_PASS_SHADOWCASTER)
+        V2F_SHADOW_CASTER;
+        #else
+        float4 pos : SV_POSITION;
+        #endif
+        
+        float3 normal : RAW_NORMAL;
+        float2 uv0 : TEXCOORD1;
+        float2 uv1 : TEXCOORD2;
+        float2 uv2 : TEXCOORD3;
+        float2 uv3 : TEXCOORD4;
+        float3 worldPos : WORLD_POS;
+        float3 worldNormal : WORLD_NORMAL;
+        float4 worldTangent : WORLD_TANGENT;
 
-    #if !defined(UNITY_PASS_SHADOWCASTER)
-    float4 lightmapUv : LM_UV;
-    #endif
-    centroid float4 vertexColor : VERTEX_COLOR;
+        #if !defined(UNITY_PASS_SHADOWCASTER)
+        float4 lightmapUv : LM_UV;
+        #endif
+        centroid float4 vertexColor : VERTEX_COLOR;
 
-    #if !defined(UNITY_PASS_META)
-    UNITY_LIGHTING_COORDS(5, 6)
-    UNITY_FOG_COORDS(7)
-    #endif
+        #if !defined(UNITY_PASS_META)
+        UNITY_LIGHTING_COORDS(5, 6)
+        UNITY_FOG_COORDS(7)
+        #endif
 
-    #if defined(EDITOR_VISUALIZATION)
-    float2 vizUV : VIZ_UV;
-    float4 lightCoord : LIGHT_COORD;
-    #endif
-  
-    #if defined(NEED_SCREEN_POS)
-    float4 screenPos: SCREENPOS;
-    #endif
+        #if defined(EDITOR_VISUALIZATION)
+        float2 vizUV : VIZ_UV;
+        float4 lightCoord : LIGHT_COORD;
+        #endif
+      
+        #if defined(NEED_SCREEN_POS)
+        float4 screenPos: SCREENPOS;
+        #endif
 
-    #if defined(EXTRA_V2F_0)
-    float4 extraV2F0 : EXTRA_V2F_BLOCK0;
-    #endif
-    #if defined(EXTRA_V2F_1)
-    float4 extraV2F1 : EXTRA_V2F_BLOCK1;
-    #endif
-    #if defined(EXTRA_V2F_2)
-    float4 extraV2F2 : EXTRA_V2F_BLOCK2;
-    #endif
-    #if defined(EXTRA_V2F_3)
-    float4 extraV2F3 : EXTRA_V2F_BLOCK3;
-    #endif
+        #if defined(EXTRA_V2F_0)
+        float4 extraV2F0 : EXTRA_V2F_BLOCK0;
+        #endif
+        #if defined(EXTRA_V2F_1)
+        float4 extraV2F1 : EXTRA_V2F_BLOCK1;
+        #endif
+        #if defined(EXTRA_V2F_2)
+        float4 extraV2F2 : EXTRA_V2F_BLOCK2;
+        #endif
+        #if defined(EXTRA_V2F_3)
+        float4 extraV2F3 : EXTRA_V2F_BLOCK3;
+        #endif
 
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-    UNITY_VERTEX_OUTPUT_STEREO
-};
+        UNITY_VERTEX_INPUT_INSTANCE_ID
+        UNITY_VERTEX_OUTPUT_STEREO
+    };
+}

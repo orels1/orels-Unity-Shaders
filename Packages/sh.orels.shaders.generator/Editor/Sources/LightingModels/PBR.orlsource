@@ -1,0 +1,12 @@
+﻿%Includes
+{
+    "target",
+    "@/Functions/FragmentBase",
+    "@/Libraries/LightingHelpers",
+    "@/Libraries/Utilities"
+}
+
+%ShaderTags
+{
+    "RenderType" = "Opaque" "Queue" = "Geometry"    
+}

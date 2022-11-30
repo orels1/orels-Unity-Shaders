@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
-using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 namespace ORL.ShaderGenerator
 {
-    public struct ShaderBlock
+    public class ShaderBlock
     {
         public string Name { get; set; }
         public List<string> Params { get; set; }
@@ -24,7 +22,9 @@ namespace ORL.ShaderGenerator
         private static HashSet<string> _functionIdentifiers = new HashSet<string>
         {
             "%Fragment",
+            "%FragmentBase",
             "%Vertex",
+            "%VertexBase",
             "%TessFactor",
             "%Color",
             "%Shadow"
@@ -39,11 +39,13 @@ namespace ORL.ShaderGenerator
         private string[] _lines;
         private string _currentLine;
 
+        private bool _debugMode;
+
         public List<ShaderBlock> Parse(string[] source)
         {
             _lines = source;
             var blocks = new List<ShaderBlock>();
-            for (_lineNumber = 0; _lineNumber <= _lines.Length; _lineNumber++)
+            for (_lineNumber = 0; _lineNumber < _lines.Length; _lineNumber++)
             {
                 var line = _lines[_lineNumber];
                 _current = 0;
@@ -75,7 +77,11 @@ namespace ORL.ShaderGenerator
                                     _current++;
                                     break;
                                 }
-                                Debug.Log($"Found Block: {blockName}");
+
+                                if (_debugMode)
+                                {
+                                    Debug.Log($"Found Block: {blockName}");
+                                }
 
                                 _start = _current + 1;
                                 var paramsString = ConsumeUntil(')');
@@ -84,19 +90,30 @@ namespace ORL.ShaderGenerator
                                 {
                                     paramsList.AddRange(paramsString.Split(',').Select(s => s.Trim()));
                                 }
-                                Debug.Log($"{blockName} params: ({paramsString})");
+
+                                if (_debugMode)
+                                {
+                                    Debug.Log($"{blockName} params: ({paramsString})");
+                                }
 
                                 var contentOffset = BlockHasContent();
                                 var blockContent = new List<string>();
                                 if (contentOffset > 0)
                                 {
                                     _lineNumber += contentOffset;
-                                    Debug.Log($"{blockName} Has block content");
+                                    if (_debugMode)
+                                    {
+                                        Debug.Log($"{blockName} Has block content");
+                                    }
                                     var contents = ConsumeBlockContent();
                                     if (contents != null)
                                     {
                                         blockContent = contents;
-                                        Debug.Log($"{blockName} block content: {string.Join(",",blockContent)}");
+                                        
+                                        if (_debugMode)
+                                        {
+                                            Debug.Log($"{blockName} block content: {string.Join(",",blockContent)}");
+                                        }
                                     }
                                 }
                                 
@@ -131,8 +148,6 @@ namespace ORL.ShaderGenerator
                             break;
                     }
                 }
-
-                _lineNumber++;
             }
 
             return blocks;
