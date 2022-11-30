@@ -184,55 +184,21 @@ namespace ORL.ShaderGenerator
                         // Here we save all the function source code into the shader %Functions space
                         case "%Functions":
                         {
-                            newLine.Remove(match.Index, matchLen);
-                            var i = 0;
-                            foreach (var functionBlock in functionBlocks)
-                            {
-                                if (i > 0)
-                                {
-                                    newLine.Insert(match.Index, new string(' ', match.Index));
-                                    newLine.Insert(match.Index, "\n\n");
-                                }
-                                newLine.Insert(match.Index, IndentContents(functionBlock.Contents, match.Index));
-                                i++;
-                            }
-
+                            InsertContentsAtPosition(ref newLine, functionBlocks, match.Index, matchLen);
                             continue;
                         }
                         // Here we insert function calls into the fragment stage
                         case "%FragmentFunctions":
                         {
                             var fragmentFns = functionBlocks.FindAll(b => b.Name == "%Fragment");
-                            newLine.Remove(match.Index, matchLen);
-                            var i = 0;
-                            foreach (var functionBlock in fragmentFns)
-                            {
-                                if (i > 0)
-                                {
-                                    newLine.Insert(match.Index, new string(' ', match.Index));
-                                    newLine.Insert(match.Index, "\n\n");
-                                }
-                                newLine.Insert(match.Index, functionBlock.CallSign);
-                                i++;
-                            }
+                            InsertFnCallAtPosition(ref newLine, fragmentFns, match.Index, matchLen);
                             continue;
                         }
                         // Here we insert function calls into the vertex stage
                         case "%VertexFunctions":
                         {
                             var vertexFns = functionBlocks.FindAll(b => b.Name == "%Vertex");
-                            newLine.Remove(match.Index, matchLen);
-                            var i = 0;
-                            foreach (var functionBlock in vertexFns)
-                            {
-                                if (i > 0)
-                                {
-                                    newLine.Insert(match.Index, new string(' ', match.Index));
-                                    newLine.Insert(match.Index, "\n\n");
-                                }
-                                newLine.Insert(match.Index, functionBlock.CallSign);
-                                i++;
-                            }
+                            InsertFnCallAtPosition(ref newLine, vertexFns, match.Index, matchLen);
                             continue;
                         }
                     }
@@ -292,9 +258,7 @@ namespace ORL.ShaderGenerator
             }
             
             var shaderString = finalShader.ToString();
-            // Debug.Log(shaderString);
             var shader = ShaderUtil.CreateShaderAsset(ctx, shaderString, true);
-            // shader.name = Path.GetFileNameWithoutExtension(Utils.GetFullPath(ctx.assetPath));
 
             if (ShaderUtil.ShaderHasError(shader))
             {
@@ -420,31 +384,38 @@ namespace ORL.ShaderGenerator
             return deduped;
         }
         
-        // private List<string> DeDuplicateProperties(List<String> sourceVariables)
-        // {
-        //     var keySet = new HashSet<string>();
-        //     var deduped = new List<string>();
-        //     foreach (var variable in sourceVariables)
-        //     {
-        //         if (string.IsNullOrWhiteSpace(variable)) continue;
-        //         if (!_varRegex.IsMatch(variable))
-        //         {
-        //             Debug.LogWarning($"Could not find a variable in {variable}, adding as-is");
-        //             deduped.Add(variable);
-        //             continue;
-        //         }
-        //         var varName = _varRegex.Match(variable).Groups["identifier"].Value.Trim();
-        //         if (keySet.Contains(varName))
-        //         {
-        //             Debug.LogWarning("Found duplicate variable, skipping: " + varName);
-        //             continue;
-        //         }
-        //         keySet.Add(varName);
-        //         deduped.Add(variable);
-        //     }
-        //
-        //     return deduped;
-        // }
+        private void InsertContentsAtPosition(ref StringBuilder line, List<ShaderBlock> blocks, int position, int cleanLen)
+        {
+            line.Remove(position, cleanLen);
+            var i = 0;
+            foreach (var block in blocks)
+            {
+                if (i > 0)
+                {
+                    line.Insert(position, new string(' ', position));
+                    line.Insert(position, "\n\n");
+                }
+                line.Insert(position, IndentContents(block.Contents, position));
+                i++;
+            }
+        }
+        
+        private void InsertFnCallAtPosition(ref StringBuilder line, List<ShaderBlock> blocks, int position, int cleanLen)
+        {
+            line.Remove(position, cleanLen);
+            var i = 0;
+            foreach (var block in blocks)
+            {
+                if (i > 0)
+                {
+                    line.Insert(position, new string(' ', position));
+                    line.Insert(position, "\n\n");
+                }
+                line.Insert(position, block.CallSign);
+                i++;
+            }
+        }
+        
 
         private string IndentContents(List<string> contents, int indentLevel)
         {
@@ -454,7 +425,7 @@ namespace ORL.ShaderGenerator
             {
                 if (i == 0)
                 {
-                    sb.Append(contentLine + '\n');
+                    sb.Append(contentLine + (contents.Count == 1 ? "" : "\n"));
                     i++;
                     continue;
                 }

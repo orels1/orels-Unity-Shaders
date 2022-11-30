@@ -5,8 +5,3 @@
     "@/Libraries/LightingHelpers",
     "@/Libraries/Utilities"
 }
-
-%ShaderTags
-{
-    "RenderType" = "Opaque" "Queue" = "Geometry"    
-}

@@ -195,10 +195,11 @@ namespace ORL.ShaderGenerator
         {
             var result = new List<string>();
             if (_lineNumber + 1 >= _lines.Length) return null;
-
+            
             var subset = _lines.Skip(_lineNumber).ToList();
             var linesSkipped = 0;
             var nestLevel = 1;
+            var offset = 0;
             foreach (var line in subset)
             {
                 var curr = 0;
@@ -223,7 +224,11 @@ namespace ORL.ShaderGenerator
                 }
 
                 linesSkipped++;
-                result.Add(line);
+                if (linesSkipped == 1)
+                {
+                    offset = line.Length - line.TrimStart().Length;
+                }
+                result.Add(line.Substring(string.IsNullOrWhiteSpace(line) ? 0 : offset));
             }
             return null;
         }
