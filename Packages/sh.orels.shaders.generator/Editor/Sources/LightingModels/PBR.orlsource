@@ -1,6 +1,7 @@
-﻿%Includes()
+﻿%Template("@/Templates/PBR")
+
+%Includes()
 {
     "target",
     "@/Functions/PBR/FragmentBase",
-    "@/Libraries/PBR/LightingHelpers",
 }

@@ -64,5 +64,39 @@ namespace ORL.ShaderGenerator
 
             return File.ReadAllLines(fullPath);
         }
+
+        public static void RecursivelyCollectDependencies(List<string> sourceList, ref List<string> dependencies)
+        {
+            var parser = new Parser();
+            foreach (var source in sourceList)
+            {
+                var blocks = parser.Parse(GetORLSource(source));
+                var includesBlockIndex = blocks.FindIndex(b => b.Name == "%Includes");
+                if (includesBlockIndex == -1)
+                {
+                    dependencies.Add(source);
+                    continue;
+                }
+                var cleanDepPaths = blocks[includesBlockIndex].Contents
+                    .Select(l => l.Replace("\"", "").Replace(",", "").Trim()).ToList();
+                foreach (var depPath in cleanDepPaths)
+                {
+                    if (depPath == "self")
+                    {
+                        if (!dependencies.Contains(source))
+                        {
+                            dependencies.Add(source);
+                        }
+                        continue;
+                    }
+                    if (!dependencies.Contains(depPath))
+                    {
+                        var deepDeps = new List<string>();
+                        RecursivelyCollectDependencies(new List<string> {depPath}, ref deepDeps);
+                        dependencies.AddRange(deepDeps);
+                    }
+                }
+            }
+        }
     }
 }
