@@ -1,7 +1,6 @@
-﻿%Includes
+﻿%Includes()
 {
     "target",
-    "@/Functions/FragmentBase",
-    "@/Libraries/LightingHelpers",
-    "@/Libraries/Utilities"
+    "@/Functions/PBR/FragmentBase",
+    "@/Libraries/PBR/LightingHelpers",
 }

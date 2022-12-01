@@ -54,7 +54,6 @@ namespace ORL.ShaderGenerator
         
         private string[] _functions = {
             "@/Functions/VertexBase",
-            "@/Functions/FragmentBase"
         };
 
         private Regex _callSignRegex = new Regex(@"(?:^void\s*)(?<fnName>[\w]+)\((?<params>[\w\,\s]+)\)");
@@ -78,7 +77,6 @@ namespace ORL.ShaderGenerator
         }
 
         private string[] _libraries = {
-            "@/Libraries/LightingHelpers",
             "@/Libraries/Utilities"
         };
 
@@ -112,6 +110,8 @@ namespace ORL.ShaderGenerator
                 return _builtInLibraries;
             }
         }
+
+        private string _defaultLightignModel = "@/LightingModels/PBR";
         
         // Matches %BlockName without nuking %FunctionName()
         private Regex _replacerRegex = new Regex(@"(?<!\/\/\s*)(%[a-zA-Z]+[\w\d]+)(?:$|[""\;\s])");
@@ -145,6 +145,36 @@ namespace ORL.ShaderGenerator
             {
                 ctx.DependsOnSourceAsset(templatePath);
             }
+
+            // Find and load the lighting model
+            var lightingModelIndex = blocks.FindIndex(b => b.Name == "%LightingModel");
+            // If we don't have a lighting model, use the default (PBR)
+            var lightingModelName = lightingModelIndex == -1 ? _defaultLightignModel : blocks[lightingModelIndex].Params[0].Replace("\"", "");
+            var lightingModelPath = Utils.ResolveORLAsset($"{lightingModelName}.orlsource");
+            var lmParser = new Parser();
+            var lightingModel = lmParser.Parse(Utils.GetORLSource(lightingModelName));
+            if (!string.IsNullOrEmpty(lightingModelPath))
+            {
+                ctx.DependsOnSourceAsset(lightingModelPath);
+            }
+            
+            // Lighting model defines some basic functions and dictates where the source shader gets plugged in
+            var updatedBlocks = new List<ShaderBlock>();
+            foreach (var lmInclude in lightingModel[0].Contents)
+            {
+                var stripped = lmInclude.Replace("\"", "").Replace(",", "");
+                if (stripped == "target")
+                {
+                    updatedBlocks.AddRange(blocks);
+                    continue;
+                }
+            
+                var blockParser = new Parser();
+                var block = parser.Parse(Utils.GetORLSource(stripped));
+                updatedBlocks.AddRange(block);
+            }
+
+            blocks = updatedBlocks;
             
             // Collecting and registering all the dependency objects
             var depList = new List<string>();
