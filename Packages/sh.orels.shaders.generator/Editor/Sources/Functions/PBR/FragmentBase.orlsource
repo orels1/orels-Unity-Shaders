@@ -8,6 +8,50 @@
     _DFG("DFG >", 2D) = "white" {}
 }
 
+%ShaderFeatures()
+{
+    #pragma shader_feature_local BICUBIC_LIGHTMAP
+    #pragma shader_feature_local BAKED_SPECULAR
+    #pragma shader_feature_local GSAA
+    #pragma shader_feature_local FORCE_BOX_PROJECTION
+}
+
+%ShaderDefines()
+{
+    #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
+      #define PLAT_QUEST
+    #else
+      #ifdef PLAT_QUEST
+        #undef PLAT_QUEST
+      #endif
+    #endif
+
+    #if !defined(LIGHTMAP_ON) || !defined(UNITY_PASS_FORWARDBASE)
+      #undef BAKERY_SH
+      #undef BAKERY_RNM
+    #endif
+
+    #ifdef LIGHTMAP_ON
+      #undef BAKERY_VOLUME
+    #endif
+
+    #ifdef LIGHTMAP_ON
+      #if defined(BAKERY_RNM) || defined(BAKERY_SH) || defined(BAKERY_VERTEXLM)
+        #define BAKERYLM_ENABLED
+        #undef DIRLIGHTMAP_COMBINED
+      #endif
+    #endif
+
+    #if defined(BAKERY_SH) || defined(BAKERY_RNM) || defined(BAKERY_VOLUME)
+      #ifdef BAKED_SPECULAR
+        #define _BAKERY_LMSPEC
+        #define BAKERY_LMSPEC
+      #endif
+    #endif
+
+    #define NEED_SCREEN_POS
+}
+
 %Textures()
 {
     TEXTURE2D(_DFG);

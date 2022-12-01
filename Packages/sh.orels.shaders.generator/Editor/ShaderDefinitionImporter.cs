@@ -142,12 +142,15 @@ namespace ORL.ShaderGenerator
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var textContent = File.ReadAllLines(ctx.assetPath);
+            var workingFolder = ctx.assetPath.Substring(0, ctx.assetPath.LastIndexOf("/", StringComparison.InvariantCulture));
 
             var parser = new Parser();
             List<ShaderBlock> blocks;
+            string shaderName;
             try
             {
                 blocks = parser.Parse(textContent);
+                shaderName = blocks[blocks.FindIndex(b => b.Name == "%ShaderName")].Params[0];
                 var includesIndex = blocks.FindIndex(b => b.Name == "%Includes");
                 // Shaders can have direct includes (not via LightingModel or anything else
                 // Here we deep-resolve them and inject them back into the blocks in the respective order
@@ -167,13 +170,13 @@ namespace ORL.ShaderGenerator
                         var blockParser = new Parser();
                         var deepDeps = new List<string>();
                         // We recursively collect everything that the lighting model depends on into a flattened list
-                        Utils.RecursivelyCollectDependencies(new [] {stripped}.ToList(), ref deepDeps);
-                        deepDeps.ForEach(dep => ctx.DependsOnSourceAsset(Utils.ResolveORLAsset($"{dep}.orlsource")));
+                        Utils.RecursivelyCollectDependencies(new [] {stripped}.ToList(), ref deepDeps, workingFolder);
+                        deepDeps.ForEach(dep => ctx.DependsOnSourceAsset(Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), workingFolder)));
                         var deepBlocks = new List<ShaderBlock>();
                         foreach (var deepDep in deepDeps)
                         {
                             // since we already have the deps flattened, we can safely strip all the dependencies here
-                            deepBlocks.AddRange(blockParser.Parse(Utils.GetORLSource(deepDep)).Where(b => b.Name != "%Includes"));
+                            deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, workingFolder)).Where(b => b.Name != "%Includes"));
                         }
                         resolvedBlocks.AddRange(deepBlocks);
                     }
@@ -191,7 +194,7 @@ namespace ORL.ShaderGenerator
             var lightingModelIndex = blocks.FindIndex(b => b.Name == "%LightingModel");
             // If we don't have a lighting model, use the default (PBR)
             var lightingModelName = lightingModelIndex == -1 ? _defaultLightignModel : blocks[lightingModelIndex].Params[0].Replace("\"", "");
-            var lightingModelPath = Utils.ResolveORLAsset($"{lightingModelName}.orlsource");
+            var lightingModelPath = Utils.ResolveORLAsset(lightingModelName);
             var lmParser = new Parser();
             var lightingModel = lmParser.Parse(Utils.GetORLSource(lightingModelName));
             if (!string.IsNullOrEmpty(lightingModelPath))
@@ -213,8 +216,8 @@ namespace ORL.ShaderGenerator
                 var blockParser = new Parser();
                 var deepDeps = new List<string>();
                 // We recursively collect everything that the lighting model depends on into a flattened list
-                Utils.RecursivelyCollectDependencies(new [] {stripped}.ToList(), ref deepDeps);
-                deepDeps.ForEach(dep => ctx.DependsOnSourceAsset(Utils.ResolveORLAsset($"{dep}.orlsource")));
+                Utils.RecursivelyCollectDependencies(new [] {stripped}.ToList(), ref deepDeps, workingFolder);
+                deepDeps.ForEach(dep => ctx.DependsOnSourceAsset(Utils.ResolveORLAsset(dep)));
                 var deepBlocks = new List<ShaderBlock>();
                 foreach (var deepDep in deepDeps)
                 {
@@ -229,7 +232,7 @@ namespace ORL.ShaderGenerator
             var templateBlockIndex = blocks.FindIndex(b => b.Name == "%Template");
             // if no template is found - use the Lighting Model supplied one
             var templateName = templateBlockIndex == -1 ? lightingModel.Find(b => b.Name == "%Template").Params[0].Replace("\"", "") : blocks[templateBlockIndex].Params[0].Replace("\"", "");
-            var templatePath = Utils.ResolveORLAsset($"{templateName}.orltemplate");
+            var templatePath = Utils.ResolveORLAsset(templateName);
             var template = Utils.GetORLTemplate(templateName);
             if (!string.IsNullOrEmpty(templatePath))
             {
@@ -251,6 +254,9 @@ namespace ORL.ShaderGenerator
 
             // Collapse non-function blocks together and de-dupe things where makes sense
             blocks = OptimizeBlocks(blocks);
+            
+            // Override shader name to be the one from the source shader
+            blocks[blocks.FindIndex(b => b.Name == "%ShaderName")].Params[0] = shaderName;
             
             // save function blocks to a separate list as they need special handling
             var functionBlocks = blocks.Where(b => b.IsFunction).Reverse().ToList();
@@ -378,7 +384,7 @@ namespace ORL.ShaderGenerator
         {
             foreach (var s in dependencyPaths)
             {
-                var path = Utils.ResolveORLAsset($"{s}.orlsource");
+                var path = Utils.ResolveORLAsset(s);
                 if (!string.IsNullOrEmpty(path))
                 {
                     ctx.DependsOnSourceAsset(path);
@@ -436,7 +442,7 @@ namespace ORL.ShaderGenerator
         }
 
         // Matches _VarNames
-        private Regex _propertyRegex = new Regex(@"(?:\[.*\])*\s*(?<identifier>[\w]+)(?:\(\"".*\""\,[\w\s\(\,\-\)]+\)\s*=)");
+        private Regex _propertyRegex = new Regex(@"(?:\[.*\])*\s*(?<identifier>[\w]+)(?:\s?\(\"".*\""\,[\w\s\(\,\-\)]+\)\s*=)");
         // Matches floatX halfX and intX variables
         private Regex _varRegex = new Regex(@"(?:uniform)?(?:\s*)(?:half|float|int|real|fixed){1}(?:\d)?\s+(?<identifier>\w+)");
 
