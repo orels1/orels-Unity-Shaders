@@ -284,6 +284,7 @@ namespace ORL.ShaderGenerator
                         case "%FragmentFunctions":
                         {
                             var fragmentFns = functionBlocks.FindAll(b => b.Name == "%Fragment");
+                            fragmentFns.Reverse();
                             fragmentFns.Sort((a,b) => a.Order.CompareTo(b.Order));
                             // the calls are inserted in reverse order to maintain offsets, so we reverse them back
                             fragmentFns.Reverse();
@@ -294,6 +295,7 @@ namespace ORL.ShaderGenerator
                         case "%VertexFunctions":
                         {
                             var vertexFns = functionBlocks.FindAll(b => b.Name == "%Vertex");
+                            vertexFns.Reverse();
                             vertexFns.Sort((a,b) => a.Order.CompareTo(b.Order));
                             vertexFns.Reverse();
                             InsertFnCallAtPosition(ref newLine, vertexFns, match.Index, matchLen);
