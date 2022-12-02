@@ -5,7 +5,7 @@
     [ToggleUI]_DIgnoreMask("Ignore Mask %ShowIf(DETAILS_OVERLAY)", Int) = 0
     UI_IgnoreMaskNote("> Force-draws the detail effects %ShowIf(DETAILS_OVERLAY)", Int) = 0
     [KeywordEnum(Packed, Separated)]DETAILS_MODE("Detail Map Mode %ShowIf(DETAILS_OVERLAY)", Int) = 0
-    _DDetailsMap("Details Map > %ShowIf(DETAILS_OVERLAY)", 2D) = "gray" { }
+    _DDetailsMap("Details Map %ShowIf(DETAILS_OVERLAY)", 2D) = "gray" { }
     UI_DetailsMapNote("> R: Albedo, G: Normal G, B: Smooth, A: Normal R. Uncheck sRGB! %ShowIf(DETAILS_OVERLAY && DETAILS_MODE_PACKED)", Int) = 0
     UI_DetailsMapNoteSeparate("> RGB: Albedo, A: Smooth. Uncheck sRGB! %ShowIf(DETAILS_OVERLAY && DETAILS_MODE_SEPARATED)", Int) = 0
     [NoScaleOffset]_DDetailsNormal("Details Normal Map > %ShowIf(DETAILS_OVERLAY && DETAILS_MODE_SEPARATED)", 2D) = "bump" { }

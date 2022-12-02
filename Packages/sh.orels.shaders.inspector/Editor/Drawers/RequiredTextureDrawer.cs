@@ -19,19 +19,18 @@ namespace ORL.Drawers
 
         public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, Dictionary<string, object> uiState, Func<bool> next)
         {
-            if (EditorGUI.indentLevel == -1) return true;
             var match = _matcher.Match(property.displayName);
-            if (!match.Success) return next();
+            if (!match.Success) return EditorGUI.indentLevel == -1 || next();
             var texPath = match.Groups["texPath"].Value;
             // we only want to replace with default if the texture ref is not set or a new texture is referenced
-            if (_savedPath == texPath && property.textureValue != null) return next();
+            if (_savedPath == texPath && property.textureValue != null) return EditorGUI.indentLevel == -1 || next();
             var fetched = FetchTex(texPath);
-            if (fetched == null) return next();
+            if (fetched == null) return EditorGUI.indentLevel == -1 || next();
             _savedTex = fetched;
             _savedPath = texPath;
             property.textureValue = fetched;
 
-            return next();
+            return EditorGUI.indentLevel == -1 || next();
         }
         
         private Texture2D FetchTex(string texPath)
