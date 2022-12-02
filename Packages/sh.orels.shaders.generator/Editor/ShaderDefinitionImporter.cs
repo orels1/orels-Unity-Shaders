@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using ORL.OdinSerializer;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
@@ -14,8 +13,6 @@ namespace ORL.ShaderGenerator
     [ScriptedImporter(1, "orlshader")]
     public class ShaderDefinitionImporter : ScriptedImporter
     {
-        [OdinSerialize]
-        public Dictionary<string, Shader> dependencies;
 
         private HashSet<string> _paramsOnlyBlock = new HashSet<string>
         {

@@ -1,52 +1,57 @@
-﻿using System.Collections.Generic;
-using ORL.ShaderGenerator;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
 
-[CustomEditor(typeof(ShaderDefinitionImporter))]
-public class ShaderDefinitionImporterEditor : ScriptedImporterEditor
+namespace ORL.ShaderGenerator
 {
-    private bool _sourceCodeFoldout;
-    private Font _monoFont;
-    public override void OnInspectorGUI()
+    [CustomEditor(typeof(ShaderDefinitionImporter))]
+    public class ShaderDefinitionImporterEditor : ScriptedImporterEditor
     {
-        serializedObject.Update();
-        if (_monoFont == null)
+        private bool _sourceCodeFoldout;
+        private Font _monoFont;
+
+        public override void OnInspectorGUI()
         {
-            _monoFont = Font.CreateDynamicFontFromOSFont("Consolas", 12);
-        }
-        var importer = target as ShaderDefinitionImporter;
-        if (importer == null) return;
-        _sourceCodeFoldout = EditorGUILayout.Foldout(_sourceCodeFoldout, "Source");
-        if (_sourceCodeFoldout)
-        {
-            EditorGUI.indentLevel++;
-            var assets = AssetDatabase.LoadAllAssetsAtPath(importer.assetPath);
-            foreach (var asset in assets)
+            serializedObject.Update();
+            if (_monoFont == null)
             {
-                if (asset is TextAsset textAsset)
-                {
-                    var text = textAsset.text;
-                    var split = text.Split('\n');
-                    for (int i = 0; i < split.Length; i++)
-                    {
-                        split[i] = $"{(i + 1).ToString(),4}    {split[i]}";
-                    }
-
-                    text = string.Join("\n", split);
-                    var style = new GUIStyle(EditorStyles.textArea)
-                    {
-                        font = _monoFont,
-                        wordWrap = false
-                    };
-                    EditorGUILayout.TextArea(text, style);
-                }
+                _monoFont = Font.CreateDynamicFontFromOSFont("Consolas", 12);
             }
-            EditorGUI.indentLevel--;
-        }
 
-        serializedObject.ApplyModifiedProperties();
-        ApplyRevertGUI();
+            var importer = target as ShaderDefinitionImporter;
+            if (importer == null) return;
+
+            _sourceCodeFoldout = EditorGUILayout.Foldout(_sourceCodeFoldout, "Source");
+            if (_sourceCodeFoldout)
+            {
+                EditorGUI.indentLevel++;
+                var assets = AssetDatabase.LoadAllAssetsAtPath(importer.assetPath);
+                foreach (var asset in assets)
+                {
+                    if (asset is TextAsset textAsset)
+                    {
+                        var text = textAsset.text;
+                        var split = text.Split('\n');
+                        for (int i = 0; i < split.Length; i++)
+                        {
+                            split[i] = $"{(i + 1).ToString(),4}    {split[i]}";
+                        }
+
+                        text = string.Join("\n", split);
+                        var style = new GUIStyle(EditorStyles.textArea)
+                        {
+                            font = _monoFont,
+                            wordWrap = false
+                        };
+                        EditorGUILayout.TextArea(text, style);
+                    }
+                }
+
+                EditorGUI.indentLevel--;
+            }
+
+            serializedObject.ApplyModifiedProperties();
+            ApplyRevertGUI();
+        }
     }
 }

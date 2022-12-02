@@ -1,7 +1,6 @@
 {
     "name": "ORL.ShaderGenerator",
     "references": [
-        "GUID:ea7564d28e28f657d6bfa3d42bf5a47e"
     ],
     "includePlatforms": [
         "Editor"
