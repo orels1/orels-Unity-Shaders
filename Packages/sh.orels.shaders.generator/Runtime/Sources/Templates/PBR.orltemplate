@@ -122,7 +122,6 @@
                 // ForwardBase Color Chain
                 %ColorFunctions
 
-                // fog is optional for VFX, default is OFF
                 #ifdef NEED_FOG
                     UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
                 #endif
@@ -132,6 +131,335 @@
 
             ENDCG
             // ForwardBase Pass End
+        }
+
+        Pass
+        {
+            Tags { "LightMode" = "ForwardAdd" %PassTags }
+            ZWrite Off
+            Blend One One
+            %PassModifiers
+
+            // ForwardAdd Pass Start
+            CGPROGRAM
+            #pragma target 4.5
+            #pragma multi_compile_instancing
+            #pragma multi_compile_fwdadd_fullshadows
+            #pragma multi_compile_fog
+            #pragma vertex Vertex
+            #pragma fragment Fragment
+            %ShaderFeatures
+
+            #define UNITY_INSTANCED_LOD_FADE
+            #define UNITY_INSTANCED_SH
+            #define UNITY_INSTANCED_LIGHTMAPSTS
+
+            #ifndef UNITY_PASS_FORWARDADD
+                #define UNITY_PASS_FORWARDADD
+            #endif
+
+            // ShaderDefines
+            %ShaderDefines
+            // DataStructs
+            %DataStructs
+            // GlobalVariables
+            %GlobalVariables
+
+            #if defined(NEED_DEPTH)
+                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+            #endif
+
+            // Variables
+            %Variables
+
+            // Textures
+            %Textures
+
+            // Functions
+            %Functions
+
+            // ForwardAdd Vertex
+            FragmentData Vertex(VertexData v)
+            {
+                UNITY_SETUP_INSTANCE_ID(v);
+                FragmentData o;
+                UNITY_INITIALIZE_OUTPUT(FragmentData, o);
+                UNITY_TRANSFER_INSTANCE_ID(v, o);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+                // ForwardAdd Vertex Chain
+                %VertexFunctions
+
+                // ForwardAdd VertexBase
+                %VertexBase
+
+                return o;
+            }
+
+            // ForwardAdd Fragment
+            half4 Fragment(FragmentData i) : SV_TARGET
+            {
+                UNITY_SETUP_INSTANCE_ID(i);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+                #if defined(NEED_FOG)
+                    #ifdef FOG_COMBINED_WITH_TSPACE
+                        UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+                    #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+                        UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+                    #else
+                        UNITY_EXTRACT_FOG(i);
+                    #endif
+                #endif
+
+                SurfaceData o = (SurfaceData) 0;
+                MeshData d = CreateMeshData(i);
+                o.Albedo = 0.5;
+                o.Occlusion = 1;
+                o.Normal = half3(0, 0, 1);
+                o.Smoothness = 0.5;
+                o.Alpha = 1;
+                half4 FinalColor = half4(o.Albedo, o.Alpha);
+
+                // ForwardAdd Fragment Chain
+                %FragmentFunctions
+
+                // ForwardAdd FragmentBase
+                %FragmentBase
+
+                // ForwardAdd Color Chain
+                %ColorFunctions
+
+                #ifdef NEED_FOG
+                    UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+                #endif
+
+                return FinalColor;
+            }
+
+            ENDCG
+            // ForwardAdd Pass End
+        }
+
+        Pass
+        {
+            Name "META"
+            Tags { "LightMode" = "Meta" %PassTags }
+            Cull Off
+            %PassModifiers
+
+            // Meta Pass Start
+            CGPROGRAM
+            #pragma target 4.5
+            #pragma multi_compile_instancing
+            #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
+            #pragma shader_feature EDITOR_VISUALISATION
+            #pragma vertex Vertex
+            #pragma fragment Fragment
+            %ShaderFeatures
+
+            #define UNITY_INSTANCED_LOD_FADE
+            #define UNITY_INSTANCED_SH
+            #define UNITY_INSTANCED_LIGHTMAPSTS
+
+            #ifndef UNITY_PASS_META
+                #define UNITY_PASS_META
+            #endif
+
+            #include "UnityPBSLighting.cginc"
+            #include "UnityMetaPass.cginc"
+
+            // ShaderDefines
+            %ShaderDefines
+            // DataStructs
+            %DataStructs
+            // GlobalVariables
+            %GlobalVariables
+
+            #if defined(NEED_DEPTH)
+                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+            #endif
+
+            // Variables
+            %Variables
+
+            // Textures
+            %Textures
+
+            // Functions
+            %Functions
+
+            // ForwardBase Vertex
+            FragmentData Vertex(VertexData v)
+            {
+                UNITY_SETUP_INSTANCE_ID(v);
+                FragmentData o;
+                UNITY_INITIALIZE_OUTPUT(FragmentData, o);
+                UNITY_TRANSFER_INSTANCE_ID(v, o);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+                // Meta Vertex Chain
+                %VertexFunctions
+
+                // Meta VertexBase
+                %VertexBase
+
+                return o;
+            }
+
+            // Meta Fragment
+            half4 Fragment(FragmentData i) : SV_TARGET
+            {
+                UNITY_SETUP_INSTANCE_ID(i);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+                #if defined(NEED_FOG)
+                    #ifdef FOG_COMBINED_WITH_TSPACE
+                        UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+                    #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+                        UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+                    #else
+                        UNITY_EXTRACT_FOG(i);
+                    #endif
+                #endif
+
+                SurfaceData o = (SurfaceData) 0;
+                MeshData d = CreateMeshData(i);
+                o.Albedo = 0.5;
+                o.Occlusion = 1;
+                o.Normal = half3(0, 0, 1);
+                o.Smoothness = 0.5;
+                o.Alpha = 1;
+                // Meta pass only takes Albedo, Alpha and Emission
+                half4 FinalColor = half4(o.Albedo, o.Alpha);
+
+                // Meta Fragment Chain
+                %FragmentFunctions
+
+                half4 FinalColor = half4(o.Albedo, o.Alpha);
+
+                // Meta Color Chain
+                %ColorFunctions
+
+                UnityMetaInput metaIN;
+                UNITY_INITIALIZE_OUTPUT(UnityMetaInput, metaIN);
+
+                #if defined(EDITOR_VISUALISATION)
+                metaIN.VizUV = i.vizUV;
+                metaIN.LightCoord = i.lightCoord;
+                #endif
+
+                return UnityMetaFragment(metaIN);
+            }
+
+            ENDCG
+            // Meta Pass End
+        }
+
+        Pass
+        {
+            Tags { "LightMode" = "ShadowCaster" %PassTags }
+            %PassModifiers
+
+            // ShadowCaster Pass Start
+            CGPROGRAM
+            #pragma target 4.5
+            #pragma multi_compile_instancing
+            #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
+            #pragma multi_compile_shadowcaster
+            #pragma vertex Vertex
+            #pragma fragment Fragment
+            %ShaderFeatures
+
+            #define UNITY_INSTANCED_LOD_FADE
+            #define UNITY_INSTANCED_SH
+            #define UNITY_INSTANCED_LIGHTMAPSTS
+
+            #ifndef UNITY_PASS_SHADOWCASTER
+                #define UNITY_PASS_SHADOWCASTER
+            #endif
+
+            #include "UnityPBSLighting.cginc"
+
+            // ShaderDefines
+            %ShaderDefines
+            // DataStructs
+            %DataStructs
+            // GlobalVariables
+            %GlobalVariables
+
+            #if defined(NEED_DEPTH)
+                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+            #endif
+
+            // Variables
+            %Variables
+
+            // Textures
+            %Textures
+
+            // Functions
+            %Functions
+
+            // ShadowCaster Vertex
+            FragmentData Vertex(VertexData v)
+            {
+                UNITY_SETUP_INSTANCE_ID(v);
+                FragmentData o;
+                UNITY_INITIALIZE_OUTPUT(FragmentData, o);
+                UNITY_TRANSFER_INSTANCE_ID(v, o);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+                // ShadowCaster Vertex Chain
+                %VertexFunctions
+
+                // ShadowCaster VertexBase
+                %VertexBase
+
+                TRANSFER_SHADOW_CASTER_NORMALOFFSET(o);
+
+                return o;
+            }
+
+            // ShadowCaster Fragment
+            half4 Fragment(FragmentData i) : SV_TARGET
+            {
+                UNITY_SETUP_INSTANCE_ID(i);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+                #if defined(NEED_FOG)
+                    #ifdef FOG_COMBINED_WITH_TSPACE
+                        UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+                    #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+                        UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+                    #else
+                        UNITY_EXTRACT_FOG(i);
+                    #endif
+                #endif
+
+                #if defined(NEED_FRAGMENT_IN_SHADOW)
+                SurfaceData o = (SurfaceData) 0;
+                MeshData d = CreateMeshData(i);
+                o.Albedo = 0.5;
+                o.Occlusion = 1;
+                o.Normal = half3(0, 0, 1);
+                o.Smoothness = 0.5;
+                o.Alpha = 1;
+                half4 FinalColor = half4(o.Albedo, o.Alpha);
+
+                // ShadowCaster Fragment Chain
+                %FragmentFunctions
+
+                FinalColor = half4(o.Albedo, o.Alpha);
+
+                // ShadowCaster Color Chain
+                %ColorFunctions
+                #endif
+
+                %ShadowFunction
+
+                SHADOW_CASTER_FRAGMENT(i);
+            }
+
+            ENDCG
+            // ShadowCaster Pass End
         }
 
         // PostPasses
