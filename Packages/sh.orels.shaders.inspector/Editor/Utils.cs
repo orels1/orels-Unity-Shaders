@@ -104,7 +104,7 @@ namespace ORL.ShaderInspector
         public static string StripInternalSymbols(string originalName)
         {
             // This regex matches stuff like %ShowIf(stuff) and %SetKeyword(stuff)
-            var pattern = @"(?<=[\w\!\(\)]+\s+)(?<fn>\%[\w\,\s\&\|\(\)\!\?\>\<\=\%]+]*)";
+            var pattern = @"(?<=[\w\!\(\)]+\s+)(?<fn>\%[\w\,\s\&\|\(\)\!\?\>\<\=\%\/\$\.\-\@]+]*)";
             var cleaned = originalName.Replace(">", "");
             cleaned = Regex.Replace(cleaned, pattern, "");
             return cleaned;

@@ -5,7 +5,7 @@
     [Enum(Off, 0, On, 1)]_ZWrite("Depth Write", Int) = 1
     [Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("Depth Test", Int) = 4
     UI_InternalHeader("# Internal", Int) = 0
-    [NonModifiableTextureData]_DFG("DFG >", 2D) = "white" {}
+    _DFG("DFG > %RequiredTexture(@/dfg-multiscatter.exr)", 2D) = "white" {}
 }
 
 %ShaderFeatures()
