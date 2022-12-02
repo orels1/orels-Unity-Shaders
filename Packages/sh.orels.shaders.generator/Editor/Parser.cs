@@ -11,10 +11,9 @@ namespace ORL.ShaderGenerator
         public string Name { get; set; }
         public List<string> Params { get; set; }
         public List<string> Contents { get; set; }
-
         public bool IsFunction { get; set; }
-        
         public string CallSign { get; set; }
+        public int Order { get; set; } = 0;
     }
 
     public class Parser
@@ -126,6 +125,9 @@ namespace ORL.ShaderGenerator
                                 if (_functionIdentifiers.Contains(blockName))
                                 {
                                     newBlock.IsFunction = true;
+                                    newBlock.Order = newBlock.Params.Count > 1
+                                        ? int.Parse(newBlock.Params[1].Replace("\"", ""))
+                                        : 0; 
                                     var fnName = newBlock.Params[0].Replace("\"", "");
                                     var fnLine = newBlock.Contents.Find(s => s.Contains($"void {fnName}"));
                                     var fnStartIndex = fnLine.IndexOf(fnName, StringComparison.InvariantCulture);

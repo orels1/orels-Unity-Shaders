@@ -284,6 +284,9 @@ namespace ORL.ShaderGenerator
                         case "%FragmentFunctions":
                         {
                             var fragmentFns = functionBlocks.FindAll(b => b.Name == "%Fragment");
+                            fragmentFns.Sort((a,b) => a.Order.CompareTo(b.Order));
+                            // the calls are inserted in reverse order to maintain offsets, so we reverse them back
+                            fragmentFns.Reverse();
                             InsertFnCallAtPosition(ref newLine, fragmentFns, match.Index, matchLen);
                             continue;
                         }
@@ -291,6 +294,8 @@ namespace ORL.ShaderGenerator
                         case "%VertexFunctions":
                         {
                             var vertexFns = functionBlocks.FindAll(b => b.Name == "%Vertex");
+                            vertexFns.Sort((a,b) => a.Order.CompareTo(b.Order));
+                            vertexFns.Reverse();
                             InsertFnCallAtPosition(ref newLine, vertexFns, match.Index, matchLen);
                             continue;
                         }
@@ -439,7 +444,7 @@ namespace ORL.ShaderGenerator
         }
 
         // Matches _VarNames
-        private Regex _propertyRegex = new Regex(@"(?:\[.*\])*\s*(?<identifier>[\w]+)(?:\s?\(\"".*\""\,[\w\s\(\,\-\)]+\)\s*=)");
+        private Regex _propertyRegex = new Regex(@"(?:\[.*\])*\s*(?<identifier>[\w]+)(?:\s?\(\"".*\""\,[\w\s\(\,\.\-\)]+\)\s*=)");
         // Matches floatX halfX and intX variables
         private Regex _varRegex = new Regex(@"(?:uniform)?(?:\s*)(?:half|float|int|real|fixed){1}(?:\d)?\s+(?<identifier>\w+)");
 

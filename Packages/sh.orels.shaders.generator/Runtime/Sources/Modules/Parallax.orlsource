@@ -1,0 +1,49 @@
+﻿%Properties()
+{
+    [ToggleUI]UI_ParallaxHeader ("# Parallax", Int) = 0
+    [Toggle(PARALLAX)]_EnableParallax ("Enable Parallax", Int) = 0
+    [NoScaleOffset]_Height ("Height > %ShowIf(PARALLAX)", 2D) = "black" {}
+    _HeightScale ("Height Scale %ShowIf(PARALLAX)", Range(0, 0.1)) = 0.006
+    _HeightRefPlane ("Height Ref Plane %ShowIf(PARALLAX)", Range(-1, 1)) = 0.5
+    _HeightStepsMin ("Steps Min %ShowIf(PARALLAX)", Range(8, 32)) = 8
+    _HeightStepsMax ("Steps Max %ShowIf(PARALLAX)", Range(8, 32)) = 16
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local PARALLAX
+}
+
+%ShaderDefines()
+{
+    #define _SET_GLOBAL_UVS
+}
+
+%Variables()
+{
+    half _HeightScale;
+    half _HeightRefPlane;
+    half _HeightStepsMin;
+    half _HeightStepsMax;
+}
+
+%Textures()
+{
+    TEXTURE2D(_Height);
+    SAMPLER(sampler_Height);
+}
+
+%Fragment("ParallaxFragment", -100)
+{
+    void ParallaxFragment(MeshData d)
+    {
+      // this is a bit "magical" but basically we just push to global UVs
+      // and then any other module will read from them
+      // we use FragmentQueue to push the actual function call above the other modules
+      GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+      #if defined(PARALLAX) && !defined(PLAT_QUEST)
+        half customHeight = 0;
+        GLOBAL_uv = POM(_Height, sampler_Height, GLOBAL_uv, ddx(GLOBAL_uv), ddy(GLOBAL_uv), d.worldNormal, d.worldSpaceViewDir, d.tangentSpaceViewDir, _HeightStepsMin, _HeightStepsMax, _HeightScale, _HeightRefPlane, half2(1, 1), half2(0, 0), 0, customHeight);
+      #endif
+    }
+}
