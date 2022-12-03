@@ -134,7 +134,7 @@
             Tags { "LightMode" = "ForwardAdd" %PassTags }
             ZWrite Off
             Blend One One
-            %PassModifiers
+            %AddPassModifiers
 
             // ForwardAdd Pass Start
             CGPROGRAM
@@ -237,7 +237,7 @@
             Name "META"
             Tags { "LightMode" = "Meta" %PassTags }
             Cull Off
-            %PassModifiers
+            %MetaPassModifiers
 
             // Meta Pass Start
             CGPROGRAM
@@ -340,7 +340,7 @@
         Pass
         {
             Tags { "LightMode" = "ShadowCaster" %PassTags }
-            %PassModifiers
+            %ShadowPassModifiers
 
             // ShadowCaster Pass Start
             CGPROGRAM
@@ -427,7 +427,7 @@
                 %ColorFunctions
                 #endif
 
-                %ShadowFunction
+                %ShadowFunctions
 
                 SHADOW_CASTER_FRAGMENT(i);
             }
