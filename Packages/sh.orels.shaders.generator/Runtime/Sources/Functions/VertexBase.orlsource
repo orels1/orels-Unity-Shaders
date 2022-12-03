@@ -49,14 +49,14 @@
             #if !defined(UNITY_PASS_FORWARDADD)
                 // unity does some funky stuff for different platforms with these macros
                 #ifdef FOG_COMBINED_WITH_TSPACE
-                    UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(i, o.pos);
+                    UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(o, o.pos);
                 #elif defined(FOG_COMBINED_WITH_WORLD_POS)
-                    UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(i, o.pos);
+                    UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(o, o.pos);
                 #else
-                    UNITY_TRANSFER_FOG(i, o.pos);
+                    UNITY_TRANSFER_FOG(o, o.pos);
                 #endif
             #else
-                UNITY_TRANSFER_FOG(i, o.pos);
+                UNITY_TRANSFER_FOG(o, o.pos);
             #endif
         #endif
     }

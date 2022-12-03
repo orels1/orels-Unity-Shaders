@@ -94,14 +94,12 @@
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                #if defined(NEED_FOG)
-                    #ifdef FOG_COMBINED_WITH_TSPACE
-                        UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-                    #elif defined(FOG_COMBINED_WITH_WORLD_POS)
-                        UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
-                    #else
-                        UNITY_EXTRACT_FOG(i);
-                    #endif
+                #ifdef FOG_COMBINED_WITH_TSPACE
+                    UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+                #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+                    UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+                #else
+                    UNITY_EXTRACT_FOG(i);
                 #endif
 
                 SurfaceData o = (SurfaceData) 0;
@@ -122,9 +120,7 @@
                 // ForwardBase Color Chain
                 %ColorFunctions
 
-                #ifdef NEED_FOG
-                    UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
-                #endif
+                UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
 
                 return FinalColor;
             }
@@ -201,14 +197,12 @@
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                #if defined(NEED_FOG)
-                    #ifdef FOG_COMBINED_WITH_TSPACE
-                        UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-                    #elif defined(FOG_COMBINED_WITH_WORLD_POS)
-                        UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
-                    #else
-                        UNITY_EXTRACT_FOG(i);
-                    #endif
+                #ifdef FOG_COMBINED_WITH_TSPACE
+                    UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+                #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+                    UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+                #else
+                    UNITY_EXTRACT_FOG(i);
                 #endif
 
                 SurfaceData o = (SurfaceData) 0;
@@ -229,9 +223,7 @@
                 // ForwardAdd Color Chain
                 %ColorFunctions
 
-                #ifdef NEED_FOG
-                    UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
-                #endif
+                UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
 
                 return FinalColor;
             }
@@ -311,15 +303,6 @@
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                #if defined(NEED_FOG)
-                    #ifdef FOG_COMBINED_WITH_TSPACE
-                        UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-                    #elif defined(FOG_COMBINED_WITH_WORLD_POS)
-                        UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
-                    #else
-                        UNITY_EXTRACT_FOG(i);
-                    #endif
-                #endif
 
                 SurfaceData o = (SurfaceData) 0;
                 MeshData d = CreateMeshData(i);
@@ -334,7 +317,7 @@
                 // Meta Fragment Chain
                 %FragmentFunctions
 
-                half4 FinalColor = half4(o.Albedo, o.Alpha);
+                FinalColor = half4(o.Albedo, o.Alpha);
 
                 // Meta Color Chain
                 %ColorFunctions
@@ -424,15 +407,6 @@
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                #if defined(NEED_FOG)
-                    #ifdef FOG_COMBINED_WITH_TSPACE
-                        UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-                    #elif defined(FOG_COMBINED_WITH_WORLD_POS)
-                        UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
-                    #else
-                        UNITY_EXTRACT_FOG(i);
-                    #endif
-                #endif
 
                 #if defined(NEED_FRAGMENT_IN_SHADOW)
                 SurfaceData o = (SurfaceData) 0;
