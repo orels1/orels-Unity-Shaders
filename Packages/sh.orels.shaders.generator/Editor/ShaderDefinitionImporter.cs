@@ -467,6 +467,17 @@ namespace ORL.ShaderGenerator
                 if (string.IsNullOrWhiteSpace(item)) continue;
                 if (!matcher.IsMatch(item))
                 {
+                    // #ifdefs are not invalid, so we just paste them as-is silently
+                    if (item.Trim().StartsWith("#"))
+                    {
+                        deduped.Add(item);
+                        continue;
+                    }
+                    // comments are also not invalid, but we skip them
+                    if (item.Trim().StartsWith("//"))
+                    {
+                        continue;
+                    }
                     Debug.LogWarning($"Could not find a item in {item}, adding as-is");
                     deduped.Add(item);
                     continue;

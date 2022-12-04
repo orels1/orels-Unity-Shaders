@@ -83,6 +83,7 @@
 %Includes()
 {
     "@/Libraries/PBR/LightingHelpers",
+    "@/Modules/Bakery",
     "self"
 }
 

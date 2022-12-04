@@ -1,6 +1,12 @@
 ﻿%Variables()
 {
     float4 _RNM0_TexelSize;
+    #ifdef BAKERY_VOLUME
+    half3 _VolumeMin;
+    half3 _VolumnInvSize;
+    half3 _GlobalVolumeMin;
+    half3 _GlobalVolumeInvSize;
+    #endif
 }
 %Textures()
 {
@@ -8,6 +14,16 @@
     TEXTURE2D(_RNM1);
     TEXTURE2D(_RNM2);
     SAMPLER(sampler_RNM0);
+
+    // Bakery volumes are technically not supported yet
+    // But I added the variables for the future
+    #ifdef BAKERY_VOLUME
+    TEXTURE3D(_Volume0);
+    TEXTURE3D(_Volume1);
+    TEXTURE3D(_Volume2);
+    TEXTURE3D(_VolumeMask);
+    SAMPLER(sampler_Volume0);
+    #endif
 }
 
 %LibraryFunctions()
@@ -114,18 +130,6 @@
     {
         return 1.0f + BakeryBicubic_w3(a) / (BakeryBicubic_w2(a) + BakeryBicubic_w3(a)) + 0.5f;
     }
-    #endif
-    
-    // I do not support bakery volumes yet
-    #ifdef BAKERY_VOLUME
-        Texture3D _Volume0, _Volume1, _Volume2, _VolumeMask;
-        SamplerState sampler_Volume0;
-
-        #ifndef PROPERTIES_DEFINED
-            float3 _VolumeMin, _VolumeInvSize;
-            float3 _GlobalVolumeMin, _GlobalVolumeInvSize;
-        #endif
-
     #endif
 
     #ifdef BAKERY_BICUBIC
