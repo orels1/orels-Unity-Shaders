@@ -301,6 +301,16 @@ namespace ORL.ShaderGenerator
                             InsertFnCallAtPosition(ref newLine, vertexFns, match.Index, matchLen);
                             continue;
                         }
+                        // Here we insert function calls into the fragment stage of shadowcaster
+                        case "%ShadowFunctions":
+                        {
+                            var shadowFns = functionBlocks.FindAll(b => b.Name == "%Shadow");
+                            shadowFns.Reverse();
+                            shadowFns.Sort((a,b) => a.Order.CompareTo(b.Order));
+                            shadowFns.Reverse();
+                            InsertFnCallAtPosition(ref newLine, shadowFns, match.Index, matchLen);
+                            continue;
+                        }
                     }
 
                     // For non-function blocks - we simply replace the block name with the block contents
