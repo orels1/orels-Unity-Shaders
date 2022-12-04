@@ -34,13 +34,23 @@ namespace ORL.ShaderInspector
             };
         }
 
-        public static GUIStyle Header1BgStye = new GUIStyle
+        private static GUIStyle _header1BGStyle;
+
+        public static GUIStyle Header1BgStyle
         {
-            normal = new GUIStyleState
+            get
             {
-                background = CreateTexture(new Color(0f,0f,0f,0.3f))
+                if (_header1BGStyle != null) return _header1BGStyle;
+                _header1BGStyle = new GUIStyle
+                {
+                    normal = new GUIStyleState
+                    {
+                        background = CreateTexture(new Color(0f,0f,0f,0.3f))
+                    }
+                };
+                return _header1BGStyle;
             }
-        };
+        }
 
         public static GUIStyle Header1TextStyle = new GUIStyle
         {
@@ -71,25 +81,45 @@ namespace ORL.ShaderInspector
             }
         };
 
-        public static GUIStyle FoldoutFolded = new GUIStyle
-        {
-            fixedWidth = 10f,
-            fixedHeight = 10f,
-            normal = new GUIStyleState
-            {
-                background = Resources.Load<Texture2D>("Arrow_R"),
-            }
-        };
+        private static GUIStyle _foldoutFolded;
 
-        public static GUIStyle FoldoutUnfolded = new GUIStyle
+        public static GUIStyle FoldoutFolded
         {
-            fixedWidth = 10f,
-            fixedHeight = 10f,
-            normal = new GUIStyleState
+            get
             {
-                background = Resources.Load<Texture2D>("Arrow_D"),
+                if (_foldoutFolded != null) return _foldoutFolded;
+                _foldoutFolded = new GUIStyle
+                {
+                    fixedWidth = 10f,
+                    fixedHeight = 10f,
+                    normal = new GUIStyleState
+                    {
+                        background = Resources.Load<Texture2D>("Arrow_R"),
+                    }
+                };
+                return _foldoutFolded;
             }
-        };
+        }
+
+        private static GUIStyle _foldoutUnfolded;
+
+        public static GUIStyle FoldoutUnfolded
+        {
+            get
+            {
+                if (_foldoutUnfolded != null) return _foldoutUnfolded;
+                _foldoutUnfolded = new GUIStyle
+                {
+                    fixedWidth = 10f,
+                    fixedHeight = 10f,
+                    normal = new GUIStyleState
+                    {
+                        background = Resources.Load<Texture2D>("Arrow_D"),
+                    }
+                };
+                return _foldoutUnfolded;
+            }
+        }
 
         public static void DrawStaticHeader(string text)
         {
@@ -103,7 +133,7 @@ namespace ORL.ShaderInspector
             dividerRect.y -= 1f;
             dividerRect.height = 1f;
             GUI.Box(dividerRect, "", Divider);
-            GUI.Box(rect, "", Header1BgStye);
+            GUI.Box(rect, "", Header1BgStyle);
             var labelRect = rect;
             labelRect.y -= 1f * EditorGUIUtility.pixelsPerPoint;
             labelRect.xMin += 27f * EditorGUIUtility.pixelsPerPoint;

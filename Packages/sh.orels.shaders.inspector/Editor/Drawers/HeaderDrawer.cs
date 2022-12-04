@@ -47,7 +47,7 @@ namespace ORL.Drawers
                 dividerRect.y -= 1f;
                 dividerRect.height = 1f;
                 GUI.Box(dividerRect, "", Styles.Divider);
-                GUI.Box(rect, "", Styles.Header1BgStye);
+                GUI.Box(rect, "", Styles.Header1BgStyle);
                 var labelRect = rect;
                 labelRect.y -= 1f * EditorGUIUtility.pixelsPerPoint;
                 labelRect.xMin += 25f * EditorGUIUtility.pixelsPerPoint;
