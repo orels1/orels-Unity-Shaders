@@ -9,6 +9,7 @@ namespace ORL.ShaderGenerator
     {
         private bool _sourceCodeFoldout;
         private Font _monoFont;
+        private Vector2 _sourceScrollPos;
 
         public override void OnInspectorGUI()
         {
@@ -24,7 +25,6 @@ namespace ORL.ShaderGenerator
             _sourceCodeFoldout = EditorGUILayout.Foldout(_sourceCodeFoldout, "Source");
             if (_sourceCodeFoldout)
             {
-                EditorGUI.indentLevel++;
                 var assets = AssetDatabase.LoadAllAssetsAtPath(importer.assetPath);
                 foreach (var asset in assets)
                 {
@@ -43,11 +43,13 @@ namespace ORL.ShaderGenerator
                             font = _monoFont,
                             wordWrap = false
                         };
-                        EditorGUILayout.TextArea(text, style);
+                        using (var sv = new EditorGUILayout.ScrollViewScope(_sourceScrollPos, GUILayout.Height(500 * EditorGUIUtility.pixelsPerPoint)))
+                        {
+                            EditorGUILayout.TextArea(text, style);
+                            _sourceScrollPos = sv.scrollPosition;
+                        }
                     }
                 }
-
-                EditorGUI.indentLevel--;
             }
 
             serializedObject.ApplyModifiedProperties();
