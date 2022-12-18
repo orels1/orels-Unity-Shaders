@@ -1,0 +1,90 @@
+%ShaderName("orels1/Standard Glass")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_GlassHeader("# Glass", Int) = 1
+    _GlassRimTint("Shadow Tint", Color) = (0.2, 0.2, 0.2, 0.3)
+    _GlassRimPower("Rim Power", Float) = 1
+    _GlassRimStrength("Rim Strength", Float) = 1
+    _GlassRimSmoothing("Rim Smoothing %RemapSlider(0,1)", Vector) = (0, 1, 0, 0)
+    _GlassAlphaMod("Rim Alpha Mod", Float) = 0
+    [Toggle(BLURRY_GLASS)]_GlassBlurry("Blurry Glass Mode", Int) = 0
+    _GlassBlurryAmount("Blur Level %ShowIf(BLURRY_GLASS)", Range(0, 1)) = 0.5
+    _GlassBlurryMask("Blur Mask %ShowIf(BLURRY_GLASS)", 2D) = "white" { }
+}
+
+%Includes()
+{
+    "@/Modules/AudioLink",
+    "@/Shaders/ORL Standard",
+    "self"
+}
+
+%ShaderTags()
+{
+    "Queue" = "Transparent" "RenderType" = "Transparent"
+}
+
+%ShaderModifiers()
+{
+    Blend SrcAlpha OneMinusSrcAlpha
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local BLURRY_GLASS
+}
+
+%Variables()
+{
+    half4 _GlassRimTint;
+    half _GlassRimPower;
+    half _GlassRimStrength;
+    half4 _GlassRimSmoothing;
+    half _GlassAlphaMod;
+    half _GlassBlurryAmount;
+}
+
+%Textures()
+{
+    TEXTURE2D(_GlassBlurryMask);
+    SAMPLER(sampler_GlassBlurryMask);
+}
+
+%Fragment("GlassFragment")
+{
+    void GlassFragment(MeshData d, inout SurfaceData o)
+    {
+        half NdV = dot(d.worldNormal, d.worldSpaceViewDir);
+        NdV = saturate(abs(NdV));
+        NdV *= _GlassRimStrength;
+        NdV = saturate(pow(saturate(NdV), _GlassRimPower));
+        NdV = smoothstep(_GlassRimSmoothing.x, _GlassRimSmoothing.y, NdV);
+        o.Occlusion = NdV * length(_GlassRimTint.rgb);
+        o.Albedo *= NdV * _GlassRimTint;
+        o.Alpha = saturate(o.Alpha + (1 - NdV) * _GlassAlphaMod);
+    }
+}
+
+%Color("GlassColor")
+{
+    void GlassColor(MeshData d, SurfaceData o, inout half4 FinalColor)
+    {
+        #if defined(BLURRY_GLASS)
+        float3 viewDir = d.worldSpaceViewDir;
+        half3 wNormal = normalize(d.worldNormal);
+        half3 reflDir = reflect(-viewDir, reflect(half3(0, 0, 0), wNormal));
+        half glassBlurMask = SAMPLE_TEXTURE2D(_GlassBlurryMask, sampler_GlassBlurryMask, d.uv0).r;
+        half rough = _GlassBlurryAmount * o.Smoothness * glassBlurMask;
+        reflDir = lerp(reflDir, wNormal, rough * rough);
+
+        Unity_GlossyEnvironmentData envData;
+        envData.roughness = rough;
+        envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
+
+        half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+        FinalColor.rgb += probe0 * o.Albedo;
+        #endif
+    }
+}

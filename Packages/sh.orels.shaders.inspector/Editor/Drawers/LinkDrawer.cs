@@ -9,7 +9,7 @@ namespace ORL.Drawers
 {
     public class LinkDrawer : IDrawer
     {
-        private Regex _matcher = new Regex(@"^\[(?<label>[\w\d\(\)\s\?\!\>\<\:]+)\]\((?<link>[\w\:\/\/\.]+)\)");
+        private Regex _matcher = new Regex(@"^\[(?<label>[\w\d\(\)\s\?\!\>\<\:]+)\]\((?<link>[\w\-\+\:\/\/\.]+)\)");
         public bool MatchDrawer(MaterialProperty property)
         {
             return _matcher.IsMatch(property.displayName);
