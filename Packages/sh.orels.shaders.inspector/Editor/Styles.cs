@@ -151,5 +151,60 @@ namespace ORL.ShaderInspector
             GUI.Label(labelRect, text, Header1TextStyle);
             EditorGUILayout.Space(8f * EditorGUIUtility.pixelsPerPoint);
         }
+
+        public static bool DrawFoldoutHeader(string text, bool open) {
+            EditorGUI.indentLevel = 0;
+            EditorGUILayout.Space(8f * EditorGUIUtility.pixelsPerPoint);
+            var rect = EditorGUILayout.GetControlRect();
+            rect.yMax += 1f * EditorGUIUtility.pixelsPerPoint;
+            rect.xMin -= 15f * EditorGUIUtility.pixelsPerPoint;
+            rect.xMax += 5f * EditorGUIUtility.pixelsPerPoint;
+            var dividerRect = rect;
+            dividerRect.y -= 1f;
+            dividerRect.height = 1f;
+            GUI.Box(dividerRect, "", Divider);
+            GUI.Box(rect, "", Header1BgStyle);
+            var labelRect = rect;
+            labelRect.y -= 1f * EditorGUIUtility.pixelsPerPoint;
+            labelRect.xMin += 27f * EditorGUIUtility.pixelsPerPoint;
+            GUI.Label(labelRect, text, Header1TextStyle);
+            EditorGUILayout.Space(8f * EditorGUIUtility.pixelsPerPoint);
+
+            var foldoutRect = rect;
+            foldoutRect.xMin = 15f * EditorGUIUtility.pixelsPerPoint;
+            foldoutRect.y += 2.5f * EditorGUIUtility.pixelsPerPoint;
+            foldoutRect.height -= 2.5f * EditorGUIUtility.pixelsPerPoint;
+            var evt = Event.current;
+
+            EditorGUI.indentLevel = 1;
+            switch (evt.type)
+            {
+                case EventType.Repaint:
+                {
+                    if (open)
+                    {
+                        FoldoutUnfolded.Draw(foldoutRect, "", false, false, true, false);
+                    }
+                    else
+                    {
+                        FoldoutFolded.Draw(foldoutRect, "", false, false, true, false);
+                    }
+
+                    break;
+                }
+                case EventType.MouseDown:
+                {
+                    if (rect.Contains(evt.mousePosition))
+                    {
+                        return !open;
+                    }
+
+                    break;
+                }
+            }
+
+            GUI.Label(labelRect, text, Styles.Header1TextStyle);
+            return open;
+        }
     }
 }
