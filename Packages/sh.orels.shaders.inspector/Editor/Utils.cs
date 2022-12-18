@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ORL.ShaderInspector
 {
-    public class Utils
+    public static class Utils
     {
         public static bool TryGetValueFromKeyword(string name, Material material, out bool value)
         {
