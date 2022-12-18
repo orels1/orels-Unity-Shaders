@@ -301,6 +301,16 @@ namespace ORL.ShaderGenerator
                             InsertFnCallAtPosition(ref newLine, vertexFns, match.Index, matchLen);
                             continue;
                         }
+                        // Here we insert function calls into the vertex stage
+                        case "%ColorFunctions":
+                        {
+                            var colorFns = functionBlocks.FindAll(b => b.Name == "%Color");
+                            colorFns.Reverse();
+                            colorFns.Sort((a,b) => a.Order.CompareTo(b.Order));
+                            colorFns.Reverse();
+                            InsertFnCallAtPosition(ref newLine, colorFns, match.Index, matchLen);
+                            continue;
+                        }
                         // Here we insert function calls into the fragment stage of shadowcaster
                         case "%ShadowFunctions":
                         {
