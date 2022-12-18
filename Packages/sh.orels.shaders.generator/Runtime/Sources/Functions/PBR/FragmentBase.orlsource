@@ -9,8 +9,7 @@
     UI_GSAANote("> GSAA dramatically reduces specular aliasing", Int) = 0
     _GSAAVariance("GSAA Variance %ShowIf(GSAA)", Range(0, 1)) = 0.05
     _GSAAThreshold("GSAA Threshold %ShowIf(GSAA)", Range(0, 1)) = 0.1
-    UI_InternalHeader("# Internal", Int) = 0
-    _DFG("DFG > %RequiredTexture(@/dfg-multiscatter.exr)", 2D) = "white" {}
+    [Toggle(NONLINEAR_SH)]_NonlinearSH("Non-Linear Lightprobe SH", Int) = 0
     UI_LightmappingHeader("# Lightmapping", Int) = 0
     _SpecOcclusion("Specular Occlusion", Range(0, 1)) = 1
     _SpecularRoughnessMod("Specular Roughness Mod", Range(0, 1)) = 1
@@ -19,7 +18,12 @@
     UI_BakeryHeader("## Bakery Features", Int) = 0
     [Toggle(BAKERY_ENABLED)]_BakeryEnabled("Enable Bakery Features", Int) = 0
     [KeywordEnum(None, MONOSH, SH, RNM)]BAKERY("Bakery Mode %ShowIf(BAKERY_ENABLED)", Int) = 0
-    [Toggle(BAKERY_SHNONLINEAR)]_BakerySHNonLinear("Bakery Non-Linear SH %ShowIf(BAKERY_ENABLED)", Int) = 0
+    [Toggle(BAKERY_SHNONLINEAR)]_BakerySHNonLinear("Bakery Non-Linear SH %ShowIf(BAKERY_ENABLED)", Int) = 1
+    UI_InternalHeader("# Internal", Int) = 0
+    _DFG("DFG > %RequiredTexture(@/dfg-multiscatter.exr)", 2D) = "white" {}
+    _RNM0("RNM0 >", 2D) = "black" {}
+    _RNM1("RNM1 >", 2D) = "black" {}
+    _RNM2("RNM2 >", 2D) = "black" {}
 }
 
 %ShaderFeatures()
@@ -28,6 +32,7 @@
     #pragma shader_feature_local BAKED_SPECULAR
     #pragma shader_feature_local GSAA
     #pragma shader_feature_local FORCE_BOX_PROJECTION
+    #pragma shader_feature_local NONLINEAR_SH
 }
 
 %ShaderDefines()
@@ -37,29 +42,6 @@
     #else
       #ifdef PLAT_QUEST
         #undef PLAT_QUEST
-      #endif
-    #endif
-
-    #if !defined(LIGHTMAP_ON) || !defined(UNITY_PASS_FORWARDBASE)
-      #undef BAKERY_SH
-      #undef BAKERY_RNM
-    #endif
-
-    #ifdef LIGHTMAP_ON
-      #undef BAKERY_VOLUME
-    #endif
-
-    #ifdef LIGHTMAP_ON
-      #if defined(BAKERY_RNM) || defined(BAKERY_SH) || defined(BAKERY_VERTEXLM)
-        #define BAKERYLM_ENABLED
-        #undef DIRLIGHTMAP_COMBINED
-      #endif
-    #endif
-
-    #if defined(BAKERY_SH) || defined(BAKERY_RNM) || defined(BAKERY_VOLUME)
-      #ifdef BAKED_SPECULAR
-        #define _BAKERY_LMSPEC
-        #define BAKERY_LMSPEC
       #endif
     #endif
 
@@ -215,8 +197,10 @@
                 lightMap = SubtractMainLightWithRealtimeAttenuationFrowmLightmap(lightMap, lightAttenuation, bakedColorTex, o.Normal);
             #endif
             indirectDiffuse = lightMap;
-            #else
 
+        // Lightprobes Sampling
+        #else
+            // LPPV support
             #if UNITY_LIGHT_PROBE_PROXY_VOLUME
             UNITY_BRANCH
             if (unity_ProbeVolumeParams.x == 1)
@@ -225,10 +209,26 @@
             }
             else
             {
-            #endif
-                indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
-            #if UNITY_LIGHT_PROBE_PROXY_VOLUME
+                #if defined(NONLINEAR_SH)
+                half3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+                indirectDiffuse.r = shEvaluateDiffuseL1Geomerics(L0.r, unity_SHAr.xyz, o.Normal);
+                indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, unity_SHAg.xyz, o.Normal);
+                indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, unity_SHAb.xyz, o.Normal);
+                #else
+                indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
+                #endif
             }
+            #else // No LPPVs
+
+            #if defined(NONLINEAR_SH)
+            half3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+            indirectDiffuse.r = shEvaluateDiffuseL1Geomerics(L0.r, unity_SHAr.xyz, o.Normal);
+            indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, unity_SHAg.xyz, o.Normal);
+            indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, unity_SHAb.xyz, o.Normal);
+            #else
+            indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
+            #endif
+
             #endif
         #endif // end of #if defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
 
@@ -270,10 +270,10 @@
             #endif
 
             // if we do not have lightmap - derive the specular from probes
-            //#ifndef LIGHTMAP_ON
-            //bakedSpecularColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-            //bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
-            // #endif
+            #if !defined(LIGHTMAP_ON)
+            bakedSpecularColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+            bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+            #endif
 
             bakedDominantDirection = normalize(bakedDominantDirection);
             directSpecular += GetSpecularHighlights(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
@@ -283,50 +283,43 @@
         half3 fresnel = F_Schlick(NoV, f0);
 
         // BAKERY DIRECT SPECULAR
-        // #if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
-            // #if defined(BAKERY_RNM)
-            // {
-            //     half3 viewDirTangent = -normalize(d.tangentSpaceViewDir);
-            //     half3 dominantDirTangent = rnmBasis0 * dot(rnm0, lumaConv) +
-            //     rnmBasis1 * dot(rnm1, lumaConv) +
-            //     rnmBasis2 * dot(rnm2, lumaConv);
+        #if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
+            #if defined(BAKERY_RNM)
+            {
+                half3 viewDirTangent = -normalize(d.tangentSpaceViewDir);
+                half3 dominantDirTangent = rnmBasis0 * dot(rnm0, lumaConv) +
+                rnmBasis1 * dot(rnm1, lumaConv) +
+                rnmBasis2 * dot(rnm2, lumaConv);
 
-            //     half3 dominantDirTangentNormalized = normalize(dominantDirTangent);
-            //     half3 specColor = saturate(dot(rnmBasis0, dominantDirTangentNormalized)) * rnm0 +
-            //     saturate(dot(rnmBasis1, dominantDirTangentNormalized)) * rnm1 +
-            //     saturate(dot(rnmBasis2, dominantDirTangentNormalized)) * rnm2;
-            //     half3 halfDir = Unity_SafeNormalize(dominantDirTangentNormalized - viewDirTangent);
-            //     half NoH = saturate(dot(tangentNormal, halfDir));
-            //     half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
-            //     directSpecular += spec * specColor * fresnel;
-            // }
-            // #endif
+                half3 dominantDirTangentNormalized = normalize(dominantDirTangent);
+                half3 specColor = saturate(dot(rnmBasis0, dominantDirTangentNormalized)) * rnm0 +
+                saturate(dot(rnmBasis1, dominantDirTangentNormalized)) * rnm1 +
+                saturate(dot(rnmBasis2, dominantDirTangentNormalized)) * rnm2;
+                half3 halfDir = Unity_SafeNormalize(dominantDirTangentNormalized - viewDirTangent);
+                half NoH = saturate(dot(tangentNormal, halfDir));
+                half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
+                directSpecular += spec * specColor * fresnel;
+            }
+            #endif
 
-            // #if defined(BAKERY_SH)
-            // {
-            //     half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
-            //     half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + d.worldSpaceViewDir);
-            //     half NoH = saturate(dot(o.Normal, halfDir));
-            //     half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
-            //     half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
-            //     dominantDir = normalize(dominantDir);
-            //     directSpecular += max(spec * sh, 0.0) * fresnel;
-            // }
-            // #endif
+            #if defined(BAKERY_SH)
+            {
+                half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
+                half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
+                dominantDir = normalize(dominantDir);
+                directSpecular += GetSpecularHighlights(o.Normal, sh, dominantDir, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+            }
+            #endif
 
-            // #if defined(BAKERY_MONOSH)
-            // {
-            //     half3 dominantDir = nL1;
-            //     half focus = saturate(length(dominantDir));
-            //     half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) - d.worldSpaceViewDir);
-            //     half NoH = saturate(dot(o.Normal, halfDir));
-            //     half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
-            //     half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
-            //     dominantDir = normalize(dominantDir);
-            //     directSpecular += max(spec * sh, 0.0) * fresnel;
-            // }
-            // #endif
-        // #endif // End of #if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
+            #if defined(BAKERY_MONOSH) && defined(DIRLIGHTMAP_COMBINED)
+            {
+                half3 dominantDir = nL1;
+                half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
+                dominantDir = normalize(dominantDir);
+                directSpecular += GetSpecularHighlights(o.Normal, sh, dominantDir, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+            }
+            #endif
+        #endif // End of #if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
 
         // REFLECTIONS
         #if !defined(UNITY_PASS_FORWARDADD)
