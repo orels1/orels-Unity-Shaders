@@ -117,10 +117,10 @@
                 // ForwardBase FragmentBase
                 %FragmentBase
 
+                UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+                
                 // ForwardBase Color Chain
                 %ColorFunctions
-
-                UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
 
                 return FinalColor;
             }
@@ -324,6 +324,9 @@
 
                 UnityMetaInput metaIN;
                 UNITY_INITIALIZE_OUTPUT(UnityMetaInput, metaIN);
+
+                metaIN.Albedo = FinalColor.rgb;
+				metaIN.Emission = o.Emission;
 
                 #if defined(EDITOR_VISUALISATION)
                 metaIN.VizUV = i.vizUV;
