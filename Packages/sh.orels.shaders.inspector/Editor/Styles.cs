@@ -5,6 +5,25 @@ namespace ORL.ShaderInspector
 {
     public static class Styles
     {
+        public static void InitTextureStyles() {
+            Header1BgStyle = new GUIStyle
+            {
+                normal = new GUIStyleState
+                {
+                    background = CreateTexture(new Color(0f,0f,0f,0.3f))
+                }
+            };
+
+            Divider = new GUIStyle
+            {
+                fixedHeight = 1f,
+                normal = new GUIStyleState
+                {
+                    background = CreateTexture(new Color(0f, 0f, 0f, 0.6f))
+                }
+            };
+        }
+
         public static Texture2D CreateTexture(Color color)
         {
             var tex = new Texture2D(1, 1);
@@ -53,18 +72,20 @@ namespace ORL.ShaderInspector
             }
         };
 
-        public static GUIStyle NoteTextStyle = new GUIStyle(EditorStyles.wordWrappedLabel)
+        public static GUIStyle NoteTextStyle = new GUIStyle
         {
             fontSize = 11,
+            wordWrap = true,
             normal = new GUIStyleState
             {
                 textColor = new Color(1f,1f,1f, 0.5f),
             }
         };
 
-        public static GUIStyle LinkTextStyle = new GUIStyle(EditorStyles.wordWrappedLabel)
+        public static GUIStyle LinkTextStyle = new GUIStyle
         {
             fontSize = 11,
+            wordWrap = true,
             normal = new GUIStyleState
             {
                 textColor = new Color(64f/255f, 206f/255f, 245f/255f),

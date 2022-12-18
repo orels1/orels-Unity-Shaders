@@ -28,6 +28,8 @@ namespace ORL.ShaderInspector
 
         private void Initialize()
         {
+            Styles.InitTextureStyles();
+            
             // fill in our own stuff
             _drawers = Assembly
                 .GetAssembly(typeof(IDrawer)).GetTypes()
