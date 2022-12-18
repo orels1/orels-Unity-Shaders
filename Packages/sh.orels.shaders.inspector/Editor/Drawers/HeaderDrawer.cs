@@ -35,6 +35,7 @@ namespace ORL.Drawers
             }
 
             var filteredName = property.displayName.Replace("#", "");
+            filteredName = Utils.StripInternalSymbols(filteredName);
             if (matchLevel == 1)
             {
                 EditorGUI.indentLevel = 0;
@@ -102,7 +103,7 @@ namespace ORL.Drawers
             {
                 EditorGUI.indentLevel = 1;
                 var rect = EditorGUILayout.GetControlRect();
-                rect.xMin -= 2f * EditorGUIUtility.pixelsPerPoint;
+                rect.xMin -= 3f * EditorGUIUtility.pixelsPerPoint;
                 EditorGUI.LabelField(rect, filteredName, EditorStyles.boldLabel);
             }
 

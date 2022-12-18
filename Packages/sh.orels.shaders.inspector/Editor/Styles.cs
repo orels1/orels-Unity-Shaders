@@ -76,6 +76,7 @@ namespace ORL.ShaderInspector
         {
             fontSize = 11,
             wordWrap = true,
+            margin = new RectOffset(10, 0, 0, 0),
             normal = new GUIStyleState
             {
                 textColor = new Color(1f,1f,1f, 0.5f),

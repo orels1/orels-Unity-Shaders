@@ -20,7 +20,7 @@ namespace ORL.Drawers
 
         public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, Dictionary<string, object> uiState, Func<bool> next)
         {
-            if (EditorGUI.indentLevel == -1) return true;
+            if (EditorGUI.indentLevel == -1 && !property.displayName.Trim().StartsWith("# ")) return true;
             
             if (_interpreter == null)
             {

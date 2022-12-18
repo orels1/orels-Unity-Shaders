@@ -212,7 +212,7 @@ namespace ORL.ShaderInspector
             return drawn;
         }
 
-        private readonly static Regex _singleLineRegex = new Regex(@"(?<=\w+\s+)(\>)(?=\s*%?)");
+        private readonly static Regex _singleLineRegex = new Regex(@"(?<=""\w+\s+)(\>)");
 
         public static void DrawRegularProp(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index)
         {
