@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace ORL.ShaderInspector
 {
-    public class Styles
+    public static class Styles
     {
         public static Texture2D CreateTexture(Color color)
         {
@@ -34,23 +34,13 @@ namespace ORL.ShaderInspector
             };
         }
 
-        private static GUIStyle _header1BGStyle;
-
-        public static GUIStyle Header1BgStyle
+        public static GUIStyle Header1BgStyle = new GUIStyle
         {
-            get
+            normal = new GUIStyleState
             {
-                if (_header1BGStyle != null) return _header1BGStyle;
-                _header1BGStyle = new GUIStyle
-                {
-                    normal = new GUIStyleState
-                    {
-                        background = CreateTexture(new Color(0f,0f,0f,0.3f))
-                    }
-                };
-                return _header1BGStyle;
+                background = CreateTexture(new Color(0f,0f,0f,0.3f))
             }
-        }
+        };
 
         public static GUIStyle Header1TextStyle = new GUIStyle
         {
@@ -62,7 +52,7 @@ namespace ORL.ShaderInspector
                 textColor = new Color(1f,1f,1f, 0.8f),
             }
         };
-        
+
         public static GUIStyle NoteTextStyle = new GUIStyle(EditorStyles.wordWrappedLabel)
         {
             fontSize = 11,
@@ -71,7 +61,7 @@ namespace ORL.ShaderInspector
                 textColor = new Color(1f,1f,1f, 0.5f),
             }
         };
-        
+
         public static GUIStyle LinkTextStyle = new GUIStyle(EditorStyles.wordWrappedLabel)
         {
             fontSize = 11,
