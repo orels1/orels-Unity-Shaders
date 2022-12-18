@@ -46,6 +46,7 @@
     #if !defined(SCALE_UNIFORM)
     #define SCALE_NONE
     #endif
+    #define EXTRA_V2F_0
 }
 
 %Variables()
@@ -69,11 +70,12 @@
 
 %Vertex("VertexAnimationVertex")
 {
-    void VertexAnimationVertex(inout VertexData v)
+    void VertexAnimationVertex(inout VertexData v, inout FragmentData o)
     {
         // half3 wsVert = TransformObjectToWorld(v.vertex.xyz);
         // half3 wsNormal = TransformObjectToWorld(v.normal.xyz);
         half factor = 0;
+        o.extraV2F0 = v.vertex;
         
         #if defined(SPIN_LOCAL) || defined(SPIN_WORLD)
             half3 origin = _SpinOrigin.xyz;
