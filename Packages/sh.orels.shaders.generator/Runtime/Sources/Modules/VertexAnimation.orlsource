@@ -1,0 +1,124 @@
+%Properties()
+{
+    [ToggleUI]UI_VertexAnimHeader("# Vertex Animation", Float) = 0
+
+    // SPINNING
+    UI_SpinHeader("## Spin", Int) = 0
+    [KeywordEnum(None, Local, World)]SPIN("Spinning", Int) = 0
+    _SpinAxis("Spin Axis %ShowIf(!SPIN_NONE)", Vector) = (0, 1, 0, 0)
+    [ToggleUI]_NormalizeSpinAxis("Normalize Axis", Int) = 1
+    _SpinOrigin("Spin Origin Point %ShowIf(!SPIN_NONE)", Vector) = (0, 0, 0, 0)
+    UI_SpinOriginNote("> Spin Origin Point is considered in object's local space %ShowIf(!SPIN_NONE)", Int) = 0
+    _SpinSpeed("Spin Speed %ShowIf(!SPIN_NONE)", Float) = 1
+
+    // FLOATING
+    UI_FloatHeader("## Float", Int) = 0
+    [KeywordEnum(None, Local, World)]FLOATING("Floating", Int) = 0
+    _FloatAxis("Float Axis %ShowIf(!FLOATING_NONE)", Vector) = (0, 1, 0, 0)
+    [ToggleUI]_NormalizeFloatAxis("Normalize Axis", Int) = 1
+    _FloatSpeed("Float Speed %ShowIf(!FLOATING_NONE)", Float) = 1
+    _FloatAmount("Float Amount %ShowIf(!FLOATING_NONE)", Float) = 0.2
+    [ToggleUI]_FloatTwoWay("Two Way %ShowIf(!FLOATING_NONE)", Int) = 1
+    UI_FloatNote("> Defines whether the object will go back and forth along the axis %ShowIf(!FLOATING_NONE)", Int) = 0
+
+    // SCALING
+    UI_ScaleHeader("## Scale", Int) = 0
+    [KeywordEnum(None, Uniform)]SCALE("Scaling", Int) = 0
+    _ScaleSpeed("Scale Speed %ShowIf(!SCALE_NONE)", Float) = 1
+    _ScaleAmount("Scale Amount %ShowIf(!SCALE_NONE)", Float) = 0.5
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local _ SPIN_LOCAL SPIN_WORLD
+    #pragma shader_feature_local _ FLOATING_LOCAL FLOATING_WORLD
+    #pragma shader_feature_local _ SCALE_UNIFORM
+}
+
+%ShaderDefines()
+{
+    #if !defined(SPIN_WORLD) || !defined(SPIN_LOCAL)
+    #define SPIN_NONE
+    #endif
+    #if !defined(FLOATING_WORLD) || !defined(FLOATING_LOCAL)
+    #define FLOATING_NONE
+    #endif
+    #if !defined(SCALE_UNIFORM)
+    #define SCALE_NONE
+    #endif
+}
+
+%Variables()
+{
+    int _Spin;
+    int _SpinOrientation;
+    half4 _SpinAxis;
+    int _NormalizeSpinAxis;
+    half _SpinSpeed;
+    half4 _SpinOrigin;
+
+    half4 _FloatAxis;
+    int _NormalizeFloatAxis;
+    half _FloatAmount;
+    half _FloatSpeed;
+    half _FloatTwoWay;
+
+    half _ScaleSpeed;
+    half _ScaleAmount;
+}
+
+%Vertex("VertexAnimationVertex")
+{
+    void VertexAnimationVertex(inout VertexData v)
+    {
+        // half3 wsVert = TransformObjectToWorld(v.vertex.xyz);
+        // half3 wsNormal = TransformObjectToWorld(v.normal.xyz);
+        half factor = 0;
+        
+        #if defined(SPIN_LOCAL) || defined(SPIN_WORLD)
+            half3 origin = _SpinOrigin.xyz;
+            if (_NormalizeSpinAxis) {
+                _SpinAxis.xyz = normalize(_SpinAxis.xyz);
+            }
+            #if defined(SPIN_LOCAL)
+            v.vertex.xyz = RotateAroundAxis(origin, v.vertex.xyz, _SpinAxis.xyz, _Time.y * _SpinSpeed);
+            v.normal.xyz = RotateAroundAxis(origin, v.normal.xyz, _SpinAxis.xyz, _Time.y * _SpinSpeed);
+            #elif defined(SPIN_WORLD)
+            float3 scale = float3(
+                length(unity_ObjectToWorld._m00_m10_m20),
+                length(unity_ObjectToWorld._m01_m11_m21),
+                length(unity_ObjectToWorld._m02_m12_m22)
+            );
+            half3 lsAxis = normalize(TransformWorldToObject(_SpinAxis.xyz));
+            half3 vertRot = RotateAroundAxis(origin, v.vertex.xyz, lsAxis, _Time.y * _SpinSpeed);
+            half3 normalRot = RotateAroundAxis(origin, v.normal.xyz, lsAxis, _Time.y * _SpinSpeed);
+            v.vertex.xyz = vertRot;
+            v.normal.xyz = normalRot;
+            #endif
+            // wsVert = TransformObjectToWorld(v.vertex.xyz);
+        #endif
+        
+        #if defined(FLOATING_LOCAL) || defined(FLOATING_WORLD)
+            factor = sin(_Time.y * _FloatSpeed);
+            factor = lerp((factor + 1) / 2, factor, _FloatTwoWay);
+            
+            #if defined(FLOATING_LOCAL)
+            half3 axis = _FloatAxis.xyz;
+            if (_NormalizeFloatAxis) {
+                axis = normalize(axis);
+            }
+            #elif defined(FLOATING_WORLD)
+            half3 axis = normalize(TransformWorldToObject(_FloatAxis.xyz)).xyz;
+            #endif
+
+            v.vertex.xyz += factor * axis * _FloatAmount;
+            // wsVert = TransformObjectToWorld(v.vertex.xyz);
+        #endif
+        
+        #if defined(SCALE_UNIFORM)
+            factor = sin(_Time.y * _ScaleSpeed);
+            v.vertex.xyz += factor * v.vertex.xyz * _ScaleAmount;
+            // wsVert = TransformObjectToWorld(v.vertex.xyz);
+        #endif
+    }
+}
