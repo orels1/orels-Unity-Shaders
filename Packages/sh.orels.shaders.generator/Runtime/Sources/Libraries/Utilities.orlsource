@@ -21,6 +21,11 @@
         return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
     };
 
+    half3 TransformWorldToObject(half3 pos)
+    {
+        return mul(unity_WorldToObject, half4(pos, 0)).xyz;
+    };
+
     // mostly taken from the Amplify shader reference
     half2 POM(Texture2D heightMap, SamplerState heightSampler, half2 uvs, half2 dx, half2 dy, half3 normalWorld, half3 viewWorld, half3 viewDirTan, int minSamples, int maxSamples, half parallax, half refPlane, half2 tilling, half2 curv, int index, inout half finalHeight)
     {
