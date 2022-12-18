@@ -207,24 +207,26 @@
             {
                 indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), d.worldSpacePosition);
             }
-            else
+            else // Mesh has BlendProbes instead of LPPV
             {
                 #if defined(NONLINEAR_SH)
                 half3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
                 indirectDiffuse.r = shEvaluateDiffuseL1Geomerics(L0.r, unity_SHAr.xyz, o.Normal);
                 indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, unity_SHAg.xyz, o.Normal);
                 indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, unity_SHAb.xyz, o.Normal);
+                indirectDiffuse = max(0, indirectDiffuse);
                 #else
                 indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
                 #endif
             }
-            #else // No LPPVs
+            #else // No LPPVs enabled project-wide
 
             #if defined(NONLINEAR_SH)
-            half3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+            half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
             indirectDiffuse.r = shEvaluateDiffuseL1Geomerics(L0.r, unity_SHAr.xyz, o.Normal);
             indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, unity_SHAg.xyz, o.Normal);
             indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, unity_SHAb.xyz, o.Normal);
+            indirectDiffuse = max(0, indirectDiffuse);
             #else
             indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
             #endif

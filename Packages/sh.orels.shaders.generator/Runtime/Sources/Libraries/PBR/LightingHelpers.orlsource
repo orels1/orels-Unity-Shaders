@@ -322,11 +322,12 @@
         //half q = 0.5f * (1.0f + dot(R1 / lenR1, n));
         //half q = dot(R1 / lenR1, n) * 0.5 + 0.5;
         half q = dot(normalize(R1), n) * 0.5 + 0.5;
+        q = isnan(q) ? 1 : q;
         q = saturate(q); // Thanks to ScruffyRuffles for the bug identity.
 
         // power for q
         // lerps from 1 (linear) to 3 (cubic) based on directionality
-        half p = 1.0f + 2.0f * lenR1 / R0;
+        half p = 1.0f + 2.0f * (lenR1 / R0);
 
         // dynamic range constant
         // should vary between 4 (highly directional) and 0 (ambient)
