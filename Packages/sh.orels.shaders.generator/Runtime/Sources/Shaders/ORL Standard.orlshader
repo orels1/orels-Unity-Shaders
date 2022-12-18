@@ -100,13 +100,16 @@
 {
     void PBRFragment(MeshData d, inout SurfaceData o) {
         // this allows us to handle things like parallax nicely
-        #if !defined(_SET_GLOBAL_UVS)
+        #if defined(PARALLAX)
+            GLOBAL_uv = GLOBAL_parallaxUv;
+        #else
             GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
         #endif
+        
         if (_MappingSpace > 0)
         {
             GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
-            GLOBAL_uv = GLOBAL_uv * _MainTex_ST.xy + _MainTex_ST.zw;
+            GLOBAL_uv *= _MainTex_ST.xy + _MainTex_ST.zw;
         }
         half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
         if (_AlbedoChannel > 0)
