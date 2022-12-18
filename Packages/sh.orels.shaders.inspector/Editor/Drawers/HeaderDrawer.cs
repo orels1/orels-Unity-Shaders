@@ -10,7 +10,7 @@ namespace ORL.Drawers
     public class HeaderDrawer : IDrawer
     {
         // Matches %ShowIf(Condition);
-        private Regex _matcher = new Regex(@"^(#+)");
+        private readonly Regex _matcher = new Regex(@"^(#+)");
 
         public bool MatchDrawer(MaterialProperty property)
         {
@@ -91,7 +91,6 @@ namespace ORL.Drawers
                         }
                     }
                 }
-
 
                 GUI.Label(labelRect, filteredName, Styles.Header1TextStyle);
             }
