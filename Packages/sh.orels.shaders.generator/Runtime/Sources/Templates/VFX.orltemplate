@@ -7,10 +7,7 @@
     SubShader
     {
         Tags { %ShaderTags }
-
-        ZTest[_ZTest]
-        ZWrite[_ZWrite]
-        Cull[_CullMode]
+        %ShaderModifiers
 
         // Global Include Start
         CGINCLUDE
@@ -39,6 +36,7 @@
             #pragma multi_compile_instancing
             #pragma multi_compile_fwdbase
             #pragma multi_compile_fog
+            #pragma shader_feature_local NEED_FOG
             #pragma vertex Vertex
             #pragma fragment Fragment
             %ShaderFeatures
@@ -107,9 +105,6 @@
                 SurfaceData o = (SurfaceData) 0;
                 MeshData d = CreateMeshData(i);
                 o.Albedo = 0.5;
-                o.Occlusion = 1;
-                o.Normal = half3(0, 0, 1);
-                o.Smoothness = 0.5;
                 o.Alpha = 1;
                 half4 FinalColor = half4(o.Albedo, o.Alpha);
 
@@ -119,11 +114,7 @@
                 // ForwardBase FragmentBase
                 %FragmentBase
 
-                // ForwardBase Color Chain
-                %ColorFunctions
-
-                // fog is optional for VFX, default is OFF
-                #ifdef NEED_FOG
+                #if defined(NEED_FOG)
                     UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
                 #endif
 

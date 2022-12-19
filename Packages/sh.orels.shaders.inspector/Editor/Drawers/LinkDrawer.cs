@@ -19,10 +19,9 @@ namespace ORL.Drawers
             Dictionary<string, object> uiState, Func<bool> next)
         {
             if (EditorGUI.indentLevel == -1) return true;
-            
+
             var match = _matcher.Match(property.displayName);
             var label = match.Groups["label"].Value;
-
 
             EditorGUILayout.LabelField(label, Styles.LinkTextStyle);
             var rect = GUILayoutUtility.GetLastRect();
@@ -36,11 +35,11 @@ namespace ORL.Drawers
             }
             var labelSize = Styles.LinkTextStyle.CalcSize(new GUIContent(label));
             rect.y += labelSize.y + 0.5f * EditorGUIUtility.pixelsPerPoint;
-            rect.xMin += 13f * EditorGUIUtility.pixelsPerPoint;
-            rect.width = labelSize.x - 3f * EditorGUIUtility.pixelsPerPoint;
+            rect.xMin += EditorGUI.indentLevel * 15f;
+            rect.width = labelSize.x;
             rect.height = 0.5f * EditorGUIUtility.pixelsPerPoint;
             EditorGUI.DrawRect(rect, Styles.LinkTextStyle.normal.textColor);
-            
+
             return true;
         }
     }

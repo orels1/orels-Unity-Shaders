@@ -1,0 +1,7 @@
+%FragmentBase("FragmentBase")
+{
+    void FragmentBase(SurfaceData o, inout half4 FinalColor)
+    {
+        FinalColor = half4(o.Albedo.rgb + o.Emission.rgb, o.Alpha);
+    }
+}
