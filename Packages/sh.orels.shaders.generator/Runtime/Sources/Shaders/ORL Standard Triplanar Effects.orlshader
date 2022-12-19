@@ -1,0 +1,9 @@
+%ShaderName("orels1/Standard Triplanar Effects")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "@/Modules/TriplanarEffects"
+    "self"
+}

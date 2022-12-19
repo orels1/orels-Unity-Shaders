@@ -1,0 +1,228 @@
+%Properties()
+{
+    UI_TriplanarEffectsHeader("# Triplanar Effects (Dirt, Damage)", Int) = 1
+    [NoScaleOffset]_TriplanarMask("Triplanar Masks >", 2D) = "white" { }
+    _TriplanarMaskTiling("Tiling", Float) = 10
+    _TriplanarBlend("Triplanar Blend", Range(0,2)) = 1
+    _TriplanarBlendPow("Triplanar Blend Power", Float) = 1
+    UI_TriplanarMaskNote("> Green: Damage Mask, Blue: Dirt Mask", Int) = 0
+    [KeywordEnum(None, Dirt, Damage)]DEBUG_TRIPLANAR("Debug Visualization", Int) = 0
+
+    // Dirt
+    UI_DirtHeader("## Dirt", Int) = 0
+    [KeywordEnum(None, Local Space, World Space)]DIRT_MODE("Dirt Mode", Int) = 0
+    _DirtMaskPower("Dirt Mask Power %ShowIf(!DIRT_MODE_NONE)", Float) = 1
+    _DirtColor("Dirt Color %ShowIf(!DIRT_MODE_NONE)", Color) = (0.0365, 0.0211, 0.00893, 1)
+    _DirtSmooth("Dirt Smoothness %ShowIf(!DIRT_MODE_NONE)", Range(0, 1)) = 0.25
+    _DirtGradPower("Dirt Gradient Power %ShowIf(DIRT_MODE_LOCAL_SPACE)", Float) = 3
+    _DirtGradPosition("Dirt Gradient position %ShowIf(DIRT_MODE_LOCAL_SPACE)", Range(0, 1)) = 0.5
+    _DirtGradientMin("Dirt Gradient Min %ShowIf(!DIRT_MODE_NONE && DIRT_MODE_WORLD_SPACE)", Float) = 0
+    _DirtGradientMax("Dirt Gradient Max %ShowIf(!DIRT_MODE_NONE && DIRT_MODE_WORLD_SPACE)", Float) = 10
+    _DirtOpacity("Dirt Opacity %ShowIf(!DIRT_MODE_NONE)", Range(0,1)) = 0.3
+    [ToggleUI]_DirtPlanarMask("Use Planar Mask %ShowIf(!DIRT_MODE_NONE)", Int) = 0
+
+    // Damage
+    UI_DamageHeader("## Damage", Int) = 0
+    [KeywordEnum(None, Enabled)]DAMAGE_MODE("Damage Mode", Int) = 0
+    [NoScaleOffset]_DamageAlbedo("Damage Albedo > %ShowIf(DAMAGE_MODE_ENABLED)", 2D) = "gray" { }
+    _DamageAlbedoTiling("Tiling %ShowIf(DAMAGE_MODE_ENABLED)", Float) = 1
+    _DamageColor("Damage Color %ShowIf(DAMAGE_MODE_ENABLED)", Color) = (0.562, 0.441, 0.378, 1)
+    _DamageSmooth("Smoothness Remap %ShowIf(DAMAGE_MODE_ENABLED) %RemapSlider(0,1)", Vector) = (0,1,0,1)
+    _DamageNormal("Damage Normal > %ShowIf(DAMAGE_MODE_ENABLED)", 2D) = "bump" { }
+    _DamageNormalScale("Normal Scale %ShowIf(DAMAGE_MODE_ENABLED)", Range(-1, 1)) = 1
+    [ToggleUI]_DamageNormalFlipY("Flip Y (UE Mode) %ShowIf(DAMAGE_MODE_ENABLED)", Int) = 0
+    _DamageAmount("Damage Amount %ShowIf(DAMAGE_MODE_ENABLED)", Range(0, 1)) = 0.5
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local DIRT_MODE_NONE DIRT_MODE_LOCAL_SPACE DIRT_MODE_WORLD_SPACE
+    #pragma shader_feature_local DAMAGE_MODE_NONE DAMAGE_MODE_ENABLED
+    #pragma shader_feature_local DEBUG_TRIPLANAR_NONE DEBUG_TRIPLANAR_DIRT DEBUG_TRIPLANAR_DAMAGE
+}
+
+%ShaderDefines()
+{
+    #if !defined(DIRT_MODE_LOCAL_SPACE) && !defined(DIRT_MODE_WORLD_SPACE) && !defined(DIRT_MODE_NONE)
+    #define DIRT_MODE_NONE
+    #endif
+
+    #if !defined(DAMAGE_MODE_ENABLED) && !defined(DAMAGE_MODE_NONE)
+    #define DAMAGE_MODE_NONE
+    #endif
+
+    #if !defined(DEBUG_TRIPLANAR_DIRT) && !defined(DEBUG_TRIPLANAR_DAMAGE) && !defined(DEBUG_TRIPLANAR_NONE)
+    #define DEBUG_TRIPLANAR_NONE
+    #endif
+}
+
+%Variables()
+{
+    half _TriplanarMaskTiling;
+    half _TriplanarBlend;
+    half _TriplanarBlendPow;
+
+    // Dirt
+    half _DirtMaskPower;
+    half4 _DirtColor;
+    half _DirtSmooth;
+    half _DirtGradPower;
+    half _DirtGradPosition;
+    half _DirtGradientMin;
+    half _DirtGradientMax;
+    half _DirtOpacity;
+    int _DirtPlanarMask;
+
+    // Damage
+    half4 _DamageAlbedo_TexelSize;
+    half _DamageAlbedoTiling;
+    half4 _DamageColor;
+    half4 _DamageSmooth;
+    half _DamageNormalScale;
+    int _DamageNormalFlipY;
+    half _DamageAmount;
+}
+
+%Textures()
+{
+    TEXTURE2D(_TriplanarMask);
+    SAMPLER(sampler_TriplanarMask);
+    TEXTURE2D(_DamageAlbedo);
+    TEXTURE2D(_DamageNormal);
+    SAMPLER(sampler_DamageNormal);
+}
+
+%Fragment("TriplanarFragment")
+{
+
+    void TriplanarFragment(MeshData d, inout SurfaceData o)
+    {
+        #if defined(DIRT_MODE_NONE) && defined(DAMAGE_MODE_NONE)
+        
+        return;
+        
+        #else
+
+        half3 wsAligned = (d.worldSpacePosition / - _TriplanarMaskTiling);
+        
+        half3 xySample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xy).rgb;
+        half3 yzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.yz).rgb;
+        half3 xzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xz).rgb;
+        
+        half3 worldNormal = abs(d.worldNormal);
+        worldNormal = saturate(worldNormal - (1 - _TriplanarBlend));
+        worldNormal = pow(worldNormal, _TriplanarBlendPow);
+        
+        half xNormalMask = saturate(lerp(-1, 1, worldNormal.x));
+        half yNormalMask = saturate(lerp(-1, 1, worldNormal.y));
+        half zNormalMask = saturate(lerp(-1, 1, worldNormal.z));
+        
+        half3 triplanarMask = lerp(lerp(lerp(0, xzSample, yNormalMask), yzSample, xNormalMask), xySample, zNormalMask);
+        
+        half damageMask = triplanarMask.g;
+        half dirtMask = triplanarMask.b;
+        
+        // Damage
+        #if defined(DAMAGE_MODE_ENABLED)
+
+        damageMask *= _DamageAmount;
+        half2 damageUV = d.uv0.xy * _DamageAlbedoTiling;
+        UNITY_BRANCH
+        if (_DamageAlbedo_TexelSize.w > 8)
+        {
+            half3 damageAlbedo = SAMPLE_TEXTURE2D(_DamageAlbedo, sampler_TriplanarMask, damageUV).rgb;
+            o.Albedo = lerp(o.Albedo, damageAlbedo, damageMask);
+        }
+        else
+        {
+            o.Albedo = lerp(o.Albedo, o.Albedo * _DamageColor, damageMask);
+        }
+        
+        half4 damageNormalPacked = SAMPLE_TEXTURE2D(_DamageNormal, sampler_DamageNormal, damageUV);
+        if (_DamageNormalFlipY)
+        {
+            damageNormalPacked.y = 1 - damageNormalPacked.y;
+        }
+        half3 damageNormal = UnpackScaleNormal(damageNormalPacked, _DamageNormalScale * damageMask);
+        o.Normal = BlendNormals(o.Normal, damageNormal);
+        
+        o.Smoothness = lerp(o.Smoothness, clamp(o.Smoothness, _DamageSmooth.x, _DamageSmooth.y), damageMask);
+        #endif
+        
+        // Dirt
+        #if !defined(DIRT_MODE_NONE)
+        dirtMask = pow(dirtMask, _DirtMaskPower);
+        
+        #if defined(DIRT_MODE_LOCAL_SPACE)
+        // obj space grad
+        half gradMask = (d.localSpacePosition).y;
+        gradMask += _DirtGradPosition;
+        gradMask = 1 - gradMask;
+        gradMask = pow(gradMask, _DirtGradPower);
+        dirtMask *= saturate(gradMask);
+
+        #endif
+
+        #if defined(DIRT_MODE_WORLD_SPACE)
+        // world space grad
+        half gradMask = (d.worldSpacePosition - TransformObjectToWorld(half3(0, 0, 0))).y;
+        gradMask = (gradMask - _DirtGradientMax) / (_DirtGradientMin - _DirtGradientMax);
+        gradMask = saturate(gradMask);
+        dirtMask *= gradMask;
+
+        #endif
+        
+        dirtMask = clamp(dirtMask, 0, saturate(_DirtOpacity));
+        
+        if (_DirtPlanarMask)
+        {
+            half planarMask = dot(d.worldNormal, half3(0, -1, 0));
+            planarMask = pow(planarMask, 0.5);
+            planarMask = lerp(-1, 1, planarMask);
+            planarMask = saturate(planarMask);
+            dirtMask *= planarMask;
+        }
+        
+        o.Albedo = lerp(o.Albedo, _DirtColor, dirtMask);
+        o.Metallic = lerp(o.Metallic, 0, dirtMask);
+        o.Smoothness = lerp(o.Smoothness, _DirtSmooth, dirtMask);
+        #endif
+
+        #endif
+    }
+}
+
+%Color("TriplanarColor")
+{
+    void TriplanarColor(MeshData d, inout half4 FinalColor) {
+        #if !defined(DEBUG_TRIPLANAR_NONE)
+        half3 wsAligned = (d.worldSpacePosition / - _TriplanarMaskTiling);
+        
+        half3 xySample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xy).rgb;
+        half3 yzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.yz).rgb;
+        half3 xzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xz).rgb;
+
+        half3 worldNormal = abs(d.worldNormal);
+        worldNormal = saturate(worldNormal - (1 - _TriplanarBlend));
+        worldNormal = pow(worldNormal, _TriplanarBlendPow);
+        
+        half xNormalMask = saturate(lerp(-1, 1, worldNormal.x));
+        half yNormalMask = saturate(lerp(-1, 1, worldNormal.y));
+        half zNormalMask = saturate(lerp(-1, 1, worldNormal.z));
+        
+        half3 triplanarMask = lerp(lerp(lerp(0, xzSample, yNormalMask), yzSample, xNormalMask), xySample, zNormalMask);
+        
+        half damageMask = triplanarMask.g;
+        half dirtMask = triplanarMask.b;
+            #if defined(DEBUG_TRIPLANAR_DIRT)
+
+        FinalColor.rgb = dirtMask;
+
+            #elif defined(DEBUG_TRIPLANAR_DAMAGE)
+
+        FinalColor.rgb = damageMask;
+
+            #endif
+        #endif
+    }
+}
