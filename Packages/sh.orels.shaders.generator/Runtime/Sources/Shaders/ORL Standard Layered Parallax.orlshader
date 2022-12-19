@@ -67,7 +67,6 @@
 
 %Includes()
 {
-    "@/Shaders/ORL Standard"
     "self"
 }
 

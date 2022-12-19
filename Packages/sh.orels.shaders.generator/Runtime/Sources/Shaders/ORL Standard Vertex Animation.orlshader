@@ -4,6 +4,6 @@
 %Includes()
 {
     "@/Shaders/ORL Standard",
-    "@/Modules/VertexAnimation.orlsource",
+    "@/Modules/VertexAnimation",
     "self"
 }
