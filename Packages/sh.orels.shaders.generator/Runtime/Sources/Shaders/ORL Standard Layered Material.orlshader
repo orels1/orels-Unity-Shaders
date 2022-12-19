@@ -1,0 +1,8 @@
+%ShaderName("orels1/Standard Layered Material")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Modules/LayeredMaterial",
+    "self"
+}
