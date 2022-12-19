@@ -34,13 +34,15 @@ namespace ORL.Drawers
             var maxSliderSize = baseRect.width * 0.62f;
             var labelRect = baseRect;
             labelRect.width = EditorStyles.label.CalcSize(new GUIContent(strippedName)).x + 20f * EditorGUIUtility.pixelsPerPoint;
-            baseRect.xMin += labelRect.width;
-            if (baseRect.width > maxSliderSize)
-            {
-                var diff = baseRect.width - maxSliderSize;
-                baseRect.width = maxSliderSize;
-                baseRect.x += diff;
-            }
+            baseRect.x = EditorGUIUtility.labelWidth + 6.0f;
+            baseRect.width = EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth - 28f;
+            // baseRect.xMin += labelRect.width;
+            // if (baseRect.width > maxSliderSize)
+            // {
+            //     var diff = baseRect.width - maxSliderSize;
+            //     baseRect.width = maxSliderSize;
+            //     baseRect.x += diff;
+            // }
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.LabelField(labelRect, strippedName);

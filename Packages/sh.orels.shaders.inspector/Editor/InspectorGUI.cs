@@ -118,7 +118,10 @@ namespace ORL.ShaderInspector
             {
                 Initialize(materialEditor);
             }
-            materialEditor.SetDefaultGUIWidths();
+            // materialEditor.SetDefaultGUIWidths();
+            EditorGUIUtility.fieldWidth = 64f;
+            // EditorGUIUtility.labelWidth = (float) (EditorGUIUtility.currentViewWidth - EditorGUIUtility.fieldWidth - 25.0f);
+            // EditorGUIUtility.labelWidth = EditorGUIUtility.currentViewWidth * 0.35f + 25.0f;
             var propIndex = 0;
             foreach (var property in properties)
             {
@@ -220,17 +223,9 @@ namespace ORL.ShaderInspector
             var isSingleLine = property.type == MaterialProperty.PropType.Texture && _singleLineRegex.IsMatch(property.displayName);
             if (isSingleLine)
             {
-                var labelSize = EditorStyles.label.CalcSize(new GUIContent(strippedName)) * EditorGUIUtility.pixelsPerPoint;
                 var buttonRect = editor.TexturePropertySingleLine(new GUIContent(strippedName), property);
-                var maxSizeButtonSize = buttonRect.width * 0.6f;
-                buttonRect.xMin += labelSize.x + 34f * EditorGUIUtility.pixelsPerPoint;
-                if (buttonRect.width > maxSizeButtonSize)
-                {
-                    var diff = buttonRect.width - maxSizeButtonSize;
-                    buttonRect.width = maxSizeButtonSize;
-                    buttonRect.x += diff;
-                }
-                buttonRect.height = labelSize.y;
+                buttonRect.x = EditorGUIUtility.labelWidth + 20.0f;
+                buttonRect.width = EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth - 38f;
                 GUI.Button(buttonRect, "Repack Texture");
                 return;
             }
