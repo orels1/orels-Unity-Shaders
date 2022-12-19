@@ -23,7 +23,7 @@
     _OcclusionStrength("AO Strength %ShowIf(_MaskMap)", Range(0, 1)) =  1
     [ToggleUI]_DetailAsTintMask("Detail as Tint Mask %ShowIf(_MaskMap)", Int) =  0
     [NoScaleOffset] _BumpMap("Normal Map >", 2D) =  "bump" { }
-    _BumpScale("Normal Map Scale", Range(-1, 1)) =  1
+    _BumpScale("Normal Map Scale %ShowIf(_BumpMap)", Range(-1, 1)) =  1
     [ToggleUI]_FlipBumpY("Flip Y (UE Mode) %ShowIf(_BumpMap)", Int) =  0
     [Toggle(_EMISSION)] _EmissionEnabled("Emission", Int) =  0
     _EmissionMap("Emission Map > %ShowIf(_EMISSION)", 2D) =  "white" { }
