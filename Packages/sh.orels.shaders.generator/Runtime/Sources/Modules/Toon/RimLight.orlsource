@@ -1,0 +1,54 @@
+%Properties()
+{
+    UI_RimLightHeader("# Rim Light Settings", Int) = 0
+    _RimTint("Tint", Color) = (1,1,1,1)
+    _RimIntensity("Intensity", Float) = 0
+    _RimAlbedoTint("Albedo Tint", Range(0,1)) = 0
+    _RimEnvironmentTint("Environment Tint", Range(0,1)) = 0
+    _RimAttenuation("Attenuation", Range(0,1)) = 1
+    _RimRange("Range", Range(0, 1)) = 0.7
+    _RimThreshold("Threshold", Range(0, 1)) = 0.1
+    _RimSharpness("Sarpness", Range(0,1)) = 0.1
+}
+
+%Variables()
+{
+    half4 _RimTint;
+    half _RimIntensity;
+    half _RimAlbedoTint;
+    half _RimEnvironmentTint;
+    half _RimAttenuation;
+    half _RimRange;
+    half _RimThreshold;
+    half _RimSharpness;
+}
+
+%Fragment("ToonRimLightFragment")
+{
+    void ToonRimLightFragment(MeshData d, inout SurfaceData o) {
+        #ifndef USING_DIRECTIONAL_LIGHT
+            fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
+        #else
+            fixed3 lightDir = _WorldSpaceLightPos0.xyz;
+        #endif
+        bool lightEnv = any(lightDir.xyz);
+        if (!lightEnv) {
+            lightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+        }
+        half lightNoL = saturate(dot(GLOBAL_pixelNormal, lightDir));
+        half SVDNoN = abs(dot(d.svdn, GLOBAL_pixelNormal));
+
+        half rimIntensity = saturate((1 - SVDNoN)) * saturate(pow(lightNoL, _RimThreshold));
+        rimIntensity = smoothstep(_RimRange - _RimSharpness, _RimRange + _RimSharpness, rimIntensity);
+        half4 rim = rimIntensity * _RimIntensity;
+
+        // Rim Light Env Tint
+        half3 env = 0;
+        #if defined(UNITY_PASS_FORWARDBASE)
+            env = getEnvReflection(d.worldSpaceViewDir.xyz, d.worldSpacePosition.xyz, GLOBAL_pixelNormal, o.Smoothness, 5);
+        #endif
+        
+        o.RimLight = rim * _RimTint * lerp(1, o.Albedo.rgbb, _RimAlbedoTint) * lerp(1, env.rgbb, _RimEnvironmentTint);
+        o.RimAttenuation = _RimAttenuation;
+    }
+}

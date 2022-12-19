@@ -24,9 +24,7 @@ namespace ORL.ShaderGenerator
 
         private string[] _dataStructs = {
             "@/Structs/VertexData",
-            "@/Structs/FragmentData",
-            "@/Structs/SurfaceData",
-            "@/Structs/MeshData"
+            "@/Structs/FragmentData"
         };
         
         private List<ShaderBlock> BuiltInBlocks
@@ -142,11 +140,26 @@ namespace ORL.ShaderGenerator
             var workingFolder = ctx.assetPath.Substring(0, ctx.assetPath.LastIndexOf("/", StringComparison.InvariantCulture));
 
             var parser = new Parser();
-            List<ShaderBlock> blocks;
+            List<ShaderBlock> blocks = new List<ShaderBlock>();
+
+            // We built-in imports first, otherwise the order of imports will be incorrect
+            // Collecting and registering all the dependency objects
+            var depList = new List<string>();
+            depList.AddRange(_dataStructs);
+            depList.AddRange(_functions);
+            depList.AddRange(_libraries);
+            depList.Add(_samplingLib);
+            RegisterDependencies(depList, ctx);
+
+            // Adding all the dependencies to the list of blocks
+            blocks.AddRange(BuiltInBlocks);
+            blocks.AddRange(BuiltInFunctions);
+            blocks.AddRange(BuiltInLibraries);
+
             string shaderName;
             try
             {
-                blocks = parser.Parse(textContent);
+                blocks.AddRange(parser.Parse(textContent));
                 shaderName = blocks[blocks.FindIndex(b => b.Name == "%ShaderName")].Params[0];
                 var includesIndex = blocks.FindIndex(b => b.Name == "%Includes");
                 // Shaders can have direct includes (not via LightingModel or anything else
@@ -235,19 +248,6 @@ namespace ORL.ShaderGenerator
             {
                 ctx.DependsOnSourceAsset(templatePath);
             }
-            
-            // Collecting and registering all the dependency objects
-            var depList = new List<string>();
-            depList.AddRange(_dataStructs);
-            depList.AddRange(_functions);
-            depList.AddRange(_libraries);
-            depList.Add(_samplingLib);
-            RegisterDependencies(depList, ctx);
-            
-            // Adding all the dependencies to the list of blocks
-            blocks.AddRange(BuiltInBlocks);
-            blocks.AddRange(BuiltInFunctions);
-            blocks.AddRange(BuiltInLibraries);
 
             // Collapse non-function blocks together and de-dupe things where makes sense
             blocks = OptimizeBlocks(blocks);

@@ -39,11 +39,11 @@
 %ShaderDefines()
 {
     #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
-      #define PLAT_QUEST
+        #define PLAT_QUEST
     #else
-      #ifdef PLAT_QUEST
-        #undef PLAT_QUEST
-      #endif
+        #ifdef PLAT_QUEST
+            #undef PLAT_QUEST
+        #endif
     #endif
 
     #define NEED_SCREEN_POS

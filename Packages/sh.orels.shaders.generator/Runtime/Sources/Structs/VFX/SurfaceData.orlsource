@@ -1,0 +1,9 @@
+%DataStructs()
+{
+    struct SurfaceData
+    {
+        half3 Albedo;
+        half3 Emission;
+        half Alpha;
+    };
+}

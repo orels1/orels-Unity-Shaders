@@ -1,0 +1,351 @@
+%Properties()
+{
+    UI_AdvancedSettingsHeader("# Advanced Settings", Int) = 1
+    [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
+    [Enum(Off, 0, On, 1)]_ZWrite("Depth Write", Int) = 1
+    [Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("Depth Test", Int) = 4
+}
+
+%Includes()
+{
+    "@/Libraries/PBR/LightingHelpers",
+    "self"
+}
+
+%ShaderDefines()
+{
+    #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
+        #define PLAT_QUEST
+    #else
+        #ifdef PLAT_QUEST
+            #undef PLAT_QUEST
+        #endif
+    #endif
+
+    #define NEED_SCREEN_POS
+
+    #define grayscaleVec float3(0.2125, 0.7154, 0.0721)
+}
+
+%Textures()
+{
+    TEXTURE2D(_Ramp);
+    SAMPLER(sampler_Ramp);
+    TEXTURECUBE(_BakedCubemap);
+    SAMPLER(sampler_BakedCubemap);
+}
+
+%LibraryFunctions()
+{
+    half3 getReflectionUV(half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
+    {
+        #if UNITY_SPECCUBE_BOX_PROJECTION
+            if (cubemapPosition.w > 0) {
+                half3 factors = ((direction > 0 ? boxMax : boxMin) - position) / direction;
+                half scalar = min(min(factors.x, factors.y), factors.z);
+                direction = direction * scalar + (position - cubemapPosition);
+            }
+        #endif
+        return direction;
+    }
+
+    half3 calcReflView(half3 viewDir, half3 normal)
+    {
+        return reflect(-viewDir, normal);
+    }
+
+    half3 calcStereoViewDir(half3 worldPos)
+    {
+        #if UNITY_SINGLE_PASS_STEREO
+            half3 cameraPos = half3((unity_StereoWorldSpaceCameraPos[0]+ unity_StereoWorldSpaceCameraPos[1])*.5);
+        #else
+            half3 cameraPos = _WorldSpaceCameraPos;
+        #endif
+            half3 viewDir = cameraPos - worldPos;
+        return normalize(viewDir);
+    }
+
+    half4 calcDiffuse(half attenuation, half3 albedo, half3 indirectDiffuse, half3 lightCol, half4 ramp)
+    {
+        half4 diffuse;
+        half4 indirect = indirectDiffuse.xyzz;
+
+        half grayIndirect = dot(indirectDiffuse, float3(1,1,1));
+        half attenFactor = lerp(attenuation, 1, smoothstep(0, 0.2, grayIndirect));
+
+        diffuse = ramp * attenFactor * half4(lightCol, 1) + indirect;
+        diffuse = albedo.xyzz * diffuse;
+        return diffuse;
+    }
+
+    half2 calcMatcapUV(half3 worldUp, half3 viewDirection, half3 normalDirection)
+    {
+        half3 worldViewUp = normalize(worldUp - viewDirection * dot(viewDirection, worldUp));
+        half3 worldViewRight = normalize(cross(viewDirection, worldViewUp));
+        half2 matcapUV = half2(dot(worldViewRight, normalDirection), dot(worldViewUp, normalDirection)) * 0.5 + 0.5;
+        return matcapUV;
+    }
+}
+
+%FragmentBase("XSToonLighting")
+{
+    half4 calcRamp(half NdL, half attenuation, half occlusion, int occlusionMode)
+    {
+        half remapRamp;
+        remapRamp = NdL * 0.5 + 0.5;
+        remapRamp *= lerp(1, occlusion, occlusionMode);
+        #if defined(UNITY_PASS_FORWARDBASE)
+        remapRamp *= attenuation;
+        #endif
+        half4 ramp = SAMPLE_TEXTURE2D(_Ramp, sampler_Ramp, half2(remapRamp, 0));
+        return ramp;
+    }
+
+    half3 calcIndirectSpecular(half lightAttenuation, MeshData d, SurfaceData o, half roughness, half3 reflDir, half3 indirectLight, float3 fresnel, half4 ramp)
+    {//This function handls Unity style reflections, Matcaps, and a baked in fallback cubemap.
+        half3 spec = half3(0,0,0);
+
+        UNITY_BRANCH
+        if (!o.EnableReflections) {
+            spec = 0;
+        } else if(any(o.BakedReflection.rgb)) {
+            spec = o.BakedReflection;
+            if(o.ReflectionBlendMode != 1)
+            {
+                spec *= (indirectLight + (_LightColor0 * lightAttenuation) * 0.5);
+            }
+        }
+        else
+        {
+            #if defined(UNITY_PASS_FORWARDBASE) //Indirect PBR specular should only happen in the forward base pass. Otherwise each extra light adds another indirect sample, which could mean you're getting too much light.
+                half3 reflectionUV1 = getReflectionUV(reflDir, d.worldSpacePosition, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+                half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, roughness * UNITY_SPECCUBE_LOD_STEPS);
+                half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
+
+                half3 indirectSpecular;
+                half interpolator = unity_SpecCube0_BoxMin.w;
+
+                UNITY_BRANCH
+                if (interpolator < 0.99999)
+                {
+                    half3 reflectionUV2 = getReflectionUV(reflDir, d.worldSpacePosition, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
+                    half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, roughness * UNITY_SPECCUBE_LOD_STEPS);
+                    half3 probe1sample = DecodeHDR(probe1, unity_SpecCube1_HDR);
+                    indirectSpecular = lerp(probe1sample, probe0sample, interpolator);
+                }
+                else
+                {
+                    indirectSpecular = probe0sample;
+                }
+
+                if (!any(indirectSpecular))
+                {
+                    indirectSpecular = SAMPLE_TEXTURECUBE_LOD(_BakedCubemap, sampler_BakedCubemap, reflDir, roughness * UNITY_SPECCUBE_LOD_STEPS);
+                    indirectSpecular *= indirectLight;
+                }
+                spec = indirectSpecular * fresnel;
+            #endif
+        }
+        // else if(_ReflectionMode == 1) //Baked Cubemap
+        // {
+        //     half3 indirectSpecular = SAMPLE_TEXTURECUBE_LOD(_BakedCubemap, sampler_BakedCubemap, reflDir, roughness * UNITY_SPECCUBE_LOD_STEPS);
+        //     spec = indirectSpecular * fresnel;
+
+        //     if(_ReflectionBlendMode != 1)
+        //     {
+        //         spec *= (indirectLight + (_LightColor0 * lightAttenuation) * 0.5);
+        //     }
+        // }
+        // else if (_ReflectionMode == 2) //Matcap
+        // {
+        //     half3 upVector = half3(0,1,0);
+        //     half2 remapUV = calcMatcapUV(upVector, d.worldSpaceViewDir, o.Normal);
+        //     spec = SAMPLE_TEXTURE2D_LOD(_Matcap, remapUV, (1-roughness) * UNITY_SPECCUBE_LOD_STEPS) * _MatcapTint;
+
+        //     if(_ReflectionBlendMode != 1)
+        //     {
+        //         spec *= (indirectLight + (_LightColor0 * lightAttenuation) * 0.5);
+        //     }
+
+        //     spec *= lerp(1, o.Albedo, _MatcapTintToDiffuse);
+        // }
+        return spec;
+    }
+
+    half3 calcDirectSpecular(MeshData d, SurfaceData o, float lightNoL, float NoH, float NoV, float lightLoH, half3 lightColor, half3 lightHalfVector, half anisotropy)
+    {
+        half specularIntensity = o.SpecularIntensity;
+        half3 specular = half3(0,0,0);
+        half smoothness = max(0.01, (o.SpecularArea));
+        smoothness *= 1.7 - 0.7 * smoothness;
+
+        float rough = max(smoothness * smoothness, 0.0045);
+        float Dn = D_GGX(NoH, rough);
+        float3 F = 1-F_Schlick(lightLoH, 0);
+        float V = V_SmithGGXCorrelated(NoV, lightNoL, rough);
+        float3 directSpecularNonAniso = max(0, (Dn * V) * F);
+
+        anisotropy *= saturate(5.0 * smoothness);
+        float at = max(rough * (1.0 + anisotropy), 0.001);
+        float ab = max(rough * (1.0 - anisotropy), 0.001);
+        float D = D_GGX_Anisotropic(NoH, lightHalfVector, d.worldSpaceTangent, d.bitangent, at, ab);
+        float3 directSpecularAniso = max(0, (D * V) * F);
+
+        specular = lerp(directSpecularNonAniso, directSpecularAniso, saturate(abs(anisotropy * 100)));
+        specular = lerp(specular, smoothstep(0.5, 0.51, specular), o.SpecularSharpness) * 3 * lightColor.xyz * specularIntensity; // Multiply by 3 to bring up to brightness of standard
+        specular *= lerp(1, o.Albedo, o.SpecularAlbedoTint);
+        return specular;
+    }
+
+    half4 calcReflectionBlending(SurfaceData o, half reflectivity, half4 col, half3 indirectSpecular)
+    {
+        if (o.ReflectionBlendMode == 0) { // Additive
+            col += indirectSpecular.xyzz * reflectivity;
+            return col;
+        } else if (o.ReflectionBlendMode == 1) { //Multiplicitive
+            col = lerp(col, col * indirectSpecular.xyzz, reflectivity);
+            return col;
+        } else if(o.ReflectionBlendMode == 2) { //Subtractive
+            col -= indirectSpecular.xyzz * reflectivity;
+            return col;
+        }
+        return col;
+    }
+
+    half4 calcEmission(SurfaceData o, half lightAvg)
+    {
+        #if defined(UNITY_PASS_FORWARDBASE) // Emission only in Base Pass, and vertex lights
+            float4 emission = 0;
+            emission = half4(o.Emission, 1);
+
+            float4 scaledEmission = emission * saturate(smoothstep(1 - o.EmissionLightThreshold, 1 + o.EmissionLightThreshold, 1 - lightAvg));
+            float4 em = lerp(scaledEmission, emission, o.EmissionScaleWithLight);
+
+            // em.rgb = rgb2hsv(em.rgb);
+            // em.x += fmod(_Hue, 360);
+            // em.y = saturate(em.y * _Saturation);
+            // em.z *= _Value;
+            // em.rgb = hsv2rgb(em.rgb);
+
+            return em;
+        #else
+            return 0;
+        #endif
+    }
+
+    void XSToonLighting(MeshData d, FragmentData i, SurfaceData o, inout half4 FinalColor)
+    {
+        #if !defined(UNITY_PASS_SHADOWCASTER)
+        half reflectance = o.Reflectivity;
+        half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
+        half3 indirectDiffuse = 1;
+        half3 indirectSpecular = 0;
+        half3 directSpecular = 0;
+        half occlusion = o.Occlusion;
+        half perceptualRoughness = 1 - o.Smoothness;
+        half3 tangentNormal = o.Normal;
+        o.Normal = normalize(mul(o.Normal, d.TBNMatrix));
+        half3 reflDir = calcReflView(d.worldSpaceViewDir, o.Normal);
+
+        #ifndef USING_DIRECTIONAL_LIGHT
+            fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
+        #else
+            fixed3 lightDir = _WorldSpaceLightPos0.xyz;
+        #endif
+
+        // Attenuation
+        UNITY_LIGHT_ATTENUATION(lightAttenuation, i, d.worldSpacePosition);
+
+        // fix for rare bug where light atten is 0 when there is no directional light in the scene
+        #ifdef UNITY_PASS_FORWARDBASE
+            if(all(_LightColor0.rgb == 0.0))
+                lightAttenuation = 1.0;
+        #endif
+
+        #if defined(USING_DIRECTIONAL_LIGHT)
+            half sharp = o.ShadowSharpness * 0.5;
+            lightAttenuation = smoothstep(sharp, 1 - sharp, lightAttenuation); //Converge at the center line
+        #endif
+        
+        half3 lightColor = _LightColor0.rgb;
+        
+        half3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
+        half lightNoL = dot(o.Normal, lightDir);
+        half lightLoH = saturate(dot(lightDir, lightHalfVector));
+        
+        half NoV = abs(dot(o.Normal, d.worldSpaceViewDir)) + 1e-5;
+        half NoH = saturate(dot(o.Normal, lightHalfVector));
+        half3 stereoViewDir = calcStereoViewDir(d.worldSpacePosition);
+        half NoSVDN = abs(dot(stereoViewDir, o.Normal));
+
+        // Aniso Refl
+        half3 reflViewAniso = 0;
+        
+        float3 anisotropicDirection = o.Anisotropy >= 0.0 ? d.bitangent : d.worldSpaceTangent.xyz;
+        float3 anisotropicTangent = cross(anisotropicDirection, d.worldSpaceViewDir);
+        float3 anisotropicNormal = cross(anisotropicTangent, anisotropicDirection);
+        float bendFactor = abs(o.Anisotropy) * saturate(5.0 * perceptualRoughness);
+        float3 bentNormal = normalize(lerp(o.Normal, anisotropicNormal, bendFactor));
+        reflViewAniso = reflect(-d.worldSpaceViewDir, bentNormal);
+        
+        // Indirect diffuse
+        #if !defined(LIGHTMAP_ON)
+            half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+            indirectDiffuse.r = shEvaluateDiffuseL1Geomerics(L0.r, unity_SHAr.xyz, o.Normal);
+            indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, unity_SHAg.xyz, o.Normal);
+            indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, unity_SHAb.xyz, o.Normal);
+            indirectDiffuse = max(0, indirectDiffuse);
+        #else
+            indirectDiffuse = 0;
+        #endif
+        indirectDiffuse *= lerp(occlusion, 1, o.OcclusionMode);
+
+        bool lightEnv = any(lightDir.xyz);
+        // if there is no realtime light - we create it from indirect diffuse
+        if (!lightEnv) {
+            lightColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+            indirectDiffuse = indirectDiffuse * 0.4;
+
+            lightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+            lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
+            lightNoL = dot(o.Normal, lightDir);
+            lightLoH = saturate(dot(lightDir, lightHalfVector));
+            NoH = saturate(dot(o.Normal, lightHalfVector));
+        }
+
+        half lightAvg = (dot(indirectDiffuse.rgb, grayscaleVec) + dot(lightColor.rgb, grayscaleVec)) / 2;
+
+        // Light Ramp
+        half4 ramp = 1;
+        half4 diffuse = 1;
+        ramp = calcRamp(lightNoL, lightAttenuation, occlusion, _OcclusionMode);
+        diffuse = calcDiffuse(lightAttenuation, o.Albedo.rgb * perceptualRoughness, indirectDiffuse, lightColor, ramp);
+
+        // Rims
+        half4 rimLight = o.RimLight;
+        rimLight *= lightColor.xyzz + indirectDiffuse.xyzz;
+        rimLight *= lerp(1, lightAttenuation + indirectDiffuse.xyzz, o.RimAttenuation);
+        half4 rimShadow = o.RimShadow;
+
+        float3 fresnel = F_Schlick(NoV, f0);
+        indirectSpecular = calcIndirectSpecular(lightAttenuation, d, o, perceptualRoughness, reflViewAniso, indirectDiffuse, fresnel, ramp) * occlusion;
+        directSpecular = calcDirectSpecular(d, o, lightNoL, NoH, NoV, lightLoH, lightColor, lightHalfVector, o.SpecularAnisotropy) * lightNoL * occlusion * lightAttenuation;
+
+        FinalColor = diffuse * o.RimShadow;
+        FinalColor = calcReflectionBlending(o, reflectance, FinalColor, indirectSpecular);
+        FinalColor += max(directSpecular.xyzz, rimLight);
+        FinalColor.rgb += calcEmission(o, lightAvg);
+        
+        // Outline
+        #if defined(PASS_OUTLINE)
+            half3 outlineColor = 0;
+            half3 ol = o.OutlineColor;
+            outlineColor = ol * saturate(lightAttenuation * lightNoL) * lightColor.rgb;
+            outlineColor += indirectDiffuse * ol;
+            outlineColor = lerp(outlineColor, ol, o.OutlineLightingMode);
+            FinalColor.rgb = outlineColor;
+        #endif
+
+        #endif
+    }
+}

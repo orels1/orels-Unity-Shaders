@@ -1,0 +1,28 @@
+%Properties()
+{
+    _OcclusionMap("Occlusion >", 2D) = "white" {}
+    _OcclusionStrength("Occlusion Strength %ShowIf(_OcclusionMap)", Range(0,1)) = 0
+    [Enum(Classic, 0, Integrated, 1)]_OcclusionMode("Occlusion Mode %ShowIf(_OcclusionMap)", Int) = 0
+    UI_OcclusionIndirectModeNote("> Multiplies indirect light by occlusion %ShowIf(_OcclusionMap && _OcclusionMode == 0)", Int) = 0
+    UI_OcclusionIntegrateModeNote("> Multiplies the shadow ramp by occlusion %ShowIf(_OcclusionMap && _OcclusionMode == 1)", Int) = 0
+}
+
+%Variables()
+{
+    int _OcclusionMode;
+    half _OcclusionStrength;
+}
+
+%Textures()
+{
+    TEXTURE2D(_OcclusionMap);
+}
+
+%Fragment("ToonOcclusionFragment")
+{
+    void ToonOcclusionFragment(inout SurfaceData o) {
+        half occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_MainTex, GLOBAL_uv).r;
+        o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
+        o.OcclusionMode = _OcclusionMode;
+    }
+}

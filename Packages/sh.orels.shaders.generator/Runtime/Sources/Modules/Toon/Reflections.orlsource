@@ -1,0 +1,86 @@
+%Properties()
+{
+    UI_ReflectionsHeader("# Reflection Settings", Int) = 0
+    [Enum(PBR(Unity Metallic Standard),0,Baked Cubemap,1,Matcap,2,Off,3)]_ReflectionMode("Reflection Mode", Int) = 3
+    [Enum(Additive,0,Multiply,1,Subtract,2)] _ReflectionBlendMode("Reflection Blend Mode %ShowIf(_ReflectionMode != 3)", Int) = 0
+    _BakedCubemap("BakedCubemap > %ShowIf(_ReflectionMode == 0 || _ReflectionMode == 1)", CUBE) = "black" {}
+    UI_FallbackNote("> Will be used if world has no reflections %ShowIf(_ReflectionMode == 0)", Int) = 0
+    _MetallicGlossMap("Metallic Smoothness > %ShowIf(_ReflectionMode == 0 || _ReflectionMode == 1)", 2D) = "white" {}
+    UI_MetallicNote("> R - Metallic, A - Smoothness %ShowIf(_ReflectionMode == 0 || _ReflectionMode == 1)", Int) = 0
+    _Smoothness ("Smoothness %ShowIf(!_MetallicGlossMap && (_ReflectionMode == 0 || _ReflectionMode == 1))", Range(0, 1)) = 0.5
+    [ToggleUI]_RoughnessMode ("Roughness Mode %ShowIf(_MetallicGlossMap && (_ReflectionMode == 0 || _ReflectionMode == 1))", Int) = 0
+    _Metallic ("Metallic %ShowIf(!_MetallicGlossMap && (_ReflectionMode == 0 || _ReflectionMode == 1))", Range(0, 1)) = 0
+    [HideInInspector]_MetallicRemap ("Metallic Remap %ShowIf(_MetallicGlossMap && (_ReflectionMode == 0 || _ReflectionMode == 1)) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
+    [HideInInspector]_SmoothnessRemap ("Smoothness Remap %ShowIf(_MetallicGlossMap && (_ReflectionMode == 0 || _ReflectionMode == 1)) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
+    _ReflectionAnisotropy("Anisotropy %ShowIf(_ReflectionMode == 0)", Range(-1, 1)) = 0
+
+    _Matcap("Matcap > %ShowIf(_ReflectionMode == 2)", 2D) = "black" {}
+    _MatcapBlur("Matcap Blur Level %ShowIf(_ReflectionMode == 2)", Range(0, 1)) = 0
+    _MatcapTintToDiffuse("Tint Matcap to Diffuse %ShowIf(_ReflectionMode == 2)", Range(0, 1)) = 0
+
+    _ReflectivityMask("Reflectivity Mask > %ShowIf(_ReflectionMode != 3)", 2D) = "white" {}
+    _ReflectivityLevel("Reflectivity %ShowIf(_ReflectionMode != 3)", Range(0, 1)) = 0.5
+}
+
+%Variables()
+{
+    int _ReflectionMode;
+    int _ReflectionBlendMode;
+    half _Smoothness;
+    half _Metallic;
+    int _RoughnessMode;
+    half4 _MetallicRemap;
+    half4 _SmoothnessRemap;
+    half4 _MetallicGlossMap_TexelSize;
+    half _ReflectionAnisotropy;
+    half _MatcapBlur;
+    half _MatcapTintToDiffuse;
+    half _ReflectivityLevel;
+}
+
+%Textures()
+{
+    TEXTURE2D(_Matcap);
+    SAMPLER(sampler_Matcap);
+    TEXTURE2D(_MetallicGlossMap);
+    TEXTURE2D(_ReflectivityMask);
+}
+
+%Fragment("ToonReflectionFragment")
+{
+    void ToonReflectionFragment(MeshData d, inout SurfaceData o) {
+        o.EnableReflections = _ReflectionMode != 3;
+        o.ReflectionBlendMode = _ReflectionBlendMode;
+
+        half mask = SAMPLE_TEXTURE2D(_ReflectivityMask, sampler_MainTex, GLOBAL_uv).r;
+        mask *= _ReflectivityLevel;
+        
+        UNITY_BRANCH
+        if (_ReflectionMode == 0) {
+            half4 metalSmooth = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MainTex, GLOBAL_uv);
+            int hasMetallicSmooth = _MetallicGlossMap_TexelSize.z > 8;
+            half metal = metalSmooth.r;
+            half smooth = metalSmooth.a;
+            if (_RoughnessMode)
+            {
+                smooth = 1 - smooth;
+            }
+            metal = remap(metal, 0, 1, _MetallicRemap.x, _MetallicRemap.y);
+            smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
+            o.Metallic = lerp(_Metallic, metal, hasMetallicSmooth);
+            o.Smoothness = lerp(_Smoothness, smooth, hasMetallicSmooth);
+            o.Anisotropy = _ReflectionAnisotropy;
+        }
+        UNITY_BRANCH
+        if (_ReflectionMode == 2) {
+            half3 upVector = half3(0,1,0);
+            half2 remapUV = calcMatcapUV(upVector, d.worldSpaceViewDir, GLOBAL_pixelNormal);
+            half4 spec = 0; 
+            spec = SAMPLE_TEXTURE2D_LOD(_Matcap, sampler_Matcap, remapUV, _MatcapBlur * UNITY_SPECCUBE_LOD_STEPS);
+
+            spec.rgb *= lerp(1, o.Albedo, _MatcapTintToDiffuse);
+            o.BakedReflection = spec.rgb;
+        }
+        o.Reflectivity = mask;
+    }
+}

@@ -1,0 +1,60 @@
+%ShaderName("orels1/Toon/Main")
+%LightingModel("@/LightingModels/Toon")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_MainHeader("# Main Settings", Int) = 1
+    _Color("Main Color", Color) = (1, 1, 1, 1)
+    [ToggleUI]_TintByVertexColor("Tint By Vertex Color", Int) = 0
+    _MainTex("Albedo", 2D) = "white" {}
+    _Ramp("Ramp >", 2D) = "white" {}
+    _ShadowSharpness("Shadow Sharpness", Range(0,1)) = 0.5
+}
+
+%Includes()
+{
+    "@/Modules/AudioLink",
+    "self",
+    "@/Modules/Toon/Occlusion",
+    "@/Modules/Toon/Normals",
+    "@/Modules/Toon/Outline",
+    "@/Modules/Toon/Specular",
+    "@/Modules/Toon/Reflections",
+    "@/Modules/Toon/AudioLink",
+    "@/Modules/Toon/Emission",
+    "@/Modules/Toon/RimLight",
+    "@/Modules/Toon/ShadowRim"
+}
+
+%Variables()
+{
+    float4 _MainTex_ST;
+    int _TintByVertexColor;
+    half4 _Color;
+    half _ShadowSharpness;
+
+    half2 GLOBAL_uv;
+}
+
+%Textures()
+{
+    TEXTURE2D(_MainTex);
+    SAMPLER(sampler_MainTex);
+}
+
+%Fragment("ToonFragment")
+{
+    void ToonFragment(MeshData d, inout SurfaceData o)
+    {
+        half2 uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+        GLOBAL_uv = uv;
+        half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv).rgb;
+        albedo *= _Color;
+        if (_TintByVertexColor) {
+            albedo *= d.vertexColor.rgb;
+        }
+        o.Albedo = albedo;
+        o.ShadowSharpness = _ShadowSharpness;
+    }
+}
