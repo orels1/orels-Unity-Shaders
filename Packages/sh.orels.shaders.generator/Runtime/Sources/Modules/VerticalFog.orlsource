@@ -1,10 +1,12 @@
 %Properties()
 {
-    UI_VerticalFogHeader("# Vertical Fog", Int) =  0
+    UI_VerticalFogHeader("# Vertical Fog", Int) = 1
+    UI_VerticalFogDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/vertical-fog)", Int) = 0
     _VFBottomColor("Bottom Color", Color) =  (1, 1, 1, 1)
     _VFTopColor("Top Color", Color) =  (1, 1, 1, 0)
     _VFStart("Start Height", Float) =  -100
     _VFEnd("End Height", Float) =  0
+    _VFPow("Fog Blend Power", Float) = 1
     _VFGlobalTint("Tint", Color) =  (1, 1, 1, 1)
 }
 
@@ -14,6 +16,7 @@
     half4 _VFTopColor;
     half _VFStart;
     half _VFEnd;
+    half _VFPow;
     half4 _VFGlobalTint;
 }
 
@@ -21,6 +24,7 @@
 {
     void VerticalFogColor(MeshData d, inout half4 FinalColor) {
         half mask = saturate(remap(d.worldSpacePosition.y, _VFStart, _VFEnd, 0, 1));
+        mask = pow(mask, _VFPow);
         half4 col = lerp(_VFBottomColor, _VFTopColor, mask);
         FinalColor.rgb *= _VFGlobalTint;
         FinalColor.rgb = lerp(FinalColor.rgb, col.rgb, col.a);

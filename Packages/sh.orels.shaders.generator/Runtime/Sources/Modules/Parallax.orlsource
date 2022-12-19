@@ -1,12 +1,13 @@
 ﻿%Properties()
 {
-    [ToggleUI]UI_ParallaxHeader ("# Parallax", Int) = 0
-    [Toggle(PARALLAX)]_EnableParallax ("Enable Parallax", Int) = 0
-    [NoScaleOffset]_Height ("Height > %ShowIf(PARALLAX)", 2D) = "black" {}
-    _HeightScale ("Height Scale %ShowIf(PARALLAX)", Range(0, 0.1)) = 0.006
-    _HeightRefPlane ("Height Ref Plane %ShowIf(PARALLAX)", Range(-1, 1)) = 0.5
-    _HeightStepsMin ("Steps Min %ShowIf(PARALLAX)", Range(8, 32)) = 8
-    _HeightStepsMax ("Steps Max %ShowIf(PARALLAX)", Range(8, 32)) = 16
+    UI_ParallaxHeader("# Parallax", Int) = 0
+    UI_ParallaxDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#parallax)", Int) = 0
+    [Toggle(PARALLAX)]_EnableParallax("Enable Parallax", Int) = 0
+    [NoScaleOffset]_Height("Height > %ShowIf(PARALLAX)", 2D) = "black" {}
+    _HeightScale("Height Scale %ShowIf(PARALLAX)", Range(0, 0.1)) = 0.006
+    _HeightRefPlane("Height Ref Plane %ShowIf(PARALLAX)", Range(-1, 1)) = 0.5
+    _HeightStepsMin("Steps Min %ShowIf(PARALLAX)", Range(8, 32)) = 8
+    _HeightStepsMax("Steps Max %ShowIf(PARALLAX)", Range(8, 32)) = 16
 }
 
 %ShaderFeatures()

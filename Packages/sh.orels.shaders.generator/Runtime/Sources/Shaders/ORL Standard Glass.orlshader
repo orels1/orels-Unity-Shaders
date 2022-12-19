@@ -4,6 +4,7 @@
 %Properties()
 {
     UI_GlassHeader("# Glass", Int) = 1
+    UI_GlassDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/glass)", Int) = 0
     _GlassRimTint("Shadow Tint", Color) = (0.2, 0.2, 0.2, 0.3)
     _GlassRimPower("Rim Power", Float) = 1
     _GlassRimStrength("Rim Strength", Float) = 1

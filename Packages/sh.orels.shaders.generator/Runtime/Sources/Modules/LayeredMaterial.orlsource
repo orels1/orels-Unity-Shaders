@@ -1,6 +1,7 @@
 %Properties()
 {
     UI_LayeredMatHeader("# Layers", Int) = 0
+    UI_LayeredMatDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/layered-material)", Int) = 0
     [IntRange]_LayeredMatLayersCount("Layer Count", Range(1, 4)) = 2
     [Enum(Vertex Color, 0, Texture, 1)]_LMMaskingType("Mask Type", Int) = 0
     _LMMaskTex("Mask Texture > %ShowIf(_LMMaskingType == 1)", 2D) = "white" {}

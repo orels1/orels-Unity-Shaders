@@ -4,6 +4,7 @@
 %Properties()
 {
     UI_ColorRandomisationHeader("# Color Randomisation", Int) = 1
+    UI_ColorRandomisationDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/color-randomisation)", Int) = 0
     UI_ColorRandomisationNote("> Note that color randomisation requires batching to be disabled. Use GPU Instancing instead", Int) = 0
     _CRColorPalette("Color Palette", 2D) = "white" { }
     [KeywordEnum(Albedo, Mask Texture)]MASK_MODE("Mask By", Int) = 0

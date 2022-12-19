@@ -1,6 +1,7 @@
 %Properties()
 {
     UI_TriplanarEffectsHeader("# Triplanar Effects (Dirt, Damage)", Int) = 1
+    UI_TriplanarEffectsDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/triplanar-effects)", Int) = 0
     [NoScaleOffset]_TriplanarMask("Triplanar Masks >", 2D) = "white" { }
     _TriplanarMaskTiling("Tiling", Float) = 10
     _TriplanarBlend("Triplanar Blend", Range(0,2)) = 1

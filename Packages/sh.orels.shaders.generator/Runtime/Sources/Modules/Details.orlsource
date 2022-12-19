@@ -1,6 +1,7 @@
 ﻿%Properties()
 {
     UI_DetailsHeader("# Details", Int) = 0
+    UI_DetailsDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#details)", Int) = 0
     [Toggle(DETAILS_OVERLAY)]_DetailsOverlay("Enable Details", Int) = 0
     [ToggleUI]_DIgnoreMask("Ignore Mask %ShowIf(DETAILS_OVERLAY)", Int) = 0
     UI_IgnoreMaskNote("> Force-draws the detail effects %ShowIf(DETAILS_OVERLAY)", Int) = 0
