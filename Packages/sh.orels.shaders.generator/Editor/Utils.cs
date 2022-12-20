@@ -148,6 +148,24 @@ namespace ORL.ShaderGenerator
             return File.ReadAllLines(GetFullPath(ResolveORLAsset(path, path.StartsWith("@/"), basePath)));
         }
 
+        public static Texture2D GetNonModifiableTexture(Shader shader, string name)
+        {
+            var so = new SerializedObject(shader);
+            var texList = so.FindProperty("m_NonModifiableTextures");
+            if (texList.arraySize == 0) return null;
+            
+            for (var i = 0; i < texList.arraySize; i++)
+            {
+                var tex = texList.GetArrayElementAtIndex(i);
+                var texName = tex.FindPropertyRelative("first").stringValue;
+                if (texName != name) continue;
+                var texValue = tex.FindPropertyRelative("second");
+                return texValue.objectReferenceValue as Texture2D;
+            }
+
+            return null;
+        }
+
         public static void RecursivelyCollectDependencies(List<string> sourceList, ref List<string> dependencies, string basePath)
         {
             var parser = new Parser();

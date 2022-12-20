@@ -7,13 +7,15 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace ORL.ShaderGenerator
 {
     [ScriptedImporter(1, "orlshader")]
     public class ShaderDefinitionImporter : ScriptedImporter
     {
-
+        [SerializeField]
+        public List<string> nonModifiableTextures = new List<string>();
         private HashSet<string> _paramsOnlyBlock = new HashSet<string>
         {
             "%ShaderName",
@@ -398,6 +400,18 @@ namespace ORL.ShaderGenerator
                 name = "Shader Source",
                 hideFlags = HideFlags.HideInHierarchy
             };
+
+            var propCount = shader.GetPropertyCount();
+            for (int i = 0; i < propCount; i++)
+            {
+                var propertyFlags = shader.GetPropertyFlags(i);
+                var propertyType = shader.GetPropertyType(i);
+                if (propertyType == ShaderPropertyType.Texture &&
+                    (propertyFlags & ShaderPropertyFlags.NonModifiableTextureData) != 0)
+                {
+                    nonModifiableTextures.Add(shader.GetPropertyName(i));
+                }
+            }
             
             ctx.AddObjectToAsset("Shader", shader);
             ctx.SetMainObject(shader);

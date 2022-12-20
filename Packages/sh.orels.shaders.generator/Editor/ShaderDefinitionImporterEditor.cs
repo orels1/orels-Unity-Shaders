@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
+using System.Reflection;
+using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
 
@@ -21,6 +23,41 @@ namespace ORL.ShaderGenerator
 
             var importer = target as ShaderDefinitionImporter;
             if (importer == null) return;
+
+            var finalShader = AssetDatabase.LoadAssetAtPath<Shader>(importer.assetPath);
+
+            if (importer.nonModifiableTextures.Count > 0)
+            {
+                EditorGUILayout.LabelField("Non Modifiable Textures", EditorStyles.boldLabel);
+                var newTextures = new List<Texture>();
+                using (var c = new EditorGUI.ChangeCheckScope())
+                {
+                    foreach (var nonModTex in importer.nonModifiableTextures)
+                    {
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            var rect = EditorGUILayout.GetControlRect(true, 20f, EditorStyles.layerMaskField);
+                            var labelRect = new Rect();
+                            var fieldRect = new Rect();
+                            var rects = new object[] {rect, labelRect, fieldRect};
+                            typeof(EditorGUI)
+                                .GetMethod("GetRectsForMiniThumbnailField", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Instance)
+                                ?.Invoke(null, rects);
+                            EditorGUI.LabelField((Rect) rects[2], nonModTex);
+                            var newTex = EditorGUI.ObjectField((Rect) rects[1], Utils.GetNonModifiableTexture(finalShader, nonModTex),
+                                typeof(Texture2D), false) as Texture;
+                            newTextures.Add(newTex);
+                        }
+                    }
+                    if (c.changed)
+                    {
+                            
+                        EditorMaterialUtility.SetShaderNonModifiableDefaults(finalShader, importer.nonModifiableTextures.ToArray(), newTextures.ToArray());
+                        EditorUtility.SetDirty(finalShader);
+                        serializedObject.ApplyModifiedProperties();
+                    }
+                }
+            }
 
             _sourceCodeFoldout = EditorGUILayout.Foldout(_sourceCodeFoldout, "Source");
             if (_sourceCodeFoldout)
