@@ -1,0 +1,48 @@
+%ShaderName("orels1/Standard AudioLink Cutout")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    [ToggleUI]UI_CutoutHeader("# Cutout", Int) = 0
+    _Cutoff("Cutoff", Range(0, 1)) = 0.5
+}
+
+%Includes()
+{
+    "ORL Standard AudioLink"
+    "self"
+}
+
+%ShaderDefines()
+{
+    #define NEED_FRAGMENT_IN_SHADOW
+    #define AL_CUTOUT
+}
+
+%ShaderTags()
+{
+    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout"
+}
+
+%Variables()
+{
+    half _Cutoff;
+}
+
+%Fragment("CutoutFragment")
+{
+    void CutoutFragment(inout SurfaceData o) {
+        if (o.Alpha < _Cutoff)  {
+            clip(-1);
+        }
+    }
+}
+
+%Shadow("CutoutShadow")
+{
+    void CutoutShadow(inout SurfaceData o) {
+        if (o.Alpha < _Cutoff)  {
+            clip(-1);
+        }
+    }
+}

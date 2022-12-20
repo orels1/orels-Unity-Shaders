@@ -1,0 +1,126 @@
+%ShaderName("orels1/Standard Neon Light")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_NeonHeader("# Neon Light", Int) = 1
+    UI_NeonDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/neon-light)", Int) = 0
+    [HDR]_NeonColor("Main Color", Color) = (1, 1, 1, 1)
+    _FlickerSpeed("Flicker Speed", Float) = 63
+    _FlickerFrequency("Flicker Frequency", Float) = 44
+    _FlickerStrength("Flick Strength %RemapSlider(0, 1)", Vector) = (0.85, 1, 0, 1)
+    _FlickerStrengthMultiplier("Strength Multiplier", Float) = 1.78
+    [NonModifiableTextureData][NoScaleOffset]_BakedNoiseTex("Noise Tex > %RequiredTexture(@/BakedNoise.png)", 2D) = "white" { }
+
+    UI_NeonTubeHeader("# Neon Tube", Int) = 1
+    _NeonTubeColor("Tube Color", Color) = (1, 1, 1, 1)
+    _NeonTubePower("Tube Rim Power", Float) = 5
+    _NeonTubeSmoothing("Tube Rim Smoothing", Float) = 10
+    [ToggleUI]_NeonTubeCapEnabled("Tube Cap Enabled", Int) = 0
+    [Enum(X, 0, Y, 1, Z, 2, Negative X, 3, Negative Y, 4, Negative Z, 5)]_NeonTubeCapDirection("Tube Cap Direction %ShowIf(_NeonTubeCapEnabled)", Int) = 5
+    _NeonTubeCapOffset("Tube Cap Offset %ShowIf(_NeonTubeCapEnabled)", Float) = 0
+    _NeonTubeCapColor("Tube Cap Color %ShowIf(_NeonTubeCapEnabled)", Color) = (0.3, 0.3, 0.3, 1)
+    _NeonTubeCapSmoothness("Tube Cap Smoothness %ShowIf(_NeonTubeCapEnabled)", Range(0, 1)) = 0.5
+
+    UI_GlassHeader("# Glass", Int) = 1
+    _GlassRimTint("Shadow Tint", Color) = (1, 1, 1, 1)
+    _GlassRimPower("Rim Power", Float) = 1.38
+    _GlassRimStrength("Rim Strength", Float) = 0.97
+    _GlassRimSmoothing("Rim Smoothing %RemapSlider(0,1)", Vector) = (0.05, .7, 0, 0)
+}
+
+%Includes()
+{
+    "ORL Standard",
+    "self"
+}
+
+%Variables()
+{
+    half4 _NeonColor;
+    half _FlickerSpeed;
+    half _FlickerFrequency;
+    half4 _FlickerStrength;
+    half _FlickerStrengthMultiplier;
+
+    half4 _NeonTubeColor;
+    half _NeonTubePower;
+    half _NeonTubeSmoothing;
+    int _NeonTubeCapEnabled;
+    int _NeonTubeCapDirection;
+    half _NeonTubeCapOffset;
+    half4 _NeonTubeCapColor;
+    half _NeonTubeCapSmoothness;
+
+    half4 _GlassRimTint;
+    half _GlassRimPower;
+    half _GlassRimStrength;
+    half4 _GlassRimSmoothing;
+}
+
+%Textures()
+{
+    TEXTURE2D(_BakedNoiseTex);
+    SAMPLER(sampler_BakedNoiseTex);
+}
+
+%Fragment("NeonFragment")
+{
+    void NeonFragment(MeshData d, inout SurfaceData o)
+    {
+        half3 pos = mul(unity_ObjectToWorld, half4(0..xxx, 1));
+        pos *= _FlickerFrequency;
+        pos += _Time.y * _FlickerSpeed;
+        half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos);
+        noise = clamp(remap(noise, 0, 1, _FlickerStrength.x * _FlickerStrengthMultiplier, _FlickerStrength.y * _FlickerStrengthMultiplier), 0, 1000);
+        
+        o.Emission = noise * _NeonColor;
+        o.Albedo = clamp(o.Emission, 0, 1);
+        
+        // this is pretty much copied from glass, but tweaked and thus lives here
+        half NdV = dot(d.worldNormal, d.worldSpaceViewDir);
+        half glassNdV = NdV;
+        NdV = saturate(glassNdV);
+        glassNdV *= _GlassRimStrength;
+        glassNdV = saturate(pow(saturate(glassNdV), _GlassRimPower));
+        glassNdV = smoothstep(_GlassRimSmoothing.x, _GlassRimSmoothing.y, glassNdV);
+        glassNdV = saturate(glassNdV);
+        half unmodifiedOcclusion = o.Occlusion;
+        o.Occlusion = glassNdV;
+        
+        // Apply "neon tube" effect
+        half rimNdV = NdV;
+        rimNdV = saturate(rimNdV);
+        rimNdV = 1 - saturate(pow(rimNdV, _NeonTubePower) * 2);
+        rimNdV = smoothstep(0, _NeonTubeSmoothing, rimNdV);
+        o.Emission = lerp(o.Emission, _NeonTubeColor * max(1, max(o.Emission.r, max(o.Emission.g, o.Emission.b))), rimNdV);
+        
+        o.Emission *= glassNdV;
+        o.Albedo *= glassNdV;
+        
+        UNITY_BRANCH
+        if (_NeonTubeCapEnabled)
+        {
+            float3 scale = float3(
+            length(unity_ObjectToWorld._m00_m10_m20),
+            length(unity_ObjectToWorld._m01_m11_m21),
+            length(unity_ObjectToWorld._m02_m12_m22)
+            );
+            half mask = 1;
+            if (_NeonTubeCapDirection > 2)
+            {
+                mask = d.localSpacePosition[_NeonTubeCapDirection - 3] < (_NeonTubeCapOffset / scale / 100);
+            }
+            else
+            {
+                mask = d.localSpacePosition[_NeonTubeCapDirection] > (_NeonTubeCapOffset / scale / 100);
+            }
+            mask = saturate(mask);
+            
+            o.Albedo = lerp(o.Albedo, _NeonTubeCapColor, mask);
+            o.Emission = lerp(o.Emission, 0, mask);
+            o.Smoothness = lerp(o.Smoothness, _NeonTubeCapSmoothness, mask);
+            o.Occlusion = lerp(o.Occlusion, unmodifiedOcclusion, mask);
+        }
+    }
+}

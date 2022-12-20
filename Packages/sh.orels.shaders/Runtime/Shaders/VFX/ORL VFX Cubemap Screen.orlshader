@@ -1,0 +1,128 @@
+// Heavily based on https://github.com/Xiexe/RGBSubPixelDisplay-Shader
+
+// MIT License
+//
+// Copyright (c) 2018 Jordan
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+%ShaderName("orels1/VFX/Cubemap Screen")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_SkyboxScreenHeader ("# Cubemap Screen", Int) = 1
+    UI_SkyboxScreenDocs("[This module has documentation](https://shaders.orels.sh/docs/vfx/cubemap-screen)", Int) = 0
+    [NoScaleOffset]_SSCubemap ("Cubemap >", Cube) = "cube" { }
+    _SSCubeRotation ("Rotation", Float) = 0
+    _SSCubeLOD ("Blur Level", Range(0, 7)) = 0
+    _SSSubPixel ("SubPixel Texture %RequiredTexture(@/Old CRT - 1px - NoAlpha.tga)", 2D) = "white" { }
+    _RedScale ("Red Scale", Range(-1, 1)) = 1
+    _GreenScale ("Green Scale", Range(-1, 1)) = 1
+    _BlueScale ("Blue Scale", Range(-1, 1)) = 1
+    _EmissionBoost ("Emission Boost", Float) = 1
+}
+
+%Includes()
+{
+    "../ORL Standard",
+    "self"
+}
+
+%LibraryFunctions()
+{
+    half3 RotateAroundYInDegrees(half3 toRotate, half degrees)
+    {
+        half alpha = degrees * UNITY_PI / 180.0;
+        half sina, cosa;
+        sincos(alpha, sina, cosa);
+        half2x2 m = half2x2(cosa, -sina, sina, cosa);
+        return half3(mul(m, toRotate.xz), toRotate.y).xzy;
+    }
+}
+
+%Variables()
+{
+    half4 _SSSubPixel_ST;
+    half _SSCubeRotation;
+    half _SSCubeLOD;
+    half _RedScale;
+    half _GreenScale;
+    half _BlueScale;
+    half _EmissionBoost;
+}
+
+%Textures()
+{
+    TEXTURE2D(_SSSubPixel);
+    SAMPLER(sampler_SSSubPixel);
+    TEXTURECUBE(_SSCubemap);
+    SAMPLER(sampler_SSCubemap);
+}
+
+%Fragment("CubemapScrenFragment")
+{
+    void CubemapScrenFragment(MeshData d, inout SurfaceData o)
+    {
+        float3 viewDir = normalize(_WorldSpaceCameraPos - d.worldSpacePosition.xyz);
+        half3 reflDir = -viewDir;
+        reflDir = RotateAroundYInDegrees(reflDir, _SSCubeRotation);
+        
+        half3 probe0 = SAMPLE_TEXTURECUBE_LOD(_SSCubemap, sampler_SSCubemap, reflDir, _SSCubeLOD);
+        //our emission map
+        half2 uv = round(GLOBAL_uv * _SSSubPixel_ST.xy) / _SSSubPixel_ST.xy;
+        half4 e = half4(probe0, 1);
+        
+        half vdn = dot(d.worldSpaceViewDir, d.worldNormal);
+
+        //do RGB pixels
+        uv = GLOBAL_uv * _SSSubPixel_ST.xy + _SSSubPixel_ST.zw;
+        half4 rgbpixel = SAMPLE_TEXTURE2D(_SSSubPixel, sampler_SSSubPixel, uv);
+
+        half backlight = dot(rgbpixel, 0.5);
+        backlight *= 0.005;
+
+        //sample the main textures color channels to derive how strong any given subpixel should be,
+        //and then adjust the intensity of the subpixel by the color correction values
+        half pixelR = ((_RedScale + rgbpixel.r) * rgbpixel.r) * e.r;
+        half pixelG = ((_GreenScale + rgbpixel.g) * rgbpixel.g) * e.g;
+        half pixelB = ((_BlueScale + rgbpixel.b) * rgbpixel.b) * e.b;
+
+        //if the texture has an alpha, then use that to control how the subpixel lights up
+        pixelR = lerp(0, pixelR, saturate(rgbpixel.a + e.r));
+        pixelG = lerp(0, pixelG, saturate(rgbpixel.a + e.g));
+        pixelB = lerp(0, pixelB, saturate(rgbpixel.a + e.b));
+
+        //add the backlight, if there is any, and ensure that it only happens within
+        //the area of a subpixel. We don't want lightleak through the black areas of the texture.
+        pixelR += backlight * rgbpixel.r;
+        pixelG += backlight * rgbpixel.g;
+        pixelB += backlight * rgbpixel.b;
+
+        //return all of our pixel values in a half3
+        half3 pixelValue = half3(pixelR, pixelG, pixelB);
+
+        //do the color shift at large viewing angles, shifting to whatever color we want, based on
+        //1 - the dot product of the viewdir and the normals, multiplied, to make the dot larger.
+        //i'm sure there's a more accurate way to handle this.
+        half3 screenCol = lerp(pixelValue, half4(0, 0, 0, 1), max(0, (1 - vdn * 1.2)));
+        
+        o.Emission = screenCol * _EmissionBoost;
+    }
+}

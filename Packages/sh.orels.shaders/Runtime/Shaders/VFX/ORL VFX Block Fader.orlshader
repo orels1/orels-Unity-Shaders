@@ -1,0 +1,58 @@
+%ShaderName("orels1/VFX/Block Fader")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_FaderHeader("# Block Fader", Int) = 1
+    UI_FaderDocs("[This module has documentation](https://shaders.orels.sh/docs/vfx/block-fader)", Int) = 0
+    _Progress("Progress", Range(0, 1.1)) = 0
+    _FaderColumns("Fader Columns", Int) = 10
+    [ToggleUI]_FaderRemap("Enable Fader Remapping", Int) = 0
+    _FaderRemapMin("Min %ShowIf(_FaderRemap) %CombineWith(_FaderRemapMax)", Float) = 0.15
+    [HideInInspector]_FaderRemapMax("Max", Float) = 0.95
+}
+
+%ShaderTags()
+{
+    "Queue" = "Transparent" "RenderType" = "Transparent"
+}
+
+%PassModifications()
+{
+    Blend SrcAlpha OneMinusSrcAlpha
+}
+
+%Includes()
+{
+    "../ORL Standard",
+    "self"
+}
+
+%Variables()
+{
+    half _Progress;
+    int _FaderColumns;
+    int _FaderRemap;
+    half _FaderRemapMin;
+    half _FaderRemapMax;
+}
+
+%Fragment("BlockFaderFragment")
+{
+    void BlockFaderFragment(MeshData d, inout SurfaceData o)
+    {
+        half columns = _FaderColumns;
+        if (_FaderRemap)
+        {
+            _Progress = clamp(remap(_Progress, _FaderRemapMin, _FaderRemapMax, 0, 1.1), 0, 1.1);
+        }
+        _Progress = 1.1 - _Progress;
+        half mask = trunc(d.uv0.x * columns) / columns;
+        mask = saturate(smoothstep(_Progress, _Progress - 1 / columns, mask));
+        o.Alpha = mask;
+        if (mask < 0.000001)
+        {
+            clip(-1);
+        }
+    }
+}

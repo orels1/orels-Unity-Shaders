@@ -1,0 +1,64 @@
+%ShaderName("orels1/Standard Color Randomisation")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_ColorRandomisationHeader("# Color Randomisation", Int) = 1
+    UI_ColorRandomisationDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/color-randomisation)", Int) = 0
+    UI_ColorRandomisationNote("> Note that color randomisation requires batching to be disabled. Use GPU Instancing instead", Int) = 0
+    _CRColorPalette("Color Palette", 2D) = "white" { }
+    [KeywordEnum(Albedo, Mask Texture)]MASK_MODE("Mask By", Int) = 0
+    _CRAlbedoMaskContrast("Mask Contrast %ShowIf(MASK_MODE_ALBEDO) %RemapSlider(0,1)", Vector) = (0,1,0,1)
+    _CRMask("Randomisation Mask %ShowIf(MASK_MODE_MASK_TEXTURE)", 2D) = "white" { }
+    _CRTintStrength("Tint Strength", Range(0, 1)) = 0.5
+    _CRColorBoost("Color Boost", Range(1, 40)) = 1
+}
+
+%Includes()
+{
+    "ORL Standard"
+    "self"
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local MASK_MODE_ALBEDO MASK_MODE_MASK_TEXTURE
+}
+
+%ShaderDefines()
+{
+    #if !defined(MASK_MODE_MASK_TEXTURE)
+    #define MASK_MODE_ALBEDO
+    #endif
+}
+
+%Variables()
+{
+    half _CRTintStrength;
+    half _CRColorBoost;
+    half4 _CRAlbedoMaskContrast;
+}
+
+%Textures()
+{
+    TEXTURE2D(_CRColorPalette);
+    TEXTURE2D(_CRMask);
+    SAMPLER(sampler_CRColorPalette);
+}
+
+%Fragment("ColorRandomisationFragment")
+{
+    void ColorRandomisationFragment(MeshData d, inout SurfaceData o)
+    {
+        half3 objPivot = mul(unity_ObjectToWorld, half4(0..xxx, 1)).xyz;
+        half2 uv = half2(((objPivot.x + objPivot.y + objPivot.z) * 100) % 1, 0);
+        half3 color = SAMPLE_TEXTURE2D(_CRColorPalette, sampler_CRColorPalette, uv).rgb;
+        #if defined(MASK_MODE_MASK_TEXTURE)
+            half mask = SAMPLE_TEXTURE2D(_CRMask, sampler_CRColorPalette, d.uv0.xy).rgb;
+            o.Albedo = lerp(o.Albedo, saturate(o.Albedo * color * _CRColorBoost), _CRTintStrength * mask);
+        #else
+            half mask = smoothstep(o.Albedo, _CRAlbedoMaskContrast.x, _CRAlbedoMaskContrast.y);
+            o.Albedo = lerp(o.Albedo, saturate(o.Albedo * color * _CRColorBoost), _CRTintStrength * mask);
+        #endif
+    }
+}

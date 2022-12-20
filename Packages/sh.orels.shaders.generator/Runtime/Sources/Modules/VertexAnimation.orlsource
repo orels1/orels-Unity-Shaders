@@ -1,6 +1,6 @@
 %Properties()
 {
-    UI_VertexAnimHeader("# Vertex Animation", Float) = 0
+    UI_VertexAnimHeader("# Vertex Animation", Float) = 1
     UI_VertexAnimDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/vertex-animation)", Int) = 0
     // SPINNING
     UI_SpinHeader("## Spin", Int) = 0

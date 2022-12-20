@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: d76ef0f150281d1498cc80a45d9c5358
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 14030a0b230d45068f811d1ad116f246, type: 3}
+  nonModifiableTextures:
+  - _DFG
+  nonModifiableTextureAssets:
+  - {fileID: 2800000, guid: 10777c143c503483c9f7f7f34a0cd77a, type: 3}
