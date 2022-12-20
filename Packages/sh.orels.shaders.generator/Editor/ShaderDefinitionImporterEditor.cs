@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
+using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
@@ -60,32 +62,46 @@ namespace ORL.ShaderGenerator
             }
 
             _sourceCodeFoldout = EditorGUILayout.Foldout(_sourceCodeFoldout, "Source");
-            if (_sourceCodeFoldout)
+            var textSource = "";
+            var assets = AssetDatabase.LoadAllAssetsAtPath(importer.assetPath);
+            foreach (var asset in assets)
             {
-                var assets = AssetDatabase.LoadAllAssetsAtPath(importer.assetPath);
-                foreach (var asset in assets)
+                if (asset is TextAsset textAsset)
                 {
-                    if (asset is TextAsset textAsset)
-                    {
-                        var text = textAsset.text;
-                        var split = text.Split('\n');
-                        for (int i = 0; i < split.Length; i++)
-                        {
-                            split[i] = $"{(i + 1).ToString(),4}    {split[i]}";
-                        }
+                    var text = textAsset.text;
+                    textSource = text;
+                }
+            }
+            if (_sourceCodeFoldout && !string.IsNullOrWhiteSpace(textSource))
+            {
+                var linedText = textSource;
+                var split = linedText.Split('\n');
+                for (int i = 0; i < split.Length; i++)
+                {
+                    split[i] = $"{(i + 1).ToString(),4}    {split[i]}";
+                }
 
-                        text = string.Join("\n", split);
-                        var style = new GUIStyle(EditorStyles.textArea)
-                        {
-                            font = _monoFont,
-                            wordWrap = false
-                        };
-                        using (var sv = new EditorGUILayout.ScrollViewScope(_sourceScrollPos, GUILayout.Height(500 * EditorGUIUtility.pixelsPerPoint)))
-                        {
-                            EditorGUILayout.TextArea(text, style);
-                            _sourceScrollPos = sv.scrollPosition;
-                        }
-                    }
+                linedText = string.Join("\n", split);
+                var style = new GUIStyle(EditorStyles.textArea)
+                {
+                    font = _monoFont,
+                    wordWrap = false
+                };
+                using (var sv = new EditorGUILayout.ScrollViewScope(_sourceScrollPos, GUILayout.Height(500 * EditorGUIUtility.pixelsPerPoint)))
+                {
+                    EditorGUILayout.TextArea(linedText, style);
+                    _sourceScrollPos = sv.scrollPosition;
+                }
+            }
+
+            if (GUILayout.Button("Generate Static .shader File")) {
+                File.WriteAllText(Application.dataPath.Replace("\\", "/").Replace("Assets", "") + importer.assetPath.Replace(".orlshader", ".shader"), textSource);
+                AssetDatabase.Refresh();
+                var generatedShaderImport = AssetImporter.GetAtPath(importer.assetPath.Replace(".orlshader", ".shader")) as ShaderImporter;
+                if (importer.nonModifiableTextures.Count > 0)
+                {
+                    generatedShaderImport.SetNonModifiableTextures(importer.nonModifiableTextures.ToArray(), importer.nonModifiableTextures.Select(texName => Utils.GetNonModifiableTexture(finalShader, texName)).ToArray());
+                    generatedShaderImport.SaveAndReimport();
                 }
             }
 
