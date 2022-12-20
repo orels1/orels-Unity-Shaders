@@ -16,6 +16,8 @@ namespace ORL.ShaderGenerator
     {
         [SerializeField]
         public List<string> nonModifiableTextures = new List<string>();
+        [SerializeField]
+        public List<Texture> nonModifiableTextureAssets = new List<Texture>();
         private HashSet<string> _paramsOnlyBlock = new HashSet<string>
         {
             "%ShaderName",
@@ -401,17 +403,25 @@ namespace ORL.ShaderGenerator
                 hideFlags = HideFlags.HideInHierarchy
             };
 
-            var propCount = shader.GetPropertyCount();
-            for (int i = 0; i < propCount; i++)
-            {
-                var propertyFlags = shader.GetPropertyFlags(i);
-                var propertyType = shader.GetPropertyType(i);
-                if (propertyType == ShaderPropertyType.Texture &&
-                    (propertyFlags & ShaderPropertyFlags.NonModifiableTextureData) != 0)
-                {
-                    nonModifiableTextures.Add(shader.GetPropertyName(i));
-                }
-            }
+            // var propCount = shader.GetPropertyCount();
+            // for (int i = 0; i < propCount; i++)
+            // {
+            //     Undo.RecordObject(this, "Saved non-mod textures");
+            //     var propertyFlags = shader.GetPropertyFlags(i);
+            //     var propertyType = shader.GetPropertyType(i);
+            //     if (propertyType == ShaderPropertyType.Texture &&
+            //         (propertyFlags & ShaderPropertyFlags.NonModifiableTextureData) != 0)
+            //     {
+            //         var propertyName = shader.GetPropertyName(i);
+            //         if (!nonModifiableTextures.Contains(propertyName)) {
+            //             nonModifiableTextures.Add(shader.GetPropertyName(i));
+            //             nonModifiableTextureAssets.Add(Utils.GetNonModifiableTexture(shader, propertyName));
+            //         } else {
+            //             var index = nonModifiableTextures.IndexOf(propertyName);
+            //             nonModifiableTextureAssets[index] = Utils.GetNonModifiableTexture(shader, propertyName);
+            //         }
+            //     }
+            // }
             
             ctx.AddObjectToAsset("Shader", shader);
             ctx.SetMainObject(shader);
