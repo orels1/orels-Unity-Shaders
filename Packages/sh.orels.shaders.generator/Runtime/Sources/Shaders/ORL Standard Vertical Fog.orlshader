@@ -1,9 +1,0 @@
-%ShaderName("orels1/Standard Vertical Fog")
-%CustomEditor("ORL.ShaderInspector.InspectorGUI")
-
-%Includes()
-{
-    "@/Shaders/ORL Standard",
-    "@/Modules/VerticalFog",
-    "self"
-}

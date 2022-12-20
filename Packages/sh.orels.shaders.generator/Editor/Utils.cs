@@ -38,45 +38,32 @@ namespace ORL.ShaderGenerator
             var cleaned = path.Replace("@/", "");
             var sourcesFolder = GetORLSourceFolder();
             return ResolveFreeAsset(cleaned, sourcesFolder);
-            // var combined = sourcesFolder + cleaned;
-            // var fullPath = GetFullPath(sourcesFolder + cleaned);
-            // var directExists = File.Exists(fullPath);
-            // var orlSourceExists = File.Exists($"{fullPath}.orlsource");
-            // var orlShaderExists = File.Exists($"{fullPath}.orlshader");
-            // var orlTemplateExists = File.Exists($"{fullPath}.orltemplate");
-            // if (!directExists && !orlSourceExists && !orlShaderExists && !orlTemplateExists)
-            // {
-            //     Debug.LogWarning($"Unable to find built-in asset {cleaned}. Make sure it exists in {sourcesFolder}");
-            //     return null;
-            // }
-            //
-            // if (directExists)
-            // {
-            //     return sourcesFolder + cleaned;
-            // }
-            //
-            // if (orlSourceExists)
-            // {
-            //     return sourcesFolder + cleaned + ".orlsource";
-            // }
-            //
-            // if (orlShaderExists)
-            // {
-            //     return sourcesFolder + cleaned + ".orlshader";
-            // }
-            //
-            // if (orlTemplateExists)
-            // {
-            //     return sourcesFolder + cleaned + ".orltemplate";
-            // }
-            //
-            // return sourcesFolder + cleaned;
         }
 
         private static string ResolveFreeAsset(string path, string basePath)
         {
             var combined = basePath + "/" + path;
-            var fullPath = GetFullPath(basePath + "/" + path);
+            var fullPath = GetFullPath(combined);
+            // Resolve absolute paths
+            var isAbsoluteImport = path.StartsWith("/");
+            if (path.StartsWith("/")) {
+                fullPath = GetFullPath(path.Substring(1));
+            }
+            // Resolve relative paths
+            if (path.StartsWith("..")) {
+                var parts = path.Split('/');
+                foreach (var part in parts)
+                {
+                    if (part == "..")
+                    {
+                        basePath = basePath.Substring(0, basePath.LastIndexOf('/'));
+                    }
+                    else
+                    {
+                        fullPath = basePath + "/" + part;
+                    }
+                }
+            }
             var directExists = File.Exists(fullPath);
             var orlSourceExists = File.Exists($"{fullPath}.orlsource");
             var orlShaderExists = File.Exists($"{fullPath}.orlshader");
@@ -89,22 +76,22 @@ namespace ORL.ShaderGenerator
 
             if (directExists)
             {
-                return combined;
+                return isAbsoluteImport ? path.Substring(1) : combined;
             }
 
             if (orlSourceExists)
             {
-                return combined + ".orlsource";
+                return (isAbsoluteImport ? path.Substring(1) : combined) + ".orlsource";
             }
             
             if (orlShaderExists)
             {
-                return combined + ".orlshader";
+                return (isAbsoluteImport ? path.Substring(1) : combined) + ".orlshader";
             }
             
             if (orlTemplateExists)
             {
-                return combined + ".orltemplate";
+                return (isAbsoluteImport ? path.Substring(1) : combined) + ".orltemplate";
             }
 
             return combined;

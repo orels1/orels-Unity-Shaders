@@ -95,14 +95,7 @@ namespace ORL.ShaderGenerator
             }
 
             if (GUILayout.Button("Generate Static .shader File")) {
-                File.WriteAllText(Application.dataPath.Replace("\\", "/").Replace("Assets", "") + importer.assetPath.Replace(".orlshader", ".shader"), textSource);
-                AssetDatabase.Refresh();
-                var generatedShaderImport = AssetImporter.GetAtPath(importer.assetPath.Replace(".orlshader", ".shader")) as ShaderImporter;
-                if (importer.nonModifiableTextures.Count > 0)
-                {
-                    generatedShaderImport.SetNonModifiableTextures(importer.nonModifiableTextures.ToArray(), importer.nonModifiableTextures.Select(texName => Utils.GetNonModifiableTexture(finalShader, texName)).ToArray());
-                    generatedShaderImport.SaveAndReimport();
-                }
+                ShaderDefinitionImporter.GenerateShader(importer.assetPath, importer.assetPath.Replace(".orlshader", ".shader"));
             }
 
             serializedObject.ApplyModifiedProperties();

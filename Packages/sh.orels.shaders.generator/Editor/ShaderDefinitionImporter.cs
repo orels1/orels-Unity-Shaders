@@ -420,9 +420,15 @@ namespace ORL.ShaderGenerator
 
         private void RegisterDependencies(List<string> dependencyPaths, AssetImportContext ctx)
         {
+            var workingFolder = ctx.assetPath.Substring(0, ctx.assetPath.LastIndexOf("/", StringComparison.InvariantCulture));
             foreach (var s in dependencyPaths)
             {
-                var path = Utils.ResolveORLAsset(s);
+                string path;
+                if (s.StartsWith("@/")) {
+                    path = Utils.ResolveORLAsset(s);
+                } else {
+                    path = Utils.ResolveORLAsset(s, false, workingFolder);
+                }
                 if (!string.IsNullOrEmpty(path))
                 {
                     ctx.DependsOnSourceAsset(path);
