@@ -10,7 +10,7 @@
     _FlickerFrequency("Flicker Frequency", Float) = 44
     _FlickerStrength("Flick Strength %RemapSlider(0, 1)", Vector) = (0.85, 1, 0, 1)
     _FlickerStrengthMultiplier("Strength Multiplier", Float) = 1.78
-    [NoScaleOffset]_BakedNoiseTex("Noise Tex > %RequiredTexture(@/BakedNoise.png)", 2D) = "white" { }
+    [NonModifiableTextureData][NoScaleOffset]_BakedNoiseTex("Noise Tex > %RequiredTexture(@/BakedNoise.png)", 2D) = "white" { }
 
     UI_NeonTubeHeader("# Neon Tube", Int) = 1
     _NeonTubeColor("Tube Color", Color) = (1, 1, 1, 1)

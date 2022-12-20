@@ -5,7 +5,7 @@
 %Properties()
 {
     UI_CloudsDocs("[This shader has documentation](https://shaders.orels.sh/docs/vfx/clouds)", Int) = 0
-    [NoScaleOffset]_BakedNoiseTex("Noise Tex > %RequiredTexture(@/BakedNoise.png)", 2D) = "white" { }
+    [NonModifiableTextureData][NoScaleOffset]_BakedNoiseTex("Noise Tex > %RequiredTexture(@/BakedNoise.png)", 2D) = "white" { }
     _DepthTransp("Depth Transparency", Float) = 36
     _ColorBottom("Color Bottom", Color) = (0.5680403, 0.5980207, 0.6509434, 1)
     _ColorTop("Color Top", Color) = (0.8066038, 0.9495488, 1, 1)

@@ -21,7 +21,7 @@
     [KeywordEnum(None, MONOSH, SH, RNM)]BAKERY("Bakery Mode %ShowIf(BAKERY_ENABLED)", Int) = 0
     [Toggle(BAKERY_SHNONLINEAR)]_BakerySHNonLinear("Bakery Non-Linear SH %ShowIf(BAKERY_ENABLED)", Int) = 1
     UI_InternalHeader("# Internal", Int) = 0
-    _DFG("DFG > %RequiredTexture(@/dfg-multiscatter.exr)", 2D) = "white" {}
+    [NonModifiableTextureData]_DFG("DFG > %RequiredTexture(@/dfg-multiscatter.exr)", 2D) = "white" {}
     _RNM0("RNM0 >", 2D) = "black" {}
     _RNM1("RNM1 >", 2D) = "black" {}
     _RNM2("RNM2 >", 2D) = "black" {}
