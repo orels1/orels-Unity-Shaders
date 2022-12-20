@@ -588,5 +588,32 @@ namespace ORL.ShaderGenerator
 
             return sb.ToString();
         }
+
+        public static void GenerateShader(string assetPath, string outputPath) {
+            var importer = AssetImporter.GetAtPath(assetPath) as ShaderDefinitionImporter;
+            var finalShader = AssetDatabase.LoadAssetAtPath<Shader>(importer.assetPath);
+            var textSource = "";
+            var assets = AssetDatabase.LoadAllAssetsAtPath(importer.assetPath);
+            foreach (var asset in assets)
+            {
+                if (asset is TextAsset textAsset)
+                {
+                    var text = textAsset.text;
+                    textSource = text;
+                }
+            }
+            if (string.IsNullOrWhiteSpace(textSource)) {
+                Debug.LogWarning($"Shader source for {assetPath} is empty! Skipping generation");
+                return;
+            }
+            File.WriteAllText(Application.dataPath.Replace("\\", "/").Replace("Assets", "") + outputPath, textSource);
+            AssetDatabase.Refresh();
+            var generatedShaderImport = AssetImporter.GetAtPath(importer.assetPath.Replace(".orlshader", ".shader")) as ShaderImporter;
+            if (importer.nonModifiableTextures.Count > 0)
+            {
+                generatedShaderImport.SetNonModifiableTextures(importer.nonModifiableTextures.ToArray(), importer.nonModifiableTextures.Select(texName => Utils.GetNonModifiableTexture(finalShader, texName)).ToArray());
+                generatedShaderImport.SaveAndReimport();
+            }
+        }
     }
 }

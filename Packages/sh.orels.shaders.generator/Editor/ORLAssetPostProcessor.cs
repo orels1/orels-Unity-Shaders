@@ -18,6 +18,9 @@ namespace ORL.ShaderGenerator
                 if (!asset.EndsWith(".orlshader")) continue;
 
                 var shader = AssetDatabase.LoadAssetAtPath<Shader>(asset);
+                if (shader == null) {
+                    continue;
+                }
                 ShaderUtil.ClearShaderMessages(shader);
                 if (!ShaderUtil.ShaderHasError(shader))
                 {
