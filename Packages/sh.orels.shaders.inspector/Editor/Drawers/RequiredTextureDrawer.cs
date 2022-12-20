@@ -22,12 +22,12 @@ namespace ORL.Drawers
             var match = _matcher.Match(property.displayName);
             if (!match.Success) return EditorGUI.indentLevel == -1 || next();
             var texPath = match.Groups["texPath"].Value;
-            // we only want to replace with default if the texture ref is not set or a new texture is referenced
-            if (_savedPath == texPath && property.textureValue != null) return EditorGUI.indentLevel == -1 || next();
+            // we only want to replace with default if the texture ref is not set
+            if (property.textureValue != null) return EditorGUI.indentLevel == -1 || next();
             var fetched = FetchTex(texPath);
             if (fetched == null) return EditorGUI.indentLevel == -1 || next();
-            _savedTex = fetched;
             _savedPath = texPath;
+            _savedTex = fetched;
             property.textureValue = fetched;
 
             return EditorGUI.indentLevel == -1 || next();
