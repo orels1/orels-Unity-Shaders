@@ -271,10 +271,10 @@
         
         half3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
         half lightNoL = dot(o.Normal, lightDir);
-        half lightLoH = saturate(dot(lightDir, lightHalfVector));
+        half lightLoH = dot(lightDir, lightHalfVector);
         
         half NoV = abs(dot(o.Normal, d.worldSpaceViewDir)) + 1e-5;
-        half NoH = saturate(dot(o.Normal, lightHalfVector));
+        half NoH = dot(o.Normal, lightHalfVector);
         half3 stereoViewDir = calcStereoViewDir(d.worldSpacePosition);
         half NoSVDN = abs(dot(stereoViewDir, o.Normal));
 
@@ -303,14 +303,14 @@
         bool lightEnv = any(lightDir.xyz);
         // if there is no realtime light - we create it from indirect diffuse
         if (!lightEnv) {
-            lightColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+            lightColor = indirectDiffuse;
             indirectDiffuse = indirectDiffuse * 0.4;
 
             lightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
             lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
             lightNoL = dot(o.Normal, lightDir);
-            lightLoH = saturate(dot(lightDir, lightHalfVector));
-            NoH = saturate(dot(o.Normal, lightHalfVector));
+            lightLoH = dot(lightDir, lightHalfVector);
+            NoH = dot(o.Normal, lightHalfVector);
         }
 
         half lightAvg = (dot(indirectDiffuse.rgb, grayscaleVec) + dot(lightColor.rgb, grayscaleVec)) / 2;
@@ -319,7 +319,7 @@
         half4 ramp = 1;
         half4 diffuse = 1;
         ramp = calcRamp(lightNoL, lightAttenuation, occlusion, _OcclusionMode);
-        diffuse = calcDiffuse(lightAttenuation, o.Albedo.rgb * perceptualRoughness, indirectDiffuse, lightColor, ramp);
+        diffuse = calcDiffuse(lightAttenuation, o.Albedo.rgb, indirectDiffuse, lightColor, ramp);
 
         // Rims
         half4 rimLight = o.RimLight;
