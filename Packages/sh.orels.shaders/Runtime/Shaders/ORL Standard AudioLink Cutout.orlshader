@@ -9,7 +9,7 @@
 
 %Includes()
 {
-    "ORL Standard AudioLink"
+    "/Packages/sh.orels.shaders/Runtime/Shaders/ORL Standard AudioLink"
     "self"
 }
 

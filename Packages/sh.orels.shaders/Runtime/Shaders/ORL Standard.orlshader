@@ -146,13 +146,13 @@
         o.Normal = normal;
         if (!_DetailAsTintMask)
         {
-            o.Albedo = albedo.rgb * _Color.rgb;
+            o.Albedo *= albedo.rgb * _Color.rgb;
         }
         else
         {
-            o.Albedo = lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
+            o.Albedo *= lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
         }
-        o.Alpha = albedo.a * _Color.a;
+        o.Alpha *= albedo.a * _Color.a;
         #if defined(_EMISSION)
             o.Emission = emission * _EmissionColor;
         #endif

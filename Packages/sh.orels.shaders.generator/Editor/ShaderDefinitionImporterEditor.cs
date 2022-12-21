@@ -27,7 +27,6 @@ namespace ORL.ShaderGenerator
             if (importer == null) return;
 
             var finalShader = AssetDatabase.LoadAssetAtPath<Shader>(importer.assetPath);
-            Debug.Log(AssetDatabase.AssetPathToGUID(importer.assetPath));
 
             // if (importer.nonModifiableTextures.Count > 0)
             // {

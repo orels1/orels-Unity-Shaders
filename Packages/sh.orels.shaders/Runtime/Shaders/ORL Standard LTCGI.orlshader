@@ -3,7 +3,7 @@
 
 %Includes()
 {
-    "ORL Standard",
+    "/Packages/sh.orels.shaders/Runtime/Shaders/ORL Standard",
     "@/Modules/LTCGI",
     "self"
 }

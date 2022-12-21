@@ -3,14 +3,14 @@
 
 %Properties()
 {
-    [ToggleUI]UI_CutoutHeader("# Cutout", Int) = 0
+    UI_CutoutHeader("# Cutout", Int) = 0
     _Cutoff("Cutoff", Range(0, 1)) = 0.5
     [Toggle(_NATIVE_A2C)]_AlphaToMask("Alpha To Coverage (A2C)", Int) = 0
 }
 
 %Includes()
 {
-    "ORL Standard",
+    "/Packages/sh.orels.shaders/Runtime/Shaders/ORL Standard",
     "self"
 }
 

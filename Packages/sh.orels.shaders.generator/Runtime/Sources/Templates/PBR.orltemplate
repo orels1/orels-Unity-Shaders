@@ -105,7 +105,7 @@
 
                 SurfaceData o = (SurfaceData) 0;
                 MeshData d = CreateMeshData(i);
-                o.Albedo = 0.5;
+                o.Albedo = 1;
                 o.Occlusion = 1;
                 o.Normal = half3(0, 0, 1);
                 o.Smoothness = 0.5;
@@ -208,7 +208,7 @@
 
                 SurfaceData o = (SurfaceData) 0;
                 MeshData d = CreateMeshData(i);
-                o.Albedo = 0.5;
+                o.Albedo = 1;
                 o.Occlusion = 1;
                 o.Normal = half3(0, 0, 1);
                 o.Smoothness = 0.5;
@@ -307,7 +307,7 @@
 
                 SurfaceData o = (SurfaceData) 0;
                 MeshData d = CreateMeshData(i);
-                o.Albedo = 0.5;
+                o.Albedo = 1;
                 o.Occlusion = 1;
                 o.Normal = half3(0, 0, 1);
                 o.Smoothness = 0.5;
@@ -415,7 +415,7 @@
                 #if defined(NEED_FRAGMENT_IN_SHADOW)
                 SurfaceData o = (SurfaceData) 0;
                 MeshData d = CreateMeshData(i);
-                o.Albedo = 0.5;
+                o.Albedo = 1;
                 o.Occlusion = 1;
                 o.Normal = half3(0, 0, 1);
                 o.Smoothness = 0.5;
