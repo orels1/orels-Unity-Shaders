@@ -37,7 +37,13 @@ namespace ORL.ShaderGenerator
         {
             var cleaned = path.Replace("@/", "");
             var sourcesFolder = GetORLSourceFolder();
-            return ResolveFreeAsset(cleaned, sourcesFolder);
+            // this package is split off but we still want to have nice shorthands into it
+            var shaderSourcesFolder = "/Packages/sh.orels.shaders/Runtime";
+
+            var builtInAsset = ResolveFreeAsset(cleaned, sourcesFolder);
+            if (!string.IsNullOrWhiteSpace(builtInAsset)) return builtInAsset;
+
+            return ResolveFreeAsset(cleaned, shaderSourcesFolder);
         }
 
         private static string ResolveFreeAsset(string path, string basePath)
