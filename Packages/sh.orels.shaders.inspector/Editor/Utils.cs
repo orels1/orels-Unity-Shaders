@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -23,18 +24,6 @@ namespace ORL.ShaderInspector
         
         public static bool TryGetValueFromFloat(string name, Material material, out float value)
         {
-            // var so = new SerializedObject(material);
-            // var floats = so.FindProperty("m_SavedProperties").FindPropertyRelative("m_Floats");
-            // for (int i = 0; i < floats.arraySize; i++)
-            // {
-            //     var el = floats.GetArrayElementAtIndex(i);
-            //     if (el.FindPropertyRelative("first").stringValue == name)
-            //     {
-            //         value = el.FindPropertyRelative("second").floatValue;
-            //         return true;
-            //     }
-            // }
-
             if (material.HasProperty(name))
             {
                 value = material.GetFloat(name);
@@ -43,41 +32,10 @@ namespace ORL.ShaderInspector
 
             value = 0;
             return false;
-
-            // try
-            // {
-            //     value = material.GetFloat(name);
-            //     return true;
-            // }
-            // catch
-            // {
-            //     try
-            //     {
-            //         value = material.GetInt(name);
-            //         return true;
-            //     }
-            //     catch
-            //     {
-            //         value = 0;
-            //         return false;
-            //     }
-            // }
         }
 
         public static bool TryGetValueFromTexture(string name, Material material, out bool value)
         {
-            // var so = new SerializedObject(material);
-            // var textures = so.FindProperty("m_SavedProperties.m_TexEnvs");
-            // for (int i = 0; i < textures.arraySize; i++)
-            // {
-            //     var el = textures.GetArrayElementAtIndex(i);
-            //     if (el.FindPropertyRelative("first").stringValue == name)
-            //     {
-            //         value = el.FindPropertyRelative("second.m_Texture").objectReferenceValue != null;
-            //         return true;
-            //     }
-            // }
-
             try
             {
                 if (material.HasProperty(name) && material.GetTexturePropertyNames().Contains(name))

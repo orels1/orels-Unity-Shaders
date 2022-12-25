@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System.Reflection;
+using UnityEditor;
 using UnityEngine;
 
 namespace ORL.ShaderInspector
@@ -206,6 +207,31 @@ namespace ORL.ShaderInspector
 
             GUI.Label(labelRect, text, Styles.Header1TextStyle);
             return open;
+        }
+
+        public static Texture DrawSingleLineTextureGUI<T>(string label, Texture current, int maxWidth = -1)
+        {
+            var rect = EditorGUILayout.GetControlRect(true, 20f, EditorStyles.layerMaskField);
+            return DrawSingleLineTextureGUI<T>(rect, label, current, maxWidth);
+        }
+        
+        public static Texture DrawSingleLineTextureGUI<T>(Rect position, string label, Texture current, int maxWidth = -1)
+        {
+            var rect = position;
+            if (maxWidth > 0)
+            {
+                rect.width = maxWidth;
+            }
+            var labelRect = new Rect();
+            var fieldRect = new Rect();
+            var rects = new object[] {rect, labelRect, fieldRect};
+            typeof(EditorGUI)
+                .GetMethod("GetRectsForMiniThumbnailField", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Instance)
+                ?.Invoke(null, rects);
+            labelRect = (Rect) rects[2];
+            fieldRect = (Rect) rects[1];
+            EditorGUI.LabelField(labelRect, label);
+            return EditorGUI.ObjectField(fieldRect, current, typeof(T), false) as Texture;
         }
     }
 }

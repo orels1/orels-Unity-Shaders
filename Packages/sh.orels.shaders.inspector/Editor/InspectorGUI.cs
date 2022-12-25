@@ -7,6 +7,7 @@ using System.IO;
 using ORL.Drawers;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace ORL.ShaderInspector
 {
@@ -30,7 +31,7 @@ namespace ORL.ShaderInspector
         private List<string> _shaderFeatures;
         private List<string> _multiCompiles;
 
-        private void Initialize(MaterialEditor materialEditor)
+        private void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
             Styles.InitTextureStyles();
 
@@ -109,6 +110,38 @@ namespace ORL.ShaderInspector
             _uiState = new Dictionary<string, object>();
             _uiState.Add("debugShown", false);
 
+            foreach (var prop in properties)
+            {
+                if (prop.type == MaterialProperty.PropType.Texture && prop.textureDimension == TextureDimension.Tex2D)
+                {
+                    var packerKey = prop.name + "_packer";
+                    _uiState.Add(packerKey, false);
+                    _uiState.Add(packerKey + "_red_tex", prop.textureValue);
+                    _uiState.Add(packerKey + "_blue_tex", prop.textureValue);
+                    _uiState.Add(packerKey + "_green_tex", prop.textureValue);
+                    _uiState.Add(packerKey + "_alpha_tex", prop.textureValue);
+                    
+                    _uiState.Add(packerKey + "_red_channel", 0);
+                    _uiState.Add(packerKey + "_green_channel", 1);
+                    _uiState.Add(packerKey + "_blue_channel", 2);
+                    _uiState.Add(packerKey + "_alpha_channel", 3);
+                    
+                    _uiState.Add(packerKey + "_red_val", 1f);
+                    _uiState.Add(packerKey + "_blue_val", 1f);
+                    _uiState.Add(packerKey + "_green_val", 1f);
+                    _uiState.Add(packerKey + "_alpha_val", 1f);
+                    
+                    _uiState.Add(packerKey + "_red_invert", false);
+                    _uiState.Add(packerKey + "_blue_invert", false);
+                    _uiState.Add(packerKey + "_green_invert", false);
+                    _uiState.Add(packerKey + "_alpha_invert", false);
+                    
+                    _uiState.Add(packerKey + "_size", 2048);
+                    _uiState.Add(packerKey + "_linear", false);
+                    _uiState.Add(packerKey + "_name", materialEditor.target.name + "_" + Utils.StripInternalSymbols(prop.displayName).Trim() + "_packed");
+                }
+            }
+
             _initialized = true;
         }
 
@@ -116,7 +149,7 @@ namespace ORL.ShaderInspector
         {
             if (!_initialized)
             {
-                Initialize(materialEditor);
+                Initialize(materialEditor, properties);
             }
             // materialEditor.SetDefaultGUIWidths();
             EditorGUIUtility.fieldWidth = 64f;
@@ -217,7 +250,7 @@ namespace ORL.ShaderInspector
 
         private readonly static Regex _singleLineRegex = new Regex(@"(?<=^[\w\s]+)(\>)");
 
-        public static void DrawRegularProp(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index)
+        public void DrawRegularProp(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index)
         {
             var strippedName = Utils.StripInternalSymbols(property.displayName);
             var isSingleLine = property.type == MaterialProperty.PropType.Texture && _singleLineRegex.IsMatch(property.displayName);
@@ -226,7 +259,10 @@ namespace ORL.ShaderInspector
                 var buttonRect = editor.TexturePropertySingleLine(new GUIContent(strippedName), property);
                 buttonRect.x = EditorGUIUtility.labelWidth + 20.0f;
                 buttonRect.width = EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth - 38f;
-                GUI.Button(buttonRect, "Repack Texture");
+                // We can only repack 2D textures
+                if (property.textureDimension != TextureDimension.Tex2D) return;
+                var packerKey = property.name + "_packer";
+                _uiState[packerKey] = TexturePacker.DrawPacker(buttonRect, (bool) _uiState[packerKey], ref _uiState, packerKey, editor.target as Material, property, editor);
                 return;
             }
 
@@ -240,8 +276,11 @@ namespace ORL.ShaderInspector
                 buttonRect.xMin += labelSize.x + 34f * EditorGUIUtility.pixelsPerPoint;
                 buttonRect.height = labelSize.y;
                 buttonRect.width -= 52 * EditorGUIUtility.pixelsPerPoint;
-                GUI.Button(buttonRect, "Repack Texture");
                 editor.TextureProperty(controlRect, property, strippedName);
+                // We can only repack 2D textures
+                if (property.textureDimension != TextureDimension.Tex2D) return;
+                var packerKey = property.name + "_packer";
+                _uiState[packerKey] = TexturePacker.DrawPacker(buttonRect, (bool) _uiState[packerKey], ref _uiState, packerKey, editor.target as Material, property, editor);
                 return;
             }
             editor.ShaderProperty(controlRect, property, strippedName);
