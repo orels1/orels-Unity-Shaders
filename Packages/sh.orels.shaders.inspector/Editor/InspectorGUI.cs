@@ -275,10 +275,7 @@ namespace ORL.ShaderInspector
             {
                 Initialize(materialEditor, properties);
             }
-            // materialEditor.SetDefaultGUIWidths();
             EditorGUIUtility.fieldWidth = 64f;
-            // EditorGUIUtility.labelWidth = (float) (EditorGUIUtility.currentViewWidth - EditorGUIUtility.fieldWidth - 25.0f);
-            // EditorGUIUtility.labelWidth = EditorGUIUtility.currentViewWidth * 0.35f + 25.0f;
             var propIndex = 0;
             var oldState = new Dictionary<string, object>(_uiState);
             foreach (var property in properties)
@@ -312,6 +309,39 @@ namespace ORL.ShaderInspector
             {
                 SaveState(materialEditor.target as Material);
             }
+        }
+
+        private bool StateHasChanged(Dictionary<string, object> oldState, Dictionary<string, object> newState)
+        {
+            if (oldState.Count != newState.Count)
+            {
+                return true;
+            }
+
+            foreach (var el in oldState)
+            {
+                if (!newState.ContainsKey(el.Key))
+                {
+                    return true;
+                }
+
+                if (el.Value == null && newState[el.Key] != null)
+                {
+                    return true;
+                }
+
+                if (el.Value != null && newState[el.Key] == null)
+                {
+                    return true;
+                }
+
+                if (el.Value != null && newState[el.Key] != null && !el.Value.Equals(newState[el.Key]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         #region Drawing
