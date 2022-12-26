@@ -15,7 +15,9 @@ namespace ORL.Drawers
         // Matches "RemapSlider(0, 1, 0, 1)"
         private Regex _matcher = new Regex(@"%RemapSlider\(([\d]+),?\s?([\d]+)+\)");
         
-        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, Dictionary<string, object> uiState, Func<bool> next)
+        public string[] PersistentKeys => Array.Empty<string>();
+        
+        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next)
         {
             if (EditorGUI.indentLevel == -1) return true;
             

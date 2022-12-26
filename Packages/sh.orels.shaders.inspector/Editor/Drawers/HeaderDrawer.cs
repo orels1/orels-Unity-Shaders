@@ -17,14 +17,14 @@ namespace ORL.Drawers
             return _matcher.IsMatch(property.displayName);
         }
 
-        //d_forward
+        public string[] PersistentKeys => Array.Empty<string>();
 
         public bool OnGUI(
             MaterialEditor editor,
             MaterialProperty[] properties,
             MaterialProperty property,
             int index,
-            Dictionary<string, object> uiState,
+            ref Dictionary<string, object> uiState,
             Func<bool> next)
         {
             var matchLevel = _matcher.Match(property.displayName).Value.Length;

@@ -16,8 +16,10 @@ namespace ORL.Drawers
 
         private string _savedPath;
         private Texture2D _savedTex;
+        
+        public string[] PersistentKeys => Array.Empty<string>();
 
-        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, Dictionary<string, object> uiState, Func<bool> next)
+        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next)
         {
             var match = _matcher.Match(property.displayName);
             if (!match.Success) return EditorGUI.indentLevel == -1 || next();

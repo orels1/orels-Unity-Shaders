@@ -14,8 +14,10 @@ namespace ORL.Drawers
         {
             return _matcher.IsMatch(property.displayName);
         }
+        
+        public string[] PersistentKeys => Array.Empty<string>();
 
-        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, Dictionary<string, object> uiState, Func<bool> next)
+        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next)
         {
             if (EditorGUI.indentLevel == -1) return true;
             var label = _matcher.Replace(property.displayName, "");

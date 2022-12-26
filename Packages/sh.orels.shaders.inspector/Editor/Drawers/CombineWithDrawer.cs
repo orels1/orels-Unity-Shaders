@@ -17,7 +17,9 @@ namespace ORL.Drawers
         
         private float _baseOffset = 5f * EditorGUIUtility.pixelsPerPoint;
 
-        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, Dictionary<string, object> uiState, Func<bool> next)
+        public string[] PersistentKeys => Array.Empty<string>();
+
+        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next)
         {
             if (EditorGUI.indentLevel == -1) return true;
             

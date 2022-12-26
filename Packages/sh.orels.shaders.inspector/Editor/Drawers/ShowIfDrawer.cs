@@ -14,11 +14,13 @@ namespace ORL.Drawers
         
         // Matches %ShowIf(Condition);
         private Regex _matcher = new Regex(@"(?<=[\w\s\>\s]+)\%ShowIf\((?<condition>[\w\,\s\&\|\(\)\!\<\>\=]+)\)");
+        
+        public string[] PersistentKeys => Array.Empty<string>();
 
         private Dictionary<string, Expression> _expressions = new Dictionary<string, Expression>();
         private Interpreter _interpreter;
 
-        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, Dictionary<string, object> uiState, Func<bool> next)
+        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next)
         {
             if (EditorGUI.indentLevel == -1 && !property.displayName.Trim().StartsWith("# ")) return true;
             
