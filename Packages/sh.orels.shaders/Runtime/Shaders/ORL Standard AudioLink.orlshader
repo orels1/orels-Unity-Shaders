@@ -26,13 +26,11 @@
     [ToggleUI]UI_UVColorsNote("> Check AudioLink object for colors, still applies global tint! %ShowIf(AL_EFFECT_UV_BASED)", Int) = 0
 
     // WAVEFORM
-    [ToggleUI]UI_WVFRMBottomGrad("!DRAWER Gradient _WVFRMBottomColor %ShowIf(AL_EFFECT_WAVEFORM)", Int) = 0
-    _WVFRMBottomColor("Waveform Bottom Color %ShowIf(AL_EFFECT_WAVEFORM)", 2D) = "white" { }
-    [ToggleUI]UI_WVFRMTopGrad("!DRAWER Gradient _WVFRMTopColor %ShowIf(AL_EFFECT_WAVEFORM)", Int) = 0
-    _WVFRMTopColor("Waveform Top Color %ShowIf(AL_EFFECT_WAVEFORM)", 2D) = "black" { }
+    _WVFRMBottomColor("Waveform Bottom Color %ShowIf(AL_EFFECT_WAVEFORM) %Gradient()", 2D) = "white" { }
+    _WVFRMTopColor("Waveform Top Color %ShowIf(AL_EFFECT_WAVEFORM) %Gradient()", 2D) = "black" { }
     [ToggleUI]_WVFRMMiddleLine("Add Middle Line %ShowIf(AL_EFFECT_WAVEFORM)", Int) = 0
-    [ToggleUI]UI_WVFRMMiddleGrad("!DRAWER Gradient _WVFRMMiddleColor %ShowIf(_WVFRMMiddleLine && AL_EFFECT_WAVEFORM)", Int) = 0
-    _WVFRMMiddleColor("Waveform Middle Color %ShowIf(_WVFRMMiddleLine && AL_EFFECT_WAVEFORM)", 2D) = "gray" { }
+    _WVFRMMiddleColor("Waveform Middle Color %ShowIf(_WVFRMMiddleLine && AL_EFFECT_WAVEFORM) %Gradient()", 2D) = "gray" { }
+    [ToggleUI]_WVFRMFlipUVDirection("Flip UV Direction %ShowIf(AL_EFFECT_WAVEFORM)", Int) = 0
     _WVFRMMiddleLineWidth("Line Width %ShowIf(_WVFRMMiddleLine && AL_EFFECT_WAVEFORM)", Range(0, 1)) = 0.05
     [ToggleUI]_WVFRMFlip("Flip Waveform %ShowIf(AL_EFFECT_WAVEFORM)", Int) = 0
     _WVFRMOffset("Waveform Offset %ShowIf(AL_EFFECT_WAVEFORM)", Range(0, 1)) = 0.5
@@ -52,8 +50,7 @@
     // BAR
     [IntRange]_BarBand("Frequency Band %ShowIf(AL_EFFECT_BAR)", Range(1, 4)) = 1
     [Enum(X, 0, Y, 1, Negative X, 2, Negative Y, 3)]_BarAxis("Bar UV Axis %ShowIf(AL_EFFECT_BAR)", Int) = 1
-    [ToggleUI]UI_BarGrad("!DRAWER Gradient _BarColor %ShowIf(AL_EFFECT_BAR)", Int) = 0
-    _BarColor("Bar Gradient %ShowIf(AL_EFFECT_BAR)", 2D) = "white" { }
+    _BarColor("Bar Gradient %ShowIf(AL_EFFECT_BAR) %Gradient()", 2D) = "white" { }
     _BarScale("Bar Scale %ShowIf(AL_EFFECT_BAR)", Float) = 1
 
     [ToggleUI]UI_Spacer(">  ", Int) = 0
@@ -96,6 +93,7 @@
     int _WVFRMFlip;
     half _WVFRMOffset;
     half _WVFRMScale;
+    int _WVFRMFlipUVDirection;
 
     int _PulseBand;
     int _PulseMode;
@@ -186,9 +184,13 @@
 
         half noteno = abs(uv.x) * AUDIOLINK_ETOTALBINS;
         half wvfrm = AudioLinkLerpMultiline(ALPASS_DFT + half2(noteno, 0)).z * _WVFRMScale;
-        half4 bottomColor = SAMPLE_TEXTURE2D(_WVFRMBottomColor, sampler_WVFRMBottomColor, uv);
-        half4 topColor = SAMPLE_TEXTURE2D(_WVFRMTopColor, sampler_WVFRMBottomColor, uv);
-        half4 midColor = SAMPLE_TEXTURE2D(_WVFRMMiddleColor, sampler_WVFRMBottomColor, uv);
+        half2 gradientUvs = uv;
+        if (_WVFRMFlipUVDirection) {
+            gradientUvs = half2(gradientUvs.y, gradientUvs.x);
+        }
+        half4 bottomColor = SAMPLE_TEXTURE2D(_WVFRMBottomColor, sampler_WVFRMBottomColor, gradientUvs);
+        half4 topColor = SAMPLE_TEXTURE2D(_WVFRMTopColor, sampler_WVFRMBottomColor, gradientUvs);
+        half4 midColor = SAMPLE_TEXTURE2D(_WVFRMMiddleColor, sampler_WVFRMBottomColor, gradientUvs);
         half4 finalBlend = lerp(lerp(bottomColor, midColor, _WVFRMMiddleLine > 0 && lerp(uv.y, 1 - uv.y, _WVFRMFlip) > (wvfrm + _WVFRMOffset) - _WVFRMMiddleLineWidth), topColor, lerp(uv.y, 1 - uv.y, _WVFRMFlip) > (wvfrm + _WVFRMOffset));
         finalEmission = finalBlend.rgb;
         finalEmission *= _ALTint;
