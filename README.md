@@ -1,5 +1,5 @@
 <p align="center">
-<strong>📜 Unity Shaders of Varied Quality 📜</strong>
+<strong>📜 A collection of Unity Shaders and tools to make them 📜</strong>
 </p>
 
 <p align="center">
@@ -11,15 +11,24 @@
   </sub>
 </p>
 
-## [Download here](https://github.com/orels1/orels-Unity-Shaders/releases)
+## For any Unity project - [Download Here](https://github.com/orels1/orels-Unity-Shaders/releases)
 
-**Do not download the repository itself to get the shaders**
+You will need to download both `ORL Shader Inspector` and `ORL Shaders` unitypackage files to use the shaders.
 
-The repository is there mostly for reference, as it contains functionality that requires 3rd party packages to work: BetterShaders and Odin Inspector. If you're curious about the dev process, [check out this page on the documentation website](https://shaders.orels.sh/development/github-repo) 👀
+## For VCC users
 
-## Installation
+Add this repo listing to your VCC
 
-[Please follow the steps outlined on the documentation website!](https://shaders.orels.sh)
+```
+Coming Soon (tm)
+```
+
+Afterwards - add ORL Shaders package to your project
+
+
+## More instructions
+
+[There are more in-depth instructions and explanations on the docs!](https://shaders.orels.sh)
 
 Having issues? [Hop by the discord](https://discord.gg/orels1)
 
