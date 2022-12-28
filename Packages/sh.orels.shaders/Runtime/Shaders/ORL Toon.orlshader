@@ -49,12 +49,13 @@
     {
         half2 uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
         GLOBAL_uv = uv;
-        half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv).rgb;
+        half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
         albedo *= _Color;
         if (_TintByVertexColor) {
-            albedo *= d.vertexColor.rgb;
+            albedo.rgb *= d.vertexColor.rgb;
         }
-        o.Albedo = albedo;
+        o.Albedo = albedo.rgb;
+        o.Alpha = albedo.a;
         o.ShadowSharpness = _ShadowSharpness;
     }
 }

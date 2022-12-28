@@ -1,0 +1,29 @@
+%ShaderName("orels1/Toon/Transparent")
+%LightingModel("@/LightingModels/Toon")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/ORL Toon",
+    "self",
+}
+
+%ShaderTags()
+{
+    "Queue" = "Transparent" "RenderType" = "Transparent"
+}
+
+%ShaderModifiers()
+{
+    Blend SrcAlpha OneMinusSrcAlpha
+}
+
+%PassModifiers()
+{
+    ZWrite Off
+}
+
+%ShadowPassModifiers()
+{
+    ZWrite Off
+}

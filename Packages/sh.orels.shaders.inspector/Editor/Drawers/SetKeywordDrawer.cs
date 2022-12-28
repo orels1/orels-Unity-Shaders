@@ -6,14 +6,12 @@ using UnityEngine;
 
 namespace ORL.Drawers
 {
-    public class SetKeywordDrawer: IDrawer
+    public class SetKeywordDrawer: IDrawerFunc
     {
-        public bool MatchDrawer(MaterialProperty property)
-        {
-            return property.displayName.StartsWith("%SetKeyword");
-        }
+        public string FunctionName => "SetKeyword";
         
-        private Regex _regex = new Regex(@"%SetKeyword\((?<texture>[\w]+)+,\s*(?<keyword>[\w]+)\)");
+        // Matches %SetKeyword(_TextureVar, KEYWORD_NAME)
+        private Regex _matcher = new Regex(@"%SetKeyword\((?<texture>[\w]+)+,\s*(?<keyword>[\w]+)\)");
         
         public string[] PersistentKeys => Array.Empty<string>();
 
@@ -21,7 +19,7 @@ namespace ORL.Drawers
         {
             if (EditorGUI.indentLevel == -1) return true;
             
-            var match = _regex.Match(property.displayName);
+            var match = _matcher.Match(property.displayName);
             var keyword = match.Groups["keyword"].Value;
             var texture = match.Groups["texture"].Value;
             foreach (Material material in editor.targets)
@@ -32,7 +30,7 @@ namespace ORL.Drawers
                     material.DisableKeyword(keyword);
             }
 
-            return true;
+            return next();
         }
     }
 }

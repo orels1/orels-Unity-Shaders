@@ -1,11 +1,17 @@
 %Properties()
 {
-    [ToggleUI]UI_RimShadowHeader("# Rim Shadow Settings", Int) = 0
-    _ShadowRimTint("Tint", Color) = (1,1,1,1)
-    _ShadowRimRange("Range", Range(0,1)) = 0.7
-    _ShadowRimThreshold("Threshold", Range(0,1)) = 0.1
-    _ShadowRimSharpness("Sarpness", Range(0,1)) = 0.3
-    _ShadowRimAlbedoTint("Albedo Tint", Range(0,1)) = 0
+    [ToggleUI]UI_RimShadowHeader("# Rim Shadow", Int) = 0
+    [Toggle(RIMSHADOW_ON)]_RimShadow("Enable Rim Shadow", Int) = 0
+    _ShadowRimTint("Tint %ShowIf(RIMSHADOW_ON)", Color) = (1,1,1,1)
+    _ShadowRimRange("Range %ShowIf(RIMSHADOW_ON)", Range(0,1)) = 0.7
+    _ShadowRimThreshold("Threshold %ShowIf(RIMSHADOW_ON)", Range(0,1)) = 0.1
+    _ShadowRimSharpness("Sarpness %ShowIf(RIMSHADOW_ON)", Range(0,1)) = 0.3
+    _ShadowRimAlbedoTint("Albedo Tint %ShowIf(RIMSHADOW_ON)", Range(0,1)) = 0
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local RIMSHADOW_ON
 }
 
 %Variables()
@@ -20,6 +26,8 @@
 %Fragment("ToonShadowRimFragment")
 {
     void ToonShadowRimFragment(MeshData d, inout SurfaceData o) {
+        #if defined(RIMSHADOW_ON)
+
         #ifndef USING_DIRECTIONAL_LIGHT
             fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
         #else
@@ -35,5 +43,7 @@
         shadowRimIntensity = smoothstep(_ShadowRimRange - _ShadowRimSharpness, _ShadowRimRange + _ShadowRimSharpness, shadowRimIntensity);
 
         o.RimShadow = lerp(1, (_ShadowRimTint * lerp(1, o.Albedo.rgbb, _ShadowRimAlbedoTint)), shadowRimIntensity);
+
+        #endif
     }
 }

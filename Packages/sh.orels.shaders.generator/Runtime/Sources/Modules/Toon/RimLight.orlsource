@@ -1,14 +1,20 @@
 %Properties()
 {
-    UI_RimLightHeader("# Rim Light Settings", Int) = 0
-    _RimTint("Tint", Color) = (1,1,1,1)
-    _RimIntensity("Intensity", Float) = 0
-    _RimAlbedoTint("Albedo Tint", Range(0,1)) = 0
-    _RimEnvironmentTint("Environment Tint", Range(0,1)) = 0
-    _RimAttenuation("Attenuation", Range(0,1)) = 1
-    _RimRange("Range", Range(0, 1)) = 0.7
-    _RimThreshold("Threshold", Range(0, 1)) = 0.1
-    _RimSharpness("Sarpness", Range(0,1)) = 0.1
+    UI_RimLightHeader("# Rim Light", Int) = 0
+    [Toggle(RIMLIGHT_ON)]_RimLight("Enable Rim Light", Int) = 0
+    _RimTint("Tint %ShowIf(RIMLIGHT_ON)", Color) = (1,1,1,1)
+    _RimIntensity("Intensity %ShowIf(RIMLIGHT_ON)", Float) = 0
+    _RimAlbedoTint("Albedo Tint %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 0
+    _RimEnvironmentTint("Environment Tint %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 0
+    _RimAttenuation("Attenuation %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 1
+    _RimRange("Range %ShowIf(RIMLIGHT_ON)", Range(0, 1)) = 0.7
+    _RimThreshold("Threshold %ShowIf(RIMLIGHT_ON)", Range(0, 1)) = 0.1
+    _RimSharpness("Sarpness %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 0.1
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local RIMLIGHT_ON
 }
 
 %Variables()
@@ -26,6 +32,8 @@
 %Fragment("ToonRimLightFragment")
 {
     void ToonRimLightFragment(MeshData d, inout SurfaceData o) {
+        #if defined(RIMLIGHT_ON)
+        
         #ifndef USING_DIRECTIONAL_LIGHT
             fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
         #else
@@ -50,5 +58,7 @@
         
         o.RimLight = rim * _RimTint * lerp(1, o.Albedo.rgbb, _RimAlbedoTint) * lerp(1, env.rgbb, _RimEnvironmentTint);
         o.RimAttenuation = _RimAttenuation;
+        
+        #endif
     }
 }
