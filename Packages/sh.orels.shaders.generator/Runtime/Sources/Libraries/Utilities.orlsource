@@ -114,6 +114,22 @@
         return uvw;
     }
 
+    half3 HSV2RGB(half3 hsv)
+    {    
+        return hsv.z + hsv.z * hsv.y * (clamp(abs(fmod(hsv.x * 6.0 + half3(0,4,2), 6.0) - 3.0) - 1.0,0.0,1.0) - 1.0);
+    }
+
+    half3 RGB2HSV(half3 rgb)
+    {
+        half4 K = half4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+        half4 p = lerp(half4(rgb.bg, K.wz), half4(rgb.gb, K.xy), step(rgb.b, rgb.g));
+        half4 q = lerp(half4(p.xyw, rgb.r), half4(rgb.r, p.yzx), step(p.x, rgb.r));
+
+        half d = q.x - min(q.w, q.y);
+        half e = 1.0e-10;
+        return half3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+    }
+
     half3 AdjustContrast(half3 color, half contrast)
     {
         color = saturate(lerp(half3(0.5, 0.5, 0.5), color, contrast));

@@ -57,6 +57,7 @@
         #endif
         
         #if defined(DETAIL_NORMALS_SET)
+        
         half2 detailUV = 0;
         switch (_DetailNormalsUVSet) {
             case 0: detailUV = d.uv0; break;
@@ -84,13 +85,20 @@
         
         o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), detailMask);
 
+        #endif
+
+        #if defined(NORMALS_SET) || defined(DETAIL_NORMALS_SET)
+
         half3 properNormal = normalize(mul(o.Normal, d.TBNMatrix));
         d.worldSpaceTangent.xyz = cross(d.bitangent.xyz, properNormal);
         d.bitangent.xyz = cross(properNormal, d.worldSpaceTangent.xyz);
         d.TBNMatrix = float3x3(normalize(d.worldSpaceTangent.xyz), d.bitangent, d.worldNormal);
         GLOBAL_pixelNormal = properNormal;
+
         #else
+
         GLOBAL_pixelNormal = normalize(mul(o.Normal, d.TBNMatrix));
+
         #endif
     }
 }

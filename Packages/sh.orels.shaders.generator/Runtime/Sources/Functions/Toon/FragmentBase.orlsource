@@ -209,15 +209,15 @@
             float4 emission = 0;
             emission = half4(o.Emission, 1);
 
+            half intensity = length(emission.rgb);
+            half3 emissionHSV = RGB2HSV(normalize(emission.rgb));
+            emissionHSV.x = fmod(emissionHSV.x + _Hue, 1);
+            emissionHSV.y = saturate(emissionHSV.y + _Saturation);
+            emissionHSV.z = saturate(emissionHSV.z + _Value);
+            emission.rgb = HSV2RGB(emissionHSV) * intensity;
+
             float4 scaledEmission = emission * saturate(smoothstep(1 - o.EmissionLightThreshold, 1 + o.EmissionLightThreshold, 1 - lightAvg));
             float4 em = lerp(scaledEmission, emission, o.EmissionScaleWithLight);
-
-            // em.rgb = rgb2hsv(em.rgb);
-            // em.x += fmod(_Hue, 360);
-            // em.y = saturate(em.y * _Saturation);
-            // em.z *= _Value;
-            // em.rgb = hsv2rgb(em.rgb);
-
             return em;
         #else
             return 0;
@@ -294,9 +294,10 @@
         bool lightEnv = any(lightDir.xyz);
         // if there is no realtime light - we create it from indirect diffuse
         if (!lightEnv) {
-            lightColor = indirectDiffuse;
+            lightColor = indirectDiffuse * 0.6;
             indirectDiffuse = indirectDiffuse * 0.4;
 
+            // Lightprobe-based light direction
             lightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
             lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
             lightNoL = dot(o.Normal, lightDir);

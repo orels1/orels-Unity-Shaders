@@ -55,13 +55,9 @@
 {
     void ToonReflectionFragment(MeshData d, inout SurfaceData o) {
         #if defined(REFLECTION_MODE_OFF)
-        
-        o.EnableReflections = 0;
         return;
-        
         #endif
 
-        o.EnableReflections = 1;
         o.ReflectionBlendMode = _ReflectionBlendMode;
 
         half mask = SAMPLE_TEXTURE2D(_ReflectivityMask, sampler_MainTex, GLOBAL_uv).r;

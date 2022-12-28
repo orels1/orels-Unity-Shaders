@@ -3,29 +3,39 @@
     struct SurfaceData
     {
         half3 Albedo;
+        half Alpha;
+        half Hue;
+        half Saturation;
+        half Value;
+        
+        half Metallic;
+        half Smoothness;
+        half Anisotropy;
+        half3 Normal;
+        
+        half Occlusion;
+        int OcclusionMode;
+
         half3 Emission;
         int EmissionScaleWithLight;
         half EmissionLightThreshold;
-        half Metallic;
-        half Smoothness;
-        half Occlusion;
-        int OcclusionMode;
-        half3 Normal;
-        half Alpha;
-        half Anisotropy;
+        
         half ShadowSharpness;
+        
         half4 RimLight;
         half RimAttenuation;
         half4 RimShadow;
+        
         half SpecularIntensity;
         half SpecularArea;
         half SpecularAlbedoTint;
         half SpecularAnisotropy;
         half SpecularSharpness;
+        
         half Reflectivity;
         half3 BakedReflection;
         int ReflectionBlendMode;
-        int EnableReflections;
+        
         half3 OutlineColor;
         int OutlineLightingMode;
     };

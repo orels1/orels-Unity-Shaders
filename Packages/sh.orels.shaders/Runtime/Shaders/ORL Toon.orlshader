@@ -8,6 +8,9 @@
     _Color("Main Color", Color) = (1, 1, 1, 1)
     [ToggleUI]_TintByVertexColor("Tint By Vertex Color", Int) = 0
     _MainTex("Albedo", 2D) = "white" {}
+    _Hue("Hue", Range(0,1)) = 0
+    _Saturation("Saturation", Range(-1,1)) = 0
+    _Value("Value", Range(-1,1)) = 0
     _Ramp("Ramp >", 2D) = "white" {}
     _ShadowSharpness("Shadow Sharpness", Range(0,1)) = 0.5
 }
@@ -32,6 +35,9 @@
     float4 _MainTex_ST;
     int _TintByVertexColor;
     half4 _Color;
+    half _Hue;
+    half _Saturation;
+    half _Value;
     half _ShadowSharpness;
 
     half2 GLOBAL_uv;
@@ -51,6 +57,17 @@
         GLOBAL_uv = uv;
         half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
         albedo *= _Color;
+        half3 albedoHSV = RGB2HSV(albedo.rgb);
+
+        albedoHSV.x = fmod(albedoHSV.x + _Hue, 1);
+        albedoHSV.y = saturate(albedoHSV.y + _Saturation);
+        albedoHSV.z = saturate(albedoHSV.z + _Value);
+        albedo.rgb = HSV2RGB(albedoHSV);
+
+        o.Hue = _Hue;
+        o.Saturation = _Saturation;
+        o.Value = _Value;
+        
         if (_TintByVertexColor) {
             albedo.rgb *= d.vertexColor.rgb;
         }
