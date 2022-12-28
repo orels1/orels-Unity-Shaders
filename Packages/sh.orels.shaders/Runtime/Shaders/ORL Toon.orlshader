@@ -8,6 +8,7 @@
     _Color("Main Color", Color) = (1, 1, 1, 1)
     [ToggleUI]_TintByVertexColor("Tint By Vertex Color", Int) = 0
     _MainTex("Albedo", 2D) = "white" {}
+    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_MainTexUVSet("UV Set", Int) = 0
     _Hue("Hue", Range(0,1)) = 0
     _Saturation("Saturation", Range(-1,1)) = 0
     _Value("Value", Range(-1,1)) = 0
@@ -33,6 +34,7 @@
 %Variables()
 {
     float4 _MainTex_ST;
+    int _MainTexUVSet;
     int _TintByVertexColor;
     half4 _Color;
     half _Hue;
@@ -53,7 +55,14 @@
 {
     void ToonFragment(MeshData d, inout SurfaceData o)
     {
-        half2 uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+        half2 uv = 0;
+        switch (_MainTexUVSet) {
+            case 0: uv = d.uv0; break;
+            case 1: uv = d.uv1; break;
+            case 2: uv = d.uv2; break;
+            case 3: uv = d.uv3; break;
+        }
+        uv = uv * _MainTex_ST.xy + _MainTex_ST.zw;
         GLOBAL_uv = uv;
         half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
         albedo *= _Color;
