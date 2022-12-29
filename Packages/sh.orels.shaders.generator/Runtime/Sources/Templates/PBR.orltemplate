@@ -103,13 +103,8 @@
                     UNITY_EXTRACT_FOG(i);
                 #endif
 
-                SurfaceData o = (SurfaceData) 0;
+                SurfaceData o = CreateSurfaceData();
                 MeshData d = CreateMeshData(i);
-                o.Albedo = 1;
-                o.Occlusion = 1;
-                o.Normal = half3(0, 0, 1);
-                o.Smoothness = 0.5;
-                o.Alpha = 1;
                 half4 FinalColor = half4(o.Albedo, o.Alpha);
 
                 // ForwardBase Fragment Chain
@@ -206,13 +201,8 @@
                     UNITY_EXTRACT_FOG(i);
                 #endif
 
-                SurfaceData o = (SurfaceData) 0;
+                SurfaceData o = CreateSurfaceData();
                 MeshData d = CreateMeshData(i);
-                o.Albedo = 1;
-                o.Occlusion = 1;
-                o.Normal = half3(0, 0, 1);
-                o.Smoothness = 0.5;
-                o.Alpha = 1;
                 half4 FinalColor = half4(o.Albedo, o.Alpha);
 
                 // ForwardAdd Fragment Chain
@@ -305,13 +295,8 @@
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
-                SurfaceData o = (SurfaceData) 0;
+                SurfaceData o = CreateSurfaceData();
                 MeshData d = CreateMeshData(i);
-                o.Albedo = 1;
-                o.Occlusion = 1;
-                o.Normal = half3(0, 0, 1);
-                o.Smoothness = 0.5;
-                o.Alpha = 1;
                 // Meta pass only takes Albedo, Alpha and Emission
                 half4 FinalColor = half4(o.Albedo, o.Alpha);
 
@@ -413,13 +398,8 @@
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
                 #if defined(NEED_FRAGMENT_IN_SHADOW)
-                SurfaceData o = (SurfaceData) 0;
+                SurfaceData o = CreateSurfaceData();
                 MeshData d = CreateMeshData(i);
-                o.Albedo = 1;
-                o.Occlusion = 1;
-                o.Normal = half3(0, 0, 1);
-                o.Smoothness = 0.5;
-                o.Alpha = 1;
                 half4 FinalColor = half4(o.Albedo, o.Alpha);
 
                 // ShadowCaster Fragment Chain

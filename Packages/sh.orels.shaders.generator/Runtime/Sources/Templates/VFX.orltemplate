@@ -102,10 +102,8 @@
                     #endif
                 #endif
 
-                SurfaceData o = (SurfaceData) 0;
+                SurfaceData o = CreateSurfaceData();
                 MeshData d = CreateMeshData(i);
-                o.Albedo = 0.5;
-                o.Alpha = 1;
                 half4 FinalColor = half4(o.Albedo, o.Alpha);
 
                 // ForwardBase Fragment Chain

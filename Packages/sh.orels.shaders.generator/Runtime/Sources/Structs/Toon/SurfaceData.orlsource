@@ -39,4 +39,17 @@
         half3 OutlineColor;
         int OutlineLightingMode;
     };
+
+    SurfaceData CreateSurfaceData()
+    {
+        SurfaceData o = (SurfaceData) 0;
+        o.Albedo = 0.5;
+        o.Occlusion = 1;
+        o.Normal = half3(0, 0, 1);
+        o.Smoothness = 0.5;
+        o.Alpha = 1;
+        o.RimShadow = 1;
+        o.RimAttenuation = 1;
+        return o;
+    }
 }
