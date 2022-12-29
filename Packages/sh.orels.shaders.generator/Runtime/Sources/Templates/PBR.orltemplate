@@ -7,11 +7,11 @@
     SubShader
     {
         Tags { %ShaderTags }
-        %ShaderModifiers
-
         ZTest[_ZTest]
         ZWrite[_ZWrite]
         Cull[_CullMode]
+        
+        %ShaderModifiers
 
         // Global Include Start
         CGINCLUDE
@@ -105,7 +105,7 @@
 
                 SurfaceData o = CreateSurfaceData();
                 MeshData d = CreateMeshData(i);
-                half4 FinalColor = half4(o.Albedo, o.Alpha);
+                half4 FinalColor = 1;
 
                 // ForwardBase Fragment Chain
                 %FragmentFunctions
@@ -203,7 +203,7 @@
 
                 SurfaceData o = CreateSurfaceData();
                 MeshData d = CreateMeshData(i);
-                half4 FinalColor = half4(o.Albedo, o.Alpha);
+                half4 FinalColor = 1;
 
                 // ForwardAdd Fragment Chain
                 %FragmentFunctions
@@ -298,7 +298,7 @@
                 SurfaceData o = CreateSurfaceData();
                 MeshData d = CreateMeshData(i);
                 // Meta pass only takes Albedo, Alpha and Emission
-                half4 FinalColor = half4(o.Albedo, o.Alpha);
+                half4 FinalColor = 1;
 
                 // Meta Fragment Chain
                 %FragmentFunctions
@@ -400,7 +400,7 @@
                 #if defined(NEED_FRAGMENT_IN_SHADOW)
                 SurfaceData o = CreateSurfaceData();
                 MeshData d = CreateMeshData(i);
-                half4 FinalColor = half4(o.Albedo, o.Alpha);
+                half4 FinalColor = 1;
 
                 // ShadowCaster Fragment Chain
                 %FragmentFunctions

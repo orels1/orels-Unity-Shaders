@@ -16,14 +16,5 @@
 %ShaderModifiers()
 {
     Blend SrcAlpha OneMinusSrcAlpha
-}
-
-%PassModifiers()
-{
-    ZWrite Off
-}
-
-%ShadowPassModifiers()
-{
     ZWrite Off
 }

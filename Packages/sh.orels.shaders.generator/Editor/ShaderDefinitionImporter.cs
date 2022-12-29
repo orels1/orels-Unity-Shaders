@@ -208,9 +208,9 @@ namespace ORL.ShaderGenerator
             var lightingModelIndex = blocks.FindIndex(b => b.Name == "%LightingModel");
             // If we don't have a lighting model, use the default (PBR)
             var lightingModelName = lightingModelIndex == -1 ? _defaultLightignModel : blocks[lightingModelIndex].Params[0].Replace("\"", "");
-            var lightingModelPath = Utils.ResolveORLAsset(lightingModelName);
+            var lightingModelPath = Utils.ResolveORLAsset(lightingModelName, lightingModelName.StartsWith("@/"), workingFolder);
             var lmParser = new Parser();
-            var lightingModel = lmParser.Parse(Utils.GetORLSource(lightingModelName));
+            var lightingModel = lmParser.Parse(Utils.GetAssetSource(lightingModelName, workingFolder));
             if (!string.IsNullOrEmpty(lightingModelPath))
             {
                 ctx.DependsOnSourceAsset(lightingModelPath);
@@ -229,14 +229,15 @@ namespace ORL.ShaderGenerator
             
                 var blockParser = new Parser();
                 var deepDeps = new List<string>();
+                var lmWorkingFolder = lightingModelPath.Substring(0, lightingModelPath.LastIndexOf("/", StringComparison.InvariantCulture));
                 // We recursively collect everything that the lighting model depends on into a flattened list
-                Utils.RecursivelyCollectDependencies(new [] {stripped}.ToList(), ref deepDeps, workingFolder);
-                deepDeps.ForEach(dep => ctx.DependsOnSourceAsset(Utils.ResolveORLAsset(dep)));
+                Utils.RecursivelyCollectDependencies(new [] {stripped}.ToList(), ref deepDeps, lmWorkingFolder);
+                deepDeps.ForEach(dep => ctx.DependsOnSourceAsset(Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), lmWorkingFolder)));
                 var deepBlocks = new List<ShaderBlock>();
                 foreach (var deepDep in deepDeps)
                 {
                     // since we already have the deps flattened, we can safely strip all the dependencies here
-                    deepBlocks.AddRange(blockParser.Parse(Utils.GetORLSource(deepDep)).Where(b => b.Name != "%Includes"));
+                    deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, lmWorkingFolder)).Where(b => b.Name != "%Includes"));
                 }
                 updatedBlocks.AddRange(deepBlocks);
             }
@@ -622,7 +623,7 @@ namespace ORL.ShaderGenerator
                 Debug.LogWarning($"Shader source for {assetPath} is empty! Skipping generation");
                 return;
             }
-            File.WriteAllText(Application.dataPath.Replace("\\", "/").Replace("Assets", "") + outputPath, textSource);
+            File.WriteAllText(outputPath, textSource);
             AssetDatabase.Refresh();
             var generatedShaderImport = AssetImporter.GetAtPath(importer.assetPath.Replace(".orlshader", ".shader")) as ShaderImporter;
             if (importer.nonModifiableTextures.Count > 0)
