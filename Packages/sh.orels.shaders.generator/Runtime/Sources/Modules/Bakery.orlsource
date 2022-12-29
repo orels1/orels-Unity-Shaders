@@ -56,7 +56,7 @@
     TEXTURE2D(_RNM0);
     TEXTURE2D(_RNM1);
     TEXTURE2D(_RNM2);
-    TEXTURE2D(sampler_RNM0);
+    SAMPLER(sampler_RNM0);
         #endif
     #endif
 
