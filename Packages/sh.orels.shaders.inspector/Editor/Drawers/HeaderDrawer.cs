@@ -101,7 +101,7 @@ namespace ORL.Drawers
             }
             else
             {
-                EditorGUI.indentLevel = 1;
+                EditorGUI.indentLevel = Mathf.Min(EditorGUI.indentLevel, 1);
                 var rect = EditorGUILayout.GetControlRect();
                 rect.xMin -= 3f * EditorGUIUtility.pixelsPerPoint;
                 EditorGUI.LabelField(rect, filteredName, EditorStyles.boldLabel);
