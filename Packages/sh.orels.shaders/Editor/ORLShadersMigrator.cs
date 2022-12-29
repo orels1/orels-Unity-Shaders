@@ -162,33 +162,41 @@ namespace ORL.Shaders
             EditorUtility.DisplayProgressBar("Migrating Materials", "Please wait...", 0);
             var group = Undo.GetCurrentGroup();
             var i = 0f;
-            foreach (var path in _affectedMaterials)
-            {
-                var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-                var matYamlSource = File.ReadAllLines(Application.dataPath.Replace("\\", "/").Replace("Assets", "") + path);
-                var shaderLines = matYamlSource.Where(line => line.Trim().StartsWith("m_Shader")).ToList();
-                if (shaderLines.Count == 0)
+            var dfgTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/sh.orels.shaders.generator/Runtime/Assets/dfg-multiscatter.exr");
+            try {
+                foreach (var path in _affectedMaterials)
                 {
-                    EditorUtility.DisplayProgressBar("Migrating Materials", $"Skipping {path}..", i / _affectedMaterials.Count);
+                    var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+                    var matYamlSource = File.ReadAllLines(Application.dataPath.Replace("\\", "/").Replace("Assets", "") + path);
+                    var shaderLines = matYamlSource.Where(line => line.Trim().StartsWith("m_Shader")).ToList();
+                    if (shaderLines.Count == 0)
+                    {
+                        EditorUtility.DisplayProgressBar("Migrating Materials", $"Skipping {path}..", i / _affectedMaterials.Count);
+                        i++;
+                        continue;
+                    }
+                    EditorUtility.DisplayProgressBar("Migrating Materials", $"Migrating {path}...", i / _affectedMaterials.Count);
+                    var guidLine = shaderLines.First();
+                    var shaderGuid = guidLine.Substring(guidLine.IndexOf("guid: ") + 6);
+                    shaderGuid = shaderGuid.Substring(0, shaderGuid.IndexOf(","));
+                    var shaderPath = AssetDatabase.GUIDToAssetPath(_migrationMap[shaderGuid]);
+                    var shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderPath);
+                    if (!_dryRun)
+                    {
+                        Undo.RecordObject(mat, "Migrated Material");
+                        mat.shader = shader;
+                        if (mat.GetTexturePropertyNames().Contains("_DFG") && dfgTex != null) {
+                            mat.SetTexture("_DFG", dfgTex);
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log("DRY RUN. Would have migrated " + path + " from " + shaderGuid + " to " + shader.name);
+                    }
                     i++;
-                    continue;
                 }
-                EditorUtility.DisplayProgressBar("Migrating Materials", $"Migrating {path}...", i / _affectedMaterials.Count);
-                var guidLine = shaderLines.First();
-                var shaderGuid = guidLine.Substring(guidLine.IndexOf("guid: ") + 6);
-                shaderGuid = shaderGuid.Substring(0, shaderGuid.IndexOf(","));
-                var shaderPath = AssetDatabase.GUIDToAssetPath(_migrationMap[shaderGuid]);
-                var shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderPath);
-                if (!_dryRun)
-                {
-                    Undo.RecordObject(mat, "Migrated Material");
-                    mat.shader = shader;
-                }
-                else
-                {
-                    Debug.Log("DRY RUN. Would have migrated " + path + " from " + shaderGuid + " to " + shader.name);
-                }
-                i++;
+            } catch (Exception e) {
+                Debug.LogError(e);
             }
             Undo.CollapseUndoOperations(group);
             EditorUtility.ClearProgressBar();
