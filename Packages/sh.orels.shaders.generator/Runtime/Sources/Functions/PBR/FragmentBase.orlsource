@@ -10,6 +10,7 @@
     _GSAAVariance("GSAA Variance %ShowIf(GSAA)", Range(0, 1)) = 0.05
     _GSAAThreshold("GSAA Threshold %ShowIf(GSAA)", Range(0, 1)) = 0.1
     [Toggle(NONLINEAR_SH)]_NonlinearSH("Non-Linear Lightprobe SH", Int) = 0
+    [Toggle(FORCE_BOX_PROJECTION)]_ForceBoxProjection("Force Box Projection", Int) = 0
     UI_LightmappingHeader("# Lightmapping", Int) = 0
     UI_LightmappingDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#lightmapping)", Int) = 0
     _SpecOcclusion("Specular Occlusion", Range(0, 1)) = 1
@@ -336,7 +337,7 @@
         half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
         indirectSpecular = probe0;
 
-        #if defined(UNITY_SPECCUBE_BLENDING)
+        #if defined(UNITY_SPECCUBE_BLENDING) || defined(FORCE_BOX_PROJECTION)
         UNITY_BRANCH
         if (unity_SpecCube0_BoxMin.w < 0.99999)
         {
