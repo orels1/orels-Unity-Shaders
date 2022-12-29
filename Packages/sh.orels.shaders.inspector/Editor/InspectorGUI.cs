@@ -165,7 +165,6 @@ namespace ORL.ShaderInspector
         
         private Dictionary<string, object> RestoreState(Material target)
         {
-            
             var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(target));
             var userData = new SerializedState();
             if (!string.IsNullOrWhiteSpace(importer.userData))
@@ -269,8 +268,27 @@ namespace ORL.ShaderInspector
             importer.SaveAndReimport();
         }
 
+        private Shader _initialShader;
+        private int _oldPropCount;
+
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
+            var material = materialEditor.target as Material;
+            if (_initialShader == null)
+            {
+                _initialShader = material.shader;
+            }
+            else if (_initialShader != material.shader)
+            {
+                _initialized = false;
+                _initialShader = material.shader;
+            }
+            if (_oldPropCount == 0) {
+                _oldPropCount = properties.Length;
+            } else  if (_oldPropCount != properties.Length) {
+                _initialized = false;
+                _oldPropCount = properties.Length;
+            }
             if (!_initialized)
             {
                 Initialize(materialEditor, properties);
