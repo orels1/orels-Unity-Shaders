@@ -130,7 +130,7 @@ namespace ORL.Drawers
                 }
             }
 
-            if (hasSavedGradient && property.textureValue == null)
+            if (property.textureValue == null)
             {
                 EditorGUILayout.Space(3);
                 EditorGUILayout.LabelField("Dont forget to save your gradients", Styles.NoteTextStyle);

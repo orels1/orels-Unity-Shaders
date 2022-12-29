@@ -12,7 +12,7 @@ namespace ORL.Drawers
     {
         public string FunctionName => "RemapSlider";
 
-        // Matches "RemapSlider(0, 1, 0, 1)"
+        // Matches "RemapSlider(0, 1)"
         private Regex _matcher = new Regex(@"%RemapSlider\(([\d]+),?\s?([\d]+)+\)");
         
         public string[] PersistentKeys => Array.Empty<string>();
