@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ORL.ShaderGenerator
 {
-    public class Utils
+    public static class Utils
     {
         public static TextAsset Locator => Resources.Load<TextAsset>("ORLLocator");
         
