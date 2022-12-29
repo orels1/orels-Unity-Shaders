@@ -2,9 +2,9 @@ name: Build Release
 
 on: 
   workflow_dispatch:
-  push:
-    branches: main
-    paths: Packages/com.vrchat.demo-template/**
+  # push:
+  #   branches: main
+  #   paths: Packages/com.vrchat.demo-template/**
 
 env:
   packageName: "com.vrchat.demo-template"
