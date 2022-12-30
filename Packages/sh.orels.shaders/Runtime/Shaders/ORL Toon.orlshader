@@ -5,6 +5,7 @@
 %Properties()
 {
     UI_MainHeader("# Main Settings", Int) = 1
+    UI_ToonDocs("[This shader has documentation](https://shaders.orels.sh/docs/toon)", Int) = 0
     _Color("Main Color", Color) = (1, 1, 1, 1)
     [ToggleUI]_TintByVertexColor("Tint By Vertex Color", Int) = 0
     _MainTex("Albedo", 2D) = "white" {}
