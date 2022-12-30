@@ -33,6 +33,11 @@ Shader %ShaderName
         Pass
         {
             Tags { "LightMode" = "ForwardBase" %PassTags }
+            Stencil {
+                Ref 69
+                Comp Always
+                Pass Replace
+            }
             %PassModifiers
 
             // ForwardBase Pass Start
@@ -425,8 +430,13 @@ Shader %ShaderName
         {
             Name "Outline"
             Tags { "LightMode" = "ForwardBase" %PassTags }
-            %PassModifiers
             Cull Front
+            Stencil {
+                Ref 69
+                Comp NotEqual
+                Pass Zero
+            }
+            %OutlinePassModifiers
 
             // Outline Pass Start
             CGPROGRAM
