@@ -16,7 +16,7 @@ A property-based shader inspector system for Unity shaders.
 
 Check out the main [ORL Shaders](https://github.com/orels1/orels-Unity-Shaders/tree/main/Packages/sh.orels.shaders) package to see it in action.
 
-[Full documentation is available here](https://shaders.orels.sh/docs/inspector)
+[Full documentation is available here](https://shaders.orels.sh/docs/inspector/overview)
 
 ## Installation
 

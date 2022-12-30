@@ -1,0 +1,127 @@
+%ShaderName("My Awesome Shader")
+%LightingModel("@/LightingModels/Toon")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_MainHeader("# My Awesome Settings", Int) = 0
+    _Level("Level", Range(0,1)) = 0
+    _Mask("Mask", 2D) = "black" {}
+    _Brightness("Brightness", Range(0,2)) = 1
+    _Cutoff("Cutoff", Range(0, 1)) = 0.5
+}
+
+%Includes()
+{
+  "@/Shaders/ORL Standard",
+  "self"
+}
+
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local FANCY_FEATURE
+}
+
+%ShaderDefines()
+{
+    #define MY_THING
+}
+
+%ShaderTags()
+{
+    "Queue" = "AlphaTest" "RenderType"="TransparentCutout"
+}
+
+%PassTags()
+{
+    "MyTag"="MyValue"
+}
+
+%PassModifiers()
+{
+    Cull Off
+}
+
+%AddPassModifiers()
+{
+    Blend One One
+}
+
+%MetaPassModifiers()
+{
+    Cull Off
+}
+
+%ShadowPassModifiers()
+{
+  Cull Off
+}
+
+%PrePasses()
+{
+    GrabPass { _GrabTexture }
+}
+
+%Variables()
+{
+    float _Level;
+    float4 _Mask_ST;
+    float _Brightness;
+}
+
+%Textures()
+{
+    TEXTURE2D(_Mask);
+    SAMPLER(sampler_Mask);
+}
+
+%Fragment("MyFragment")
+{
+    void MyFragment(MeshData d, inout SurfaceData o)
+    {
+        half2 uv = d.uv0.xy * _Mask_ST.xy + _Mask_ST.zw;
+        half mask = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, uv).r;
+
+        o.Albedo = mask * _Level;
+    }
+}
+
+%Vertex("MyVertex")
+{
+    void MyVertex(inout VertexData v)
+    {
+        v.vertex.xyz += v.normal * _Level * 0.1;
+    }
+}
+
+%Color("MyColor")
+{
+    void MyColor(inout half4 FInalColor)
+    {
+       FinalColor.rgb *= _Brightness;
+    }
+}
+
+%Shadow("MyShadow")
+{
+    void MyShadow(MeshData d)
+    {
+        half2 uv = d.uv0.xy * _Mask_ST.xy + _Mask_ST.zw;
+        half mainAlpha = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, uv).a;
+        if (mainAlpha < _Cutoff)
+        {
+            clip(-1);
+        }
+    }
+}
+
+%PostPasses()
+{
+    Pass
+    {
+        CGPROGRAM
+        // shader code
+        ENDCG
+    }
+}

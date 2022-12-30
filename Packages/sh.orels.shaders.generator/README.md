@@ -16,7 +16,7 @@ This generation framework allows you to do the following
 
 Check out the main [ORL Shaders](https://github.com/orels1/orels-Unity-Shaders/tree/main/Packages/sh.orels.shaders) package to see it in action.
 
-[Full documentation is available here](https://shaders.orels.sh/docs/development/development-basics)
+[Full documentation is available here](https://shaders.orels.sh/docs/generator/development-basics)
 
 ## Installation
 
