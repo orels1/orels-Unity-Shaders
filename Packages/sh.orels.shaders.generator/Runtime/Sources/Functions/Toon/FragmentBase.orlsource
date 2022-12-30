@@ -265,7 +265,7 @@
         half lightLoH = dot(lightDir, lightHalfVector);
         
         half NoV = abs(dot(o.Normal, d.worldSpaceViewDir)) + 1e-5;
-        half NoH = dot(o.Normal, lightHalfVector);
+        half NoH = saturate(dot(o.Normal, lightHalfVector));
         half3 stereoViewDir = calcStereoViewDir(d.worldSpacePosition);
         half NoSVDN = abs(dot(stereoViewDir, o.Normal));
 
@@ -298,11 +298,11 @@
             indirectDiffuse = indirectDiffuse * 0.4;
 
             // Lightprobe-based light direction
-            lightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+            lightDir = Unity_SafeNormalize(unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz);
             lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
             lightNoL = dot(o.Normal, lightDir);
             lightLoH = dot(lightDir, lightHalfVector);
-            NoH = dot(o.Normal, lightHalfVector);
+            NoH = saturate(dot(o.Normal, lightHalfVector));
         }
 
         half lightAvg = (dot(indirectDiffuse.rgb, grayscaleVec) + dot(lightColor.rgb, grayscaleVec)) / 2;
