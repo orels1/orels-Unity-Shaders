@@ -106,21 +106,21 @@
         half3 spec = half3(0,0,0);
 
         #if defined(REFLECTION_MODE_OFF)
-            return spec;
+        return spec;
         #endif
 
-        UNITY_BRANCH
-        if(any(o.BakedReflection.rgb)) {
+        #if defined(REFLECTION_MODE_MATCAP) && defined(UNITY_PASS_FORWARDBASE)
+        {
             spec = o.BakedReflection;
             if(o.ReflectionBlendMode != 1)
             {
                 spec *= (indirectLight + (_LightColor0 * lightAttenuation) * 0.5);
             }
         }
-        else
+        #endif
+        
+        #if defined(REFLECTION_MODE_PBR) && defined(UNITY_PASS_FORWARDBASE)
         {
-            #if defined(UNITY_PASS_FORWARDBASE)
-
             half3 reflectionUV1 = getReflectionUV(reflDir, d.worldSpacePosition, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
             half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, roughness * UNITY_SPECCUBE_LOD_STEPS);
             half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
@@ -147,19 +147,16 @@
                 indirectSpecular *= indirectLight;
             }
             spec = indirectSpecular * fresnel;
-
-            #endif
         }
-        // else if(_ReflectionMode == 1) //Baked Cubemap
-        // {
-        //     half3 indirectSpecular = SAMPLE_TEXTURECUBE_LOD(_BakedCubemap, sampler_BakedCubemap, reflDir, roughness * UNITY_SPECCUBE_LOD_STEPS);
-        //     spec = indirectSpecular * fresnel;
+        #endif
 
-        //     if(_ReflectionBlendMode != 1)
-        //     {
-        //         spec *= (indirectLight + (_LightColor0 * lightAttenuation) * 0.5);
-        //     }
-        // }
+        #if defined(REFLECTION_MODE_BAKED_CUBEMAP) && defined(UNITY_PASS_FORWARDBASE)
+        {
+            half3 indirectSpecular = SAMPLE_TEXTURECUBE_LOD(_BakedCubemap, sampler_BakedCubemap, reflDir, roughness * UNITY_SPECCUBE_LOD_STEPS);
+            indirectSpecular *= indirectLight;
+            spec = indirectSpecular * fresnel;
+        }
+        #endif
         return spec;
     }
 
