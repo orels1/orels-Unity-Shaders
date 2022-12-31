@@ -2,7 +2,7 @@
 {
     UI_SpecularHeader("# Specular", Int) = 0
     [Toggle(SPECULAR_ON)]_SpecularOn("Enable Specular", Int) = 0
-    _SpecularMap("Specular Map > %ShowIf(SPECULAR_ON)", 2D) = "white" {}
+    _SpecularMap("Specular Map %ShowIf(SPECULAR_ON)", 2D) = "white" {}
     UI_SpecMapdNote("> Red - Intensity, Green - Albedo Tint, Blue - Smoothness %ShowIf(SPECULAR_ON)", Int) = 0
     [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_SpecularMapUVSet("UV Set %ShowIf(SPECULAR_ON)", Int) = 0
     [Space(10)]_SpecularIntensity("Intensity %ShowIf(SPECULAR_ON)", Float) = 0
@@ -20,6 +20,7 @@
 %Variables()
 {
     int _SpecularMapUVSet;
+    half4 _SpecularMap_ST;
     half _SpecularIntensity;
     half _SpecularRoughness;
     half _SpecularSharpness;
@@ -43,6 +44,7 @@
             case 2: maskUV = d.uv2; break;
             case 3: maskUV = d.uv3; break;
         }
+        maskUV = maskUV * _SpecularMap_ST.xy + _SpecularMap_ST.zw;
 
         half3 specMap = SAMPLE_TEXTURE2D(_SpecularMap, sampler_MainTex, maskUV);
         o.SpecularIntensity = max(0, _SpecularIntensity * specMap.r);

@@ -35,6 +35,8 @@
         o.Emission += emission;
         o.EmissionScaleWithLight = _EmissionScaleWithLight;
         o.EmissionLightThreshold = _EmissionScaleWithLightSensitivity;
+        #else
+        o.EmissionScaleWithLight = 1;
         #endif
     }
 }

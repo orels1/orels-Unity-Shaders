@@ -91,7 +91,7 @@
             #elif defined(AL_MODE_UV_BASED)
 
             int2 aluv;
-            aluv = int2(GLOBAL_uv.x * _ALUVWidth, GLOBAL_uv.y);
+            aluv = int2(alUV.x * _ALUVWidth, alUV.y);
             half sampledAL = AudioLinkData(aluv).x;
             o.Emission +=  alMask.rgb * _ALEmissionColor.rgb * sampledAL;
 
