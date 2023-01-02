@@ -89,7 +89,7 @@ namespace ORL.Drawers
                 uiState[uiKey + "_alpha_invert"] = alphaInvert;
 
                 var isLinear = (bool) uiState[uiKey + "_linear"];
-                isLinear = EditorGUILayout.Toggle("Linear Texture", isLinear);
+                isLinear = EditorGUILayout.Toggle(new GUIContent("Linear Texture", "Reads source textures in linear mode, and saves the final texture as linear"), isLinear);
                 uiState[uiKey + "_linear"] = isLinear;
                 
                 var size = Array.IndexOf(_sizeOptions, (int) uiState[uiKey + "_size"]);
@@ -146,20 +146,29 @@ namespace ORL.Drawers
                 var dropdownRect = rowRect;
                 dropdownRect.xMin += 70;
                 dropdownRect.xMax = dropdownRect.xMin + 30;
-                currChannel = EditorGUI.Popup(dropdownRect, currChannel, new []{ "R", "G", "B", "A" });
+                currChannel = EditorGUI.Popup(dropdownRect, currChannel, new []{
+                    new GUIContent("R", $"Fills the {label} channel of the packed texture with values from the Red channel of the source texture"),
+                    new GUIContent("G", $"Fills the {label} channel of the packed texture with values from the Green channel of the source texture"),
+                    new GUIContent("B", $"Fills the {label} channel of the packed texture with values from the Blue channel of the source texture"),
+                    new GUIContent("A", $"Fills the {label} channel of the packed texture with values from the Alpha channel of the source texture")
+                });
                 var sliderRect = rowRect;
                 sliderRect.xMin += 110f;
-                sliderRect.xMax -= 20f;
+                sliderRect.xMax -= 30f;
                 var oldWidth = EditorGUIUtility.fieldWidth;
                 EditorGUIUtility.fieldWidth = 40;
+                var oldLabelField = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = 15;
                 using (new EditorGUI.DisabledScope(currTex != null))
                 {
-                    currValue = EditorGUI.Slider(sliderRect, currValue, 0, 1);
+                    currValue = EditorGUI.Slider(sliderRect, new GUIContent("V","Fill Value. This channel will be filled uniformly with this value"), currValue, 0, 1);
                 }
                 EditorGUIUtility.fieldWidth = oldWidth;
                 var invertRect = rowRect;
-                invertRect.xMin = invertRect.xMax - 15f;
-                currInvert = EditorGUI.Toggle(invertRect, currInvert);
+                invertRect.xMin = invertRect.xMax - 25f;
+                EditorGUIUtility.labelWidth = 7;
+                currInvert = EditorGUI.Toggle(invertRect, new GUIContent("I", "Invert Texture. Checking this box will inverted the selected channel values"), currInvert);
+                EditorGUIUtility.labelWidth = oldLabelField;
             }
         }
 
@@ -198,7 +207,7 @@ namespace ORL.Drawers
             UnityEngine.Object.DestroyImmediate(source);
             UnityEngine.Object.DestroyImmediate(buffer);
             UnityEngine.Object.DestroyImmediate(mat);
-            
+
             var final = target.EncodeToPNG();
             if (File.Exists(savePath))
             {
@@ -226,7 +235,7 @@ namespace ORL.Drawers
             Debug.Log($"saved Packed Texture to: {savePath}");
             return AssetDatabase.LoadAssetAtPath<Texture2D>(savePath);
         }
-        
+
         private static void SetPackerPropsForChannel(string channelName, ref Material mat, Texture2D tex, int channel, float fill, bool invert)
         {
             if (tex != null)
