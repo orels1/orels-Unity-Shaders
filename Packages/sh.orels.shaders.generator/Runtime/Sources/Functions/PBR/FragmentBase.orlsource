@@ -287,7 +287,7 @@
         half3 fresnel = F_Schlick(NoV, f0);
 
         // BAKERY DIRECT SPECULAR
-        #if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
+        #if defined(LIGHTMAP_ON) && defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
             #if defined(BAKERY_RNM)
             {
                 half3 viewDirTangent = -normalize(d.tangentSpaceViewDir);
