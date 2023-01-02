@@ -6,9 +6,9 @@
     _RimIntensity("Intensity %ShowIf(RIMLIGHT_ON)", Float) = 0
     _RimAlbedoTint("Albedo Tint %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 0
     _RimEnvironmentTint("Environment Tint %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 0
-    _RimAttenuation("Attenuation %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 1
+    [Tooltip(Controls how much the rimlight will be visible in shadowed areas. 0 always visible)]_RimAttenuation("Attenuation %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 1
     _RimRange("Range %ShowIf(RIMLIGHT_ON)", Range(0, 1)) = 0.7
-    _RimThreshold("Threshold %ShowIf(RIMLIGHT_ON)", Range(0, 1)) = 0.1
+    [Tooltip(Controls how much the rim light will be offset by the light direction. 1 Will only show up in the areas hit by the light, 0 will show up everywhere)]_RimThreshold("Threshold %ShowIf(RIMLIGHT_ON)", Range(0, 1)) = 0.1
     _RimSharpness("Sarpness %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 0.1
 }
 

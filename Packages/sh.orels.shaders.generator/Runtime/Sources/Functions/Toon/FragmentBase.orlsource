@@ -214,7 +214,7 @@
             emission.rgb = HSV2RGB(emissionHSV) * intensity;
 
             float4 scaledEmission = emission * saturate(smoothstep(1 - o.EmissionLightThreshold, 1 + o.EmissionLightThreshold, 1 - lightAvg));
-            float4 em = lerp(scaledEmission, emission, o.EmissionScaleWithLight);
+            float4 em = lerp(emission, scaledEmission, o.EmissionScaleWithLight);
             return em;
         #else
             return 0;

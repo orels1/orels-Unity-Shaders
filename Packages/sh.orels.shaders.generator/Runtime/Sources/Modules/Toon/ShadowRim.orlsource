@@ -4,7 +4,7 @@
     [Toggle(RIMSHADOW_ON)]_RimShadow("Enable Rim Shadow", Int) = 0
     _ShadowRimTint("Tint %ShowIf(RIMSHADOW_ON)", Color) = (1,1,1,1)
     _ShadowRimRange("Range %ShowIf(RIMSHADOW_ON)", Range(0,1)) = 0.7
-    _ShadowRimThreshold("Threshold %ShowIf(RIMSHADOW_ON)", Range(0,1)) = 0.1
+    [Tooltip(Controls how much the rim shadow will be offset by the light direction. 1 Will only show up in the areas in shadow, 0 will show up everywhere)]_ShadowRimThreshold("Threshold %ShowIf(RIMSHADOW_ON)", Range(0,1)) = 0.1
     _ShadowRimSharpness("Sarpness %ShowIf(RIMSHADOW_ON)", Range(0,1)) = 0.3
     _ShadowRimAlbedoTint("Albedo Tint %ShowIf(RIMSHADOW_ON)", Range(0,1)) = 0
 }

@@ -2,10 +2,11 @@
 {
     UI_OutlineHeader("# Outline", Int) = 0
     [Toggle(OUTLINE_ENABLED)]_Outline("Enable Outline", Int) = 0
+    _OutlineTex("Texture > %ShowIf(OUTLINE_ENABLED)", 2D) = "white" {}
     [HDR]_OutlineColor("Color %ShowIf(OUTLINE_ENABLED)", Color) = (0.5, 0.5, 0.5, 1)
     [Enum(Lit, 0, Emissive, 1)]_OutlineLightingMode("Lighting Mode %ShowIf(OUTLINE_ENABLED)", Int) = 0
     _OutlineAlbedoTint("Albedo Tint %ShowIf(OUTLINE_ENABLED)", Range(0, 1)) = 0
-    _OutlineMask("Width Mask %ShowIf(OUTLINE_ENABLED)", 2D) = "white" {}
+    [Tooltip(Uses the Red channel)]_OutlineMask("Width Mask > %ShowIf(OUTLINE_ENABLED)", 2D) = "white" {}
     _OutlineWidth("Width %ShowIf(OUTLINE_ENABLED)", Range(0, 5)) = 1
 }
 
@@ -24,7 +25,9 @@
 
 %Textures()
 {
+    TEXTURE2D(_OutlineTex);
     TEXTURE2D(_OutlineMask);
+    SAMPLER(sampler_OutlineTex);
     SAMPLER(sampler_OutlineMask);
 }
 
@@ -32,7 +35,6 @@
 {
     void ToonOutlineVertex(inout VertexData v) {
         #if defined(PASS_OUTLINE)
-
         half mask = SAMPLE_TEXTURE2D_LOD(_OutlineMask, sampler_OutlineMask, v.uv0, 0);
         half3 width = mask * _OutlineWidth * .01;
         width *= min(distance(mul(unity_ObjectToWorld, v.vertex), _WorldSpaceCameraPos) * 3, 1);
@@ -44,8 +46,9 @@
 
 %Fragment("ToonOutlineFragment")
 {
-    void ToonOutlineFragment(inout SurfaceData o) {
-        o.OutlineColor = lerp(_OutlineColor, _OutlineColor * o.Albedo, _OutlineAlbedoTint);
+    void ToonOutlineFragment(MeshData d, inout SurfaceData o) {
+        half3 outline = SAMPLE_TEXTURE2D(_OutlineTex, sampler_OutlineTex, d.uv0).rgb;
+        o.OutlineColor = lerp(_OutlineColor * outline, _OutlineColor * outline * o.Albedo, _OutlineAlbedoTint);
         o.OutlineLightingMode = _OutlineLightingMode;
     }
 }

@@ -2,10 +2,10 @@
 {
     UI_EmissionHeader("# Emission", Int) = 0
     [NoScaleOffset]_EmissionMap("Emission Map > %SetKeyword(_EmissionMap, _EMISSION)", 2D) = "white" {}
-    [HDR]_EmissionColor("Emission Color", Color) = (0,0,0,1)
-    _EmissionTintToDiffuse("Emission Tint To Diffuse", Range(0,1)) = 0
-    [Enum(Yes,0,No,1)]_EmissionScaleWithLight("Emission Scale w/ Light", Int) = 1
-    _EmissionScaleWithLightSensitivity("Scaling Sensitivity %ShowIf(_EmissionScaleWithLight == 0)", Range(0,1)) = 1
+    [HDR]_EmissionColor("Color", Color) = (0,0,0,1)
+    _EmissionTintToDiffuse("Tint To Diffuse", Range(0,1)) = 0
+    [Tooltip(Hides emission unless light is weaker than Scaling Sensitivity)][Enum(No,0,Yes,1)]_EmissionScaleWithLight("Scale w/ Light", Int) = 0
+    _EmissionScaleWithLightSensitivity("Scaling Sensitivity %ShowIf(_EmissionScaleWithLight == 1)", Range(0,1)) = 1
 }
 
 %ShaderFeatures()
@@ -35,8 +35,6 @@
         o.Emission += emission;
         o.EmissionScaleWithLight = _EmissionScaleWithLight;
         o.EmissionLightThreshold = _EmissionScaleWithLightSensitivity;
-        #else
-        o.EmissionScaleWithLight = 1;
         #endif
     }
 }

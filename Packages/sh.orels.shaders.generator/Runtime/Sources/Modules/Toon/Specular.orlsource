@@ -3,7 +3,7 @@
     UI_SpecularHeader("# Specular", Int) = 0
     [Toggle(SPECULAR_ON)]_SpecularOn("Enable Specular", Int) = 0
     _SpecularMap("Specular Map %ShowIf(SPECULAR_ON)", 2D) = "white" {}
-    UI_SpecMapdNote("> Red - Intensity, Green - Albedo Tint, Blue - Smoothness %ShowIf(SPECULAR_ON)", Int) = 0
+    UI_SpecMapdNote("> Red - Intensity, Green - Albedo Tint, Blue - Roughness %ShowIf(SPECULAR_ON)", Int) = 0
     [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_SpecularMapUVSet("UV Set %ShowIf(SPECULAR_ON)", Int) = 0
     [Space(10)]_SpecularIntensity("Intensity %ShowIf(SPECULAR_ON)", Float) = 0
     _SpecularRoughness("Roughness %ShowIf(SPECULAR_ON)", Range(0, 1)) = 0

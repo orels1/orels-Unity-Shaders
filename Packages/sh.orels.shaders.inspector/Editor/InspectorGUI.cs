@@ -431,9 +431,17 @@ namespace ORL.ShaderInspector
         {
             var strippedName = Utils.StripInternalSymbols(property.displayName);
             var isSingleLine = property.type == MaterialProperty.PropType.Texture && _singleLineRegex.IsMatch(property.displayName);
+            var defaultProps =
+                (editor.target as Material).shader.GetPropertyAttributes(Array.IndexOf(properties, property));
+            var tooltip = Array.Find(defaultProps, attr => attr.StartsWith("Tooltip("));
+            if (!string.IsNullOrWhiteSpace(tooltip))
+            {
+                tooltip = tooltip.Substring(tooltip.IndexOf("(") + 1);
+                tooltip = tooltip.Substring(0, tooltip.LastIndexOf(")"));
+            }
             if (isSingleLine)
             {
-                var buttonRect = editor.TexturePropertySingleLine(new GUIContent(strippedName), property);
+                var buttonRect = editor.TexturePropertySingleLine(new GUIContent(strippedName, tooltip), property);
                 buttonRect.x = EditorGUIUtility.labelWidth + 20.0f;
                 buttonRect.width = EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth - 38f;
                 // We can only repack 2D textures
@@ -453,14 +461,14 @@ namespace ORL.ShaderInspector
                 buttonRect.xMin += labelSize.x + 34f * EditorGUIUtility.pixelsPerPoint;
                 buttonRect.height = labelSize.y;
                 buttonRect.width -= 52 * EditorGUIUtility.pixelsPerPoint;
-                editor.TextureProperty(controlRect, property, strippedName);
+                editor.TextureProperty(controlRect, property, strippedName, tooltip, (property.flags & MaterialProperty.PropFlags.NoScaleOffset) == 0);
                 // We can only repack 2D textures
                 if (property.textureDimension != TextureDimension.Tex2D) return;
                 var packerKey = property.name + "_packer";
                 _uiState[packerKey] = TexturePacker.DrawPacker(buttonRect, (bool) _uiState[packerKey], ref _uiState, packerKey, editor.target as Material, property, editor);
                 return;
             }
-            editor.ShaderProperty(controlRect, property, strippedName);
+            editor.ShaderProperty(controlRect, property, new GUIContent(strippedName, tooltip));
         }
         #endregion
 
