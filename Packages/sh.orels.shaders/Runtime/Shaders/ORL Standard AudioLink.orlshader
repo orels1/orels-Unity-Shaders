@@ -231,7 +231,7 @@
         half3 color = SAMPLE_TEXTURE2D(_BarColor, sampler_BarColor, half2(uvSource, 0)).rgb;
         half bandData = saturate(AudioLinkLerp(half2(0, clamp(_BarBand - 1, 0, 3))).r * _BarScale);
         half barData = smoothstep((1 - bandData), (1 - bandData) + 0.01, uvSource);
-        finalEmission = lerp(0, barData * _ALTint * color, bandData);
+        finalEmission = lerp(0, barData.xxx * _ALTint.rgb * color.rgb, bandData);
         finalAlpha = barData * bandData;
 
         #endif
