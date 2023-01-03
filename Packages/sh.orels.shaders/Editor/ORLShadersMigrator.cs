@@ -41,7 +41,7 @@ namespace ORL.Shaders
             "0caac922b36d9e74e8435b8316baf498",
             "5f69cf125658cc046a729a5a5b4b9a11",
             "307b9906231b0784884d4b52416215a8",
-            // "e67e822f851164b40b6b701128914625" // This is Tessellated Displacement, it is currently an old shader, so no migration is needed
+            "e67e822f851164b40b6b701128914625"
         };
 
         private static HashSet<string> _revertableShaders = new HashSet<string>
@@ -63,6 +63,7 @@ namespace ORL.Shaders
             "650f7b5fdb04efe42ac612d9fd0d03cb",
             "7de358116a341004b94136337d239d1b",
             "10f0534e8e8748a409849338afe43251",
+            "2758518bdcab40a3abd3807018be68ca"
         };
 
         // old GUID -> new GUID
@@ -85,6 +86,7 @@ namespace ORL.Shaders
             { "0caac922b36d9e74e8435b8316baf498", "650f7b5fdb04efe42ac612d9fd0d03cb" },
             { "5f69cf125658cc046a729a5a5b4b9a11", "7de358116a341004b94136337d239d1b" },
             { "307b9906231b0784884d4b52416215a8", "10f0534e8e8748a409849338afe43251" },
+            { "e67e822f851164b40b6b701128914625", "2758518bdcab40a3abd3807018be68ca" }
         };
         
         // new GUID -> old GUID
@@ -107,6 +109,7 @@ namespace ORL.Shaders
             { "650f7b5fdb04efe42ac612d9fd0d03cb", "0caac922b36d9e74e8435b8316baf498" },
             { "7de358116a341004b94136337d239d1b", "5f69cf125658cc046a729a5a5b4b9a11" },
             { "10f0534e8e8748a409849338afe43251", "307b9906231b0784884d4b52416215a8" },
+            { "2758518bdcab40a3abd3807018be68ca", "e67e822f851164b40b6b701128914625" }
         };
         
         // name -> old GUID
@@ -128,7 +131,8 @@ namespace ORL.Shaders
             { "orels1/Toon/Main", "1b03fffd06279344f92579165d1a821c" },
             { "orels1/VFX/Block Fader", "0caac922b36d9e74e8435b8316baf498" },
             { "orels1/VFX/Clouds", "5f69cf125658cc046a729a5a5b4b9a11" },
-            { "orels1/VFX/Cubemap Screen", "307b9906231b0784884d4b52416215a8" }
+            { "orels1/VFX/Cubemap Screen", "307b9906231b0784884d4b52416215a8" },
+            { "orels1/Standard Tesselated Displacement", "e67e822f851164b40b6b701128914625" }
         };
 
         // private static string _fileId = "-8512187303908658807";
