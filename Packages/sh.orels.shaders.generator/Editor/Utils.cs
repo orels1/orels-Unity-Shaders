@@ -8,10 +8,20 @@ namespace ORL.ShaderGenerator
 {
     public static class Utils
     {
-        public static TextAsset Locator => Resources.Load<TextAsset>("ORLLocator");
+        public static TextAsset Locator = Resources.Load<TextAsset>("ORLLocator");
         
         public static string GetORLSourceFolder()
         {
+            if (Locator == null)
+            {
+                AssetDatabase.Refresh();
+                Locator = Resources.Load<TextAsset>("ORLLocator");
+                if (Locator == null)
+                {
+                    AssetDatabase.ImportAsset("Packages/sh.orels.shaders.generator/Runtime/Resources/ORLLocator.txt");
+                    Locator = Resources.Load<TextAsset>("ORLLocator");
+                }
+            }
             var locatorPath = AssetDatabase.GetAssetPath(Locator);
             var sourceFolder = locatorPath.Substring(0, locatorPath.LastIndexOf('/'));
             sourceFolder = sourceFolder.Replace("/Resources", "/Sources");
