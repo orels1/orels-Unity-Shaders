@@ -8,24 +8,20 @@ namespace ORL.ShaderGenerator
 {
     public static class Utils
     {
-        public static TextAsset Locator = Resources.Load<TextAsset>("ORLLocator");
-        
+
+        /// <summary>
+        /// You might look at this and go "gee, this does look very hardcoded!" and believe me, this used to be nice
+        /// and based on the Resources folder, utilizing the unity apis and everything
+        /// The problem is that unity hates first imports of anything, and while a lot of things are still in motion
+        /// it would not correctly resolve the path to the locator file
+        /// even when manually doing AssetDatabase.ImportAsset on it
+        /// So i gave up and, at least for now, the path is hardcoded. The good thing is - is that this path should be stable
+        /// Unless someone manually tampers with how packages are stored
+        /// </summary>
+        /// <returns>The path to ORL generator sources</returns>
         public static string GetORLSourceFolder()
         {
-            if (Locator == null)
-            {
-                AssetDatabase.Refresh();
-                Locator = Resources.Load<TextAsset>("ORLLocator");
-                if (Locator == null)
-                {
-                    AssetDatabase.ImportAsset("Packages/sh.orels.shaders.generator/Runtime/Resources/ORLLocator.txt");
-                    Locator = Resources.Load<TextAsset>("ORLLocator");
-                }
-            }
-            var locatorPath = AssetDatabase.GetAssetPath(Locator);
-            var sourceFolder = locatorPath.Substring(0, locatorPath.LastIndexOf('/'));
-            sourceFolder = sourceFolder.Replace("/Resources", "/Sources");
-            return sourceFolder;
+            return "Packages/sh.orels.shaders.generator/Runtime/Sources";
         }
 
         public static string GetFullPath(string assetPath)
