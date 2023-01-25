@@ -38,6 +38,7 @@
 
     // PULSE
     [IntRange]_PulseBand("Frequency Band %ShowIf(AL_EFFECT_PULSE)", Range(1, 4)) = 1
+    [IntRange]_PulseSmoothing("Smoothing %ShowIf(AL_EFFECT_PULSE && _PulseMode == 0)", Range(0, 16)) = 5
     [Enum(Emission, 0, Texture, 1)]_PulseMode("Pulse Mode %ShowIf(AL_EFFECT_PULSE)", Int) = 0
     _PulseStrength("Pulse Strength %ShowIf(AL_EFFECT_PULSE)", Float) = 1
     [Enum(Additive, 0, Multiply, 1)]_PulseEmissionMode("Emission Mode %ShowIf(AL_EFFECT_PULSE && _PulseMode == 0)", Int) = 0
@@ -49,6 +50,7 @@
 
     // BAR
     [IntRange]_BarBand("Frequency Band %ShowIf(AL_EFFECT_BAR)", Range(1, 4)) = 1
+    [IntRange]_BarSmoothing("Smoothing %ShowIf(AL_EFFECT_BAR)", Range(0, 16)) = 7
     [Enum(X, 0, Y, 1, Negative X, 2, Negative Y, 3)]_BarAxis("Bar UV Axis %ShowIf(AL_EFFECT_BAR)", Int) = 1
     _BarColor("Bar Gradient %ShowIf(AL_EFFECT_BAR) %Gradient()", 2D) = "white" { }
     _BarScale("Bar Scale %ShowIf(AL_EFFECT_BAR)", Float) = 1
@@ -96,6 +98,7 @@
     int _WVFRMFlipUVDirection;
 
     int _PulseBand;
+    int _PulseSmoothing;
     int _PulseMode;
     half _PulseStrength;
     int _PulseEmissionMode;
@@ -103,6 +106,7 @@
     half4 _PulseTextureDirection;
 
     int _BarBand;
+    int _BarSmoothing;
     int _BarAxis;
     half _BarScale;
 
@@ -157,7 +161,7 @@
         #elif defined(AL_EFFECT_UV_BASED)
 
         half2 scaledUv = half2(lerp(uv.x, uv.y, _UVFlipXY) * _UVHistoryRange % 128, floor(lerp(uv.y, uv.x, _UVFlipXY) * 4));
-        half4 bandData = AudioLinkLerp(scaledUv);
+        half4 bandData = AudioLinkLerp(scaledUv).rrra;
         if (_UVUseThemeColors)
         {
             int band = clamp(floor(scaledUv.y), 0, 3);
@@ -198,7 +202,13 @@
 
         #elif defined(AL_EFFECT_PULSE)
 
-        half pulseData = AudioLinkLerp(half2(0, clamp(_PulseBand - 1, 0, 3))).r;
+        half pulseData = 0;
+        UNITY_BRANCH
+        if (_PulseSmoothing == 0) {
+            pulseData = AudioLinkData(int2(0, clamp(_PulseBand - 1, 0, 3))).r;
+        } else {
+            pulseData = AudioLinkData(ALPASS_FILTEREDAUDIOLINK + int2(16 - _PulseSmoothing, clamp(_PulseBand - 1, 0, 3))).r;
+        }
         if (_PulseMode == 0)
         {
             if (!_PulseEmissionMode)
@@ -219,7 +229,7 @@
             }
             else
             {
-                float chrono = (AudioLinkDecodeDataAsUInt(ALPASS_CHRONOTENSITY + float2(0, 0)) % 1000000) / 1000000.0;
+                float chrono = (AudioLinkDecodeDataAsUInt(ALPASS_CHRONOTENSITY + uint2(1, 0)) % 1000000) / 1000000.0;
                 uv += _PulseTextureDirection.xy * chrono;
             }
             finalEmission += SAMPLE_TEXTURE2D(_PulseTexture, sampler_PulseTexture, uv) * _ALTint;
@@ -229,7 +239,13 @@
 
         half uvSource = lerp(uv.x, lerp(uv.y, lerp(1 - uv.x, 1 - uv.y, saturate(_BarAxis - 2)), saturate(_BarAxis - 1)), saturate(_BarAxis));
         half3 color = SAMPLE_TEXTURE2D(_BarColor, sampler_BarColor, half2(uvSource, 0)).rgb;
-        half bandData = saturate(AudioLinkLerp(half2(0, clamp(_BarBand - 1, 0, 3))).r * _BarScale);
+        half bandData = 0;
+        UNITY_BRANCH
+        if (_BarSmoothing == 0) {
+            bandData = saturate(AudioLinkData(int2(0, clamp(_BarBand - 1, 0, 3))).r * _BarScale);
+        } else {
+            bandData = saturate(AudioLinkData(ALPASS_FILTEREDAUDIOLINK + int2(16 - _BarSmoothing, clamp(_BarBand - 1, 0, 3))).r * _BarScale);
+        }
         half barData = smoothstep((1 - bandData), (1 - bandData) + 0.01, uvSource);
         finalEmission = lerp(0, barData.xxx * _ALTint.rgb * color.rgb, bandData);
         finalAlpha = barData * bandData;

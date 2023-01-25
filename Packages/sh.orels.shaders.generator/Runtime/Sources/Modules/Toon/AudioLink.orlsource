@@ -6,6 +6,7 @@
     [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ALMapUVSet("UV Set %ShowIf(!AL_MODE_NONE)", Int) = 0
     [HDR]_ALEmissionColor("Color %ShowIf(!AL_MODE_NONE && !AL_MODE_PACKED_MAP)", Color) = (0,0,0,0)
     [Enum(Bass,0,Low Mids,1,High Mids,3,Treble,4)]_ALBand("Frequency Band %ShowIf(AL_MODE_SINGLE_CHANNEL)", Int) = 0
+    [IntRange]_ALSmoothingLevel("Smoothing Level %ShowIf(AL_MODE_PACKED_MAP)", Range(0, 16)) = 1
     UI_ALPackedRedHeader("## Red Channel %ShowIf(AL_MODE_PACKED_MAP)", Int) = 0
     [ToggleUI]_ALGradientOnRed("Gradient %ShowIf(AL_MODE_PACKED_MAP) %CombineWith(_ALPackedRedColor)", Int) = 0
     [HideInInspector][HDR]_ALPackedRedColor("Color", Color) = (0,0,0,0)
@@ -39,6 +40,7 @@
     half4 _ALPackedRedColor;
     half4 _ALPackedGreenColor;
     half4 _ALPackedBlueColor;
+    int _ALSmoothingLevel;
     int _ALUVWidth;
     int _ALMapUVSet;
 }
@@ -68,16 +70,28 @@
 
             #if defined(AL_MODE_SINGLE_CHANNEL)
 
-            int2 aluv;
-            aluv = int2(0, _ALBand);
-            half sampledAL = AudioLinkData(aluv).x;
+            half2 aluv;
+            aluv = half2(0, _ALBand);
+            half sampledAL = AudioLinkLerp(aluv).x;
             o.Emission += alMask.rgb * _ALEmissionColor.rgb * sampledAL;
 
             #elif defined(AL_MODE_PACKED_MAP)
-        
-            half audioDataBass = AudioLinkData(ALPASS_AUDIOBASS).x;
-            half audioDataMids = AudioLinkData(ALPASS_AUDIOLOWMIDS).x;
-            half audioDataHighs = (AudioLinkData(ALPASS_AUDIOHIGHMIDS).x + AudioLinkData(ALPASS_AUDIOTREBLE).x) * 0.5;
+
+            half audioDataBass = 0;
+            half audioDataMids = 0;
+            half audioDataHighs = 0;
+            UNITY_BRANCH
+            if (_ALSmoothingLevel == 0) {
+                audioDataBass = AudioLinkData(ALPASS_AUDIOBASS).x;
+                audioDataMids = AudioLinkData(ALPASS_AUDIOLOWMIDS).x;
+                audioDataHighs = (AudioLinkData(ALPASS_AUDIOHIGHMIDS).x + AudioLinkData(ALPASS_AUDIOTREBLE).x) * 0.5;
+            } else {
+                audioDataBass = AudioLinkData(ALPASS_FILTEREDAUDIOLINK + int2(16 - _ALSmoothingLevel,0)).x;
+                audioDataMids = AudioLinkData(ALPASS_FILTEREDAUDIOLINK + int2(16 - _ALSmoothingLevel,1)).x;
+                audioDataHighs = (AudioLinkData(ALPASS_FILTEREDAUDIOLINK + int2(16 - _ALSmoothingLevel,2)).x + AudioLinkData(ALPASS_FILTEREDAUDIOLINK + int2(16 - _ALSmoothingLevel,3)).x) * 0.5;
+            }
+
+            audioDataMids = clamp(audioDataMids, 0, 0.98);
 
             half tLow = smoothstep((1-audioDataBass), (1-audioDataBass) + 0.01, alMask.r) * alMask.a;
             half tMid = smoothstep((1-audioDataMids), (1-audioDataMids) + 0.01, alMask.g) * alMask.a;
@@ -90,9 +104,9 @@
         
             #elif defined(AL_MODE_UV_BASED)
 
-            int2 aluv;
-            aluv = int2(alUV.x * _ALUVWidth, alUV.y);
-            half sampledAL = AudioLinkData(aluv).x;
+            half2 aluv;
+            aluv = half2(alUV.x * _ALUVWidth, alUV.y);
+            half sampledAL = AudioLinkLerp(aluv).x;
             o.Emission +=  alMask.rgb * _ALEmissionColor.rgb * sampledAL;
 
             #endif
