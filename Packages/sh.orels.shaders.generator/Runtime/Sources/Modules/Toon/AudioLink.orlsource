@@ -6,7 +6,7 @@
     [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ALMapUVSet("UV Set %ShowIf(!AL_MODE_NONE)", Int) = 0
     [HDR]_ALEmissionColor("Color %ShowIf(!AL_MODE_NONE && !AL_MODE_PACKED_MAP)", Color) = (0,0,0,0)
     [Enum(Bass,0,Low Mids,1,High Mids,3,Treble,4)]_ALBand("Frequency Band %ShowIf(AL_MODE_SINGLE_CHANNEL)", Int) = 0
-    [IntRange]_ALSmoothingLevel("Smoothing Level %ShowIf(AL_MODE_PACKED_MAP)", Range(0, 16)) = 1
+    [IntRange]_ALSmoothingLevel("Smoothing Level %ShowIf(AL_MODE_PACKED_MAP || AL_MODE_SINGLE_CHANNEL)", Range(0, 16)) = 1
     UI_ALPackedRedHeader("## Red Channel %ShowIf(AL_MODE_PACKED_MAP)", Int) = 0
     [ToggleUI]_ALGradientOnRed("Gradient %ShowIf(AL_MODE_PACKED_MAP) %CombineWith(_ALPackedRedColor)", Int) = 0
     [HideInInspector][HDR]_ALPackedRedColor("Color", Color) = (0,0,0,0)
@@ -70,9 +70,13 @@
 
             #if defined(AL_MODE_SINGLE_CHANNEL)
 
-            half2 aluv;
-            aluv = half2(0, _ALBand);
-            half sampledAL = AudioLinkLerp(aluv).x;
+            half sampledAL = 0;
+            UNITY_BRANCH
+            if (_ALSmoothingLevel == 0) {
+                sampledAL = AudioLinkData(int2(0, _ALBand)).x;
+            } else {
+                sampledAL = AudioLinkData(ALPASS_FILTEREDAUDIOLINK + int2(16 - _ALSmoothingLevel, _ALBand)).x;
+            }
             o.Emission += alMask.rgb * _ALEmissionColor.rgb * sampledAL;
 
             #elif defined(AL_MODE_PACKED_MAP)
