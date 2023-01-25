@@ -479,13 +479,13 @@ Shader %ShaderName
             // Outline Vertex
             FragmentData Vertex(VertexData v)
             {
-                #if defined(OUTLINE_ENABLED)
-
                 UNITY_SETUP_INSTANCE_ID(v);
                 FragmentData o;
                 UNITY_INITIALIZE_OUTPUT(FragmentData, o);
                 UNITY_TRANSFER_INSTANCE_ID(v, o);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+                
+                #if defined(OUTLINE_ENABLED)
 
                 // Outline Vertex Chain
                 %VertexFunctions
@@ -496,8 +496,7 @@ Shader %ShaderName
                 return o;
 
                 #else
-
-                FragmentData o;
+                
                 o.pos = 0.0/0.0;
                 return o;
 
