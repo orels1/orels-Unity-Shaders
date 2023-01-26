@@ -14,10 +14,6 @@ namespace ORL.ShaderGenerator
     [ScriptedImporter(1, "orlshader")]
     public class ShaderDefinitionImporter : ScriptedImporter
     {
-        [SerializeField]
-        public List<string> nonModifiableTextures = new List<string>();
-        [SerializeField]
-        public List<Texture> nonModifiableTextureAssets = new List<Texture>();
         private HashSet<string> _paramsOnlyBlock = new HashSet<string>
         {
             "%ShaderName",
@@ -39,10 +35,18 @@ namespace ORL.ShaderGenerator
                 var blocks = new List<ShaderBlock>();
                 foreach (var block in _dataStructs)
                 {
-                    var parser = new Parser();
-                    var sourceStrings = Utils.GetORLSource(block);
-                    var blockSource = parser.Parse(sourceStrings);
-                    blocks.AddRange(blockSource);
+                    try
+                    {
+                        var parser = new Parser();
+                        var sourceStrings = Utils.GetORLSource(block);
+                        var blockSource = parser.Parse(sourceStrings);
+                        blocks.AddRange(blockSource);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError(ex.ToString());
+                        throw;
+                    }
                 }
                 _builtInBlocks = blocks;
                 return _builtInBlocks;
@@ -164,7 +168,16 @@ namespace ORL.ShaderGenerator
             try
             {
                 blocks.AddRange(parser.Parse(textContent));
-                shaderName = blocks[blocks.FindIndex(b => b.Name == "%ShaderName")].Params[0];
+                var shaderNameBlockIndex = blocks.FindIndex(b => b.Name == "%ShaderName");
+                if (shaderNameBlockIndex == -1)
+                {
+                    throw new MissingBlockException("%ShaderName", "");
+                }
+                shaderName = blocks[shaderNameBlockIndex].Params[0];
+                if (string.IsNullOrWhiteSpace(shaderName?.Replace("\"", "")))
+                {
+                    throw new MissingParameterException("name", "%ShaderName", "");
+                }
                 var includesIndex = blocks.FindIndex(b => b.Name == "%Includes");
                 // Shaders can have direct includes (not via LightingModel or anything else
                 // Here we deep-resolve them and inject them back into the blocks in the respective order
@@ -198,60 +211,110 @@ namespace ORL.ShaderGenerator
                     blocks = resolvedBlocks;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                ctx.LogImportError($"Failed to parse source shader file {ctx.assetPath}");
+                ctx.LogImportError(ex.ToString());
+                ctx.LogImportError($"Failed to process the shader definition file {ctx.assetPath}");
                 throw;
             }
 
             // Find and load the lighting model
-            var lightingModelIndex = blocks.FindIndex(b => b.Name == "%LightingModel");
-            // If we don't have a lighting model, use the default (PBR)
-            var lightingModelName = lightingModelIndex == -1 ? _defaultLightignModel : blocks[lightingModelIndex].Params[0].Replace("\"", "");
-            var lightingModelPath = Utils.ResolveORLAsset(lightingModelName, lightingModelName.StartsWith("@/"), workingFolder);
-            var lmParser = new Parser();
-            var lightingModel = lmParser.Parse(Utils.GetAssetSource(lightingModelName, workingFolder));
-            if (!string.IsNullOrEmpty(lightingModelPath))
+            List<ShaderBlock> lightingModel;
+            try
             {
-                ctx.DependsOnSourceAsset(lightingModelPath);
+                var lightingModelIndex = blocks.FindIndex(b => b.Name == "%LightingModel");
+                // If we don't have a lighting model, use the default (PBR)
+                var lightingModelName = lightingModelIndex == -1
+                    ? _defaultLightignModel
+                    : blocks[lightingModelIndex].Params[0].Replace("\"", "");
+                var lightingModelPath =
+                    Utils.ResolveORLAsset(lightingModelName, lightingModelName.StartsWith("@/"), workingFolder);
+                var lmParser = new Parser();
+                lightingModel = lmParser.Parse(Utils.GetAssetSource(lightingModelName, workingFolder));
+                if (!string.IsNullOrEmpty(lightingModelPath))
+                {
+                    ctx.DependsOnSourceAsset(lightingModelPath);
+                }
+
+                // Lighting model defines some basic functions and dictates where the source shader gets plugged in
+                var updatedBlocks = new List<ShaderBlock>();
+                foreach (var lmInclude in lightingModel.Find(b => b.Name == "%Includes").Contents)
+                {
+                    var stripped = lmInclude.Replace("\"", "").Replace(",", "");
+                    if (stripped == "target")
+                    {
+                        updatedBlocks.AddRange(blocks);
+                        continue;
+                    }
+
+                    var blockParser = new Parser();
+                    var deepDeps = new List<string>();
+                    var lmWorkingFolder = lightingModelPath.Substring(0,
+                        lightingModelPath.LastIndexOf("/", StringComparison.InvariantCulture));
+                    // We recursively collect everything that the lighting model depends on into a flattened list
+                    Utils.RecursivelyCollectDependencies(new[] {stripped}.ToList(), ref deepDeps, lmWorkingFolder);
+                    deepDeps.ForEach(dep =>
+                        ctx.DependsOnSourceAsset(Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), lmWorkingFolder)));
+                    var deepBlocks = new List<ShaderBlock>();
+                    foreach (var deepDep in deepDeps)
+                    {
+                        // since we already have the deps flattened, we can safely strip all the dependencies here
+                        deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, lmWorkingFolder))
+                            .Where(b => b.Name != "%Includes"));
+                    }
+
+                    updatedBlocks.AddRange(deepBlocks);
+                }
+
+                blocks = updatedBlocks;
             }
-            
-            // Lighting model defines some basic functions and dictates where the source shader gets plugged in
-            var updatedBlocks = new List<ShaderBlock>();
-            foreach (var lmInclude in lightingModel.Find(b => b.Name == "%Includes").Contents)
+            catch (Exception ex)
             {
-                var stripped = lmInclude.Replace("\"", "").Replace(",", "");
-                if (stripped == "target")
-                {
-                    updatedBlocks.AddRange(blocks);
-                    continue;
-                }
-            
-                var blockParser = new Parser();
-                var deepDeps = new List<string>();
-                var lmWorkingFolder = lightingModelPath.Substring(0, lightingModelPath.LastIndexOf("/", StringComparison.InvariantCulture));
-                // We recursively collect everything that the lighting model depends on into a flattened list
-                Utils.RecursivelyCollectDependencies(new [] {stripped}.ToList(), ref deepDeps, lmWorkingFolder);
-                deepDeps.ForEach(dep => ctx.DependsOnSourceAsset(Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), lmWorkingFolder)));
-                var deepBlocks = new List<ShaderBlock>();
-                foreach (var deepDep in deepDeps)
-                {
-                    // since we already have the deps flattened, we can safely strip all the dependencies here
-                    deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, lmWorkingFolder)).Where(b => b.Name != "%Includes"));
-                }
-                updatedBlocks.AddRange(deepBlocks);
+                ctx.LogImportError(ex.ToString());
+                ctx.LogImportError($"Failed to load Lighting Model in {ctx.assetPath}", this);
+                throw;
             }
-            blocks = updatedBlocks;
 
             // Find and load the template file
-            var templateBlockIndex = blocks.FindIndex(b => b.Name == "%Template");
-            // if no template is found - use the Lighting Model supplied one
-            var templateName = templateBlockIndex == -1 ? lightingModel.Find(b => b.Name == "%Template").Params[0].Replace("\"", "") : blocks[templateBlockIndex].Params[0].Replace("\"", "");
-            var templatePath = Utils.ResolveORLAsset(templateName);
-            var template = Utils.GetORLTemplate(templateName);
-            if (!string.IsNullOrEmpty(templatePath))
+            string[] template;
+            try
             {
-                ctx.DependsOnSourceAsset(templatePath);
+                var templateBlockIndex = blocks.FindIndex(b => b.Name == "%Template");
+                // if no template is found - use the Lighting Model supplied one
+                string templateName;
+                if (templateBlockIndex > -1)
+                {
+                    templateName = blocks[templateBlockIndex].Params[0].Replace("\"", "");
+                }
+                else
+                {
+                    templateBlockIndex = lightingModel.FindIndex(b => b.Name == "%Template");
+                    if (templateBlockIndex == -1)
+                    {
+                        throw new MissingBlockException("%Template",
+                            "The lighting model is missing the %Template block");
+                    }
+
+                    templateName = lightingModel[templateBlockIndex].Params[0]?.Replace("\"", "");
+                    ;
+                    if (string.IsNullOrWhiteSpace(templateName))
+                    {
+                        throw new MissingParameterException("name", "%Template", "");
+                    }
+                }
+
+                var templatePath = Utils.ResolveORLAsset(templateName);
+                template = Utils.GetORLTemplate(templateName);
+                if (!string.IsNullOrEmpty(templatePath))
+                {
+                    ctx.DependsOnSourceAsset(templatePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                ctx.LogImportError(ex.ToString());
+                ctx.LogImportError($"Failed to load Template in {ctx.assetPath}", this);
+                throw;
             }
 
             // Collapse non-function blocks together and de-dupe things where makes sense
@@ -404,26 +467,6 @@ namespace ORL.ShaderGenerator
                 hideFlags = HideFlags.HideInHierarchy
             };
 
-            // var propCount = shader.GetPropertyCount();
-            // for (int i = 0; i < propCount; i++)
-            // {
-            //     Undo.RecordObject(this, "Saved non-mod textures");
-            //     var propertyFlags = shader.GetPropertyFlags(i);
-            //     var propertyType = shader.GetPropertyType(i);
-            //     if (propertyType == ShaderPropertyType.Texture &&
-            //         (propertyFlags & ShaderPropertyFlags.NonModifiableTextureData) != 0)
-            //     {
-            //         var propertyName = shader.GetPropertyName(i);
-            //         if (!nonModifiableTextures.Contains(propertyName)) {
-            //             nonModifiableTextures.Add(shader.GetPropertyName(i));
-            //             nonModifiableTextureAssets.Add(Utils.GetNonModifiableTexture(shader, propertyName));
-            //         } else {
-            //             var index = nonModifiableTextures.IndexOf(propertyName);
-            //             nonModifiableTextureAssets[index] = Utils.GetNonModifiableTexture(shader, propertyName);
-            //         }
-            //     }
-            // }
-            
             ctx.AddObjectToAsset("Shader", shader);
             ctx.SetMainObject(shader);
             ctx.AddObjectToAsset("Shader Source", textAsset);
@@ -449,6 +492,12 @@ namespace ORL.ShaderGenerator
             }
         }
         
+        /// <summary>
+        /// Collapses all the same blocks together and deduplicates entries of blocks like Properties or Variables.
+        /// Special blocks, like functions, are left untouched
+        /// </summary>
+        /// <param name="sourceBlocks"></param>
+        /// <returns></returns>
         private List<ShaderBlock> OptimizeBlocks(List<ShaderBlock> sourceBlocks)
         {
             var keySet = new Dictionary<string, int>();
@@ -492,7 +541,6 @@ namespace ORL.ShaderGenerator
                 }
             }
 
-
             return collapsedBlocks;
         }
 
@@ -500,7 +548,6 @@ namespace ORL.ShaderGenerator
         private Regex _propertyRegex = new Regex(@"(?:\[.*\])*\s*(?<identifier>[\w]+)(?:\s?\(\"".*\""\,[\w\s\(\,\.\-\)]+\)\s*=)");
         // Matches floatX halfX and intX variables
         private Regex _varRegex = new Regex(@"(?:uniform)?(?:\s*)(?:half|float|int|real|fixed){1}(?:\d)?\s+(?<identifier>\w+)");
-
         // Matches either TEXTUREXXX() or SAMPLER()
         private Regex _texSamplerCombinedRegex =
             new Regex(@"(?:SAMPLER)(?:_CMP)?\(([\w]+)\)|(?:RW_)?(?:TEXTURE[23DCUBE]+[_A-Z]*)\(([\w]+)\)");
@@ -607,7 +654,7 @@ namespace ORL.ShaderGenerator
         }
 
         public static void GenerateShader(string assetPath, string outputPath) {
-            var importer = AssetImporter.GetAtPath(assetPath) as ShaderDefinitionImporter;
+            var importer = GetAtPath(assetPath) as ShaderDefinitionImporter;
             var finalShader = AssetDatabase.LoadAssetAtPath<Shader>(importer.assetPath);
             var textSource = "";
             var assets = AssetDatabase.LoadAllAssetsAtPath(importer.assetPath);
@@ -619,18 +666,13 @@ namespace ORL.ShaderGenerator
                     textSource = text;
                 }
             }
-            if (string.IsNullOrWhiteSpace(textSource)) {
+            if (string.IsNullOrWhiteSpace(textSource))
+            {
                 Debug.LogWarning($"Shader source for {assetPath} is empty! Skipping generation");
                 return;
             }
             File.WriteAllText(outputPath, textSource);
             AssetDatabase.Refresh();
-            var generatedShaderImport = AssetImporter.GetAtPath(importer.assetPath.Replace(".orlshader", ".shader")) as ShaderImporter;
-            if (importer.nonModifiableTextures.Count > 0)
-            {
-                generatedShaderImport.SetNonModifiableTextures(importer.nonModifiableTextures.ToArray(), importer.nonModifiableTextures.Select(texName => Utils.GetNonModifiableTexture(finalShader, texName)).ToArray());
-                generatedShaderImport.SaveAndReimport();
-            }
         }
     }
 }
