@@ -2,12 +2,12 @@ name: Build Repo Listing
 
 on: 
   workflow_dispatch:
-  workflow_run:
-    workflows: [Build Release]
-    types:
-      - completed
-  release:
-     types: [published, created, edited, unpublished, deleted, released]
+  # workflow_run:
+  #   workflows: [Build Release]
+  #   types:
+  #     - completed
+  # release:
+  #    types: [published, created, edited, unpublished, deleted, released]
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
