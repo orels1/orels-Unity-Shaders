@@ -13,14 +13,24 @@
 
 ## For any Unity project - [Download Here](https://github.com/orels1/orels-Unity-Shaders/releases)
 
-You will need to download both `ORL Shader Inspector` and `ORL Shaders` unitypackage files to use the shaders.
+You should grab the top `.unitypackage` file from the latest release. It contains all the shaders and tools. It should be named like
+
+```
+sh.orels.shaders-full-X.X.X.unitypackage
+```
 
 ## For VCC users
+
+:::info
+
+VCC Listing Coming Soon
+
+:::
 
 Add this repo listing to your VCC
 
 ```
-Coming Soon (tm)
+// future URL here
 ```
 
 Afterwards - add ORL Shaders package to your project
