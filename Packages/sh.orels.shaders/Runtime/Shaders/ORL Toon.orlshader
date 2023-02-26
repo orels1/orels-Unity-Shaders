@@ -13,7 +13,7 @@
     _Hue("Hue", Range(0,1)) = 0
     _Saturation("Saturation", Range(-1,1)) = 0
     _Value("Value", Range(-1,1)) = 0
-    _Ramp("Ramp >", 2D) = "grayscaleRamp" {}
+    _Ramp("Ramp %Gradient()", 2D) = "grayscaleRamp" {}
     _ShadowSharpness("Shadow Sharpness", Range(0,1)) = 0.5
 }
 
