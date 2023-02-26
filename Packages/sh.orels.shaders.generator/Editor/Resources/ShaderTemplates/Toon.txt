@@ -1,0 +1,27 @@
+﻿%ShaderName("SHADER_NAME")
+%LightingModel("@/LightingModels/Toon")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_SECTION_NAMEHeader("# SECTION_NAME", Int) = 1
+    _MyProp("My Property", Float) = 0
+}
+
+%Includes()
+{
+    "/Packages/sh.orels.shaders/Runtime/Shaders/ORL Toon",
+    "self"
+}
+
+%Variables()
+{
+    half _MyProp;
+}
+
+%Fragment("FRAGMENT_NAME")
+{
+    void FRAGMENT_NAME(MeshData d, inout SurfaceData o) {
+        o.Emission += _MyProp;
+    }
+}
