@@ -166,6 +166,7 @@ namespace ORL.ShaderInspector
         private Dictionary<string, object> RestoreState(Material target)
         {
             var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(target));
+            if (importer == null) return new Dictionary<string, object>();
             var userData = new SerializedState();
             if (!string.IsNullOrWhiteSpace(importer.userData))
             {
