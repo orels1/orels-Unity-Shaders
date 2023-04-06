@@ -2,12 +2,15 @@ name: Build Release
 
 on: 
   workflow_dispatch:
-  # push:
-  #   branches: main
-  #   paths: Packages/com.vrchat.demo-template/**
+  push:
+    branches: main
+    paths:
+      - Packages/sh.orels.shaders/**
+      - Packages/sh.orels.shaders.generator/**
+      - Packages/sh.orels.shaders.inspector/**
 
 env:
-  packageName: "com.vrchat.demo-template"
+  packageName: "sh.orels.shaders"
 
 jobs:
   build:
