@@ -7,7 +7,7 @@ namespace ORL.ShaderConditions
     /// Thanks to pema.dev for making me ditch my regex jank
     /// You can find said jank here: https://gist.github.com/orels1/8e25df946b8b5d828dc2e5b0efba0af1
     /// </summary>
-    public class Compiler
+    public static class Compiler
     {
         public static bool HasError;
 
@@ -24,7 +24,7 @@ namespace ORL.ShaderConditions
                 Error(error);
                 return;
             }
-            
+
             Error($"'{token.Lexeme}' {error}");
         }
     }

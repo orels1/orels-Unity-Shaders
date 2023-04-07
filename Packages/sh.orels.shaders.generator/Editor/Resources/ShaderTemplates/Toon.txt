@@ -10,7 +10,7 @@
 
 %Includes()
 {
-    "/Packages/sh.orels.shaders/Runtime/Shaders/ORL Toon",
+    "@/Runtime/Shaders/ORL Toon",
     "self"
 }
 

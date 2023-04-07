@@ -8,39 +8,38 @@ using Object = UnityEngine.Object;
 
 namespace ORL.ShaderGenerator
 {
-    public class ShaderCreator
+    public static class ShaderCreator
     {
-
         [MenuItem("Assets/Create/Shader/orels1/VFX Shader", priority = 9)]
         private static void CreateVFXShader()
         {
             CreateShaderFromTemplate("VFX");
         }
-        
+
         [MenuItem("Assets/Create/Shader/orels1/Transparent VFX Shader", priority = 9)]
         private static void CreateTransparentVFXShader()
         {
             CreateShaderFromTemplate("TransparentVFX");
         }
-        
+
         [MenuItem("Assets/Create/Shader/orels1/PBR Shader", priority = 9)]
         private static void CreatePBRShader()
         {
             CreateShaderFromTemplate("PBR");
         }
-        
+
         [MenuItem("Assets/Create/Shader/orels1/Empty PBR Shader", priority = 9)]
         private static void CreateEmptyPBRShader()
         {
             CreateShaderFromTemplate("EmptyPBR");
         }
-        
+
         [MenuItem("Assets/Create/Shader/orels1/Toon Shader", priority = 9)]
         private static void CreateToonShader()
         {
             CreateShaderFromTemplate("Toon");
         }
-        
+
         [MenuItem("Assets/Create/Shader/orels1/Empty Toon Shader", priority = 9)]
         private static void CreateEmptyToonShader()
         {
@@ -72,20 +71,19 @@ namespace ORL.ShaderGenerator
                 var template = Resources.Load<TextAsset>($"ShaderTemplates/{resourceFile}");
                 // add modules with correct paths
                 var shaderContent = template.text;
-                
+
                 var name = pathName.Substring(pathName.LastIndexOf("/", StringComparison.InvariantCulture) + 1).Replace(".orlshader", "");
                 var sanitizedName = name.Replace("/", "_").Replace(" ", "_");
                 shaderContent = shaderContent.Replace("SHADER_NAME", name);
                 shaderContent = shaderContent.Replace("FRAGMENT_NAME", sanitizedName + "Fragment");
                 shaderContent = shaderContent.Replace("VERTEX_NAME", sanitizedName + "Vertex");
                 shaderContent = shaderContent.Replace("SECTION_NAME", sanitizedName);
-                
+
                 File.WriteAllText(pathName, shaderContent);
                 AssetDatabase.Refresh();
                 Object o = AssetDatabase.LoadAssetAtPath<Object>(pathName);
                 Selection.activeObject = o;
             }
         }
-        
     }
 }
