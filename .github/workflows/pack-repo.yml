@@ -9,7 +9,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        
+
+      - name: Get .NET
+        uses: actions/setup-dotnet@v2
+
       - name: get version
         id: version
         uses: notiz-dev/github-action-json-property@7c8cf5cc36eb85d8d287a8086a39dac59628eb31
@@ -24,13 +27,20 @@ jobs:
           echo "zipFile=sh.orels.shaders-full-${{ steps.version.outputs.prop }}".zip >> $GITHUB_ENV
           echo "unityPackage=sh.orels.shaders-full-${{ steps.version.outputs.prop }}.unitypackage" >> $GITHUB_ENV
           
-      - run: find "Packages/" -name \*.meta >> metaList
-          
-      - name: Create UnityPackage
-        uses: pCYSl5EDgo/create-unitypackage@e28c7a4616b2754c564b0a959a03b3c89b756fdb
-        with:
-          package-path: ${{ env.unityPackage }}
-          include-files: metaList
+      - name: Install Unity Packager
+        run: |
+          git clone https://github.com/Lachee/Unity-Package-Exporter.git "../tools/unity-package-exporter"
+          dotnet publish -c Release -o ../tools "../tools/unity-package-exporter/UnityPackageExporter"
+
+      - name: Create Unitypackage
+        run: |
+          dotnet ../tools/UnityPackageExporter.dll --project ./Packages --output ${{ env.unityPackage }} --exclude ".*" --exclude "com.vrchat.cor.bootstrap" --exclude "com.vrchat.core.vpm-resolver"
+      
+      # - name: Create UnityPackage
+      #   uses: pCYSl5EDgo/create-unitypackage@e28c7a4616b2754c564b0a959a03b3c89b756fdb
+      #   with:
+      #     package-path: ${{ env.unityPackage }}
+      #     include-files: metaList
 
       - name: Add Summary
         run: |
@@ -38,7 +48,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "saved as"
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- ${{ env.zipFile }}" >> $GITHUB_STEP_SUMMARY
           echo "- ${{ env.unityPackage }}" >> $GITHUB_STEP_SUMMARY  
         
       - name: Make Release
