@@ -24,16 +24,51 @@ jobs:
 
   pack-inspector:
     uses: ./.github/workflows/pack-package.yml
+    needs: pack-shaders
     with:
       package-name: "sh.orels.shaders.inspector"
 
   pack-generator:
     uses: ./.github/workflows/pack-package.yml
+    needs: pack-inspector
     with:
       package-name: "sh.orels.shaders.generator"
 
   pack-repo:
+    needs: pack-generator
     uses: ./.github/workflows/pack-repo.yml
+
+  update-release:
+    needs: pack-repo
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: get version
+        id: version
+        uses: notiz-dev/github-action-json-property@7c8cf5cc36eb85d8d287a8086a39dac59628eb31
+        with: 
+            path: "Packages/sh.orels.shaders/package.json"
+            prop_path: "version"
+
+      - name: Make Release
+        uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
+        if: startsWith(github.ref, 'refs/heads/main')
+        with:
+          tag_name: ${{ steps.version.outputs.prop }}
+          generate_release_notes: true
+
+      - name: Make Pre-Release
+        uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
+        if: startsWith(github.ref, 'refs/heads/dev')
+        with:
+          tag_name: ${{ steps.version.outputs.prop }}
+          draft: true
+          prerelease: true
+          generate_release_notes: true
+
 
   # build:
   #   runs-on: ubuntu-latest
