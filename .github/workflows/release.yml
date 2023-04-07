@@ -17,27 +17,45 @@ env:
   generatorPackageName: "sh.orels.shaders.generator"
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    
-      - name: Checkout
-        uses: actions/checkout@v3
-    
-      - name: Pack Shaders
-        uses: ./.github/workflows/pack-package.yml
-        with:
-          package-name: ${{ env.shadersPackageName }}
+  pack-shaders:
+    uses: ./.github/workflows/pack-package.yml
+    with:
+      package-name: "sh.orels.shaders"
 
-      - name: Pack Inspector
-        uses: ./.github/workflows/pack-package.yml
-        with:
-          package-name: ${{ env.inspectorPackageName }}
+  pack-inspector:
+    uses: ./.github/workflows/pack-package.yml
+    with:
+      package-name: "sh.orels.shaders"
 
-      - name: Pack Generator
-        uses: ./.github/workflows/pack-package.yml
-        with:
-          package-name: ${{ env.generatorPackageName }}
+  pack-generator:
+    uses: ./.github/workflows/pack-package.yml
+    with:
+      package-name: "sh.orels.shaders"
+
+  pack-repo:
+    uses: ./.github/workflows/pack-repo.yml
+
+  # build:
+  #   runs-on: ubuntu-latest
+  #   steps:
+    
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+    
+  #     - name: Pack Shaders
+  #       uses: ./.github/workflows/pack-package.yml
+  #       with:
+  #         package-name: ${{ env.shadersPackageName }}
+
+  #     - name: Pack Inspector
+  #       uses: ./.github/workflows/pack-package.yml
+  #       with:
+  #         package-name: ${{ env.inspectorPackageName }}
+
+  #     - name: Pack Generator
+  #       uses: ./.github/workflows/pack-package.yml
+  #       with:
+  #         package-name: ${{ env.generatorPackageName }}
       
-      - name: Pack Repo
-        uses: ./.github/workflows/pack-repo.yml
+  #     - name: Pack Repo
+  #       uses: ./.github/workflows/pack-repo.yml
