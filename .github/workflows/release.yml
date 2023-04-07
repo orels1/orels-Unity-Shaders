@@ -11,11 +11,6 @@ on:
       - Packages/sh.orels.shaders.generator/**
       - Packages/sh.orels.shaders.inspector/**
 
-env:
-  shadersPackageName: "sh.orels.shaders"
-  inspectorPackageName: "sh.orels.shaders.inspector"
-  generatorPackageName: "sh.orels.shaders.generator"
-
 jobs:
   pack-shaders:
     uses: ./.github/workflows/pack-package.yml

@@ -38,11 +38,11 @@ jobs:
           
       - run: find "Packages/${{inputs.package-name}}/" -name \*.meta >> metaList
           
-      - name: Create UnityPackage
-        uses: pCYSl5EDgo/create-unitypackage@e28c7a4616b2754c564b0a959a03b3c89b756fdb
-        with:
-          package-path: ${{ env.unityPackage }}
-          include-files: metaList
+      # - name: Create UnityPackage
+      #   uses: pCYSl5EDgo/create-unitypackage@e28c7a4616b2754c564b0a959a03b3c89b756fdb
+      #   with:
+      #     package-path: ${{ env.unityPackage }}
+      #     include-files: metaList
 
       - name: Add Summary
         run: |
@@ -51,7 +51,7 @@ jobs:
           echo "saved as"
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- ${{ env.zipFile }}" >> $GITHUB_STEP_SUMMARY
-          echo "- ${{ env.unityPackage }}" >> $GITHUB_STEP_SUMMARY    
+ #         echo "- ${{ env.unityPackage }}" >> $GITHUB_STEP_SUMMARY    
         
       - name: Make Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
@@ -60,7 +60,7 @@ jobs:
           tag_name: ${{ steps.version.outputs.prop }}
           files: |
             ${{ env.zipFile }}
-            ${{ env.unityPackage }}
+#            ${{ env.unityPackage }}
 #            Packages/${{ inputs.package-name }}/package.json
 
       - name: Make Pre-Release
@@ -72,6 +72,6 @@ jobs:
           prerelease: true
           files: |
             ${{ env.zipFile }}
-            ${{ env.unityPackage }}
+#            ${{ env.unityPackage }}
         #            Packages/${{ inputs.package-name }}/package.json
 
