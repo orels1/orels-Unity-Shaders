@@ -1,0 +1,19 @@
+{
+  "name":"orels Unity Shaders",
+  "id":"sh.orels.shaders",
+  "url":"https://orels1.github.io/orels-Unity-Shaders/index.json",
+  "author":{
+      "email":"ping@orels.sh",
+      "name":"orels1",
+      "url":"https://github.com/orels1"
+  },
+  "description":"A collection of practical Unity shaders for your next project.",
+  "infoLink":{
+      "url":"http://github.com/orels1/orels-Unity-shaders",
+      "text":"View on GitHub"
+  },
+  "bannerUrl":"banner.png",
+  "githubRepos":[
+      "orels1/orels-Unity-Shaders"
+  ]
+}
