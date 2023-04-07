@@ -19,19 +19,17 @@ jobs:
 
   pack-inspector:
     uses: ./.github/workflows/pack-package.yml
-    needs: pack-shaders
     with:
       package-name: "sh.orels.shaders.inspector"
 
   pack-generator:
     uses: ./.github/workflows/pack-package.yml
-    needs: pack-inspector
     with:
       package-name: "sh.orels.shaders.generator"
 
   pack-repo:
-    needs: pack-generator
     uses: ./.github/workflows/pack-repo.yml
+    needs: [pack-shaders, pack-inspector, pack-generator]
 
   update-release:
     needs: pack-repo

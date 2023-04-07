@@ -36,7 +36,7 @@ jobs:
 
       - name: Create Unitypackage
         run: |
-          dotnet ../tools/UnityPackageExporter.dll --project ./Packages --output ${{ env.unityPackage }} --exclude ".*" --exclude "com.vrchat.cor.bootstrap" --exclude "com.vrchat.core.vpm-resolver"
+          dotnet ../tools/UnityPackageExporter.dll ./Packages ${{ env.unityPackage }} --exclude ".*" --exclude "com.vrchat.cor.bootstrap" --exclude "com.vrchat.core.vpm-resolver"
       
       # - name: Create UnityPackage
       #   uses: pCYSl5EDgo/create-unitypackage@e28c7a4616b2754c564b0a959a03b3c89b756fdb
