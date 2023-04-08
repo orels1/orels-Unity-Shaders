@@ -2,6 +2,19 @@
 {
     #define FLT_EPSILON     1.192092896e-07
 
+    half3 BlendOverlay(half3 target, half3 source)
+    {
+        return (target > 0.5) * (1 - (1 - 2 * (target - 0.5)) * (1 - source)) + (target <= 0.5) * (2 * target * source);
+    }
+
+    half3 BlendLighten(half3 target, half3 source) {
+        return max(target, source);
+    }
+
+    half3 BlendScreen(half3 target, half3 source) {
+        return 1 - (1 - target) * (1 - source);
+    }
+
     half invLerp(half a, half b, half v)
     {
         return (v - a) / (b - a);
