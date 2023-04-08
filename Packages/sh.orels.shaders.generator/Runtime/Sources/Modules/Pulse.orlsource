@@ -4,10 +4,10 @@
     [HDR]_PulseColor("Color", Color) = (1,1,1,1)
     [Enum(All at once, 0, Gradient, 1)]_PulseType("Type", Int) = 0
     [Enum(Local Position, 0, UV, 1, Texture, 2)]_PulseGradientSource("Gradient Source %ShowIf(_PulseType == 1)", Int) = 0
-    _PulseTexture("Fade Texture %ShowIf(_PulseGradientSource == 2 && _PulseType == 1)", 2D) = "grayscaleRamp" {}
+    _PulseTexture("Gradient Texture %ShowIf(_PulseGradientSource == 2 && _PulseType == 1)", 2D) = "grayscaleRamp" {}
     UI_PulseTextureNote("> This texture will be used as a base of pulse progression. Generally expected to be some kind of gradient, sometimes multiplied by a pattern %ShowIf(_PulseGradientSource == 2 && _PulseType == 1)", Int) = 0
     [Enum(X, 0, Y, 1, Z, 2, Negative X, 3, Negative Y, 4, Negative Z, 5)]_PulseGradientDirection("Gradient Direction %ShowIf(_PulseType == 1)", Int) = 1
-    UI_DissolveTextureChannelNote("> When using a texture as a source, X,Y,Z directions become an R,G,B channel selector %ShowIf(_PulseGradientSource == 2 && _PulseType == 1)", Int) = 0
+    UI_PulseTextureChannelNote("> When using a texture as a source, X,Y,Z directions become an R,G,B channel selector %ShowIf(_PulseGradientSource == 2 && _PulseType == 1)", Int) = 0
     [Toggle(PULSE_SHOW_GRAD)]_DebugPulseGradient("Debug Gradient %ShowIf(_PulseType == 1)", Int) = 0
     [ToggleUI]_PulseAuto("Automatic", Int) = 0
     _PulseProgress("Progress %ShowIf(!_PulseAuto)", Range(0,1)) = 0
