@@ -1,0 +1,14 @@
+%ShaderName("orels1/UI/Layered Parallax Overlay")
+%LightingModel("@/LightingModels/UI")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "self",
+    "@/Shaders/UI/ORL UI Layered Parallax"
+}
+
+%PassModifiers()
+{
+    ZTest Always
+}

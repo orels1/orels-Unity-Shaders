@@ -1,0 +1,14 @@
+%ShaderName("orels1/UI/Main Overlay")
+%LightingModel("@/LightingModels/UI")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "self",
+    "@/Shaders/UI/ORL UI"
+}
+
+%PassModifiers()
+{
+    ZTest Always
+}
