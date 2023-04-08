@@ -11,12 +11,12 @@
     UI_DissolveOverlayHeader("## Overlays", Int) = 0
     [ToggleUI]_DissolveUseBakedNoise("Use Baked Noise", Int) = 1
     _DissolveBakedNoiseScale("Noise Scale %ShowIf(_DissolveUseBakedNoise)", Float) = 20
-    _DissolveBakedNoiseTex("Noise Texture Noise Tex > %RequiredTexture(@/BakedNoise.png) %ShowIf(_DissolveUseBakedNoise)", 2D) = "white" {}
+    _DissolveBakedNoiseTex("Noise Texture > %RequiredTexture(@/BakedNoise.png) %ShowIf(_DissolveUseBakedNoise)", 2D) = "white" {}
     _DissolveBakedNoiseStrength("Noise strength %ShowIf(_DissolveUseBakedNoise)", Float) = 0.7
     _DissolveBakedNoiseScroll("Scroll Speed (X,Y,Z) %ShowIf(_DissolveUseBakedNoise)", Vector) = (0,0.5,0,0)
     _DissolveOverlayTex("Overlay Texture", 2D) = "white" {}
-    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_DissolveOverlayChannel("Overlay Channel", Int) = 0
-    _DissolveOverlayStrength("Overlay Strength", Range(0,1)) = 1
+    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_DissolveOverlayChannel("Overlay Channel %ShowIf(_DissolveOverlayTex)", Int) = 0
+    _DissolveOverlayStrength("Overlay Strength %ShowIf(_DissolveOverlayTex)", Range(0,1)) = 1
     UI_DissolveBorderHeader("## Border", Int) = 0
     [ToggleUI]_DissolveGlowBorder("Add Glowing Border", Int) = 1
     _DissolveGlowBorderWidth("Border Width", Float) = 0.3
