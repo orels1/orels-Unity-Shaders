@@ -1,0 +1,16 @@
+%DataStructs()
+{
+    struct SurfaceData
+    {
+        half3 Albedo;
+        half Alpha;
+    };
+
+    SurfaceData CreateSurfaceData()
+    {
+        SurfaceData o = (SurfaceData) 0;
+        o.Albedo = 1;
+        o.Alpha = 1;
+        return o;
+    }
+}

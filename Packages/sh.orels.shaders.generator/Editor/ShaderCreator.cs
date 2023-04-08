@@ -46,6 +46,12 @@ namespace ORL.ShaderGenerator
             CreateShaderFromTemplate("EmptyToon");
         }
 
+        [MenuItem("Assets/Create/Shader/orels1/UI Shader", priority = 9)]
+        private static void CreateUIShader()
+        {
+            CreateShaderFromTemplate("UI");
+        }
+
         private static void CreateShaderFromTemplate(string templateId)
         {
             var checkResource = Resources.Load<TextAsset>($"ShaderTemplates/{templateId}");
