@@ -5,6 +5,7 @@
 %Properties()
 {
     UI_UI_ScrollerHeader("# Scrolling Texture", Int) = 1
+    UI_ScrollerDocs("[This shader has documentation](https://shaders.orels.sh/docs/ui/scrolling-texture)", Int) = 0
     _ScrollSpeed("Scroll Speed (X/Y)", Vector) = (0.1, 0.1, 0, 0)
     _ScrollTiling("Texture Tiling", Float) = 1
     _ScrollParallaxOffset("Parallax Offset", Float) = 0.01
