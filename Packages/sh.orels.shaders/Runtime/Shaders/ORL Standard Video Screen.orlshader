@@ -1,0 +1,9 @@
+%ShaderName("orels1/Standard Video Screen")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "@/Modules/VRCVideo",
+    "self"
+}
