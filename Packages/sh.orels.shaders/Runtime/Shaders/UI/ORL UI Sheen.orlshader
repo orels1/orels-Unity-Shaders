@@ -5,6 +5,7 @@
 %Properties()
 {
     UI_SheenHeader("# Sheen Settings", Int) = 1
+    UI_SheenDocs("[This shader has documentation](https://shaders.orels.sh/docs/ui/sheen)", Int) = 0
     _SheenStrength("Sheen Strength", Range(-3,3)) = 1
     _SheenPower("Sheen Focus", Float) = 2
     [HDR]_SheenTint("Sheen Tint", Color) = (1,1,1,1)
