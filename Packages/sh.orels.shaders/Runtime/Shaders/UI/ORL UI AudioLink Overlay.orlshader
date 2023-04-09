@@ -1,0 +1,14 @@
+%ShaderName("orels1/UI/AudioLink Overlay")
+%LightingModel("@/LightingModels/UI")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/UI/ORL UI AudioLink",
+    "self",
+}
+
+%PassModifiers()
+{
+    ZTest Always
+}
