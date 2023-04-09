@@ -6,4 +6,5 @@
     "@/Structs/MeshData",
     "@/Structs/VFX/SurfaceData",
     "@/Functions/VFX/FragmentBase",
+    "@/Functions/VertexBase",
 }

@@ -6,4 +6,5 @@
     "@/Structs/MeshData",
     "@/Structs/UI/SurfaceData",
     "@/Functions/UI/FragmentBase",
+    "@/Functions/UI/VertexBase",
 }

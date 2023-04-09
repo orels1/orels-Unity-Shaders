@@ -6,4 +6,5 @@
     "@/Structs/Toon/MeshData",
     "@/Structs/Toon/SurfaceData",
     "@/Functions/Toon/FragmentBase",
+    "@/Functions/VertexBase",
 }

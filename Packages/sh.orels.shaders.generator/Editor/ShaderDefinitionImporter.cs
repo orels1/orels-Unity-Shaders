@@ -56,7 +56,6 @@ namespace ORL.ShaderGenerator
         private List<ShaderBlock> _builtInFunctions;
         
         private string[] _functions = {
-            "@/Functions/VertexBase",
         };
 
         private Regex _callSignRegex = new Regex(@"(?:^void\s*)(?<fnName>[\w]+)\((?<params>[\w\,\s]+)\)");
