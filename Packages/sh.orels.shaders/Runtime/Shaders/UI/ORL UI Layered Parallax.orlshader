@@ -5,6 +5,7 @@
 %Properties()
 {
     _LPHeader("# Layered Parallax", Float) = 0
+    UI_LPDocs("[This shader has documentation](https://shaders.orels.sh/docs/ui/layered-parallax)", Int) = 0
     [ToggleUI]_LPIgnoreSprite("Ignore UI Sprite", Int) = 1
     UI_LPIgnoreSpriteNote("> If the Ignore UI Sprite is off - the texture you set in the UI Image component will be used as a background %ShowIf(!_LPIgnoreSprite)", Int) = 0
     _LPOverlay("Overlay", 2D) = "black" { }
