@@ -1,0 +1,9 @@
+%ShaderName("orels1/VFX/Ghost Lines")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "@/Modules/VFX/GhostLines",
+    "self"
+}
