@@ -12,21 +12,21 @@
     [HDR]_HPStackedColor("Stacked Color", Color) = (1,1,1,1)
     _HPStackedColorSmoothing("Stacked Color Smoothing", Float) = 2
     _HPStackedIntensity("Stacked Intensity", Float) = 1
+    _HPLayerFade("Layer Fade", Float) = 0.4
+    _HPBarsLayerStep("Layer Step", Float) = -5
     _HPGlancingFalloff("Angle Falloff", Range(0,1)) = 0.9
     UI_HPGlancingFolloffNote("> Controls the visibility face-on vs at an angle", Int) = 0
-    _HPLayerFalloff("Layer Falloff", Float) = 0.4
-    _HPBarsLayerStep("Layer Step", Float) = -5
 
-    
-    [Space(10)][ToggleUI]_HPCutDark("Dark Color Filter", Int) = 0
+    UI_HPCutDarkHeader("# Dark Color Filter", Int) = 1
+    [ToggleUI]_HPCutDark("Dark Filter Enabled", Int) = 0
     _HPCutDarkThreshold("Dark Threshold %ShowIf(_HPCutDark)", Range(0,1)) = 0.5
     
-    UI_HPFlickerHeader("## Flicker", Int) = 0
+    UI_HPFlickerHeader("# Flicker", Int) = 1
     [ToggleUI]_HPFlicker("Flicker Enabled", Int) = 0
-    _HPFlickerSpeed("Flicker Speed", Float) = 50
-    _HPFlickerRange("Flicker Range %RemapSlider(0, 1)", Vector) = (0.95, 1, 0, 1)
+    _HPFlickerSpeed("Flicker Speed %ShowIf(_HPFlicker)", Float) = 50
+    _HPFlickerRange("Flicker Range %ShowIf(_HPFlicker) %RemapSlider(0, 1)", Vector) = (0.95, 1, 0, 1)
 
-    UI_HPMaskingHeader("## Masking", Int) = 0
+    UI_HPMaskingHeader("# Masking", Int) = 1
     _HPStackedMask("Alpha Mask", 2D) = "white" {}
     [Enum(R, 0, G, 1, B, 2, A, 3)]_HPStackedMaskChannel("Mask Channel", Int) = 3
     _HPStackedMaskStrength("Mask Strength", Range(0,1)) = 0.14
@@ -82,7 +82,7 @@
     int _HPCutDark;
     half _HPCutDarkThreshold;
 
-    half _HPLayerFalloff;
+    half _HPLayerFade;
 
     half _HPStackedMaskStrength;
     int _HPStackedMaskChannel;
@@ -118,7 +118,7 @@
         for (int i = SP_LAYERS_COUNT; i > 0; i--)
         {
             half2 localUv = saturate(baseUv + layerOffset * i);
-            half4 sample = SAMPLE_TEXTURE2D(_HPStackedTexture, sampler_HPStackedTexture, localUv) * saturate(pow(SP_LAYER_STEP * (SP_LAYERS_COUNT - i) + 0.1, _HPLayerFalloff));
+            half4 sample = SAMPLE_TEXTURE2D(_HPStackedTexture, sampler_HPStackedTexture, localUv) * saturate(pow(SP_LAYER_STEP * (SP_LAYERS_COUNT - i) + 0.1, _HPLayerFade));
             sample.rgb = lerp(sample.rgb, _HPStackedColor.rgb, saturate(pow(SP_LAYER_STEP * i, _HPStackedColorSmoothing)));
             
             // high pass filter
