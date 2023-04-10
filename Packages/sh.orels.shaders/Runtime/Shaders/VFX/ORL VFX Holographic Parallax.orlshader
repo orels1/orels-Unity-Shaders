@@ -9,18 +9,25 @@
     [KeywordEnum(Ten, Six, Four, Two)]HOLOGRAPHIC_PARALLAX_LAYERS("Stacked Layers", Int) = 0
     _HPStackedTexture("Stacked Texture", 2D) = "black" {}
     [HDR]_HPTint("Tint Color", Color) = (1,1,1,1)
-    [HDR]_HPStackedColor("Stacked Color", Color) = (0,0,0,1)
+    [HDR]_HPStackedColor("Stacked Color", Color) = (1,1,1,1)
     _HPStackedColorSmoothing("Stacked Color Smoothing", Float) = 2
     _HPStackedIntensity("Stacked Intensity", Float) = 1
     _HPGlancingFalloff("Angle Falloff", Range(0,1)) = 0.9
     UI_HPGlancingFolloffNote("> Controls the visibility face-on vs at an angle", Int) = 0
-    [ToggleUI]_HPCutDark("Dark Color Filter", Int) = 0
-    _HPCutDarkThreshold("Dark Threshold %ShowIf(_HPCutDark)", Range(0,1)) = 0.5
-
-    [Space(10)]_HPLayerFalloff("Layer Falloff", Float) = 0.3
+    _HPLayerFalloff("Layer Falloff", Float) = 0.4
     _HPBarsLayerStep("Layer Step", Float) = -5
 
-    [Space(10)]_HPStackedMask("Alpha Mask", 2D) = "white" {}
+    
+    [Space(10)][ToggleUI]_HPCutDark("Dark Color Filter", Int) = 0
+    _HPCutDarkThreshold("Dark Threshold %ShowIf(_HPCutDark)", Range(0,1)) = 0.5
+    
+    UI_HPFlickerHeader("## Flicker", Int) = 0
+    [ToggleUI]_HPFlicker("Flicker Enabled", Int) = 0
+    _HPFlickerSpeed("Flicker Speed", Float) = 50
+    _HPFlickerRange("Flicker Range %RemapSlider(0, 1)", Vector) = (0.95, 1, 0, 1)
+
+    UI_HPMaskingHeader("## Masking", Int) = 0
+    _HPStackedMask("Alpha Mask", 2D) = "white" {}
     [Enum(R, 0, G, 1, B, 2, A, 3)]_HPStackedMaskChannel("Mask Channel", Int) = 3
     _HPStackedMaskStrength("Mask Strength", Range(0,1)) = 0.14
     [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
@@ -65,6 +72,9 @@
     half4 _HPStackedTexture_ST;
     half4 _HPTint;
     half4 _HPStackedColor;
+    int _HPFlicker;
+    half _HPFlickerSpeed;
+    half4 _HPFlickerRange;
     half _HPStackedColorSmoothing;
     half _HPBarsLayerStep;
     half _HPStackedIntensity;
@@ -129,6 +139,9 @@
         stacked.a = stacked.a * _HPStackedColor.a * _HPStackedIntensity;
         stacked = lerp(stacked * NoV, firstLayer, firstLayer.a);
         o.Albedo = lerp(o.Albedo, stacked.rgb, stacked.a);
+        if (_HPFlicker) {
+            o.Albedo *= lerp(_HPFlickerRange.x, _HPFlickerRange.y, sin(_Time.y * _HPFlickerSpeed));
+        }
         o.Alpha = stacked.a;
     }
 }
