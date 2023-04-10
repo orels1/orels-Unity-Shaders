@@ -21,16 +21,10 @@ sh.orels.shaders-full-X.X.X.unitypackage
 
 ## For VCC users
 
-:::info
-
-VCC Listing Coming Soon
-
-:::
-
 Add this repo listing to your VCC
 
 ```
-// future URL here
+https://orels1.github.io/orels-Unity-Shaders/index.json
 ```
 
 Afterwards - add ORL Shaders package to your project
