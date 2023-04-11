@@ -1,0 +1,55 @@
+%ShaderName("orels1/VFX/Dither Fade")
+%LightingModel("@/LightingModels/VFX")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    _MainTex("Main Texture", 2D) = "white" {}
+    [HDR]_Color("Color", Color) = (1,1,1,1)
+    _Cutoff("Alpha Cutoff", Range(0, 1)) = 0.5
+    [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 0
+}
+
+%Includes()
+{
+    "self",
+    "@/Modules/DitherFade"
+}
+
+%ShaderDefines()
+{
+    #define DITHER_FADE
+}
+
+%ShaderModifiers()
+{
+    Cull [_CullMode]
+}
+
+%Variables()
+{
+    half4 _Color;
+    half4 _MainTex_ST;
+    half _Cutoff;
+}
+
+%Textures()
+{
+    TEXTURE2D(_MainTex);
+    SAMPLER(sampler_MainTex);
+}
+
+%Fragment("VFXDitherFadeFragment")
+{
+    void VFXDitherFadeFragment(MeshData d, inout SurfaceData o)
+    {
+        half2 uv = d.uv0 * _MainTex_ST.xy + _MainTex_ST.zw;
+        half4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+        o.Albedo = color.rgb * _Color.rgb;
+        o.Alpha = color.a * _Color.a;
+        if (o.Alpha < _Cutoff) {
+            clip(-1);
+        }
+
+    }
+}

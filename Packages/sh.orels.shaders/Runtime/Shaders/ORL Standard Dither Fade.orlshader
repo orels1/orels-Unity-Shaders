@@ -1,0 +1,14 @@
+%ShaderName("orels1/Standard Dither Fade")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "@/Modules/DitherFade",
+    "self"
+}
+
+%ShaderDefines()
+{
+    #define DITHER_FADE
+}
