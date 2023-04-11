@@ -31,31 +31,38 @@
 
     // SCALING
     UI_ScaleHeader("## Scale", Int) = 0
-    [KeywordEnum(None, Uniform)]SCALE("Scaling", Int) = 0
+    [KeywordEnum(None, Uniform, Flow)]SCALE("Scaling", Int) = 0
+    [Enum(UV, 0, Local Position, 1)]_ScaleFlowType("Flow Based On %ShowIf(SCALE_FLOW)", Int) = 0
+    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ScaleFlowUVChannel("Flow UV Channel %ShowIf(SCALE_FLOW && _ScaleFlowType == 0)", Int) = 0
+    [Enum(X, 0, Y, 1, Z, 2)]_ScaleFlowAxis("Flow Axis %ShowIf(SCALE_FLOW)", Int) = 0
     _ScaleSpeed("Scale Speed %ShowIf(!SCALE_NONE)", Float) = 1
+    _ScaleFlowCyclePause("Cycle Pause %ShowIf(SCALE_FLOW)", Float) = 1
+    UI_ScaleFlowCyclePauseNote("> Controls how many seconds to wait before restarting the flow cycle %ShowIf(SCALE_FLOW)", Float) = 1
     _ScalePhaseOffset("Phase Offset %ShowIf(!SCALE_NONE)", Float) = 0
-    [ToggleUI]_ScalePositionOffset("Position Offset %ShowIf(!SCALE_NONE)", Int) = 0
-    [Enum(XYZ, 0, X, 1, Y, 2, Z, 3)]_ScalePositionOffsetAxis("Position Offset Axis %ShowIf(!SCALE_NONE && _ScalePositionOffset)", Int) = 0
-    _ScalePositionOffsetScale("Position Offset Scale %ShowIf(!SCALE_NONE && _ScalePositionOffset)", Float) = 1
+    [ToggleUI]_ScalePositionOffset("Position Offset %ShowIf(SCALE_UNIFORM)", Int) = 0
+    [Enum(XYZ, 0, X, 1, Y, 2, Z, 3)]_ScalePositionOffsetAxis("Position Offset Axis %ShowIf(SCALE_UNIFORM && _ScalePositionOffset)", Int) = 0
+    _ScalePositionOffsetScale("Position Offset Scale %ShowIf(SCALE_UNIFORM && _ScalePositionOffset)", Float) = 1
     _ScaleAmount("Scale Amount %ShowIf(!SCALE_NONE)", Float) = 0.5
+    _ScaleFlowSmoothing("Flow Smoothing %ShowIf(SCALE_FLOW)", Float) = 2
+    _ScaleFlowWidth("Flow Width %ShowIf(SCALE_FLOW)", Float) = 0.05
 }
 
 %ShaderFeatures()
 {
     #pragma shader_feature_local _ SPIN_LOCAL SPIN_WORLD
     #pragma shader_feature_local _ FLOATING_LOCAL FLOATING_WORLD
-    #pragma shader_feature_local _ SCALE_UNIFORM
+    #pragma shader_feature_local _ SCALE_UNIFORM SCALE_FLOW
 }
 
 %ShaderDefines()
 {
-    #if !defined(SPIN_WORLD) || !defined(SPIN_LOCAL)
+    #if !defined(SPIN_WORLD) && !defined(SPIN_LOCAL)
     #define SPIN_NONE
     #endif
-    #if !defined(FLOATING_WORLD) || !defined(FLOATING_LOCAL)
+    #if !defined(FLOATING_WORLD) && !defined(FLOATING_LOCAL)
     #define FLOATING_NONE
     #endif
-    #if !defined(SCALE_UNIFORM)
+    #if !defined(SCALE_UNIFORM) && !defined(SCALE_FLOW)
     #define SCALE_NONE
     #endif
     #define EXTRA_V2F_0
@@ -84,12 +91,18 @@
     half _FloatAmount;
     half _FloatTwoWay;
 
+    int _ScaleFlowType;
+    int _ScaleFlowUVChannel;
+    int _ScaleFlowAxis;
     half _ScaleSpeed;
     half _ScalePhaseOffset;
+    half _ScaleFlowCyclePause;
     int _ScalePositionOffset;
     int _ScalePositionOffsetAxis;
     half _ScalePositionOffsetScale;
     half _ScaleAmount;
+    half _ScaleFlowSmoothing;
+    half _ScaleFlowWidth;
 }
 
 %Vertex("VertexAnimationVertex")
@@ -103,79 +116,97 @@
         o.extraV2F0 = v.vertex;
         
         #if defined(SPIN_LOCAL) || defined(SPIN_WORLD)
-            {
-                half3 origin = _SpinOrigin.xyz;
-                if (_NormalizeSpinAxis) {
-                    _SpinAxis.xyz = normalize(_SpinAxis.xyz);
-                }
-                
-                half offset = _SpinPhaseOffset;
-                if (_SpinPositionOffset) {
-                    if (_SpinPositionOffsetAxis == 0) {
-                        offset += length(wsObjectPosition.xyz) * _SpinPositionOffsetScale;
-                    } else {
-                        offset += wsObjectPosition[_SpinPositionOffsetAxis - 1] * _SpinPositionOffsetScale;
-                    }
-                }
-                half factor = _Time.y * _SpinSpeed + offset;
-
-                #if defined(SPIN_LOCAL)
-                v.vertex.xyz = RotateAroundAxis(origin, v.vertex.xyz, _SpinAxis.xyz, factor);
-                v.normal.xyz = RotateAroundAxis(origin, v.normal.xyz, _SpinAxis.xyz, factor);
-                #elif defined(SPIN_WORLD)
-                float3 scale = float3(
-                    length(unity_ObjectToWorld._m00_m10_m20),
-                    length(unity_ObjectToWorld._m01_m11_m21),
-                    length(unity_ObjectToWorld._m02_m12_m22)
-                );
-                half3 lsAxis = normalize(TransformWorldToObject(_SpinAxis.xyz));
-                half3 vertRot = RotateAroundAxis(origin, v.vertex.xyz, lsAxis, factor);
-                half3 normalRot = RotateAroundAxis(origin, v.normal.xyz, lsAxis, factor);
-                v.vertex.xyz = vertRot;
-                v.normal.xyz = normalRot;
-                #endif
+        {
+            half3 origin = _SpinOrigin.xyz;
+            if (_NormalizeSpinAxis) {
+                _SpinAxis.xyz = normalize(_SpinAxis.xyz);
             }
+            
+            half offset = _SpinPhaseOffset;
+            if (_SpinPositionOffset) {
+                if (_SpinPositionOffsetAxis == 0) {
+                    offset += length(wsObjectPosition.xyz) * _SpinPositionOffsetScale;
+                } else {
+                    offset += wsObjectPosition[_SpinPositionOffsetAxis - 1] * _SpinPositionOffsetScale;
+                }
+            }
+            half factor = _Time.y * _SpinSpeed + offset;
+
+            #if defined(SPIN_LOCAL)
+            v.vertex.xyz = RotateAroundAxis(origin, v.vertex.xyz, _SpinAxis.xyz, factor);
+            v.normal.xyz = RotateAroundAxis(origin, v.normal.xyz, _SpinAxis.xyz, factor);
+            #elif defined(SPIN_WORLD)
+            float3 scale = float3(
+                length(unity_ObjectToWorld._m00_m10_m20),
+                length(unity_ObjectToWorld._m01_m11_m21),
+                length(unity_ObjectToWorld._m02_m12_m22)
+            );
+            half3 lsAxis = normalize(TransformWorldToObject(_SpinAxis.xyz));
+            half3 vertRot = RotateAroundAxis(origin, v.vertex.xyz, lsAxis, factor);
+            half3 normalRot = RotateAroundAxis(origin, v.normal.xyz, lsAxis, factor);
+            v.vertex.xyz = vertRot;
+            v.normal.xyz = normalRot;
+            #endif
+        }
         #endif
         
         #if defined(FLOATING_LOCAL) || defined(FLOATING_WORLD)
-            {
-                half offset = _FloatPhaseOffset;
-                if (_FloatPositionOffset) {
-                    if (_FloatPositionOffsetAxis == 0) {
-                        offset += length(wsObjectPosition.xyz) * _FloatPositionOffsetScale;
-                    } else {
-                        offset += wsObjectPosition[_FloatPositionOffsetAxis - 1] * _FloatPositionOffsetScale;
-                    }
+        {
+            half offset = _FloatPhaseOffset;
+            if (_FloatPositionOffset) {
+                if (_FloatPositionOffsetAxis == 0) {
+                    offset += length(wsObjectPosition.xyz) * _FloatPositionOffsetScale;
+                } else {
+                    offset += wsObjectPosition[_FloatPositionOffsetAxis - 1] * _FloatPositionOffsetScale;
                 }
-                half factor = sin(_Time.y * _FloatSpeed + offset);
-                factor = lerp((factor + 1) / 2, factor, _FloatTwoWay);
-                
-                #if defined(FLOATING_LOCAL)
-                half3 axis = _FloatAxis.xyz;
-                if (_NormalizeFloatAxis) {
-                    axis = normalize(axis);
-                }
-                #elif defined(FLOATING_WORLD)
-                half3 axis = normalize(TransformWorldToObject(_FloatAxis.xyz)).xyz;
-                #endif
-
-                v.vertex.xyz += factor * axis * _FloatAmount;
             }
+            half factor = sin(_Time.y * _FloatSpeed + offset);
+            factor = lerp((factor + 1) / 2, factor, _FloatTwoWay);
+            
+            #if defined(FLOATING_LOCAL)
+            half3 axis = _FloatAxis.xyz;
+            if (_NormalizeFloatAxis) {
+                axis = normalize(axis);
+            }
+            #elif defined(FLOATING_WORLD)
+            half3 axis = normalize(TransformWorldToObject(_FloatAxis.xyz)).xyz;
+            #endif
+
+            v.vertex.xyz += factor * axis * _FloatAmount;
+        }
         #endif
         
         #if defined(SCALE_UNIFORM)
-            {
-                half offset = _ScalePhaseOffset;
-                if (_ScalePositionOffset) {
-                    if (_ScalePositionOffsetAxis == 0) {
-                        offset += length(wsObjectPosition.xyz) * _ScalePositionOffsetScale;
-                    } else {
-                        offset += wsObjectPosition[_ScalePositionOffsetAxis - 1] * _ScalePositionOffsetScale;
-                    }
+        {
+            half offset = _ScalePhaseOffset;
+            if (_ScalePositionOffset) {
+                if (_ScalePositionOffsetAxis == 0) {
+                    offset += length(wsObjectPosition.xyz) * _ScalePositionOffsetScale;
+                } else {
+                    offset += wsObjectPosition[_ScalePositionOffsetAxis - 1] * _ScalePositionOffsetScale;
                 }
-                half factor = sin(_Time.y * _ScaleSpeed + offset);
-                v.vertex.xyz += factor * v.vertex.xyz * _ScaleAmount;
             }
+            half factor = sin(_Time.y * _ScaleSpeed + offset);
+            v.vertex.xyz += factor * v.vertex.xyz * _ScaleAmount;
+        }
+        #endif
+
+        #if defined(SCALE_FLOW)
+        {
+            half offset = _ScalePhaseOffset;
+            half factor = ((_Time.y * _ScaleSpeed + offset) % (1.1 + _ScaleFlowWidth * 2 + _ScaleFlowCyclePause)) - 0.1;
+            half2 uvChannel = v.uv0;
+            switch (_ScaleFlowUVChannel)
+            {
+                case 1: uvChannel = v.uv1; break;
+                case 2: uvChannel = v.uv2; break;
+                case 3: uvChannel = v.uv3; break;
+            }
+            half scaleSource = (_ScaleFlowType ? v.vertex.xyz : uvChannel.xyx)[_ScaleFlowAxis];
+            half mask = smoothstep(factor + _ScaleFlowWidth, factor - _ScaleFlowWidth, scaleSource) * smoothstep(factor - _ScaleFlowWidth, factor + _ScaleFlowWidth, scaleSource);
+            mask = saturate(pow(mask * 2, _ScaleFlowSmoothing));
+            v.vertex.xyz += v.normal.xyz * _ScaleAmount * mask;
+        }
         #endif
     }
 }
