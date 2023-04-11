@@ -1,0 +1,81 @@
+%Properties()
+{
+    UI_VRCFeaturesHeader("# VRChat Features", Int) = 0
+    UI_VRCDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standar#vr-chat-features)", Int) = 0
+    [Toggle(VRC_FEATURES)]_VRCFeaturesEnabled("VRChat Features Enabled", Int) = 0
+    UI_VRCHideMainViewHeader("## Hide from Main View %ShowIf(VRC_FEATURES)", Int) = 0
+    [ToggleUI]_VRCHideInVR("In VR %ShowIf(VRC_FEATURES)", Int) = 0
+    [ToggleUI]_VRCHideInDesktop("On Desktop %ShowIf(VRC_FEATURES)p", Int) = 0
+    UI_VRCHideCameraHeader("## Hide from Handheld Camera %ShowIf(VRC_FEATURES)", Int) = 0
+    [ToggleUI]_VRCHideInVRCamera("In VR %ShowIf(VRC_FEATURES)", Int) = 0
+    [ToggleUI]_VRCHideInDesktopCamera("On Desktop %ShowIf(VRC_FEATURES)", Int) = 0
+    UI_VRCHideInMirrorHeader("## Hide from Mirror %ShowIf(VRC_FEATURES)", Int) = 0
+    [ToggleUI]_VRCHideInVRMirror("In VR %ShowIf(VRC_FEATURES)", Int) = 0
+    [ToggleUI]_VRCHideInDesktopMirror("On Desktop %ShowIf(VRC_FEATURES)", Int) = 0
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local VRC_FEATURES
+}
+
+%Variables()
+{
+    int _VRCHideInVR;
+    int _VRCHideInDesktop;
+
+    int _VRCHideInVRCamera;
+    int _VRCHideInDesktopCamera;
+
+    int _VRCHideInVRMirror;
+    int _VRCHideInDesktopMirror;
+
+    float _VRChatCameraMode;
+    float _VRChatMirrorMode;
+}
+
+%Vertex("VRCFeaturesVertex", -100)
+{
+    void VRCFeaturesVertex(inout VertexData v)
+    {
+        #if defined(VRC_FEATURES)
+        bool isInVRHandCam = _VRChatCameraMode == 1;
+        bool isInDesktopHandCam = _VRChatCameraMode == 2;
+        bool isInVR = isVR();
+        bool isInDesktop = !isInVR && !isInDesktopHandCam;
+        bool isInVRMirror = _VRChatMirrorMode == 1;
+        bool isInDesktopMirror = _VRChatMirrorMode == 2;
+
+        if (_VRCHideInVR && isInVR)
+        {
+            v.vertex = asfloat(-1);
+            return;
+        }
+        if (_VRCHideInDesktop && isInDesktop)
+        {
+            v.vertex = asfloat(-1);
+            return;
+        }
+        if (_VRCHideInVRCamera && isInVRHandCam)
+        {
+            v.vertex = asfloat(-1);
+            return;
+        }
+        if (_VRCHideInDesktopCamera && isInDesktopHandCam)
+        {
+            v.vertex = asfloat(-1);
+            return;
+        }
+        if (_VRCHideInVRMirror && isInVRMirror)
+        {
+            v.vertex = asfloat(-1);
+            return;
+        }
+        if (_VRCHideInDesktopMirror && isInDesktopMirror)
+        {
+            v.vertex = asfloat(-1);
+            return;
+        }
+        #endif
+    }
+}

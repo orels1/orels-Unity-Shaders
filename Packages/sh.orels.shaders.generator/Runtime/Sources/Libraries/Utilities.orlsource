@@ -7,6 +7,15 @@
         return (target > 0.5) * (1 - (1 - 2 * (target - 0.5)) * (1 - source)) + (target <= 0.5) * (2 * target * source);
     }
 
+    bool isVR()
+    {
+    #if UNITY_SINGLE_PASS_STEREO
+        return true;
+    #else
+        return false;
+    #endif
+    }
+
     half3 BlendLighten(half3 target, half3 source) {
         return max(target, source);
     }
