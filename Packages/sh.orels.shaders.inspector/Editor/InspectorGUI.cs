@@ -459,7 +459,7 @@ namespace ORL.ShaderInspector
             }
 
             var propHeight = editor.GetPropertyHeight(property, strippedName);
-            if (property.type == MaterialProperty.PropType.Vector) {
+            if (property.type == MaterialProperty.PropType.Vector && EditorGUIUtility.currentViewWidth > 340) {
                 propHeight /= 2.0f;
             }
             var controlRect = EditorGUILayout.GetControlRect(true, propHeight, EditorStyles.layerMaskField);
