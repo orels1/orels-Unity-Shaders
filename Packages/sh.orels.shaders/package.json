@@ -16,12 +16,6 @@
   ],
   "license": "MIT",
   "type": "assets",
-  "legacyFolders": {
-    "Assets\\Shaders\\orels1\\ORL" : "",
-    "Assets\\Shaders\\orels1\\Editor": "",
-    "Assets\\Shaders\\orels1\\Sources": "",
-    "Assets\\Shaders\\orels1\\Resources": ""
-  },
   "vpmDependencies": {
     "sh.orels.shaders.generator": "6.1.X",
     "sh.orels.shaders.inspector": "6.1.x"
