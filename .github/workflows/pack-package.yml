@@ -71,7 +71,7 @@ jobs:
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: ${{ steps.version.outputs.prop }}
+          tag_name: "v${{ steps.version.outputs.prop }}"
           files: |
             ${{ env.zipFile }}
             ${{ env.unityPackage }}
@@ -81,7 +81,7 @@ jobs:
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
         if: startsWith(github.ref, 'refs/heads/dev')
         with:
-          tag_name: ${{ steps.version.outputs.prop }}
+          tag_name: "v${{ steps.version.outputs.prop }}"
           draft: true
           prerelease: true
           files: |
