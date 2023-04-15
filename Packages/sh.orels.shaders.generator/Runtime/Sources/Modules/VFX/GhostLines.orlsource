@@ -13,6 +13,7 @@
     _GLRimLightPush("Rim Light Push", Float) = 5
 
     UI_GhostLinesLinesHeader("## Lines Settings", Int) = 1
+    [Enum(Local Position, 0, UV, 1)]_GSLinesCoordinates("Coordinate Source", Int) = 0
     _GSLinesOrigin("Origin %ShowIf(_GSLinesEditMode == 1)", Vector) = (-0.5, -1, 0, 0)
     _GSLinesMovement("Movement", Vector) = (0,0,0,0)
     _GSLinesScale("Scale", Float) = 10
@@ -63,6 +64,7 @@
     half _GLRimLightPush;
 
     half3 _GSLinesOrigin;
+    int _GSLinesCoordinates;
     half3 _GSLinesMovement;
     half _GSLinesScale;
     half _GSLinesNudge;
@@ -111,12 +113,13 @@
         NoV = saturate(pow(NoV,_GLRimLightSharpness) * _GLRimLightPush);
         o.Emission = lerp(_GLTopColor, _GLBottomColor, 1 - d.uv0.y);
         half rimLightMask = remap(d.localSpacePosition[_GSGlowGradientDir], _GSGlowGradientRemap.x, _GSGlowGradientRemap.y, 0, 1);
-        rimLightMask = saturate(lerp(NoV, 1, rimLightMask));
+        rimLightMask = saturate(lerp(NoV * rimLightMask, 1, rimLightMask));
         rimLightMask = saturate(pow(rimLightMask, _GSGradientSharpness));
         o.Emission *= rimLightMask;
 
         // lines distortion
-        half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, d.extraV2F0.xyz * _GSNoiseScale + _GSNoiseMovement * _Time.x);
+        half3 coordSource = _GSLinesCoordinates ? d.uv0.xyx : d.extraV2F0.xyz;
+        half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, coordSource * _GSNoiseScale + _GSNoiseMovement * _Time.x);
         half3 pos = _GSLinesOrigin + _GSLinesMovement * _Time.x;
         half dist = length(d.extraV2F0 - pos) + lerp(0, noise, _GSNoiseStrength);
 
