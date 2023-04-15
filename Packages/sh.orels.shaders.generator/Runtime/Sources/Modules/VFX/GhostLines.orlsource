@@ -113,7 +113,7 @@
         NoV = saturate(pow(NoV,_GLRimLightSharpness) * _GLRimLightPush);
         o.Emission = lerp(_GLTopColor, _GLBottomColor, 1 - d.uv0.y);
         half rimLightMask = remap(d.localSpacePosition[_GSGlowGradientDir], _GSGlowGradientRemap.x, _GSGlowGradientRemap.y, 0, 1);
-        rimLightMask = saturate(lerp(NoV * rimLightMask, 1, rimLightMask));
+        rimLightMask = saturate(lerp(lerp(NoV, NoV * rimLightMask, 0.75), 0.75, rimLightMask));
         rimLightMask = saturate(pow(rimLightMask, _GSGradientSharpness));
         o.Emission *= rimLightMask;
 
