@@ -328,7 +328,7 @@
         // REFLECTIONS
         #if !defined(UNITY_PASS_FORWARDADD)
         half3 reflDir = reflect(-d.worldSpaceViewDir, o.Normal);
-        reflDir = lerp(reflDir, o.Normal, rough * rough);
+        reflDir = lerp(reflDir, o.Normal, clampedRoughness);
 
         Unity_GlossyEnvironmentData envData;
         envData.roughness = perceptualRoughness;
@@ -348,15 +348,13 @@
         #endif
 
         half horizon = min(1 + dot(reflDir, o.Normal), 1);
-        #if defined(LIGHTMAP_ON)
-        half specularOcclusion = saturate(pow(dot(indirectDiffuse, 1), _SpecOcclusion));
-        dfg.x *= specularOcclusion;
-        #else
-        half specularOcclusion = 1;
-        #endif
-        indirectSpecular = indirectSpecular * horizon * horizon * energyCompensation * EnvBRDFMultiscatter(dfg, f0);
+        indirectSpecular *= horizon * horizon;
 
-        indirectSpecular *= computeSpecularAO(NoV, o.Occlusion * specularOcclusion, clampedRoughness);
+        half specularOcclusion = saturate(length(indirectDiffuse) * (1.0 / _SpecOcclusion));
+        dfg.x *= specularOcclusion;
+        specularOcclusion = computeSpecularAO(NoV, o.Occlusion, clampedRoughness);
+
+        indirectSpecular *= specularOcclusion * EnvBRDFMultiscatter(dfg, f0);
         #endif
 
         #if defined(_INTEGRATE_CUSTOMGI) && !defined(UNITY_PASS_FORWARDADD)
