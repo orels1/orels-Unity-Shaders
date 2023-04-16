@@ -1,0 +1,9 @@
+%ShaderName("orels1/Standard Pulse")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "@/Modules/Pulse",
+    "self"
+}

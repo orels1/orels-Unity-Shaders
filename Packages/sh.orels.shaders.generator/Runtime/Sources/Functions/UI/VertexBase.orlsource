@@ -1,0 +1,21 @@
+%VertexBase("VertexBase")
+{
+    void VertexBase(inout VertexData v, inout FragmentData o)
+    {
+        o.pos = UnityObjectToClipPos(v.vertex);
+        o.normal = v.normal;
+        o.uv0 = v.uv0;
+        o.uv1 = v.uv1;
+        o.uv2 = v.uv2;
+        o.uv3 = v.uv3;
+        o.worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1));
+        o.worldNormal = UnityObjectToWorldNormal(v.normal);
+        o.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);
+        o.worldTangent.w = v.tangent.w * unity_WorldTransformParams.w;
+        o.vertexColor = v.color;
+
+        #if defined(NEED_SCREEN_POS)
+        o.screenPos = ComputeScreenPos(o.pos);
+        #endif
+    }
+}

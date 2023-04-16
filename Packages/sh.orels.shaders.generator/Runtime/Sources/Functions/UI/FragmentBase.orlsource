@@ -1,0 +1,82 @@
+%Properties()
+{
+    UI_UnityUIHeader("# Unity UI", Int) = 0
+    UI_UnityUINote("> These properties are used by Unity's UI system directly and you generally aren't meant to mess witht them", Int) = 0
+    _Color ("Tint", Color) = (1,1,1,1)
+    _StencilComp ("Stencil Comparison", Float) = 8
+    _Stencil ("Stencil ID", Float) = 0
+    _StencilOp ("Stencil Operation", Float) = 0
+    _StencilWriteMask ("Stencil Write Mask", Float) = 255
+    _StencilReadMask ("Stencil Read Mask", Float) = 255
+
+    _ColorMask ("Color Mask", Float) = 15
+
+    [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
+}
+
+%ShaderTags()
+{
+    "Queue" = "Transparent" "RenderType" = "Transparent" "IgnoreProjector"="True" "PreviewType"="Plane" "CanUseSpriteAtlas"="True"
+}
+
+%ShaderModifiers()
+{
+    Stencil
+    {
+        Ref [_Stencil]
+        Comp [_StencilComp]
+        Pass [_StencilOp]
+        ReadMask [_StencilReadMask]
+        WriteMask [_StencilWriteMask]
+    }
+
+    Cull Off
+    Lighting Off
+    ZWrite Off
+    ZTest [unity_GUIZTestMode]
+    Blend SrcAlpha OneMinusSrcAlpha
+    ColorMask [_ColorMask]
+}
+
+%Variables()
+{
+
+    half4 _Color;
+    fixed4 _TextureSampleAdd;
+    float4 _ClipRect;
+}
+
+%ShaderFeatures()
+{
+    #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
+    #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
+}
+
+%ShadeDefines()
+{
+    #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
+      #define PLAT_QUEST
+    #else
+      #ifdef PLAT_QUEST
+        #undef PLAT_QUEST
+      #endif
+    #endif
+}
+
+%FragmentBase("FragmentBase")
+{
+    void FragmentBase(SurfaceData o, inout half4 FinalColor)
+    {
+        o.Albedo += _TextureSampleAdd;
+        o.Albedo *= _Color.rgb;
+        o.Alpha *= _Color.a;
+        #ifdef UNITY_UI_CLIP_RECT
+            o.Alpha  *= UnityGet2DClipping(d.worldSpacePosition.xy, _ClipRect);
+        #endif
+
+        #ifdef UNITY_UI_ALPHACLIP
+            clip(o.Alpha  - 0.001);
+        #endif
+        FinalColor = half4(o.Albedo.rgb + o.Emission, o.Alpha);
+    }
+}

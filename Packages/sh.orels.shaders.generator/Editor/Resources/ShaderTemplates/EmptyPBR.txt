@@ -1,0 +1,30 @@
+﻿%ShaderName("SHADER_NAME")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    _Color("Color", Color) = (1,1,1,1)
+    _MainTex("Main Texture", 2D) = "white" {}
+}
+
+%Variables()
+{
+    half4 _Color;
+    half4 _MainTex_ST;
+}
+
+%Textures()
+{
+    TEXTURE2D(_MainTex);
+    SAMPLER(sampler_MainTex);
+}
+
+%Fragment("FRAGMENT_NAME")
+{
+    void FRAGMENT_NAME(MeshData d, inout SurfaceData o)
+    {
+        half2 uv = d.uv0 * _MainTex_ST.xy + _MainTex_ST.zw;
+        half4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+        o.Albedo = color.rgb * _Color.rgb;
+    }
+}

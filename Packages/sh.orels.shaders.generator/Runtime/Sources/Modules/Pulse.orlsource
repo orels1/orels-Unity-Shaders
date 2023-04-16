@@ -1,0 +1,78 @@
+%Properties()
+{
+    UI_PulseHeader("# Pulse", Int) = 1
+    [HDR]_PulseColor("Color", Color) = (1,1,1,1)
+    [Enum(All at once, 0, Gradient, 1)]_PulseType("Type", Int) = 0
+    [Enum(Local Position, 0, UV, 1, Texture, 2)]_PulseGradientSource("Gradient Source %ShowIf(_PulseType == 1)", Int) = 0
+    _PulseTexture("Gradient Texture %ShowIf(_PulseGradientSource == 2 && _PulseType == 1)", 2D) = "grayscaleRamp" {}
+    UI_PulseTextureNote("> This texture will be used as a base of pulse progression. Generally expected to be some kind of gradient, sometimes multiplied by a pattern %ShowIf(_PulseGradientSource == 2 && _PulseType == 1)", Int) = 0
+    [Enum(X, 0, Y, 1, Z, 2, Negative X, 3, Negative Y, 4, Negative Z, 5)]_PulseGradientDirection("Gradient Direction %ShowIf(_PulseType == 1)", Int) = 1
+    UI_PulseTextureChannelNote("> When using a texture as a source, X,Y,Z directions become an R,G,B channel selector %ShowIf(_PulseGradientSource == 2 && _PulseType == 1)", Int) = 0
+    [Toggle(PULSE_SHOW_GRAD)]_DebugPulseGradient("Debug Gradient %ShowIf(_PulseType == 1)", Int) = 0
+    [ToggleUI]_PulseAuto("Automatic", Int) = 0
+    _PulseProgress("Progress %ShowIf(!_PulseAuto)", Range(0,1)) = 0
+    _PulseSpeed("Speed %ShowIf(_PulseAuto)", Float) = 1
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local PULSE_SHOW_GRAD
+}
+
+%Variables()
+{
+    half4 _PulseColor;
+    int _PulseType;
+    int _DebugPulseGradient;
+    int _PulseGradientSource;
+    int _PulseGradientDirection;
+    half4 _PulseTexture_ST;
+    int _PulseAuto;
+    half _PulseProgress;
+    half _PulseSpeed;
+}
+
+%Textures()
+{
+    TEXTURE2D(_PulseTexture);
+    SAMPLER(sampler_PulseTexture);
+}
+
+%Fragment("PulseFragment")
+{
+    void PulseFragment(MeshData d, inout SurfaceData o) {
+        if (_PulseAuto == 1) {
+            _PulseProgress += _PulseSpeed * _Time.y;
+            _PulseProgress = frac(_PulseProgress);
+        }
+        half3 em = 0;
+        switch (_PulseType) {
+            case 0: {       
+                em = _PulseColor * _PulseProgress;
+                break;
+            }
+            case 1: {
+                half gradSource = 0;
+                uint totalChannels = 3;
+                switch (_PulseGradientSource) {
+                    case 0: gradSource = d.localSpacePosition[(_PulseGradientDirection % totalChannels)] * (_PulseGradientDirection > 2 ? -1 : 1); break;
+                    case 1: gradSource = d.uv0[(_PulseGradientDirection % totalChannels)] * (_PulseGradientDirection > 2 ? -1 : 1); break;
+                    case 2: {
+                        half2 uv = d.uv0 * _PulseTexture_ST.xy + _PulseTexture_ST.zw;
+                        gradSource = SAMPLE_TEXTURE2D(_PulseTexture, sampler_PulseTexture, uv)[(_PulseGradientDirection % totalChannels)] * (_PulseGradientDirection > 2 ? -1 : 1);
+                        break;
+                    }
+                }
+                half grad = lerp((gradSource + 0.5), gradSource, saturate(_PulseGradientSource));
+                #if defined(PULSE_SHOW_GRAD)
+                    o.Albedo = pow(grad, 2.2);
+                    return;
+                #endif
+                em = step(grad, _PulseProgress) * _PulseColor;
+                break;
+            }
+        }
+
+        o.Emission += lerp(em, 0, saturate(remap(_PulseProgress, 0.9, 1, 0, 1)));
+    }
+}

@@ -3,15 +3,17 @@
 
 %Properties()
 {
-    UI_CutoutHeader("# Cutout", Int) = 0
+    UI_CutoutHeader("# Cutout", Int) = 1
     _Cutoff("Cutoff", Range(0, 1)) = 0.5
     [Toggle(_NATIVE_A2C)]_AlphaToMask("Alpha To Coverage (A2C)", Int) = 0
+    [Toggle(DITHER_FADE)]_EnableDitherFade("Enable Dither Fade", Int) = 0
 }
 
 %Includes()
 {
     "/Packages/sh.orels.shaders/Runtime/Shaders/ORL Standard",
-    "self"
+    "self",
+    "@/Modules/DitherFade"
 }
 
 %ShaderFeatures()

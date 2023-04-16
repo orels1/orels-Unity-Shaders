@@ -1,0 +1,117 @@
+%Properties()
+{
+    UI_DissolveHeader("# Dissolve", Int) = 1
+    _DissolveCutoff("Cutoff", Range(0,1)) = 0.04
+    [Enum(Local Position, 0, UV, 1, Texture, 2)]_DissolveSource("Fade Based On", Int) = 0
+    _DissolveTexture("Fade Texture %ShowIf(_DissolveSource == 2)", 2D) = "grayscaleRamp" {}
+    UI_DissolveTextureNote("> This texture will be used as a base of fade progression. Generally expected to be some kind of gradient, sometimes multiplied by a pattern %ShowIf(_DissolveSource == 2)", Int) = 0
+    [Enum(X, 0, Y, 1, Z, 2, Negative X, 3, Negative Y, 4, Negative Z, 5)]_DissolveDirection("Fade Direction", Int) = 1
+    UI_DissolveTextureChannelNote("> When using a texture as a source, X,Y,Z directions become an R,G,B channel selector %ShowIf(_DissolveSource == 2)", Int) = 0
+    [Toggle(DISSOLVE_SHOW_FADE_GRAD)]_DebugFadeGrad("Debug Fade Gradient", Int) = 0
+    UI_DissolveOverlayHeader("## Overlays", Int) = 0
+    [ToggleUI]_DissolveUseBakedNoise("Use Baked Noise", Int) = 1
+    _DissolveBakedNoiseScale("Noise Scale %ShowIf(_DissolveUseBakedNoise)", Float) = 20
+    _DissolveBakedNoiseTex("Noise Texture > %RequiredTexture(@/BakedNoise.png) %ShowIf(_DissolveUseBakedNoise)", 2D) = "white" {}
+    _DissolveBakedNoiseStrength("Noise strength %ShowIf(_DissolveUseBakedNoise)", Float) = 0.7
+    _DissolveBakedNoiseScroll("Scroll Speed (X,Y,Z) %ShowIf(_DissolveUseBakedNoise)", Vector) = (0,0.5,0,0)
+    _DissolveOverlayTex("Overlay Texture", 2D) = "white" {}
+    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_DissolveOverlayChannel("Overlay Channel %ShowIf(_DissolveOverlayTex)", Int) = 0
+    _DissolveOverlayStrength("Overlay Strength %ShowIf(_DissolveOverlayTex)", Range(0,1)) = 1
+    UI_DissolveBorderHeader("## Border", Int) = 0
+    [ToggleUI]_DissolveGlowBorder("Add Glowing Border", Int) = 1
+    _DissolveGlowBorderWidth("Border Width", Float) = 0.3
+    [HDR]_DissolveGlowBorderColor("Border Color", Color) = (1,1,1,1)
+}
+
+%Variables()
+{
+    half _DissolveCutoff;
+    int _DissolveSource;
+    int _DissolveDirection;
+    half4 _DissolveTexture_ST;
+    half _DissolveBakedNoiseScale;
+    int _DissolveUseBakedNoise;
+    half _DissolveBakedNoiseStrength;
+    half4 _DissolveBakedNoiseScroll;
+    half4 _DissolveOverlayTex_ST;
+    int _DissolveOverlayChannel;
+    half _DissolveOverlayStrength;
+    int _DissolveGlowBorder;
+    half _DissolveGlowBorderWidth;
+    half4 _DissolveGlowBorderColor;
+}
+
+%Textures()
+{
+    TEXTURE2D(_DissolveTexture);
+    SAMPLER(sampler_DissolveTexture);
+    TEXTURE2D(_DissolveOverlayTex);
+    SAMPLER(sampler_DissolveOverlayTex);
+    TEXTURE2D(_DissolveBakedNoiseTex);
+    SAMPLER(sampler_DissolveBakedNoiseTex);
+}
+
+%ShaderDefines()
+{
+    #define NEED_FRAGMENT_IN_SHADOW
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local DISSOLVE_SHOW_FADE_GRAD
+}
+
+%ShaderTags()
+{
+    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout"
+}
+
+%Fragment("DissolveFragment")
+{
+    void DissolveFragment(MeshData d, inout SurfaceData o) {
+        _DissolveCutoff = remap(_DissolveCutoff, 0, 1, -0.1, 1);
+        half gradSource = 0;
+        uint totalChannels = 3;
+        switch (_DissolveSource) {
+            case 0: gradSource = d.localSpacePosition[(_DissolveDirection % totalChannels)] * (_DissolveDirection > 2 ? -1 : 1); break;
+            case 1: gradSource = d.uv0[(_DissolveDirection % totalChannels)] * (_DissolveDirection > 2 ? -1 : 1); break;
+            case 2: {
+                half2 uv = d.uv0 * _DissolveTexture_ST.xy + _DissolveTexture_ST.zw;
+                gradSource = SAMPLE_TEXTURE2D(_DissolveTexture, sampler_DissolveTexture, uv)[(_DissolveDirection % totalChannels)] * (_DissolveDirection > 2 ? -1 : 1);
+                break;
+            }
+        }
+        half grad = lerp(1 - (gradSource + 0.5), gradSource, saturate(_DissolveSource));
+        #if DISSOLVE_SHOW_FADE_GRAD
+            o.Albedo = pow(grad, 2.2);
+            return;
+        #endif
+        if (_DissolveUseBakedNoise) {
+            half3 pos = d.localSpacePosition.xyz * _DissolveBakedNoiseScale;
+            pos += _Time.y * _DissolveBakedNoiseScroll;
+            half noise = getBakedNoise(_DissolveBakedNoiseTex, sampler_DissolveBakedNoiseTex, pos) * 0.5;
+            pos *= 2.1;
+            noise += getBakedNoise(_DissolveBakedNoiseTex, sampler_DissolveBakedNoiseTex, pos) * 0.5;
+            noise = saturate(remap(noise, 0,1, 1 - _DissolveBakedNoiseStrength,1));
+            grad = saturate(grad * noise);
+        }
+        half2 overlayUv = d.uv0 * _DissolveOverlayTex_ST.xy + _DissolveOverlayTex_ST.zw;
+        half overlay = SAMPLE_TEXTURE2D(_DissolveOverlayTex, sampler_DissolveOverlayTex, overlayUv)[_DissolveOverlayChannel];
+        grad = saturate(grad * saturate(remap(overlay, 0, 1, 1 - _DissolveOverlayStrength, 1)));
+        if (grad < _DissolveCutoff)  {
+            clip(-1);
+        }
+        if (_DissolveGlowBorder) {
+            o.Emission += step(grad, _DissolveCutoff + _DissolveGlowBorderWidth) * _DissolveGlowBorderColor;
+        }
+    }
+}
+
+%Shadow("DissolveShadow")
+{
+    void DissolveShadow(inout SurfaceData o) {
+        if (o.Alpha < _DissolveCutoff)  {
+            clip(-1);
+        }
+    }
+}

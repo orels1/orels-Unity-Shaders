@@ -2,9 +2,151 @@
 {
     #define FLT_EPSILON     1.192092896e-07
 
+    half3 BlendOverlay(half3 target, half3 source)
+    {
+        return (target > 0.5) * (1 - (1 - 2 * (target - 0.5)) * (1 - source)) + (target <= 0.5) * (2 * target * source);
+    }
+
+    bool isVR()
+    {
+    #if UNITY_SINGLE_PASS_STEREO
+        return true;
+    #else
+        return false;
+    #endif
+    }
+
+    half3 BlendLighten(half3 target, half3 source) {
+        return max(target, source);
+    }
+
+    half3 BlendScreen(half3 target, half3 source) {
+        return 1 - (1 - target) * (1 - source);
+    }
+
     half invLerp(half a, half b, half v)
     {
         return (v - a) / (b - a);
+    }
+
+    // w0, w1, w2, and w3 are the four cubic B-spline basis functions
+    half w0(half a)
+    {
+      //    return (1.0f/6.0f)*(-a*a*a + 3.0f*a*a - 3.0f*a + 1.0f);
+        return (1.0f / 6.0f) * (a * (a * (-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+
+    }
+
+    half w1(half a)
+    {
+      //    return (1.0f/6.0f)*(3.0f*a*a*a - 6.0f*a*a + 4.0f);
+        return (1.0f / 6.0f) * (a * a * (3.0f * a - 6.0f) + 4.0f);
+    }
+
+    half w2(half a)
+    {
+      //    return (1.0f/6.0f)*(-3.0f*a*a*a + 3.0f*a*a + 3.0f*a + 1.0f);
+        return (1.0f / 6.0f) * (a * (a * (-3.0f * a + 3.0f) + 3.0f) + 1.0f);
+    }
+
+    half w3(half a)
+    {
+        return (1.0f / 6.0f) * (a * a * a);
+    }
+
+    // g0 and g1 are the two amplitude functions
+    half g0(half a)
+    {
+        return w0(a) + w1(a);
+    }
+
+    half g1(half a)
+    {
+        return w2(a) + w3(a);
+    }
+
+    // h0 and h1 are the two offset functions
+    half h0(half a)
+    {
+      // note +0.5 offset to compensate for CUDA linear filtering convention
+        return -1.0f + w1(a) / (w0(a) + w1(a)) + 0.5f;
+    }
+
+    half h1(half a)
+    {
+        return 1.0f + w3(a) / (w2(a) + w3(a)) + 0.5f;
+    }
+
+    half4 tex2DFastBicubicSample(Texture2D tex, SamplerState texSampler, half2 uv)
+    {
+        #if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
+        half width;
+        half height;
+        tex.GetDimensions(width, height);
+        half x = uv.x * width;
+        half y = uv.y * height;
+
+
+
+        x -= 0.5f;
+        y -= 0.5f;
+        half px = floor(x);
+        half py = floor(y);
+        half fx = x - px;
+        half fy = y - py;
+
+        // note: we could store these functions in a lookup table texture, but maths is cheap
+        half g0x = g0(fx);
+        half g1x = g1(fx);
+        half h0x = h0(fx);
+        half h1x = h1(fx);
+        half h0y = h0(fy);
+        half h1y = h1(fy);
+
+        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D(tex, texSampler, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+        g1x * SAMPLE_TEXTURE2D(tex, texSampler, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+        g1(fy) * (g0x * SAMPLE_TEXTURE2D(tex, texSampler, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+        g1x * SAMPLE_TEXTURE2D(tex, texSampler, (half2(px + h1x, py + h1y) * 1.0f / width)));
+        return r;
+        #else
+        return SAMPLE_TEXTURE2D(tex, texSampler, uv);
+        #endif
+    }
+
+    half4 tex2DFastBicubicSampleLevel(Texture2D tex, SamplerState texSampler, half2 uv, int level)
+    {
+        #if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
+        half width;
+        half height;
+        tex.GetDimensions(width, height);
+        half x = uv.x * width;
+        half y = uv.y * height;
+
+
+
+        x -= 0.5f;
+        y -= 0.5f;
+        half px = floor(x);
+        half py = floor(y);
+        half fx = x - px;
+        half fy = y - py;
+
+        // note: we could store these functions in a lookup table texture, but maths is cheap
+        half g0x = g0(fx);
+        half g1x = g1(fx);
+        half h0x = h0(fx);
+        half h1x = h1(fx);
+        half h0y = h0(fy);
+        half h1y = h1(fy);
+
+        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D_LOD(tex, texSampler, (half2(px + h0x, py + h0y) * 1.0f / width), level) +
+        g1x * SAMPLE_TEXTURE2D_LOD(tex, texSampler, (half2(px + h1x, py + h0y) * 1.0f / width), level)) +
+        g1(fy) * (g0x * SAMPLE_TEXTURE2D_LOD(tex, texSampler, (half2(px + h0x, py + h1y) * 1.0f / width), level) +
+        g1x * SAMPLE_TEXTURE2D_LOD(tex, texSampler, (half2(px + h1x, py + h1y) * 1.0f / width), level));
+        return r;
+        #else
+        return SAMPLE_TEXTURE2D_LOD(tex, texSampler, uv, level);
+        #endif
     }
 
     half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
@@ -13,6 +155,15 @@
         half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
         uv.y *= -1;
         p.xy = noiseTex.SampleLevel(noiseTexSampler, uv, 0).yx;
+        return lerp(p.x, p.y, p.z);
+    }
+
+    half getBakedNoiseBicubic(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+    {
+        half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+        half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
+        uv.y *= -1;
+        p.xy = tex2DFastBicubicSampleLevel(noiseTex, noiseTexSampler, uv, 0).yx;
         return lerp(p.x, p.y, p.z);
     }
 

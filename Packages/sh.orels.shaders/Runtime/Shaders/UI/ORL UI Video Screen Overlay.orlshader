@@ -1,0 +1,14 @@
+%ShaderName("orels1/UI/Video Screen Overlay")
+%LightingModel("@/LightingModels/UI")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "self",
+    "@/Shaders/UI/ORL UI Video Screen"
+}
+
+%PassModifiers()
+{
+    ZTest Always
+}

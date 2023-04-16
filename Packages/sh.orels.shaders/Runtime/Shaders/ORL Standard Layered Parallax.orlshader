@@ -3,8 +3,8 @@
 
 %Properties()
 {
-    _LPHeader("# Layered Parallax (Posters)", Float) = 0
-    UI_GeneralHeader("## General Settings", Int) = 0
+    _LPHeader("# Layered Parallax", Float) = 0
+    UI_LPDocs("[This shader has documentation](https://shaders.orels.sh/docs/orl-standard/layered-parallax)", Int) = 0
     _LPBackground("Background", 2D) = "black" { }
     _LPOverlay("Overlay", 2D) = "black" { }
     [IntRange]_LPLayerCount("Layer Count", Range(1, 5)) = 3

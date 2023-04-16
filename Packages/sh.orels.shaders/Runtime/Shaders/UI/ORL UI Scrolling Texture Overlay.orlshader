@@ -1,0 +1,14 @@
+%ShaderName("orels1/UI/Scrolling Texture Overlay")
+%LightingModel("@/LightingModels/UI")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "self",
+    "@/Shaders/UI/ORL UI Scrolling Texture"
+}
+
+%PassModifiers()
+{
+    ZTest Always
+}

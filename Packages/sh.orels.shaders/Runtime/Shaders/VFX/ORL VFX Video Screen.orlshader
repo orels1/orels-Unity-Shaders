@@ -1,0 +1,40 @@
+%ShaderName("orels1/VFX/Unlit Video Screen")
+%LightingModel("@/LightingModels/VFX")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    _EmissionMap("Video Texture >", 2D) = "white" {}
+    [HDR]_EmissionColor("Video Tint", Color) = (1,1,1,1)
+}
+
+%Includes()
+{
+    "@/Modules/VRCVideo",
+    "self",
+}
+
+%Textures()
+{
+    TEXTURE2D(_EmissionMap);
+    SAMPLER(sampler_EmissionMap);
+}
+
+%Variables()
+{
+    float4 _EmissionMap_ST;
+    float4 _EmissionColor;
+}
+
+%ShaderDefines()
+{
+    #define _EMISSION
+}
+
+%Fragment("VideoScreenFragment")
+{
+    void VideoScreenFragment(inout SurfaceData o)
+    {
+        o.Albedo = 0;
+    }
+}

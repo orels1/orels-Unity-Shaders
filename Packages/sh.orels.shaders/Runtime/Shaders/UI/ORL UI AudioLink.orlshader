@@ -1,0 +1,15 @@
+%ShaderName("orels1/UI/AudioLink")
+%LightingModel("@/LightingModels/UI")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Modules/AudioLinkEffects",
+    "@/Shaders/UI/ORL UI",
+    "self",
+}
+
+%ShaderDefines()
+{
+    #define AL_CUTOUT
+}

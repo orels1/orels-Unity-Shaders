@@ -1,0 +1,26 @@
+﻿%ShaderName("SHADER_NAME")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_SECTION_NAMEHeader("# SECTION_NAME", Int) = 1
+    _MyProp("My Property", Float) = 0
+}
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "self"
+}
+
+%Variables()
+{
+    half _MyProp;
+}
+
+%Fragment("FRAGMENT_NAME")
+{
+    void FRAGMENT_NAME(MeshData d, inout SurfaceData o) {
+        o.Emission += _MyProp;
+    }
+}

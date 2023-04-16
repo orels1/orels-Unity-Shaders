@@ -208,9 +208,9 @@
 
             half intensity = length(emission.rgb);
             half3 emissionHSV = RGB2HSV(normalize(emission.rgb));
-            emissionHSV.x = fmod(emissionHSV.x + _Hue, 1);
-            emissionHSV.y = saturate(emissionHSV.y + _Saturation);
-            emissionHSV.z = saturate(emissionHSV.z + _Value);
+            emissionHSV.x = fmod(emissionHSV.x + o.Hue, 1);
+            emissionHSV.y = saturate(emissionHSV.y + o.Saturation);
+            emissionHSV.z = saturate(emissionHSV.z + o.Value);
             emission.rgb = HSV2RGB(emissionHSV) * intensity;
 
             float4 scaledEmission = emission * saturate(smoothstep(1 - o.EmissionLightThreshold, 1 + o.EmissionLightThreshold, 1 - lightAvg));
@@ -307,7 +307,7 @@
         // Light Ramp
         half4 ramp = 1;
         half4 diffuse = 1;
-        ramp = calcRamp(lightNoL, lightAttenuation, occlusion, _OcclusionMode);
+        ramp = calcRamp(lightNoL, lightAttenuation, occlusion, o.OcclusionMode);
         diffuse = calcDiffuse(lightAttenuation, o.Albedo.rgb, indirectDiffuse, lightColor, ramp);
 
         // Rims

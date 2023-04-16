@@ -1,0 +1,9 @@
+%ShaderName("orels1/Standard AudioLink Vertex Animation")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/ORL Standard AudioLink",
+    "@/Modules/VertexAnimation",
+    "self"
+}

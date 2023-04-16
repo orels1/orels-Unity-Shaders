@@ -144,54 +144,6 @@
         return sqrt(sqrt(squareRoughness));
     }
 
-    // w0, w1, w2, and w3 are the four cubic B-spline basis functions
-    half w0(half a)
-    {
-      //    return (1.0f/6.0f)*(-a*a*a + 3.0f*a*a - 3.0f*a + 1.0f);
-        return (1.0f / 6.0f) * (a * (a * (-a + 3.0f) - 3.0f) + 1.0f);   // optimized
-
-    }
-
-    half w1(half a)
-    {
-      //    return (1.0f/6.0f)*(3.0f*a*a*a - 6.0f*a*a + 4.0f);
-        return (1.0f / 6.0f) * (a * a * (3.0f * a - 6.0f) + 4.0f);
-    }
-
-    half w2(half a)
-    {
-      //    return (1.0f/6.0f)*(-3.0f*a*a*a + 3.0f*a*a + 3.0f*a + 1.0f);
-        return (1.0f / 6.0f) * (a * (a * (-3.0f * a + 3.0f) + 3.0f) + 1.0f);
-    }
-
-    half w3(half a)
-    {
-        return (1.0f / 6.0f) * (a * a * a);
-    }
-
-    // g0 and g1 are the two amplitude functions
-    half g0(half a)
-    {
-        return w0(a) + w1(a);
-    }
-
-    half g1(half a)
-    {
-        return w2(a) + w3(a);
-    }
-
-    // h0 and h1 are the two offset functions
-    half h0(half a)
-    {
-      // note +0.5 offset to compensate for CUDA linear filtering convention
-        return -1.0f + w1(a) / (w0(a) + w1(a)) + 0.5f;
-    }
-
-    half h1(half a)
-    {
-        return 1.0f + w3(a) / (w2(a) + w3(a)) + 0.5f;
-    }
-
     //https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
     half3 tex2DFastBicubicLightmap(half2 uv, inout half4 bakedColorTex)
     {
@@ -228,42 +180,6 @@
         #else
         bakedColorTex = UNITY_SAMPLE_TEX2D(unity_Lightmap, uv);
         return DecodeLightmap(bakedColorTex);
-        #endif
-    }
-
-    half4 tex2DFastBicubicSample(Texture2D tex, SamplerState texSampler, half2 uv)
-    {
-        #if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
-        half width;
-        half height;
-        tex.GetDimensions(width, height);
-        half x = uv.x * width;
-        half y = uv.y * height;
-
-
-
-        x -= 0.5f;
-        y -= 0.5f;
-        half px = floor(x);
-        half py = floor(y);
-        half fx = x - px;
-        half fy = y - py;
-
-        // note: we could store these functions in a lookup table texture, but maths is cheap
-        half g0x = g0(fx);
-        half g1x = g1(fx);
-        half h0x = h0(fx);
-        half h1x = h1(fx);
-        half h0y = h0(fy);
-        half h1y = h1(fy);
-
-        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D(tex, texSampler, (half2(px + h0x, py + h0y) * 1.0f / width)) +
-        g1x * SAMPLE_TEXTURE2D(tex, texSampler, (half2(px + h1x, py + h0y) * 1.0f / width))) +
-        g1(fy) * (g0x * SAMPLE_TEXTURE2D(tex, texSampler, (half2(px + h0x, py + h1y) * 1.0f / width)) +
-        g1x * SAMPLE_TEXTURE2D(tex, texSampler, (half2(px + h1x, py + h1y) * 1.0f / width)));
-        return r;
-        #else
-        return SAMPLE_TEXTURE2D(tex, texSampler, uv);
         #endif
     }
 

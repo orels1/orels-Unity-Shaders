@@ -1,0 +1,150 @@
+%ShaderName("orels1/VFX/Shield")
+%LightingModel("@/LightingModels/VFX")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    [HDR]_Color("Global Tint", Color) = (1,1,1,1)
+    [NonModifiableTextureData][NoScaleOffset]_BakedNoiseTex("Noise Texture > %RequiredTexture(@/BakedNoise.png)", 2D) = "white" { }
+    UI_Layer1Header("# Layer 1", Int) = 1
+    [HDR]_Layer1Color("Color", Color) = (1,1,1,1)
+    _Layer1Smoothing("Smoothing", Float) = 0.01
+    _Layer1Width("Width", Float) = 0.01
+    _Layer1Scale("Scale", Float) = 6
+    _Layer1Movement("Movement", Vector) = (0,0.5,0)
+    UI_Layer2Header("# Layer 2", Int) = 1
+    [HDR]_Layer2Color("Color", Color) = (1,1,1,1)
+    _Layer2Smoothing("Smoothing", Float) = 0.01
+    _Layer2Width("Width", Float) = 0.2
+    _Layer2Scale("Scale", Float) = 6
+    _Layer2Movement("Movement", Vector) = (0,0.5,0)
+    UI_DepthBlendHeader("# Depth Blend", Int) = 1
+    [Toggle(DEPTH_BLEND)]_DepthBlend("Depth Blend Enabled", Float) = 0
+    _DepthBlendDistance("Blend Distance %ShowIf(DEPTH_BLEND)", Float) = 0.2
+    [HDR]_DepthBlendTint("Blend Tint %ShowIf(DEPTH_BLEND)", Color) = (1,1,1,1)
+}
+
+%ShaderTags()
+{
+    "Queue" = "Transparent" "RenderType" = "Transparent"
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local DEPTH_BLEND
+}
+
+%ShaderDefines()
+{
+    #if defined(DEPTH_BLEND)
+        #define NEED_DEPTH
+        #define EXTRA_V2F_0
+    #else
+        #undef NEED_DEPTH
+        #undef EXTRA_V2F_0
+    #endif
+}
+
+%ShaderModifiers()
+{
+    Blend SrcAlpha OneMinusSrcAlpha
+    ZWrite Off
+    Cull Off
+}
+
+%Variables()
+{
+    half4 _Color;
+    half4 _Layer1Color;
+    half _Layer1Smoothing;
+    half _Layer1Width;
+    half _Layer1Scale;
+    half4 _Layer1Movement;
+
+    half4 _Layer2Color;
+    half _Layer2Smoothing;
+    half _Layer2Width;
+    half _Layer2Scale;
+    half4 _Layer2Movement;
+
+    half _DepthBlendDistance;
+    half4 _DepthBlendTint;
+}
+
+%Textures()
+{
+    TEXTURE2D(_BakedNoiseTex);
+    SAMPLER(sampler_BakedNoiseTex);
+}
+
+
+%Vertex("ShieldVertex")
+{
+    void ShieldVertex(inout VertexData v, inout FragmentData o)
+    {
+        #if defined(DEPTH_BLEND)
+        o.extraV2F0 = ComputeScreenPos(UnityObjectToClipPos(v.vertex));
+        // COMPUTE_EYEDEPTH macro
+        o.extraV2F0.z = -UnityObjectToViewPos(v.vertex).z;
+        #endif
+    }
+}
+
+
+%Fragment("ShieldFragment")
+{
+    half StepMask(half value, half start1, half start2, half stepSize)
+    {
+        half stepped = smoothstep(start1, start1 + stepSize, value);
+        stepped = stepped - smoothstep(start2, start2 + stepSize, value);
+        return stepped;
+    }
+
+    void ShieldFragment(MeshData d, inout SurfaceData o)
+    {
+        // layer 1
+        {
+            half3 pos = d.worldSpacePosition.xyz + _Layer1Movement.xyz * _Time.y;
+            pos *= _Layer1Scale;
+            half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.5;
+            half stepped = StepMask(noise, 0.11, 0.11 + _Layer1Width, _Layer1Smoothing);
+            o.Alpha = stepped * _Layer1Color.a;
+            o.Emission = stepped * 0.5 * _Layer1Color.rgb;
+        }
+
+        // layer 2
+        {
+            half3 pos = d.worldSpacePosition.xyz + _Layer2Movement.xyz * _Time.y;
+            pos *= _Layer2Scale;
+            half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.5;
+            half stepped = StepMask(noise, 0.3, 0.3 + _Layer2Width, _Layer2Smoothing);
+            o.Alpha += stepped * _Layer2Color.a;
+            o.Emission += stepped * 0.25 * _Layer2Color.rgb;
+        }
+        
+
+        #if defined(DEPTH_BLEND)
+        {
+            float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(d.extraV2F0)));
+            float depth = sceneZ - d.extraV2F0.z;
+            
+            half3 pos = d.worldSpacePosition.xyz * 8;
+            half edgeMask = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.5;
+            pos *= 2.1;
+            edgeMask += getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.25;
+            pos *= 2.2;
+            edgeMask += getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.125;
+            edgeMask = smoothstep(depth-0.05, depth + 0.05, edgeMask);
+            depth = saturate(invLerp(0, max(0, _DepthBlendDistance), depth));
+            depth = 1 - depth;
+            depth *= edgeMask;
+            o.Alpha += depth * _DepthBlendTint.a;
+            o.Emission += depth * _DepthBlendTint.rgb;
+        }
+        #endif
+
+        o.Alpha = saturate(o.Alpha);
+        o.Emission *= _Color.rgb;
+
+    }
+}

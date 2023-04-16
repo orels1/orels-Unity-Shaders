@@ -2,56 +2,65 @@ name: Build Release
 
 on: 
   workflow_dispatch:
-  # push:
-  #   branches: main
-  #   paths: Packages/com.vrchat.demo-template/**
-
-env:
-  packageName: "com.vrchat.demo-template"
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - Packages/sh.orels.shaders/**
+      - Packages/sh.orels.shaders.generator/**
+      - Packages/sh.orels.shaders.inspector/**
 
 jobs:
-  build:
+  pack-shaders:
+    uses: ./.github/workflows/pack-package.yml
+    with:
+      package-name: "sh.orels.shaders"
+
+  pack-inspector:
+    uses: ./.github/workflows/pack-package.yml
+    needs: pack-shaders
+    with:
+      package-name: "sh.orels.shaders.inspector"
+
+  pack-generator:
+    uses: ./.github/workflows/pack-package.yml
+    needs: [pack-shaders, pack-inspector]
+    with:
+      package-name: "sh.orels.shaders.generator"
+
+  pack-repo:
+    uses: ./.github/workflows/pack-repo.yml
+    needs: [pack-shaders, pack-inspector, pack-generator]
+
+  update-release:
+    needs: pack-repo
     runs-on: ubuntu-latest
     steps:
-    
+
       - name: Checkout
         uses: actions/checkout@v3
-    
+      
       - name: get version
         id: version
         uses: notiz-dev/github-action-json-property@7c8cf5cc36eb85d8d287a8086a39dac59628eb31
         with: 
-            path: "Packages/${{env.packageName}}/package.json"
+            path: "Packages/sh.orels.shaders/package.json"
             prop_path: "version"
-            
-      - run: echo ${{steps.version.outputs.prop}} 
-    
-      - name: Set Environment Variables
-        run: |
-          echo "zipFile=${{ env.packageName }}-${{ steps.version.outputs.prop }}".zip >> $GITHUB_ENV
-          echo "unityPackage=${{ env.packageName }}-${{ steps.version.outputs.prop }}.unitypackage" >> $GITHUB_ENV
-        
-      - name: Create Zip
-        uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
-        with:
-          type: "zip"
-          directory: "Packages/${{env.packageName}}/"
-          filename: "../../${{env.zipFile}}" # make the zip file two directories up, since we start two directories in above
-          
-      - run: find "Packages/${{env.packageName}}/" -name \*.meta >> metaList
-          
-      - name: Create UnityPackage
-        uses: pCYSl5EDgo/create-unitypackage@e28c7a4616b2754c564b0a959a03b3c89b756fdb
-        with:
-          package-path: ${{ env.unityPackage }}
-          include-files: metaList
-        
-        
+
       - name: Make Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
+        if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: ${{ steps.version.outputs.prop }}
-          files: |
-            ${{ env.zipFile }}
-            ${{ env.unityPackage }}
-            Packages/${{ env.packageName }}/package.json
+          tag_name: "v${{ steps.version.outputs.prop }}"
+          generate_release_notes: true
+
+      - name: Make Pre-Release
+        uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
+        if: startsWith(github.ref, 'refs/heads/dev')
+        with:
+          tag_name: "v${{ steps.version.outputs.prop }}"
+          draft: true
+          prerelease: true
+          generate_release_notes: true
+

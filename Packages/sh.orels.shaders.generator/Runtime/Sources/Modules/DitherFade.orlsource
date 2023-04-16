@@ -1,0 +1,84 @@
+%Properties()
+{
+    UI_DFHeadeR("# Fade Settings", Int) = 1
+    UI_DFDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/dither-fade)", Int) = 0
+    _DitherTex("Dither Texture > %RequiredTexture(@/BayerDither4x4.png)", 2D) = "unity_DitherMask" {}
+    _DFStart("Fade Start", Float) = 4
+    _DFEnd("Fade End", Float) = 5
+    UI_DFParamsNote("> Fade distances are specified in World Units", Int) = 0
+    [ToggleUI]_DFOverrideFade("Override Fade", Int) = 0
+    _DFOverrideProgress("Fade Progress %ShowIf(_DFOverrideFade)", Range(0, 1)) = 0
+}
+
+%ShaderTags()
+{
+    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout"
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local DITHER_FADE
+}
+
+%ShaderDefines()
+{
+    #define EXTRA_V2F_0
+}
+
+%Variables()
+{
+    half4 _DitherTex_TexelSize;
+    half _DFStart;
+    half _DFEnd;
+    int _DFOverrideFade;
+    half _DFOverrideProgress;
+}
+
+%Textures()
+{
+    TEXTURE2D(_DitherTex);
+    SAMPLER(sampler_DitherTex);
+}
+
+%Vertex("DitherFadeVertex")
+{
+    void DitherFadeVertex(inout VertexData v, inout FragmentData o)
+    {
+        #if defined(DITHER_FADE)
+        o.extraV2F0 = ComputeScreenPos(UnityObjectToClipPos(v.vertex));
+        // COMPUTE_EYEDEPTH macro
+        o.extraV2F0.z = -UnityObjectToViewPos(v.vertex).z;
+        // yeet the vertices completely if we're beyond the fade range
+        half dist = distance(mul(unity_ObjectToWorld, float4(0, 0, 0, 1)).xyz, _WorldSpaceCameraPos);
+        half factor = invLerp(_DFEnd, _DFStart, dist);
+        factor = lerp(factor, 1 - _DFOverrideProgress, _DFOverrideFade);
+        if (factor <= 0) {
+            v.vertex = asfloat(-1);
+        }
+        #endif
+    }
+}
+
+%Fragment("DitherFadeFragment")
+{
+    void SampleDither(half2 screenPos, half direction)
+    {
+        screenPos *= _DitherTex_TexelSize.x;
+        half mask = SAMPLE_TEXTURE2D(_DitherTex, sampler_DitherTex, screenPos).r;
+        clip(direction - mask * sign(direction));
+    }
+
+    void DitherFadeFragment(MeshData d, inout SurfaceData o)
+    {
+        #if defined(DITHER_FADE)
+        half2 screenPos = d.extraV2F0 .xy / d.extraV2F0 .w * _ScreenParams.xy;
+        half dist = distance(mul(unity_ObjectToWorld, float4(0, 0, 0, 1)).xyz, _WorldSpaceCameraPos);
+        half factor = invLerp(_DFEnd, _DFStart, dist);
+        factor = lerp(factor, 1 - _DFOverrideProgress, _DFOverrideFade);
+        SampleDither(screenPos, saturate(factor));
+        if (factor <= 0) {
+            clip(-1);
+        }
+        #endif
+    }
+}

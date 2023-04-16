@@ -1,0 +1,147 @@
+%ShaderName("orels1/VFX/Holographic Parallax")
+%LightingModel("@/LightingModels/VFX")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    [ToggleUI]UI_HolographicParallaxHeader("# Holographic Parallax", Int) = 1
+    UI_GhostLinesDocs("[This shader has documentation](https://shaders.orels.sh/docs/vfx/holographic-parallax)", Int) = 0
+    [KeywordEnum(Ten, Six, Four, Two)]HOLOGRAPHIC_PARALLAX_LAYERS("Stacked Layers", Int) = 0
+    _HPStackedTexture("Stacked Texture", 2D) = "black" {}
+    [HDR]_HPTint("Tint Color", Color) = (1,1,1,1)
+    [HDR]_HPStackedColor("Stacked Color", Color) = (1,1,1,1)
+    _HPStackedColorSmoothing("Stacked Color Smoothing", Float) = 2
+    _HPStackedIntensity("Stacked Intensity", Float) = 1
+    _HPLayerFade("Layer Fade", Float) = 0.4
+    _HPBarsLayerStep("Layer Step", Float) = -5
+    _HPGlancingFalloff("Angle Falloff", Range(0,1)) = 0.9
+    UI_HPGlancingFolloffNote("> Controls the visibility face-on vs at an angle", Int) = 0
+
+    UI_HPCutDarkHeader("# Dark Color Filter", Int) = 1
+    [ToggleUI]_HPCutDark("Dark Filter Enabled", Int) = 0
+    _HPCutDarkThreshold("Dark Threshold %ShowIf(_HPCutDark)", Range(0,1)) = 0.5
+    
+    UI_HPFlickerHeader("# Flicker", Int) = 1
+    [ToggleUI]_HPFlicker("Flicker Enabled", Int) = 0
+    _HPFlickerSpeed("Flicker Speed %ShowIf(_HPFlicker)", Float) = 50
+    _HPFlickerRange("Flicker Range %ShowIf(_HPFlicker) %RemapSlider(0, 1)", Vector) = (0.95, 1, 0, 1)
+
+    UI_HPMaskingHeader("# Masking", Int) = 1
+    _HPStackedMask("Alpha Mask", 2D) = "white" {}
+    [Enum(R, 0, G, 1, B, 2, A, 3)]_HPStackedMaskChannel("Mask Channel", Int) = 3
+    _HPStackedMaskStrength("Mask Strength", Range(0,1)) = 0.14
+    [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
+}
+
+%ShaderTags()
+{
+    "Queue" = "Transparent" "RenderType" = "Transparent"
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local HOLOGRAPHIC_PARALLAX_LAYERS_TEN HOLOGRAPHIC_PARALLAX_LAYERS_SIX HOLOGRAPHIC_PARALLAX_LAYERS_FOUR HOLOGRAPHIC_PARALLAX_LAYERS_TWO
+}
+
+%ShaderDefines()
+{
+    #if defined(HOLOGRAPHIC_PARALLAX_LAYERS_TEN)
+        #define SP_LAYERS_COUNT 10
+        #define SP_LAYER_STEP 0.1
+    #elif defined(HOLOGRAPHIC_PARALLAX_LAYERS_SIX)
+        #define SP_LAYERS_COUNT 6
+        #define SP_LAYER_STEP 0.166
+    #elif defined(HOLOGRAPHIC_PARALLAX_LAYERS_FOUR)
+        #define SP_LAYERS_COUNT 4
+        #define SP_LAYER_STEP 0.25
+    #elif defined(HOLOGRAPHIC_PARALLAX_LAYERS_TWO)
+        #define SP_LAYERS_COUNT 2
+        #define SP_LAYER_STEP 0.5
+    #endif
+}
+
+%ShaderModifiers()
+{
+    Blend SrcAlpha OneMinusSrcAlpha
+    ZWrite Off
+    Cull [_CullMode]
+}
+
+%Variables()
+{
+    half4 _HPStackedTexture_ST;
+    half4 _HPTint;
+    half4 _HPStackedColor;
+    int _HPFlicker;
+    half _HPFlickerSpeed;
+    half4 _HPFlickerRange;
+    half _HPStackedColorSmoothing;
+    half _HPBarsLayerStep;
+    half _HPStackedIntensity;
+    half _HPGlancingFalloff;
+    int _HPCutDark;
+    half _HPCutDarkThreshold;
+
+    half _HPLayerFade;
+
+    half _HPStackedMaskStrength;
+    int _HPStackedMaskChannel;
+    half4 _HPStackedMask_ST;
+}
+
+%Textures()
+{
+    TEXTURE2D(_HPStackedTexture);
+    SAMPLER(sampler_HPStackedTexture);
+    TEXTURE2D(_HPStackedMask);
+    SAMPLER(sampler_HPStackedMask);
+}
+
+%Fragment("SPFragment")
+{
+
+    void SPFragment(MeshData d, inout SurfaceData o) {
+        o.Albedo = 0;
+        o.Alpha = 0;
+
+        // angle falloff
+        half NoV = 1 - saturate(dot(d.worldNormal, normalize(_WorldSpaceCameraPos.xyz - mul(unity_ObjectToWorld, half4(0,0,0,1)))));
+        NoV = saturate(pow(NoV, 3));
+        NoV = saturate(remap(NoV, 0, 1, 0.3, 2));
+        NoV = lerp(1, NoV, _HPGlancingFalloff);
+
+        half2 baseUv = d.uv1 * _HPStackedTexture_ST.xy + _HPStackedTexture_ST.zw;
+        half4 stacked = 0;
+        half2 layerOffset = ParallaxOffset(1, _HPBarsLayerStep / 100.0, d.tangentSpaceViewDir);
+
+        [unroll(SP_LAYERS_COUNT)]
+        for (int i = SP_LAYERS_COUNT; i > 0; i--)
+        {
+            half2 localUv = saturate(baseUv + layerOffset * i);
+            half4 sample = SAMPLE_TEXTURE2D(_HPStackedTexture, sampler_HPStackedTexture, localUv) * saturate(pow(SP_LAYER_STEP * (SP_LAYERS_COUNT - i) + 0.1, _HPLayerFade));
+            sample.rgb = lerp(sample.rgb, _HPStackedColor.rgb, saturate(pow(SP_LAYER_STEP * i, _HPStackedColorSmoothing)));
+            
+            // high pass filter
+            sample.a *= _HPStackedColor.a * lerp(1, lerp(1, 0, length(sample.rgb)< _HPCutDarkThreshold), _HPCutDark);
+            stacked.rgb = lerp(stacked.rgb, sample.rgb, sample.a);
+            stacked.a = lerp(stacked.a, sample.a * lerp(1, SAMPLE_TEXTURE2D(_HPStackedMask, sampler_HPStackedMask, localUv * _HPStackedMask_ST.xy + _HPStackedMask_ST.zw)[_HPStackedMaskChannel], _HPStackedMaskStrength), sample.a);
+            stacked.a = saturate(stacked.a);
+        }
+       
+        half4 firstLayer = SAMPLE_TEXTURE2D(_HPStackedTexture, sampler_HPStackedTexture, baseUv);
+        firstLayer *= _HPTint;
+        half mask = lerp(1, SAMPLE_TEXTURE2D(_HPStackedMask, sampler_HPStackedMask, baseUv * _HPStackedMask_ST.xy + _HPStackedMask_ST.zw)[_HPStackedMaskChannel], _HPStackedMaskStrength);
+        firstLayer.a *= mask;
+        // high pass filter
+        firstLayer.a *= lerp(1, lerp(1, 0, length(firstLayer.rgb) < _HPCutDarkThreshold), _HPCutDark);
+
+        // final blend
+        stacked.a = stacked.a * _HPStackedColor.a * _HPStackedIntensity;
+        stacked = lerp(stacked * NoV, firstLayer, firstLayer.a);
+        o.Albedo = lerp(o.Albedo, stacked.rgb, stacked.a);
+        if (_HPFlicker) {
+            o.Albedo *= lerp(_HPFlickerRange.x, _HPFlickerRange.y, sin(_Time.y * _HPFlickerSpeed));
+        }
+        o.Alpha = stacked.a;
+    }
+}

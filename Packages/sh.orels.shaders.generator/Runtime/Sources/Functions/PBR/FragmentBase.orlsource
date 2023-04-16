@@ -348,12 +348,11 @@
         #endif
 
         half horizon = min(1 + dot(reflDir, o.Normal), 1);
-        dfg.x *= saturate(pow(dot(indirectDiffuse, 1), _SpecOcclusion));
+        half specularOcclusion = saturate(pow(dot(indirectDiffuse, 1), _SpecOcclusion));
+        dfg.x *= specularOcclusion;
         indirectSpecular = indirectSpecular * horizon * horizon * energyCompensation * EnvBRDFMultiscatter(dfg, f0);
 
-        #if defined(_MASKMAP_SAMPLED)
-        indirectSpecular *= computeSpecularAO(NoV, o.Occlusion, perceptualRoughness * perceptualRoughness);
-        #endif
+        indirectSpecular *= computeSpecularAO(NoV, o.Occlusion * specularOcclusion, clampedRoughness);
         #endif
 
         #if defined(_INTEGRATE_CUSTOMGI) && !defined(UNITY_PASS_FORWARDADD)

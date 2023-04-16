@@ -1,0 +1,59 @@
+%ShaderName("orels1/UI/Scrolling Texture")
+%LightingModel("@/LightingModels/UI")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_UI_ScrollerHeader("# Scrolling Texture", Int) = 1
+    UI_ScrollerDocs("[This shader has documentation](https://shaders.orels.sh/docs/ui/scrolling-texture)", Int) = 0
+    _ScrollSpeed("Scroll Speed (X/Y)", Vector) = (0.1, 0.1, 0, 0)
+    _ScrollTiling("Texture Tiling", Float) = 1
+    _ScrollParallaxOffset("Parallax Offset", Float) = 0.01
+    UI_ScrollParallaxNote("> When using parallax, make sure that you have Normal and Tangent shader channels enabled on the root canvas component", Int) = 0
+    [ToggleUI]_EdgeFade("Edge Fade", Int) = 0
+    _EdgeFadeScale("Fade Scale %ShowIf(_EdgeFade)", Float) = 0.45
+    _EdgeFadeAmount("Fade Amount %ShowIf(_EdgeFade)", Float) = 0.1
+    _EdgeFadeRounding("Edge Rounding %ShowIf(_EdgeFade)", Float) = 0.1
+}
+
+%Includes()
+{
+    "self",
+    "@/Shaders/UI/ORL UI"
+}
+
+%Variables()
+{
+    half4 _ScrollSpeed;
+    half _ScrollTiling;
+    half _ScrollParallaxOffset;
+    int _EdgeFade;
+    half _EdgeFadeScale;
+    half _EdgeFadeAmount;
+    half _EdgeFadeRounding;
+}
+
+%ShaderDefines()
+{
+    #define GLOBAL_UV_OFFSET
+    #define GLOBAL_UV_SCALE
+}
+
+%Fragment("UI_ScrollerFragment")
+{
+    half RoundedBox(half2 pos, half2 bounds, half radius)
+    {
+        half2 dist = abs(pos) - bounds + radius;
+        return length(max(dist, 0.0)) + min(max(dist.x, dist.y), 0.0) - radius;
+    }
+
+    void UI_ScrollerFragment(MeshData d, inout SurfaceData o) {
+        GLOBAL_uv_scale = _ScrollTiling;
+        GLOBAL_uv_offset = _Time.y * _ScrollSpeed.xy;
+        GLOBAL_uv_offset += ParallaxOffset(-1, _ScrollParallaxOffset, d.tangentSpaceViewDir);
+        if (_EdgeFade) {
+            half dist = RoundedBox(d.uv0 - 0.5, half2(_EdgeFadeScale, _EdgeFadeScale), _EdgeFadeRounding - 0.1);
+            o.Alpha = smoothstep(dist - _EdgeFadeAmount, dist + _EdgeFadeAmount, 0.0);
+        }
+    }
+}

@@ -1,0 +1,144 @@
+%Properties()
+{
+    UI_GhostLinesHeader("# Ghost Lines", Int) = 1
+    UI_GhostLinesDocs("[This module has documentation](https://shaders.orels.sh/docs/vfx/ghost-lines)", Int) = 0
+    [Enum(Basic, 0, Full, 1)]_GSLinesEditMode("Settings Mode", Int) = 0
+    UI_GhistLinesBaseHeader("## Base Glow", Int) = 1
+    [Enum(X,0,Y,1,Z,2)]_GSGlowGradientDir("Gradient Direction", Int) = 1
+    _GSGradientSharpness("Gradient Sharpness %ShowIf(_GSLinesEditMode == 1)", Float) = 2
+    _GSGlowGradientRemap("Gradient Range (Min, Max)  %ShowIf(_GSLinesEditMode == 1)", Vector) = (-0.5,0.5, 0, 0)
+    [HDR]_GLTopColor("Top Color", Color) = (1,1,1,1)
+    [HDR]_GLBottomColor("Bottom Color", Color) = (1,1,1,1)
+    _GLRimLightSharpness("Rim Light Sharpness", Float) = 4
+    _GLRimLightPush("Rim Light Push", Float) = 5
+
+    UI_GhostLinesLinesHeader("## Lines Settings", Int) = 1
+    [Enum(Local Position, 0, UV, 1)]_GSLinesCoordinates("Coordinate Source", Int) = 0
+    _GSLinesOrigin("Origin %ShowIf(_GSLinesEditMode == 1)", Vector) = (-0.5, -1, 0, 0)
+    _GSLinesMovement("Movement", Vector) = (0,0,0,0)
+    _GSLinesScale("Scale", Float) = 10
+    _GSLinesNudge("Nudge %ShowIf(_GSLinesEditMode == 1)", Float) = 0.1
+    _GSLinesFalloff("Falloff %ShowIf(_GSLinesEditMode == 1)", Float) = 0.8
+    _GSLinesStrength("Strength", Range(0,2)) = 1
+    UI_GSLinesScaleNote("> Scale - Controls the amount of lines", Int) = 1
+    UI_GSLinesNudgeNote("> Nudge - shifts the line gradient %ShowIf(_GSLinesEditMode == 1)", Int) = 1
+    UI_GSLinesFalloffNote("> Falloff - makes the lines sold or faded %ShowIf(_GSLinesEditMode == 1)", Int) = 1
+
+    UI_GhostLinesLinesDistortionHeader("## Lines Distortion", Int) = 1
+    [NonModifiableTextureData][NoScaleOffset]_BakedNoiseTex("Distortion Texture > %RequiredTexture(@/BakedNoise.png)", 2D) = "white" { }
+    _GSNoiseScale("Scale %ShowIf(_GSLinesEditMode == 1)", Float) = 2
+    _GSNoiseStrength("Strength", Range(0,1)) = 1
+    _GSNoiseMovement("Movement  %ShowIf(_GSLinesEditMode == 1)", Vector) = (0,0,1)
+    UI_GSDistortionNote("> Distortion affects the line shape. No distortion will make the lines into concentric circles", Int) = 1
+    UI_GhostLinesLinesColorHeader("## Lines Colors", Int) = 1
+    [HDR]_GLTopLinesColor("Top Lines Color", Color) = (1,1,1,1)
+    [HDR]_GLBottomLinesColor("Bottom Lines Color", Color) = (1,1,1,1)
+
+    UI_GhistLinesPBRHeader("## Material Influence", Int) = 1
+    [ToggleUI]_GSLinesAffectPBR("Lines Influence PBR", Int) = 1
+    UI_LInesAffectPBRNote("> Lines will affect Metallic/Smoothness/Albedo of the base material if this toggle is on", Int) = 1
+    _GSLinesAffectMetallicScale("Metallic Influence %ShowIf(_GSLinesAffectPBR && _GSLinesEditMode == 1)", Range(-1,1)) = 1
+    _GSLinesAffectSmoothnessScale("Smoothness Influence %ShowIf(_GSLinesAffectPBR && _GSLinesEditMode == 1)", Range(-1,1)) = 0.7
+    _GSLinesAffectAlbedoScale("Albedo Influence %ShowIf(_GSLinesAffectPBR && _GSLinesEditMode == 1)", Range(-1,1)) = 1
+    
+    UI_GhostLinesWobbleHeader("## Vertex Wobble", Int) = 1
+    UI_GSWobbleNote("> Vertex Wobbling is done in Local Space", Int) = 1
+    _GSWobbleScale("Wobble Scale", Float) = 2
+    _GSWobbleStrength("Wobble Strength", Range(0,1)) = 0.1
+    _GSWobbleMovement("Wobble Movement %ShowIf(_GSLinesEditMode == 1)", Vector) = (1,1,1)
+    _GSWobbleRange("Wobble Y Range (Min, Max) %ShowIf(_GSLinesEditMode == 1)", Vector) = (-0.2,0.5, 0, 0)
+}
+
+%Variables()
+{
+    half _GSNoiseScale;
+    half _GSNoiseStrength;
+    half3 _GSNoiseMovement;
+
+    int _GSGlowGradientDir;
+    half _GSGradientSharpness;
+    half4 _GSGlowGradientRemap;
+    half3 _GLTopColor;
+    half3 _GLBottomColor;
+    half _GLRimLightSharpness;
+    half _GLRimLightPush;
+
+    half3 _GSLinesOrigin;
+    int _GSLinesCoordinates;
+    half3 _GSLinesMovement;
+    half _GSLinesScale;
+    half _GSLinesNudge;
+    half _GSLinesFalloff;
+    half _GSLinesStrength;
+    half3 _GLTopLinesColor;
+    half3 _GLBottomLinesColor;
+
+    int _GSLinesAffectPBR;
+    half _GSLinesAffectMetallicScale;
+    half _GSLinesAffectSmoothnessScale;
+    half _GSLinesAffectAlbedoScale;
+
+    half _GSWobbleScale;
+    half _GSWobbleStrength;
+    half4 _GSWobbleMovement;
+    half4 _GSWobbleRange;
+}
+
+%ShaderDefines()
+{
+    #define EXTRA_V2F_0
+}
+
+%Textures()
+{
+    TEXTURE2D(_BakedNoiseTex);
+    SAMPLER(sampler_BakedNoiseTex);
+}
+
+%Vertex("GhostLinesVertex")
+{
+    void GhostLinesVertex(inout VertexData v, inout FragmentData o)
+    {
+        half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, v.vertex.xyz * _GSWobbleScale + _GSWobbleMovement.xyz * _Time.y);
+        o.extraV2F0 = v.vertex;
+        v.vertex.xyz += v.normal.xyz * noise * _GSWobbleStrength * saturate((remap(v.vertex.y, _GSWobbleRange.x, _GSWobbleRange.y, 0, 1)));
+    }
+}
+
+%Fragment("GhostLinesFragment")
+{
+    void GhostLinesFragment(MeshData d, inout SurfaceData o) {
+        // rim light
+        half NoV = saturate(1 - dot(d.worldNormal, d.worldSpaceViewDir));
+        NoV = saturate(pow(NoV,_GLRimLightSharpness) * _GLRimLightPush);
+        o.Emission = lerp(_GLTopColor, _GLBottomColor, 1 - d.uv0.y);
+        half rimLightMask = remap(d.localSpacePosition[_GSGlowGradientDir], _GSGlowGradientRemap.x, _GSGlowGradientRemap.y, 0, 1);
+        rimLightMask = saturate(lerp(lerp(NoV, NoV * rimLightMask, 0.75), 0.75, rimLightMask));
+        rimLightMask = saturate(pow(rimLightMask, _GSGradientSharpness));
+        o.Emission *= rimLightMask;
+
+        // lines distortion
+        half3 coordSource = _GSLinesCoordinates ? d.uv0.xyx : d.extraV2F0.xyz;
+        half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, coordSource * _GSNoiseScale + _GSNoiseMovement * _Time.x);
+        half3 pos = _GSLinesOrigin + _GSLinesMovement * _Time.x;
+        half dist = length(d.extraV2F0 - pos) + lerp(0, noise, _GSNoiseStrength);
+
+        // lines drawing
+        half lines =  saturate((frac(dist * _GSLinesScale) - (1 - _GSLinesNudge)  * remap(noise, 0,1, 0.5,1)));
+        lines = smoothstep(0, 0.7, lines);
+        lines = lines < 0.5 ? lines : (1 - lines);
+        lines = saturate(pow(lines, _GSLinesFalloff));
+
+        // lines blending
+        half3 blendedLines = lerp(_GLTopLinesColor * 4, _GLBottomLinesColor, 1 - d.uv0.y) * lines;
+        o.Emission = o.Emission + saturate(BlendOverlay(o.Emission + 0.01, blendedLines * _GSLinesStrength));
+
+        // lines over PBR
+        if (_GSLinesAffectPBR) {
+            half lineFactor = saturate(lines * pow(d.uv0.y, 0.5));
+            o.Metallic *= lerp(1, (_GSLinesAffectMetallicScale < 0 ? 0 : 1) - lineFactor,  abs(_GSLinesAffectMetallicScale) * _GSLinesStrength);
+            o.Smoothness *= lerp(1, (_GSLinesAffectSmoothnessScale < 0 ? 0 : 1) - lineFactor, abs(_GSLinesAffectSmoothnessScale) * _GSLinesStrength);
+            o.Albedo = lerp(o.Albedo,  saturate(blendedLines), lineFactor * _GSLinesAffectAlbedoScale * _GSLinesStrength);
+        }
+    }
+}

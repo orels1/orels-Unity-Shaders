@@ -1,0 +1,256 @@
+%Properties()
+{
+    UI_AudioLinkHeader("# Audio Link", Int) = 1
+    UI_AudioLinkDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/audio-link)", Int) = 0
+    UI_GlobalSettingsHeader("## Global Settings", Int) = 0
+    [NoScaleOffset]_ALMask("Mask >", 2D) = "white" { }
+    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ALUVChannel("UV Channel", Int) = 0
+    [HDR]_ALTint("Tint", Color) = (1, 1, 1, 1)
+    [ToggleUI]_KillEffects("Kill Effects", Int) = 0
+    [KeywordEnum(Band Selection, UV Based, Waveform, Pulse, Bar)]AL_EFFECT("Effect Type", Int) = 0
+
+    UI_SelectedEffect("## Effect Settings", Int) = 0
+    // BAND SELECTION
+    [IntRange]_BandFrequency("Frequency Band %ShowIf(AL_EFFECT_BAND_SELECTION)", Range(1, 4)) = 1
+    UI_BandNote("> 1: Bass, 2: Low Mids, 3: High Mids, 4: Highs %ShowIf(AL_EFFECT_BAND_SELECTION)", Int) = 0
+    _BandHistoryRange("History Range %ShowIf(AL_EFFECT_BAND_SELECTION)", Float) = 128
+    [Enum(X, 0, Y, 1, Negative X, 2, Negative Y, 3)]_BandScrollAxis("Scroll Axis %ShowIf(AL_EFFECT_BAND_SELECTION)", Int) = 1
+
+    // UV BASED
+    _UVHistoryRange("History Range %ShowIf(AL_EFFECT_UV_BASED)", Float) = 128
+    [ToggleUI]_UVFlipXY("Flip UV X and Y %ShowIf(AL_EFFECT_UV_BASED)", Int) = 0
+    [ToggleUI]_UVUseThemeColors("Use Theme Colors %ShowIf(AL_EFFECT_UV_BASED)", Int) = 0
+    [ToggleUI]UI_UVColorsNote("> Check AudioLink object for colors, still applies global tint! %ShowIf(AL_EFFECT_UV_BASED)", Int) = 0
+
+    // WAVEFORM
+    _WVFRMBottomColor("Waveform Bottom Color %ShowIf(AL_EFFECT_WAVEFORM) %Gradient()", 2D) = "white" { }
+    _WVFRMTopColor("Waveform Top Color %ShowIf(AL_EFFECT_WAVEFORM) %Gradient()", 2D) = "black" { }
+    [ToggleUI]_WVFRMMiddleLine("Add Middle Line %ShowIf(AL_EFFECT_WAVEFORM)", Int) = 0
+    _WVFRMMiddleColor("Waveform Middle Color %ShowIf(_WVFRMMiddleLine && AL_EFFECT_WAVEFORM) %Gradient()", 2D) = "gray" { }
+    [ToggleUI]_WVFRMFlipUVDirection("Flip UV Direction %ShowIf(AL_EFFECT_WAVEFORM)", Int) = 0
+    _WVFRMMiddleLineWidth("Line Width %ShowIf(_WVFRMMiddleLine && AL_EFFECT_WAVEFORM)", Range(0, 1)) = 0.05
+    [ToggleUI]_WVFRMFlip("Flip Waveform %ShowIf(AL_EFFECT_WAVEFORM)", Int) = 0
+    _WVFRMOffset("Waveform Offset %ShowIf(AL_EFFECT_WAVEFORM)", Range(0, 1)) = 0.5
+    _WVFRMScale("Waveform Scale %ShowIf(AL_EFFECT_WAVEFORM)", Range(0, 1)) = 0.05
+
+    // PULSE
+    [IntRange]_PulseBand("Frequency Band %ShowIf(AL_EFFECT_PULSE)", Range(1, 4)) = 1
+    [IntRange]_PulseSmoothing("Smoothing %ShowIf(AL_EFFECT_PULSE && _PulseMode == 0)", Range(0, 16)) = 5
+    [Enum(Emission, 0, Texture, 1)]_PulseMode("Pulse Mode %ShowIf(AL_EFFECT_PULSE)", Int) = 0
+    _PulseStrength("Pulse Strength %ShowIf(AL_EFFECT_PULSE)", Float) = 1
+    [Enum(Additive, 0, Multiply, 1)]_PulseEmissionMode("Emission Mode %ShowIf(AL_EFFECT_PULSE && _PulseMode == 0)", Int) = 0
+    [Enum(Bump, 0, Continuous, 1)]_PulseTextureAdjustment("Texture Pulse Mode %ShowIf(AL_EFFECT_PULSE && _PulseMode == 1)", Int) = 1
+    [ToggleUI]UI_PulseTextureNote("> Bump: Bumps the texture in a direction with the beat %ShowIf(AL_EFFECT_PULSE && _PulseMode == 1 && _PulseTextureAdjustment == 0)", Int) = 0
+    [ToggleUI]UI_PulseTextureNote2("> Continuous: Pushes the texture continuously with the beat %ShowIf(AL_EFFECT_PULSE && _PulseMode == 1 && _PulseTextureAdjustment == 1)", Int) = 0
+    [NoScaleOffset]_PulseTexture("Pulse Texture > %ShowIf(AL_EFFECT_PULSE && _PulseMode == 1)", 2D) = "white" { }
+    _PulseTextureDirection("Pulse Direction %ShowIf(AL_EFFECT_PULSE && _PulseMode == 1)", Vector) = (0, 1, 0, 0)
+
+    // BAR
+    [IntRange]_BarBand("Frequency Band %ShowIf(AL_EFFECT_BAR)", Range(1, 4)) = 1
+    [IntRange]_BarSmoothing("Smoothing %ShowIf(AL_EFFECT_BAR)", Range(0, 16)) = 7
+    [Enum(X, 0, Y, 1, Negative X, 2, Negative Y, 3)]_BarAxis("Bar UV Axis %ShowIf(AL_EFFECT_BAR)", Int) = 1
+    _BarColor("Bar Gradient %ShowIf(AL_EFFECT_BAR) %Gradient()", 2D) = "white" { }
+    _BarScale("Bar Scale %ShowIf(AL_EFFECT_BAR)", Float) = 1
+
+    [ToggleUI]UI_Spacer(">  ", Int) = 0
+    [ToggleUI]UI_AudioLinkThanksNote("[Thanks to the amazing AudioLink project <3](https://github.com/llealloo/vrc-udon-audio-link)", Int) = 0
+}
+
+%Includes()
+{
+    "@/Modules/AudioLink",
+    "self"
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local _ AL_EFFECT_BAND_SELECTION AL_EFFECT_UV_BASED AL_EFFECT_WAVEFORM AL_EFFECT_PULSE AL_EFFECT_BAR
+}
+
+%ShaderDefines()
+{
+    #if !defined(AL_EFFECT_BAND_SELECTION) && !defined(AL_EFFECT_UV_BASED) && !defined(AL_EFFECT_WAVEFORM) && !defined(AL_EFFECT_PULSE) && !defined(AL_EFFECT_BAR)
+    #define AL_EFFECT_NONE
+    #endif
+}
+
+%Variables()
+{
+    int _ALUVChannel;
+
+    int _BandFrequency;
+    int _BandScrollAxis;
+    half _BandHistoryRange;
+
+    half _UVHistoryRange;
+    int _UVFlipXY;
+    int _UVUseThemeColors;
+
+    int _WVFRMMiddleLine;
+    half _WVFRMMiddleLineWidth;
+    int _WVFRMFlip;
+    half _WVFRMOffset;
+    half _WVFRMScale;
+    int _WVFRMFlipUVDirection;
+
+    int _PulseBand;
+    int _PulseSmoothing;
+    int _PulseMode;
+    half _PulseStrength;
+    int _PulseEmissionMode;
+    int _PulseTextureAdjustment;
+    half4 _PulseTextureDirection;
+
+    int _BarBand;
+    int _BarSmoothing;
+    int _BarAxis;
+    half _BarScale;
+
+    int _KillEffects;
+    half4 _ALTint;
+}
+
+%Textures()
+{
+    TEXTURE2D(_ALMask);
+    SAMPLER(sampler_ALMask);
+    TEXTURE2D(_WVFRMBottomColor);
+    TEXTURE2D(_WVFRMTopColor);
+    TEXTURE2D(_WVFRMMiddleColor);
+    SAMPLER(sampler_WVFRMBottomColor);
+    TEXTURE2D(_PulseTexture);
+    SAMPLER(sampler_PulseTexture);
+    TEXTURE2D(_BarColor);
+    SAMPLER(sampler_BarColor);
+}
+
+%Fragment("ALFragment") {
+
+    void ALFragment(MeshData d, inout SurfaceData o)
+    {
+        UNITY_BRANCH
+        if (_KillEffects) return;
+
+        UNITY_BRANCH
+        if (!AudioLinkIsAvailable()) return;
+
+        half3 finalEmission = 0;
+        half finalAlpha = 1;
+        half2 uv = 0;
+        switch(_ALUVChannel)
+        {
+            case 0: uv = d.uv0.xy; break;
+            case 1: uv = d.uv1.xy; break;
+            case 2: uv = d.uv2.xy; break;
+            case 3: uv = d.uv3.xy; break;
+        }
+        half4 mask = SAMPLE_TEXTURE2D(_ALMask, sampler_ALMask, uv);
+        
+        #if defined(AL_EFFECT_BAND_SELECTION)
+
+        half uvSource = lerp(uv.x, lerp(uv.y, lerp(1 - uv.x, 1 - uv.y, saturate(_BandScrollAxis - 2)), saturate(_BandScrollAxis - 1)), saturate(_BandScrollAxis));
+        half scaledUv = (uvSource * _BandHistoryRange) % 128.0;
+        half4 bandData = AudioLinkLerp(half2(scaledUv, clamp(_BandFrequency - 1, 0, 3)));
+        finalEmission = bandData.rgb * _ALTint;
+        finalAlpha = bandData.r;
+
+        #elif defined(AL_EFFECT_UV_BASED)
+
+        half2 scaledUv = half2(lerp(uv.x, uv.y, _UVFlipXY) * _UVHistoryRange % 128, floor(lerp(uv.y, uv.x, _UVFlipXY) * 4));
+        half4 bandData = AudioLinkLerp(scaledUv).rrra;
+        if (_UVUseThemeColors)
+        {
+            int band = clamp(floor(scaledUv.y), 0, 3);
+            switch(band)
+            {
+                case 0:
+                    bandData *= AudioLinkData(ALPASS_THEME_COLOR0);
+                    break;
+                case 1:
+                    bandData *= AudioLinkData(ALPASS_THEME_COLOR1);
+                    break;
+                case 2:
+                    bandData *= AudioLinkData(ALPASS_THEME_COLOR2);
+                    break;
+                case 3:
+                    bandData *= AudioLinkData(ALPASS_THEME_COLOR3);
+                    break;
+            }
+        }
+        finalEmission = bandData.rgb * _ALTint;
+        finalAlpha = bandData.r;
+
+        #elif defined(AL_EFFECT_WAVEFORM)
+
+        half noteno = abs(uv.x) * AUDIOLINK_ETOTALBINS;
+        half wvfrm = AudioLinkLerpMultiline(ALPASS_DFT + half2(noteno, 0)).z * _WVFRMScale;
+        half2 gradientUvs = uv;
+        if (_WVFRMFlipUVDirection) {
+            gradientUvs = half2(gradientUvs.y, gradientUvs.x);
+        }
+        half4 bottomColor = SAMPLE_TEXTURE2D(_WVFRMBottomColor, sampler_WVFRMBottomColor, gradientUvs);
+        half4 topColor = SAMPLE_TEXTURE2D(_WVFRMTopColor, sampler_WVFRMBottomColor, gradientUvs);
+        half4 midColor = SAMPLE_TEXTURE2D(_WVFRMMiddleColor, sampler_WVFRMBottomColor, gradientUvs);
+        half4 finalBlend = lerp(lerp(bottomColor, midColor, _WVFRMMiddleLine > 0 && lerp(uv.y, 1 - uv.y, _WVFRMFlip) > (wvfrm + _WVFRMOffset) - _WVFRMMiddleLineWidth), topColor, lerp(uv.y, 1 - uv.y, _WVFRMFlip) > (wvfrm + _WVFRMOffset));
+        finalEmission = finalBlend.rgb;
+        finalEmission *= _ALTint;
+        finalAlpha = finalBlend.a;
+
+        #elif defined(AL_EFFECT_PULSE)
+
+        half pulseData = 0;
+        UNITY_BRANCH
+        if (_PulseSmoothing == 0) {
+            pulseData = AudioLinkData(int2(0, clamp(_PulseBand - 1, 0, 3))).r;
+        } else {
+            pulseData = AudioLinkData(ALPASS_FILTEREDAUDIOLINK + int2(16 - _PulseSmoothing, clamp(_PulseBand - 1, 0, 3))).r;
+        }
+        if (_PulseMode == 0)
+        {
+            if (!_PulseEmissionMode)
+            {
+                finalEmission = o.Emission + pulseData * _ALTint * _PulseStrength;
+            }
+            else
+            {
+                finalEmission = o.Emission * pulseData * _ALTint * _PulseStrength;
+            }
+        }
+        else
+        {
+            finalEmission = pulseData * _PulseStrength * _ALTint;
+            if (_PulseTextureAdjustment == 0)
+            {
+                uv += _PulseTextureDirection.xy * pulseData;
+            }
+            else
+            {
+                float chrono = (AudioLinkDecodeDataAsUInt(ALPASS_CHRONOTENSITY + uint2(1, 0)) % 1000000) / 1000000.0;
+                uv += _PulseTextureDirection.xy * chrono;
+            }
+            finalEmission += SAMPLE_TEXTURE2D(_PulseTexture, sampler_PulseTexture, uv) * _ALTint;
+        }
+
+        #elif defined(AL_EFFECT_BAR)
+
+        half uvSource = lerp(uv.x, lerp(uv.y, lerp(1 - uv.x, 1 - uv.y, saturate(_BarAxis - 2)), saturate(_BarAxis - 1)), saturate(_BarAxis));
+        half3 color = SAMPLE_TEXTURE2D(_BarColor, sampler_BarColor, half2(uvSource, 0)).rgb;
+        half bandData = 0;
+        UNITY_BRANCH
+        if (_BarSmoothing == 0) {
+            bandData = saturate(AudioLinkData(int2(0, clamp(_BarBand - 1, 0, 3))).r * _BarScale);
+        } else {
+            bandData = saturate(AudioLinkData(ALPASS_FILTEREDAUDIOLINK + int2(16 - _BarSmoothing, clamp(_BarBand - 1, 0, 3))).r * _BarScale);
+        }
+        half barData = smoothstep((1 - bandData), (1 - bandData) + 0.01, uvSource);
+        finalEmission = lerp(0, barData.xxx * _ALTint.rgb * color.rgb, bandData);
+        finalAlpha = barData * bandData;
+
+        #endif
+
+        o.Emission = lerp(o.Emission, finalEmission, mask.r);
+        #if defined(AL_CUTOUT)
+        o.Alpha = finalAlpha;
+        #endif
+    }
+}

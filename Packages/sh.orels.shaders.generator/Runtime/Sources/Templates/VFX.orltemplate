@@ -116,6 +116,9 @@
                     UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
                 #endif
 
+                // Final Color Chain
+                %ColorFunctions
+
                 return FinalColor;
             }
 

@@ -1,0 +1,62 @@
+%ShaderName("orels1/Standard LTCGI Cutout")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_CutoutHeader("# Cutout", Int) = 0
+    _Cutoff("Cutoff", Range(0, 1)) = 0.5
+    [Toggle(_NATIVE_A2C)]_AlphaToMask("Alpha To Coverage (A2C)", Int) = 0
+}
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "@/Modules/LTCGI",
+    "self"
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local _NATIVE_A2C
+}
+
+%ShaderDefines()
+{
+    #define NEED_FRAGMENT_IN_SHADOW
+}
+
+%ShaderTags()
+{
+    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout"
+}
+
+%PassModifiers()
+{
+    AlphaToMask [_AlphaToMask]
+}
+
+%Variables()
+{
+    half _Cutoff;
+}
+
+%Fragment("CutoutFragment")
+{
+    void CutoutFragment(inout SurfaceData o) {
+        #if !defined(_NATIVE_A2C) || !defined(UNITY_PASS_FORWARDBASE)
+        if (o.Alpha < _Cutoff)  {
+            clip(-1);
+        }
+        #endif
+    }
+}
+
+%Shadow("CutoutShadow")
+{
+    void CutoutShadow(FragmentData i) {
+        half alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv0.xy).a;
+        if (alpha < _Cutoff)  {
+            clip(-1);
+        }
+    }
+}

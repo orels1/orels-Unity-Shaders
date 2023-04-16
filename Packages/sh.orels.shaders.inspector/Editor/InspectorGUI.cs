@@ -166,6 +166,7 @@ namespace ORL.ShaderInspector
         private Dictionary<string, object> RestoreState(Material target)
         {
             var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(target));
+            if (importer == null) return new Dictionary<string, object>();
             var userData = new SerializedState();
             if (!string.IsNullOrWhiteSpace(importer.userData))
             {
@@ -434,6 +435,12 @@ namespace ORL.ShaderInspector
             var defaultProps =
                 (editor.target as Material).shader.GetPropertyAttributes(Array.IndexOf(properties, property));
             var tooltip = Array.Find(defaultProps, attr => attr.StartsWith("Tooltip("));
+            var space = Array.Find(defaultProps, attr => attr.StartsWith("Space("));
+            if (!string.IsNullOrWhiteSpace(space)) {
+                space = space.Substring(space.IndexOf("(") + 1);
+                space = space.Substring(0, space.LastIndexOf(")"));
+                EditorGUILayout.Space(float.Parse(space));
+            }
             if (!string.IsNullOrWhiteSpace(tooltip))
             {
                 tooltip = tooltip.Substring(tooltip.IndexOf("(") + 1);
@@ -451,8 +458,11 @@ namespace ORL.ShaderInspector
                 return;
             }
 
-            var controlRect = EditorGUILayout.GetControlRect(true,
-                editor.GetPropertyHeight(property, strippedName), EditorStyles.layerMaskField);
+            var propHeight = editor.GetPropertyHeight(property, strippedName);
+            if (property.type == MaterialProperty.PropType.Vector && EditorGUIUtility.currentViewWidth > 340) {
+                propHeight /= 2.0f;
+            }
+            var controlRect = EditorGUILayout.GetControlRect(true, propHeight, EditorStyles.layerMaskField);
 
             if (property.type == MaterialProperty.PropType.Texture)
             {

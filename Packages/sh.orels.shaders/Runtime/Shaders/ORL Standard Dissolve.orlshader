@@ -1,0 +1,9 @@
+%ShaderName("orels1/Standard Dissolve")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "@/Modules/Dissolve",
+    "self"
+}

@@ -37,7 +37,7 @@ You can download the latest version of the generator [as a unitypackage here](ht
 Add this repo listing to your VCC
 
 ```
-Coming Soon (tm)
+https://orels1.github.io/orels-Unity-Shaders/index.json
 ```
 
 Afterwards - add ORL Shader Generator package to your project

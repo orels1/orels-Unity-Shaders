@@ -6,14 +6,14 @@ namespace ORL.ShaderConditions
 {
     public class Parser
     {
-        private List<Token> _tokens;
+        private readonly List<Token> _tokens;
         private int _current = 0;
 
         public Parser(List<Token> tokens)
         {
             _tokens = tokens;
         }
-        
+
         public Expression Parse()
         {
             try
@@ -48,7 +48,7 @@ namespace ORL.ShaderConditions
         private Expression And()
         {
             var expr = Equality();
-            
+
             while (Match(TokenType.AND))
             {
                 var op = Previous();
@@ -62,7 +62,7 @@ namespace ORL.ShaderConditions
         private Expression Equality()
         {
             var expr = Comparison();
-            
+
             while (Match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL))
             {
                 var op = Previous();
@@ -172,7 +172,7 @@ namespace ORL.ShaderConditions
             if (!IsAtEnd()) _current++;
             return Previous();
         }
-        
+
         private bool IsAtEnd()
         {
             return Peek().Type == TokenType.EOL;
@@ -191,6 +191,16 @@ namespace ORL.ShaderConditions
 
     public class ParserException : Exception
     {
-        
+        public ParserException() : base()
+        {
+        }
+
+        public ParserException(string message) : base(message)
+        {
+        }
+
+        public ParserException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

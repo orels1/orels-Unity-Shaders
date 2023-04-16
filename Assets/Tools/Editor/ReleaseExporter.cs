@@ -5,15 +5,15 @@ using VRC.PackageManagement.Core.Types.Packages;
 
 namespace ORL.Tools
 {
-    public class ReleaseExporter
+    public static class ReleaseExporter
     {
-        private static string[] _exportFolders =
+        private readonly static string[] _exportFolders =
         {
             "Packages/sh.orels.shaders",
             "Packages/sh.orels.shaders.inspector",
             "Packages/sh.orels.shaders.generator",
         };
-        
+
         [MenuItem("Tools/orels1/Export Release")]
         private static void ExportAsUnityPackage ()
         {

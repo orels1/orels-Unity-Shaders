@@ -1,0 +1,50 @@
+%ShaderName("orels1/UI/Main")
+%LightingModel("@/LightingModels/UI")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_UIMainHeader("# Main Settings", Int) = 1
+    [PerRendererData]_MainTex("Sprite Texture", 2D) = "white" {}
+    [HDR]_Glow("Glow", Color) = (1,1,1,1)
+}
+
+%Variables()
+{
+    half4 _Glow;
+    half4 _MainTex_ST;
+    half2 GLOBAL_uv_offset;
+    half2 GLOBAL_uv_scale;
+}
+
+%Textures()
+{
+    TEXTURE2D(_MainTex);
+    SAMPLER(sampler_MainTex);
+}
+
+%Fragment("UIFragment")
+{
+    void UIFragment(MeshData d, inout SurfaceData o)
+    {
+        half2 uv = d.uv0 * _MainTex_ST.xy + _MainTex_ST.zw;
+        #if defined(GLOBAL_UV_SCALE)
+        uv *= GLOBAL_uv_scale;
+        #endif
+        #if defined(GLOBAL_UV_OFFSET)
+        uv += GLOBAL_uv_offset;
+        #endif
+        half4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+        color *= d.vertexColor.rgba;
+        o.Albedo = lerp(o.Albedo, color.rgb, color.a);
+        o.Alpha = o.Alpha * color.a;
+    }
+}
+
+%Color("UIColor")
+{
+    void UIColor(inout half4 FinalColor)
+    {
+        FinalColor.rgb *= _Glow.rgb;
+    }
+}
