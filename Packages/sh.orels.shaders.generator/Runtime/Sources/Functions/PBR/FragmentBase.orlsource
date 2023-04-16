@@ -13,7 +13,7 @@
     [Toggle(FORCE_BOX_PROJECTION)]_ForceBoxProjection("Force Box Projection", Int) = 0
     UI_LightmappingHeader("# Lightmapping", Int) = 1
     UI_LightmappingDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#lightmapping)", Int) = 0
-    _SpecOcclusion("Specular Occlusion", Range(0, 1)) = 1
+    _SpecOcclusion("Specular Occlusion", Range(0, 1)) = 0.75
     _SpecularRoughnessMod("Specular Roughness Mod", Range(0, 1)) = 1
     [Toggle(BICUBIC_LIGHTMAP)]_Bicubic("Bicubic Sampling", Int) = 0
     [Toggle(BAKED_SPECULAR)]_BakedSpecular("Baked Specular", Int) = 0
@@ -348,8 +348,12 @@
         #endif
 
         half horizon = min(1 + dot(reflDir, o.Normal), 1);
+        #if defined(LIGHTMAP_ON)
         half specularOcclusion = saturate(pow(dot(indirectDiffuse, 1), _SpecOcclusion));
         dfg.x *= specularOcclusion;
+        #else
+        half specularOcclusion = 1;
+        #endif
         indirectSpecular = indirectSpecular * horizon * horizon * energyCompensation * EnvBRDFMultiscatter(dfg, f0);
 
         indirectSpecular *= computeSpecularAO(NoV, o.Occlusion * specularOcclusion, clampedRoughness);
