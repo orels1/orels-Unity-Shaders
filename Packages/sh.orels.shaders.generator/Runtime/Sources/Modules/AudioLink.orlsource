@@ -18,7 +18,7 @@
 
 %LibraryFunctions()
 {
-    #ifndef AUDIOLINK_CGINC_INCLUDED
+#ifndef AUDIOLINK_CGINC_INCLUDED
     #define AUDIOLINK_CGINC_INCLUDED
 
     // Map of where features in AudioLink are.
@@ -92,13 +92,13 @@
     // on negative numbers, and in some situations actually outperforms
     // HLSL's modf().
     #ifndef glsl_mod
-    #define glsl_mod(x,y) (((x)-(y)*floor((x)/(y))))
+        #define glsl_mod(x,y) (((x)-(y)*floor((x)/(y))))
     #endif
 
     uniform float4               _AudioTexture_TexelSize;
 
     #ifdef SHADER_TARGET_SURFACE_ANALYSIS
-    #define AUDIOLINK_STANDARD_INDEXING
+        #define AUDIOLINK_STANDARD_INDEXING
     #endif
 
     // Mechanism to index into texture.
@@ -336,5 +336,5 @@
     {
         return float4(AudioLinkData(ALPASS_GENERALVU_SOURCE_POS).xyz,1);
     }
-    #endif
+#endif
 }

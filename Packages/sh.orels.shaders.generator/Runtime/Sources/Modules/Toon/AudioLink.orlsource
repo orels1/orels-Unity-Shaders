@@ -5,6 +5,10 @@
     [NoScaleOffset]_ALMap("Audio Link Map > %ShowIf(!AL_MODE_NONE)", 2D) = "white" {}
     [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ALMapUVSet("UV Set %ShowIf(!AL_MODE_NONE)", Int) = 0
     [HDR]_ALEmissionColor("Color %ShowIf(!AL_MODE_NONE && !AL_MODE_PACKED_MAP)", Color) = (0,0,0,0)
+    [ToggleUI]_ALEmissionDotMask("Audio Link Rim Mask", Int) = 0
+    UI_ALEmissionDotMask("> When enabled, the AudioLink-powered emission will be darkened by the rim settings", Int) = 1
+    [ToggleUI]_ALEmissionDotMaskInvert("Invert Rim Mask %ShowIf(_ALEmissionDotMask)", Int) = 0
+    _ALEmissionDotMaskSmoothing("Rim Mask Smoothing %ShowIf(_ALEmissionDotMask)", Float) = 2
     [Enum(Bass,0,Low Mids,1,High Mids,3,Treble,4)]_ALBand("Frequency Band %ShowIf(AL_MODE_SINGLE_CHANNEL)", Int) = 0
     [IntRange]_ALSmoothingLevel("Smoothing Level %ShowIf(AL_MODE_PACKED_MAP || AL_MODE_SINGLE_CHANNEL)", Range(0, 16)) = 1
     UI_ALPackedRedHeader("## Red Channel %ShowIf(AL_MODE_PACKED_MAP)", Int) = 0
@@ -34,6 +38,11 @@
 {
     int _ALBand;
     half4 _ALEmissionColor;
+
+    int _ALEmissionDotMask;
+    int _ALEmissionDotMaskInvert;
+    half _ALEmissionDotMaskSmoothing;
+
     int _ALGradientOnRed;
     int _ALGradientOnGreen;
     int _ALGradientOnBlue;
@@ -77,7 +86,7 @@
             } else {
                 sampledAL = AudioLinkData(ALPASS_FILTEREDAUDIOLINK + int2(16 - _ALSmoothingLevel, _ALBand)).x;
             }
-            o.Emission += alMask.rgb * _ALEmissionColor.rgb * sampledAL;
+            half3 em = alMask.rgb * _ALEmissionColor.rgb * sampledAL;
 
             #elif defined(AL_MODE_PACKED_MAP)
 
@@ -104,16 +113,21 @@
             half4 emissionChannelRed = lerp(alMask.r, tLow, _ALGradientOnRed) * _ALPackedRedColor * audioDataBass;
             half4 emissionChannelGreen = lerp(alMask.g, tMid, _ALGradientOnGreen) * _ALPackedGreenColor * audioDataMids;
             half4 emissionChannelBlue = lerp(alMask.b, tHigh, _ALGradientOnBlue) * _ALPackedBlueColor * audioDataHighs;
-            o.Emission += emissionChannelRed.rgb + emissionChannelGreen.rgb + emissionChannelBlue.rgb;
+            half3 em = emissionChannelRed.rgb + emissionChannelGreen.rgb + emissionChannelBlue.rgb;
         
             #elif defined(AL_MODE_UV_BASED)
 
             half2 aluv;
             aluv = half2(alUV.x * _ALUVWidth, alUV.y);
             half sampledAL = AudioLinkLerp(aluv).x;
-            o.Emission +=  alMask.rgb * _ALEmissionColor.rgb * sampledAL;
-
+            half3 em = alMask.rgb * _ALEmissionColor.rgb * sampledAL;
+            
             #endif
+
+            half NoV = saturate(dot(d.worldNormal, d.worldSpaceViewDir));
+            NoV = lerp(NoV, 1 - NoV, _ALEmissionDotMaskInvert);
+            NoV = saturate(pow(NoV, _ALEmissionDotMaskSmoothing));
+            o.Emission += lerp(em, em * NoV, _ALEmissionDotMask);
         }
 
         #endif
