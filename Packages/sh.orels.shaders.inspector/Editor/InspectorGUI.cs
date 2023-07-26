@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -32,6 +32,8 @@ namespace ORL.ShaderInspector
 
         private List<string> _shaderFeatures;
         private List<string> _multiCompiles;
+        
+        #region State Management
         private string[] _persistedKeys = new[] { "debugShown" };
 
         private void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties)
@@ -210,6 +212,9 @@ namespace ORL.ShaderInspector
 
         private void SaveState(Material target)
         {
+            // currently the setting persistence is disabled
+            return;
+#pragma warning disable CS0162
             var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(target));
             var filtered = new Dictionary<string, object>();
             var toPersist = _drawers.Select(d => d.PersistentKeys).SelectMany(k => k).ToList();
@@ -267,7 +272,43 @@ namespace ORL.ShaderInspector
             }
             importer.userData = EditorJsonUtility.ToJson(userData);
             importer.SaveAndReimport();
+#pragma warning restore CS0162
         }
+        
+        private bool StateHasChanged(Dictionary<string, object> oldState, Dictionary<string, object> newState)
+        {
+            if (oldState.Count != newState.Count)
+            {
+                return true;
+            }
+
+            foreach (var el in oldState)
+            {
+                if (!newState.ContainsKey(el.Key))
+                {
+                    return true;
+                }
+
+                if (el.Value == null && newState[el.Key] != null)
+                {
+                    return true;
+                }
+
+                if (el.Value != null && newState[el.Key] == null)
+                {
+                    return true;
+                }
+
+                if (el.Value != null && newState[el.Key] != null && !el.Value.Equals(newState[el.Key]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        
+        #endregion
 
         private Shader _initialShader;
         private int _oldPropCount;
@@ -275,6 +316,7 @@ namespace ORL.ShaderInspector
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
             var material = materialEditor.target as Material;
+            if (material == null) return;
             if (_initialShader == null)
             {
                 _initialShader = material.shader;
@@ -328,39 +370,6 @@ namespace ORL.ShaderInspector
             {
                 SaveState(materialEditor.target as Material);
             }
-        }
-
-        private bool StateHasChanged(Dictionary<string, object> oldState, Dictionary<string, object> newState)
-        {
-            if (oldState.Count != newState.Count)
-            {
-                return true;
-            }
-
-            foreach (var el in oldState)
-            {
-                if (!newState.ContainsKey(el.Key))
-                {
-                    return true;
-                }
-
-                if (el.Value == null && newState[el.Key] != null)
-                {
-                    return true;
-                }
-
-                if (el.Value != null && newState[el.Key] == null)
-                {
-                    return true;
-                }
-
-                if (el.Value != null && newState[el.Key] != null && !el.Value.Equals(newState[el.Key]))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         #region Drawing
