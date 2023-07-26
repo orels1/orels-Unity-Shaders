@@ -112,7 +112,7 @@
 					alphaData = 1 - alphaData;
 				}
 
-				if (_IsLinear)
+				if (!_IsLinear)
 				{
 					return float4(pow(float3(redData, greenData, blueData),2.2), alphaData);
 				}
