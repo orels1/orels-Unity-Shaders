@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.IO;
 using ORL.Drawers;
+using ORL.ShaderInspector.MaterialLibraries;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -312,6 +313,7 @@ namespace ORL.ShaderInspector
 
         private Shader _initialShader;
         private int _oldPropCount;
+        private bool _libraryOpen;
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
@@ -336,6 +338,22 @@ namespace ORL.ShaderInspector
             {
                 Initialize(materialEditor, properties);
             }
+            
+            // Draw the Preset management
+            if (GUILayout.Button("Open AmbientCG Browser"))
+            {
+                if (!_libraryOpen)
+                {
+                    _libraryOpen = true;
+                    PopupWindow.Show(GUILayoutUtility.GetLastRect(), new AmbientCGBrowser(() =>
+                    {
+                        _libraryOpen = false;
+                    }, material));
+                }
+            }
+
+            EditorGUILayout.Space();
+
             EditorGUIUtility.fieldWidth = 64f;
             var propIndex = 0;
             var oldState = new Dictionary<string, object>(_uiState);

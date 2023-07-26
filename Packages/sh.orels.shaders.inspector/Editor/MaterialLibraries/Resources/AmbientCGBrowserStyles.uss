@@ -1,0 +1,118 @@
+﻿.p-1 {
+    padding: 4px;
+}
+
+.p-2 {
+    padding: 8px;
+}
+
+.m-1 {
+    margin: 4px;
+}
+
+.my-1 {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.mx-1 {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.mr-1 {
+    margin-right: 4px;
+}
+
+.ml-1 {
+    margin-left: 4px;
+}
+
+.mt-1 {
+    margin-top: 4px;
+}
+
+.mb-1 {
+    margin-bottom: 4px;
+}
+
+.m-2 {
+    margin: 8px;
+}
+
+.my-2 {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.mx-2 {
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.mr-2 {
+    margin-right: 8px;
+}
+
+.ml-2 {
+    margin-left: 8px;
+}
+
+.mt-2 {
+    margin-top: 8px;
+}
+
+.mb-2 {
+    margin-bottom: 8px;
+}
+
+.flex-row {
+    flex-direction: row;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+.white-space-normal {
+    white-space: normal;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.preview {
+    width: 128px;
+    height: 128px;
+    border-width: 1px;
+    border-color: rgba(255,255,255,0.2);
+    -unity-background-scale-mode: scale-to-fit;
+    background-image: resource("Loading@2x");
+    white-space: normal;
+}
+
+.preview Label {
+    background-color: rgba(0,0,0,255);
+}
+
+.search-block {
+    min-height: 50px;
+    /*height: 30px;*/
+}
+
+.d-none {
+    display: none;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.text-center {
+    -unity-text-align: middle-center;
+}

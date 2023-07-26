@@ -1,0 +1,16 @@
+﻿<UXML xmlns="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <VisualElement class="flex-col">
+        <VisualElement class="p-2 search-block">
+            <TextField label="Search for materials" name="search-term" />
+            <Button text="Search" name="search-now" />
+        </VisualElement>
+        <ScrollView name="scroll-view">
+            <VisualElement class="flex-row mt-2 mb-2 flex-wrap justify-center" name="container">
+            </VisualElement>
+            <VisualElement class="ml-2 mr-2 mb-2 w-full" name="loading">
+                <Label class="text-center" text="Loading Materials..." />
+            </VisualElement>
+            <Button class="d-none mb-2 w-full" name="load-more" text="Load More..." />
+        </ScrollView>
+    </VisualElement>
+</UXML>

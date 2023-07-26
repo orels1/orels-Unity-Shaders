@@ -172,7 +172,7 @@ namespace ORL.Drawers
             }
         }
 
-        private static Texture2D PackTexture(Texture2D[] textures, int[] channels, float[] values, bool[] inverts, bool isLinear, int size, string savePath)
+        public static Texture2D PackTexture(Texture2D[] textures, int[] channels, float[] values, bool[] inverts, bool isLinear, int size, string savePath)
         {
             var rawTextures = new Texture2D[4];
             for (int i = 0; i < rawTextures.Length; i++)
