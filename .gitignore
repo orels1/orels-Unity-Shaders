@@ -79,3 +79,14 @@ bakery_times.log
 bakery_times.log.meta
 Assets/ShaderlabVSCode
 Assets/ShaderlabVSCode.meta
+
+Packages/sh.orels.shaders.inspector/Editor/MaterialLibraries/Resources/Previews
+Packages/sh.orels.shaders.inspector/Editor/MaterialLibraries/Resources/**/*.json
+
+# UI Toolkit schemas
+/UIElementsSchema
+
+# Other stuff
+
+/App.config
+/packages.config
