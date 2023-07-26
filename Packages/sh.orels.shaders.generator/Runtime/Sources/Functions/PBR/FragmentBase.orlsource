@@ -13,7 +13,7 @@
     [Toggle(FORCE_BOX_PROJECTION)]_ForceBoxProjection("Force Box Projection", Int) = 0
     UI_LightmappingHeader("# Lightmapping", Int) = 1
     UI_LightmappingDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#lightmapping)", Int) = 0
-    _SpecOcclusion("Specular Occlusion", Range(0, 1)) = 1
+    _SpecOcclusion("Specular Occlusion", Range(0, 1)) = 0.75
     _SpecularRoughnessMod("Specular Roughness Mod", Range(0, 1)) = 1
     [Toggle(BICUBIC_LIGHTMAP)]_Bicubic("Bicubic Sampling", Int) = 0
     [Toggle(BAKED_SPECULAR)]_BakedSpecular("Baked Specular", Int) = 0
@@ -328,7 +328,7 @@
         // REFLECTIONS
         #if !defined(UNITY_PASS_FORWARDADD)
         half3 reflDir = reflect(-d.worldSpaceViewDir, o.Normal);
-        reflDir = lerp(reflDir, o.Normal, rough * rough);
+        reflDir = lerp(reflDir, o.Normal, clampedRoughness);
 
         Unity_GlossyEnvironmentData envData;
         envData.roughness = perceptualRoughness;
@@ -348,11 +348,13 @@
         #endif
 
         half horizon = min(1 + dot(reflDir, o.Normal), 1);
-        half specularOcclusion = saturate(pow(dot(indirectDiffuse, 1), _SpecOcclusion));
-        dfg.x *= specularOcclusion;
-        indirectSpecular = indirectSpecular * horizon * horizon * energyCompensation * EnvBRDFMultiscatter(dfg, f0);
+        indirectSpecular *= horizon * horizon;
 
-        indirectSpecular *= computeSpecularAO(NoV, o.Occlusion * specularOcclusion, clampedRoughness);
+        half specularOcclusion = saturate(length(indirectDiffuse) * (1.0 / _SpecOcclusion));
+        dfg.x *= specularOcclusion;
+        specularOcclusion = computeSpecularAO(NoV, o.Occlusion, clampedRoughness);
+
+        indirectSpecular *= specularOcclusion * EnvBRDFMultiscatter(dfg, f0);
         #endif
 
         #if defined(_INTEGRATE_CUSTOMGI) && !defined(UNITY_PASS_FORWARDADD)
