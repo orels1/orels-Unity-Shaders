@@ -46,8 +46,8 @@
         d.vertexColor = i.vertexColor;
 
         #if !defined(UNITY_PASS_SHADOWCASTER)
-        d.bitangent = cross(i.worldTangent.xyz, d.worldNormal) * i.worldTangent.w * - 1;
-        d.worldSpaceTangent = i.worldTangent.xyz;
+        d.bitangent = normalize(cross(i.worldTangent.xyz, d.worldNormal) * i.worldTangent.w * - 1);
+        d.worldSpaceTangent = normalize(i.worldTangent.xyz);
         d.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), d.bitangent, d.worldNormal);
         d.tangentSpaceViewDir = mul(d.TBNMatrix, d.worldSpaceViewDir);
         #endif
