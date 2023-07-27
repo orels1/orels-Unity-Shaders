@@ -101,10 +101,5 @@
         o.Alpha = 1;
         #endif
         o.ShadowSharpness = _ShadowSharpness;
-
-        if (_TransformToUVSpace)
-        {
-            o.Alpha = 1;
-        }
     }
 }

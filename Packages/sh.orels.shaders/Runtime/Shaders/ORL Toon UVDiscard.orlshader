@@ -1,0 +1,10 @@
+%ShaderName("orels1/Toon/UV Discard")
+%LightingModel("@/LightingModels/Toon")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/ORL Toon",
+    "@/Modules/Toon/UVDiscard",
+    "self",
+}
