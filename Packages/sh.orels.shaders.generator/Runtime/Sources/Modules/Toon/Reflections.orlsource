@@ -11,7 +11,6 @@
     _MetallicGlossMapTiling("Tiling %ShowIf(_MetallicGlossMap)", Float) = 1
     UI_MetallicGlossMapTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_MetallicGlossMapTilingMode == 0 && _MetallicGlossMap)", Int) = 0
     UI_MetallicGlossMapTilingIndependentNote("> Will scale UVs on its own %ShowIf(_MetallicGlossMapTilingMode == 1 && _MetallicGlossMap)", Int) = 0
-    _ReflectivityLevel("Reflectivity %ShowIf(!REFLECTION_MODE_OFF)", Range(0, 1)) = 0.5
 
     _Smoothness ("Smoothness %ShowIf(!_MetallicGlossMap && (REFLECTION_MODE_PBR || REFLECTION_MODE_BAKED_CUBEMAP))", Range(0, 1)) = 0.5
     [ToggleUI]_RoughnessMode ("Roughness Mode %ShowIf(_MetallicGlossMap && (REFLECTION_MODE_PBR || REFLECTION_MODE_BAKED_CUBEMAP))", Int) = 0
