@@ -2,10 +2,10 @@
 {
     UI_NormalsHeader("# Normals", Int) = 0
     _BumpMap("Normal Map > %SetKeyword(_BumpMap, NORMALS_SET)", 2D) = "bump" {}
-    [Enum(Synced With Albedo, 0, Independent, 1)]_BumpMapTilingMode("Normal Tiling Mode", Int) = 0
-    _BumpMapTiling("Normal Tiling", Float) = 1
-    UI_BumpMapTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_BumpMapTilingMode == 0)", Int) = 0
-    UI_BumpMapTilingIndependentNote("> Will scale UVs on its own %ShowIf(_BumpMapTilingMode == 1)", Int) = 0
+    [Enum(Synced With Albedo, 0, Independent, 1)]_BumpMapTilingMode("Normal Tiling Mode %ShowIf(_BumpMap)", Int) = 0
+    _BumpMapTiling("Normal Tiling %ShowIf(_BumpMap)", Float) = 1
+    UI_BumpMapTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_BumpMapTilingMode == 0 && _BumpMap)", Int) = 0
+    UI_BumpMapTilingIndependentNote("> Will scale UVs on its own %ShowIf(_BumpMapTilingMode == 1 && _BumpMap)", Int) = 0
     _BumpScale("Normal Map Scale %ShowIf(_BumpMap)", Range(-2, 2)) = 1
     [ToggleUI]_FlipBumpY ("Flip Y (UE Mode) %ShowIf(_BumpMap)", Int) = 0
     _DetailNormalMap("Detail Normal %SetKeyword(_DetailNormalMap, DETAIL_NORMALS_SET)", 2D) = "bump" {}
