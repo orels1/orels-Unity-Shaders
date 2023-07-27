@@ -1,7 +1,11 @@
 %Properties()
 {
     UI_NormalsHeader("# Normals", Int) = 0
-    [NoScaleOffset]_BumpMap("Normal Map > %SetKeyword(_BumpMap, NORMALS_SET)", 2D) = "bump" {}
+    _BumpMap("Normal Map > %SetKeyword(_BumpMap, NORMALS_SET)", 2D) = "bump" {}
+    [Enum(Synced With Albedo, 0, Independent, 1)]_BumpMapTilingMode("Normal Tiling Mode", Int) = 0
+    _BumpMapTiling("Normal Tiling", Float) = 1
+    UI_BumpMapTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_BumpMapTilingMode == 0)", Int) = 0
+    UI_BumpMapTilingIndependentNote("> Will scale UVs on its own %ShowIf(_BumpMapTilingMode == 1)", Int) = 0
     _BumpScale("Normal Map Scale %ShowIf(_BumpMap)", Range(-2, 2)) = 1
     [ToggleUI]_FlipBumpY ("Flip Y (UE Mode) %ShowIf(_BumpMap)", Int) = 0
     _DetailNormalMap("Detail Normal %SetKeyword(_DetailNormalMap, DETAIL_NORMALS_SET)", 2D) = "bump" {}
@@ -20,7 +24,10 @@
 
 %Variables()
 {
+    int _BumpMapTilingMode;
+    float _BumpMapTiling;
     half _BumpScale;
+
     int _FlipBumpY;
     half4 _DetailNormalMap_ST;
     int _DetailNormalsUVSet;
@@ -46,7 +53,7 @@
 {
     void ToonNormalsFragment(inout MeshData d, inout SurfaceData o) {
         #if defined(NORMALS_SET)
-        half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
+        half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, lerp(GLOBAL_uv, d.uv0.xy, _BumpMapTilingMode) * _BumpMapTiling);
         if (_FlipBumpY)
         {
             normalTex.y = 1 - normalTex.y;
