@@ -91,7 +91,7 @@
             }
 
             // ForwardBase Fragment
-            half4 Fragment(FragmentData i) : SV_TARGET
+            half4 Fragment(FragmentData i, int facing: VFACE) : SV_TARGET
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
@@ -189,7 +189,7 @@
             }
 
             // ForwardAdd Fragment
-            half4 Fragment(FragmentData i) : SV_TARGET
+            half4 Fragment(FragmentData i, int facing: VFACE) : SV_TARGET
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
@@ -290,7 +290,7 @@
             }
 
             // Meta Fragment
-            half4 Fragment(FragmentData i) : SV_TARGET
+            half4 Fragment(FragmentData i, int facing: VFACE) : SV_TARGET
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
@@ -392,7 +392,7 @@
             }
 
             // ShadowCaster Fragment
-            half4 Fragment(FragmentData i) : SV_TARGET
+            half4 Fragment(FragmentData i, int facing: VFACE) : SV_TARGET
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
