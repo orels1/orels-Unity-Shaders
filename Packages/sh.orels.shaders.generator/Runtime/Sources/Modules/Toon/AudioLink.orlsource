@@ -6,7 +6,7 @@
     [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ALMapUVSet("UV Set %ShowIf(!AL_MODE_NONE)", Int) = 0
     [HDR]_ALEmissionColor("Color %ShowIf(!AL_MODE_NONE && !AL_MODE_PACKED_MAP)", Color) = (0,0,0,0)
     [ToggleUI]_ALEmissionDotMask("Audio Link Rim Mask", Int) = 0
-    UI_ALEmissionDotMask("> When enabled, the AudioLink-powered emission will be darkened by the rim settings", Int) = 1
+    UI_ALEmissionDotMaskNote("> When enabled, the AudioLink-powered emission will be darkened by the rim settings", Int) = 1
     [ToggleUI]_ALEmissionDotMaskInvert("Invert Rim Mask %ShowIf(_ALEmissionDotMask)", Int) = 0
     _ALEmissionDotMaskSmoothing("Rim Mask Smoothing %ShowIf(_ALEmissionDotMask)", Float) = 2
     [Enum(Bass,0,Low Mids,1,High Mids,3,Treble,4)]_ALBand("Frequency Band %ShowIf(AL_MODE_SINGLE_CHANNEL)", Int) = 0
