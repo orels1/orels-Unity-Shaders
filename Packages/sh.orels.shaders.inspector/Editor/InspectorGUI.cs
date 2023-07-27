@@ -473,6 +473,7 @@ namespace ORL.ShaderInspector
                 tooltip = tooltip.Substring(tooltip.IndexOf("(") + 1);
                 tooltip = tooltip.Substring(0, tooltip.LastIndexOf(")"));
             }
+            
             if (isSingleLine)
             {
                 var buttonRect = editor.TexturePropertySingleLine(new GUIContent(strippedName, tooltip), property);
@@ -495,9 +496,9 @@ namespace ORL.ShaderInspector
             {
                 var buttonRect = controlRect;
                 var labelSize = EditorStyles.label.CalcSize(new GUIContent(strippedName)) * EditorGUIUtility.pixelsPerPoint;
-                buttonRect.xMin += labelSize.x + 34f * EditorGUIUtility.pixelsPerPoint;
+                buttonRect.xMin += labelSize.x + 42.5f / EditorGUIUtility.pixelsPerPoint;
                 buttonRect.height = labelSize.y;
-                buttonRect.width -= 52 * EditorGUIUtility.pixelsPerPoint;
+                buttonRect.width -= 65f / EditorGUIUtility.pixelsPerPoint;
                 editor.TextureProperty(controlRect, property, strippedName, tooltip, (property.flags & MaterialProperty.PropFlags.NoScaleOffset) == 0);
                 // We can only repack 2D textures
                 if (property.textureDimension != TextureDimension.Tex2D) return;
