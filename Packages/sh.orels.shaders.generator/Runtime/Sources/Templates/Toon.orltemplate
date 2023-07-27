@@ -36,7 +36,7 @@ Shader %ShaderName
             Stencil {
                 Ref 69
                 Comp Always
-                Pass Replace
+                Pass [_StencilBasePass]
             }
             %PassModifiers
 
@@ -97,7 +97,7 @@ Shader %ShaderName
             }
 
             // ForwardBase Fragment
-            half4 Fragment(FragmentData i) : SV_TARGET
+            half4 Fragment(FragmentData i, int facing: VFACE) : SV_TARGET
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
@@ -135,7 +135,7 @@ Shader %ShaderName
         {
             Tags { "LightMode" = "ForwardAdd" %PassTags }
             ZWrite Off
-            Blend One One
+            Blend SrcAlpha One, Zero One
             %AddPassModifiers
 
             // ForwardAdd Pass Start
@@ -195,7 +195,7 @@ Shader %ShaderName
             }
 
             // ForwardAdd Fragment
-            half4 Fragment(FragmentData i) : SV_TARGET
+            half4 Fragment(FragmentData i, int facing: VFACE) : SV_TARGET
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
@@ -296,7 +296,7 @@ Shader %ShaderName
             }
 
             // Meta Fragment
-            half4 Fragment(FragmentData i) : SV_TARGET
+            half4 Fragment(FragmentData i, int facing: VFACE) : SV_TARGET
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
@@ -398,7 +398,7 @@ Shader %ShaderName
             }
 
             // ShadowCaster Fragment
-            half4 Fragment(FragmentData i) : SV_TARGET
+            half4 Fragment(FragmentData i, int facing: VFACE) : SV_TARGET
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
@@ -435,6 +435,7 @@ Shader %ShaderName
                 Ref 69
                 Comp NotEqual
                 Pass Zero
+                Fail Zero
             }
             %OutlinePassModifiers
 
@@ -497,14 +498,14 @@ Shader %ShaderName
 
                 #else
                 
-                o.pos = 0.0/0.0;
+                o.pos = asfloat(-1);
                 return o;
 
                 #endif
             }
 
             // Outline Fragment
-            half4 Fragment(FragmentData i) : SV_TARGET
+            half4 Fragment(FragmentData i, int facing: VFACE) : SV_TARGET
             {
                 #if defined(OUTLINE_ENABLED)
 
