@@ -24,6 +24,7 @@
 %ShaderDefines()
 {
     #define NEED_FRAGMENT_IN_SHADOW
+    #define NEED_ALBEDO_ALPHA
 }
 
 %ShaderTags()

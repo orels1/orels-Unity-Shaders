@@ -15,6 +15,12 @@
 
 %ShaderModifiers()
 {
-    Blend SrcAlpha OneMinusSrcAlpha
+    BlendOp Add, Max
+    Blend SrcAlpha OneMinusSrcAlpha, One One
     ZWrite Off
+}
+
+%ShaderDefines()
+{
+    #define NEED_ALBEDO_ALPHA
 }
