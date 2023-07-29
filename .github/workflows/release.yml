@@ -2,14 +2,14 @@ name: Build Release
 
 on: 
   workflow_dispatch:
-  push:
-    branches:
-      - main
-      - dev
-    paths:
-      - Packages/sh.orels.shaders/**
-      - Packages/sh.orels.shaders.generator/**
-      - Packages/sh.orels.shaders.inspector/**
+  # push:
+  #   branches:
+  #     - main
+  #     - dev
+  #   paths:
+  #     - Packages/sh.orels.shaders/**
+  #     - Packages/sh.orels.shaders.generator/**
+  #     - Packages/sh.orels.shaders.inspector/**
 
 jobs:
   pack-shaders:
