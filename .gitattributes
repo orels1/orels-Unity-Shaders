@@ -1,0 +1,5 @@
+﻿*.cginc linguist-language=HLSL
+*.orlshader linguist-language=HLSL
+*.orltemplate linguist-language=HLSL
+*.orlsource linguist-language=HLSL
+*.shader linguist-language=ShaderLab
