@@ -81,6 +81,7 @@ Assets/ShaderlabVSCode
 Assets/ShaderlabVSCode.meta
 
 Packages/sh.orels.shaders.inspector/Editor/MaterialLibraries/Resources/Previews
+Packages/sh.orels.shaders.inspector/Editor/MaterialLibraries/Resources/Previews.meta
 Packages/sh.orels.shaders.inspector/Editor/MaterialLibraries/Resources/**/*.json
 Packages/sh.orels.shaders.inspector/Editor/MaterialLibraries/Resources/**/*.json.meta
 
