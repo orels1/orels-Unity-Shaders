@@ -249,6 +249,6 @@
         // should vary between 4 (highly directional) and 0 (ambient)
         half a = (1.0f - lenR1 / R0) / (1.0f + lenR1 / R0);
 
-        return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
+        return max(0, R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p)));
     }
 }
