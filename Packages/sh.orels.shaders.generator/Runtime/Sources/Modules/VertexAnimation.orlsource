@@ -54,6 +54,11 @@
     #pragma shader_feature_local _ SCALE_UNIFORM SCALE_FLOW
 }
 
+%ShaderTags()
+{
+    "DisableBatching" = "True"
+}
+
 %ShaderDefines()
 {
     #if !defined(SPIN_WORLD) && !defined(SPIN_LOCAL)
