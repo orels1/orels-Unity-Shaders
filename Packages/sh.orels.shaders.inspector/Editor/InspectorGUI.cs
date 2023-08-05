@@ -496,9 +496,9 @@ namespace ORL.ShaderInspector
             {
                 var buttonRect = controlRect;
                 var labelSize = EditorStyles.label.CalcSize(new GUIContent(strippedName)) * EditorGUIUtility.pixelsPerPoint;
-                buttonRect.xMin += labelSize.x + 42.5f / EditorGUIUtility.pixelsPerPoint;
                 buttonRect.height = labelSize.y;
-                buttonRect.width -= 65f / EditorGUIUtility.pixelsPerPoint;
+                buttonRect.xMin = EditorGUIUtility.labelWidth;
+                buttonRect.xMax -= EditorGUIUtility.fieldWidth;
                 editor.TextureProperty(controlRect, property, strippedName, tooltip, (property.flags & MaterialProperty.PropFlags.NoScaleOffset) == 0);
                 // We can only repack 2D textures
                 if (property.textureDimension != TextureDimension.Tex2D) return;
