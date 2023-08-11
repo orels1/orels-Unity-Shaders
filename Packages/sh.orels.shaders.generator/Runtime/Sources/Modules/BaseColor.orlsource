@@ -1,0 +1,31 @@
+%Properties()
+{
+    UI_BaseColorHeader("# Base Color", Int) = 1
+    _MainTex("Albedo", 2D) = "white" {}
+    _Color("Color", Color) = (1,1,1,1)
+}
+
+%Variables()
+{
+    half4 _Color;
+    half4 _MainTex_ST;
+}
+
+%Textures()
+{
+    TEXTURE2D(_MainTex);
+    SAMPLER(sampler_MainTex);
+}
+
+%Fragment("BaseColorFragment")
+{
+    void BaseColorFragment(MeshData d, inout SurfaceData o)
+    {
+        half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, d.uv0 * _MainTex_ST.xy + _MainTex_ST.zw);
+        o.Albedo = albedo.rgb * _Color.rgb;
+
+        #if (NEED_ALBEDO_ALPHA)
+        o.Alpha = albedo.a * _Color.a;
+        #endif
+    }
+}
