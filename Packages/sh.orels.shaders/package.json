@@ -17,7 +17,7 @@
   "license": "MIT",
   "type": "assets",
   "vpmDependencies": {
-    "sh.orels.shaders.generator": "6.1.X",
-    "sh.orels.shaders.inspector": "6.1.x"
+    "sh.orels.shaders.generator": "^6.1.0",
+    "sh.orels.shaders.inspector": "^6.1.0"
   }
 }
