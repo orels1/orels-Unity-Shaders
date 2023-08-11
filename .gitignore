@@ -92,3 +92,9 @@ Packages/sh.orels.shaders.inspector/Editor/MaterialLibraries/Resources/**/*.json
 
 /App.config
 /packages.config
+/Assets/_pi_
+/Assets/_pi_.meta
+/Assets/Gizmos
+/Assets/Gizmos.meta
+/Assets/LTCGI-Generated
+/Assets/LTCGI-Generated.meta

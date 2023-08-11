@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "at.pimaker.ltcgi": "https://github.com/PiMaker/ltcgi.git",
     "com.unity.ide.rider": "3.0.24",
     "com.unity.ide.visualstudio": "2.0.20",
     "com.unity.ide.vscode": "1.2.4",
