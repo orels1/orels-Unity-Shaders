@@ -394,4 +394,22 @@
         weightY = sum.y;
         weightZ = sum.z;
     }
+
+    half2 Rotate2D(half2 source, half angle)
+    {
+        half2x2 rotMat = { cos(angle), -sin(angle), sin(angle), cos(angle) };
+        return mul(rotMat, source);
+    }
+
+    float2 Rotate2DFloat(float2 source, float angle)
+    {
+        float2x2 rotMat = { cos(angle), -sin(angle), sin(angle), cos(angle) };
+        return mul(rotMat, source);
+    }
+
+    
+    float GLSLMod(float x, float y)
+    {
+        return (((x)-(y)*floor((x)/(y))));
+    }
 }
