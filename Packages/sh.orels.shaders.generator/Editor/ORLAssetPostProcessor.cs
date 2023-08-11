@@ -15,7 +15,7 @@ namespace ORL.ShaderGenerator
         {
             foreach (var asset in assets)
             {
-                if (!asset.EndsWith(".orlshader")) continue;
+                if (!asset.EndsWith(".orlshader") && !asset.EndsWith(".orlconfshader")) continue;
 
                 var shader = AssetDatabase.LoadAssetAtPath<Shader>(asset);
                 if (shader == null) {
