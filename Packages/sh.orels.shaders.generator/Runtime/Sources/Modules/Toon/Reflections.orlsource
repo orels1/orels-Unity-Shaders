@@ -75,12 +75,20 @@
 
         o.ReflectionBlendMode = _ReflectionBlendMode;
 
-        half mask = SAMPLE_TEXTURE2D(_ReflectivityMask, sampler_MainTex, lerp(GLOBAL_uv * _ReflectivityMaskTiling, d.uv0 * _ReflectivityMaskTiling, _ReflectivityMaskTilingMode)).r;
+        half2 globalUv = 0;
+        
+        #if defined(GLOBAL_UV_SET)
+        globalUv = GLOBAL_uv;
+        #else
+        globalUv = d.uv0;
+        #endif
+
+        half mask = SAMPLE_TEXTURE2D(_ReflectivityMask, sampler_MainTex, lerp(globalUv * _ReflectivityMaskTiling, d.uv0 * _ReflectivityMaskTiling, _ReflectivityMaskTilingMode)).r;
         mask *= _ReflectivityLevel;
         
         #if defined(REFLECTION_MODE_PBR) || defined(REFLECTION_MODE_BAKED_CUBEMAP)
             
-        half4 metalSmooth = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MainTex, lerp(GLOBAL_uv * _MetallicGlossMapTiling, d.uv0 * _MetallicGlossMapTiling, _MetallicGlossMapTilingMode));
+        half4 metalSmooth = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MainTex, lerp(globalUv * _MetallicGlossMapTiling, d.uv0 * _MetallicGlossMapTiling, _MetallicGlossMapTilingMode));
         int hasMetallicSmooth = _MetallicGlossMap_TexelSize.z > 8;
         half metal = metalSmooth.r;
         half smooth = metalSmooth.a;

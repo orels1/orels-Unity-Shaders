@@ -15,6 +15,11 @@
     _ShadowSharpness("Shadow Sharpness", Range(0,1)) = 0.5
 }
 
+%ShaderDefines()
+{
+    #define GLOBAL_UV_SET
+}
+
 
 %Variables()
 {

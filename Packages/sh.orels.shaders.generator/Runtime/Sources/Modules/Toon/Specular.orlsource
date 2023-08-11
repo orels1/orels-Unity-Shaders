@@ -15,7 +15,7 @@
     _SpecularAnisotropy("Anisotropy %ShowIf(SPECULAR_ON)", Range(-1.0, 1.0)) = 0
     _SpecularAlbedoTint("Albedo Tint %ShowIf(SPECULAR_ON)", Range(0, 1)) = 1
 
-    UI_SpecularMasking("## Masking", Int) = 0
+    UI_SpecularMasking("## Masking %ShowIf(SPECULAR_ON)", Int) = 0
     _SpecularMask("Specular Mask > %ShowIf(SPECULAR_ON)", 2D) = "white" {}
     [Enum(Synced With Albedo, 0, Independent, 1)]_SpecularMaskTilingMode("Tiling Mode %ShowIf(_SpecularMask)", Int) = 0
     _SpecularMaskTiling("Tiling %ShowIf(_SpecularMask)", Float) = 1
@@ -44,6 +44,8 @@
     int _SpecularMaskTilingMode;
     half _SpecularMaskTiling;
     half _SpecularMaskStrength;
+
+    half2 GLOBAL_uv;
 }
 
 %Textures()
@@ -56,8 +58,17 @@
 {
     void ToonSpecularFragment(MeshData d, inout SurfaceData o) {
         #if defined(SPECULAR_ON)
-        half2 specularUv = lerp(GLOBAL_uv * _SpecularTiling, d.uv0 * _SpecularTiling, _SpecularTilingMode == 0);
-        half2 specularMaskUv = lerp(GLOBAL_uv * _SpecularMaskTiling, d.uv0 * _SpecularMaskTiling, _SpecularMaskTilingMode == 0);
+        
+        half2 globalUv = 0;
+        
+        #if defined(GLOBAL_UV_SET)
+        globalUv = GLOBAL_uv;
+        #else
+        globalUv = d.uv0;
+        #endif
+
+        half2 specularUv = lerp(globalUv * _SpecularTiling, d.uv0 * _SpecularTiling, _SpecularTilingMode);
+        half2 specularMaskUv = lerp(globalUv * _SpecularMaskTiling, d.uv0 * _SpecularMaskTiling, _SpecularMaskTilingMode);
 
         half3 specMap = SAMPLE_TEXTURE2D(_SpecularMap, sampler_MainTex, specularUv);
         o.SpecularIntensity = max(0, _SpecularIntensity * specMap.r);

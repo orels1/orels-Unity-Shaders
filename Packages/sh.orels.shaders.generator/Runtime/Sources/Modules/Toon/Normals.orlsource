@@ -25,6 +25,11 @@
     #pragma shader_feature_local DETAIL_NORMALS_SET
 }
 
+%ShaderDefines()
+{
+    #define PIXEL_NORMAL_SET
+}
+
 %Variables()
 {
     int _BumpMapTilingMode;
@@ -57,8 +62,16 @@
 %Fragment("ToonNormalsFragment")
 {
     void ToonNormalsFragment(inout MeshData d, inout SurfaceData o) {
+        half2 globalUv = 0;
+
+        #if defined(GLOBAL_UV_SET)
+        globalUv = GLOBAL_uv;
+        #else
+        globalUv = d.uv0;
+        #endif
+
         #if defined(NORMALS_SET)
-        half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, lerp(GLOBAL_uv, d.uv0.xy, _BumpMapTilingMode) * _BumpMapTiling);
+        half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, lerp(globalUv, d.uv0.xy, _BumpMapTilingMode) * _BumpMapTiling);
         if (_FlipBumpY)
         {
             normalTex.y = 1 - normalTex.y;

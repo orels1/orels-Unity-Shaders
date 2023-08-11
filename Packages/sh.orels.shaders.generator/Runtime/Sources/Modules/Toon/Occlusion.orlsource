@@ -42,11 +42,19 @@
 %Fragment("ToonOcclusionFragment")
 {
     void ToonOcclusionFragment(MeshData d, inout SurfaceData o) {
-        half occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_MainTex, lerp(GLOBAL_uv * _OcclusionTiling, d.uv0 * _OcclusionTiling, _OcclusionTilingMode)).r;
+        half2 globalUv = 0;
+
+        #if defined(GLOBAL_UV_SET)
+        globalUv = GLOBAL_uv;
+        #else
+        globalUv = d.uv0;
+        #endif
+
+        half occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_MainTex, lerp(globalUv * _OcclusionTiling, d.uv0 * _OcclusionTiling, _OcclusionTilingMode)).r;
         o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
         
         if (_OcclusionDetailEnabled) {
-            half occlusionDetail = SAMPLE_TEXTURE2D(_OcclusionDetail, sampler_MainTex, lerp(GLOBAL_uv * _OcclusionDetailTiling, d.uv0 * _OcclusionDetailTiling, _OcclusionDetailTilingMode)).r;
+            half occlusionDetail = SAMPLE_TEXTURE2D(_OcclusionDetail, sampler_MainTex, lerp(globalUv * _OcclusionDetailTiling, d.uv0 * _OcclusionDetailTiling, _OcclusionDetailTilingMode)).r;
             o.Occlusion *= lerp(1, occlusionDetail, _OcclusionDetailStrength);
         }
 

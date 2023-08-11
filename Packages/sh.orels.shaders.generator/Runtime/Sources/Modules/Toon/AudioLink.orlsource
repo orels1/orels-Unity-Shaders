@@ -69,8 +69,17 @@
 
         if(AudioLinkIsAvailable()) {
             half2 alUV = 0;
+
+            half2 globalUv = 0;
+
+            #if defined(GLOBAL_UV_SET)
+            globalUv = GLOBAL_uv;
+            #else
+            globalUv = d.uv0;
+            #endif
+
             switch (_ALMapUVSet) {
-                case 0: alUV = GLOBAL_uv; break;
+                case 0: alUV = globalUv; break;
                 case 1: alUV = d.uv1; break;
                 case 2: alUV = d.uv2; break;
                 case 3: alUV = d.uv3; break;
