@@ -7,13 +7,14 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace ORL.ShaderGenerator
 {
     [ScriptedImporter(1, "orlshader")]
     public class ShaderDefinitionImporter : ScriptedImporter
     {
+        public bool debugBuild;
+        
         private HashSet<string> _paramsOnlyBlock = new HashSet<string>
         {
             "%ShaderName",
@@ -582,7 +583,10 @@ namespace ORL.ShaderGenerator
                 var identifier = matcher.Match(item).Groups.Cast<Group>().Skip(1).ToList().Find(m => !string.IsNullOrEmpty(m.Value)).Value;
                 if (keySet.Contains(identifier))
                 {
-                    Debug.LogWarning("Found duplicate item, skipping: " + identifier);
+                    if (debugBuild)
+                    {
+                        Debug.LogWarning("Found duplicate item, skipping: " + identifier);
+                    }
                     continue;
                 }
                 keySet.Add(identifier);

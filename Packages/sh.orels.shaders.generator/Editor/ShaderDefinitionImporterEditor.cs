@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
@@ -68,6 +63,7 @@ namespace ORL.ShaderGenerator
             var finalShader = AssetDatabase.LoadAssetAtPath<Shader>(importer.assetPath);
             if (ShaderUtil.ShaderHasError(finalShader))
             {
+                EditorGUILayout.LabelField("Shader Compilation Issues", EditorStyles.boldLabel);
                 var errors = ShaderUtil.GetShaderMessages(finalShader);
                 foreach (var error in errors)
                 {
@@ -83,7 +79,7 @@ namespace ORL.ShaderGenerator
                 }
             }
 
-            _sourceCodeFoldout = EditorGUILayout.Foldout(_sourceCodeFoldout, "Source");
+            _sourceCodeFoldout = EditorGUILayout.Foldout(_sourceCodeFoldout, "Compiled Source");
             if (_sourceCodeFoldout && !string.IsNullOrWhiteSpace(textSource))
             {
                 var style = new GUIStyle(EditorStyles.textArea)
@@ -98,8 +94,10 @@ namespace ORL.ShaderGenerator
                 }
             }
 
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("debugBuild"));
+
             if (GUILayout.Button("Generate Static .shader File")) {
-                ShaderDefinitionImporter.GenerateShader(importer.assetPath, importer.assetPath.Replace(".orlshader", ".shader"));
+                ShaderDefinitionImporter.GenerateShader(importer.assetPath, importer.assetPath.Replace(".orlshader", ".shader").Replace(".orlconfshader", ".shader"));
             }
 
             serializedObject.ApplyModifiedProperties();
