@@ -1,0 +1,9 @@
+%ShaderName("Configurable/NewShader")
+%LightingModel("@/LightingModels/PBR")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Modules/BaseColor",
+    "self"
+}
