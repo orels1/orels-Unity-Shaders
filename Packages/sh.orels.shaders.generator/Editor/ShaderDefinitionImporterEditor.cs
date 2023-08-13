@@ -96,7 +96,8 @@ namespace ORL.ShaderGenerator
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("debugBuild"));
 
-            if (GUILayout.Button("Generate Static .shader File")) {
+            if (GUILayout.Button("Generate Static .shader File"))
+            {
                 ShaderDefinitionImporter.GenerateShader(importer.assetPath, importer.assetPath.Replace(".orlshader", ".shader").Replace(".orlconfshader", ".shader"));
             }
 

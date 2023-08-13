@@ -103,13 +103,13 @@
         half h0y = h0(fy);
         half h1y = h1(fy);
 
-        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D(tex, texSampler, (half2(px + h0x, py + h0y) * 1.0f / width)) +
-        g1x * SAMPLE_TEXTURE2D(tex, texSampler, (half2(px + h1x, py + h0y) * 1.0f / width))) +
-        g1(fy) * (g0x * SAMPLE_TEXTURE2D(tex, texSampler, (half2(px + h0x, py + h1y) * 1.0f / width)) +
-        g1x * SAMPLE_TEXTURE2D(tex, texSampler, (half2(px + h1x, py + h1y) * 1.0f / width)));
+        half4 r = g0(fy) * (g0x * tex.Sample(texSampler, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+        g1x * tex.Sample(texSampler, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+        g1(fy) * (g0x * tex.Sample(texSampler, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+        g1x * tex.Sample(texSampler, (half2(px + h1x, py + h1y) * 1.0f / width)));
         return r;
         #else
-        return SAMPLE_TEXTURE2D(tex, texSampler, uv);
+        return tex.Sample(texSampler, uv);
         #endif
     }
 
@@ -139,13 +139,13 @@
         half h0y = h0(fy);
         half h1y = h1(fy);
 
-        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D_LOD(tex, texSampler, (half2(px + h0x, py + h0y) * 1.0f / width), level) +
-        g1x * SAMPLE_TEXTURE2D_LOD(tex, texSampler, (half2(px + h1x, py + h0y) * 1.0f / width), level)) +
-        g1(fy) * (g0x * SAMPLE_TEXTURE2D_LOD(tex, texSampler, (half2(px + h0x, py + h1y) * 1.0f / width), level) +
-        g1x * SAMPLE_TEXTURE2D_LOD(tex, texSampler, (half2(px + h1x, py + h1y) * 1.0f / width), level));
+        half4 r = g0(fy) * (g0x * tex.SampleLevel(texSampler, (half2(px + h0x, py + h0y) * 1.0f / width), level) +
+        g1x * tex.SampleLevel(texSampler, (half2(px + h1x, py + h0y) * 1.0f / width), level)) +
+        g1(fy) * (g0x * tex.SampleLevel(texSampler, (half2(px + h0x, py + h1y) * 1.0f / width), level) +
+        g1x * tex.SampleLevel(texSampler, (half2(px + h1x, py + h1y) * 1.0f / width), level));
         return r;
         #else
-        return SAMPLE_TEXTURE2D_LOD(tex, texSampler, uv, level);
+        return tex.SampleLevel(texSampler, uv, level);
         #endif
     }
 
@@ -191,8 +191,8 @@
         uvw.xy = uvw.xy * scaleOffset.z * scaleOffset.xy + scaleOffset.xy * 0.5;
         uvw.x += shift * scaleOffset.y;
         uvw.xyz = lerp(
-            SAMPLE_TEXTURE2D(LUT2D, lutSampler, uvw.xy).rgb,
-            SAMPLE_TEXTURE2D(LUT2D, lutSampler, uvw.xy + half2(scaleOffset.y, 0.0)).rgb,
+            LUT2D.Sample(lutSampler, uvw.xy).rgb,
+            LUT2D.Sample(lutSampler, uvw.xy + half2(scaleOffset.y, 0.0)).rgb,
             uvw.z - shift
         );
         return uvw;

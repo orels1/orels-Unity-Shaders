@@ -656,11 +656,57 @@ namespace ORL.ShaderGenerator
             return sb.ToString();
         }
 
-        public static void GenerateShader(string assetPath, string outputPath) {
+        /// <summary>
+        /// Saves the generated shader source to the path provided
+        /// </summary>
+        /// <param name="assetPath">Path to the source shader</param>
+        /// <param name="outputPath">Save path</param>
+        /// <param name="stripSamplingMacros">Strips the sampling macros from the final shader</param>
+        public static void GenerateShader(string assetPath, string outputPath, bool stripSamplingMacros = false) {
             var importer = GetAtPath(assetPath) as ShaderDefinitionImporter;
-            var finalShader = AssetDatabase.LoadAssetAtPath<Shader>(importer.assetPath);
+            if (importer == null)
+            {
+                Debug.LogWarning($"Shader at {assetPath} is not an ORL shader");
+                return;
+            }
+
+            var textSource = importer.GenerateShader(stripSamplingMacros);
+            if (textSource == null)
+            {
+                return;
+            }
+            
+            File.WriteAllText(outputPath, textSource);
+            AssetDatabase.Refresh();
+        }
+        
+        /// <summary>
+        /// Gets the generated shader code from the asset
+        /// </summary>
+        /// <param name="assetPath">Path to .orlshader file</param>
+        /// <param name="stripSamplingMacros">Strips the sampling macros from the final shader</param>
+        /// <returns></returns>
+        public static string GenerateShader(string assetPath, bool stripSamplingMacros = false)
+        {
+            var importer = GetAtPath(assetPath) as ShaderDefinitionImporter;
+            if (importer == null)
+            {
+                Debug.LogWarning($"Shader at {assetPath} is not an ORL shader");
+                return null;
+            }
+
+            return importer.GenerateShader(stripSamplingMacros);
+        }
+
+        /// <summary>
+        /// Gets the generated shader code from the asset
+        /// </summary>
+        /// <param name="stripSamplingMacros">Strips the sampling macros from the final shader</param>
+        /// <returns></returns>
+        public string GenerateShader(bool stripSamplingMacros = false)
+        {
             var textSource = "";
-            var assets = AssetDatabase.LoadAllAssetsAtPath(importer.assetPath);
+            var assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
             foreach (var asset in assets)
             {
                 if (asset is TextAsset textAsset)
@@ -669,13 +715,85 @@ namespace ORL.ShaderGenerator
                     textSource = text;
                 }
             }
+            
             if (string.IsNullOrWhiteSpace(textSource))
             {
-                Debug.LogWarning($"Shader source for {assetPath} is empty! Skipping generation");
-                return;
+                Debug.LogWarning($"Shader source for {assetPath} is empty! Generation likely failed");
+                return null;
             }
-            File.WriteAllText(outputPath, textSource);
-            AssetDatabase.Refresh();
+            
+            if (stripSamplingMacros)
+            {
+                var source = textSource.Split(new[] {Environment.NewLine, "\n"}, StringSplitOptions.None);
+                var processedSource = new StringBuilder();
+
+                var skippingSampling = false;
+                foreach (var line in source)
+                {
+                    if (line.Contains("// Sampling Library Module Start"))
+                    {
+                        skippingSampling = true;
+                        continue;
+                    }
+
+                    if (line.Contains("// Sampling Library Module End"))
+                    {
+                        skippingSampling = false;
+                        continue;
+                    }
+                    if (skippingSampling) continue;
+                    
+                    var texMatch = _texRegex.Match(line);
+                    if (texMatch.Success)
+                    {
+                        var newLine = line.Replace(texMatch.Value, $"Texture2D<float4> {texMatch.Groups["identifier"]}");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+                    
+                    var samplerMatch = _samplerRegex.Match(line);
+                    if (samplerMatch.Success)
+                    {
+                        var newLine = line.Replace(samplerMatch.Value, $"SamplerState {samplerMatch.Groups["identifier"]}");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+
+                    if (line.Contains("SAMPLE_TEXTURE2D"))
+                    {
+                        var newLine = line.Replace("SAMPLE_TEXTURE2D", "UNITY_SAMPLE_TEX2D_SAMPLER").Replace("sampler_", "_");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+                    
+                    if (line.Contains("SAMPLE_TEXTURE2D_LOD"))
+                    {
+                        var newLine = line.Replace("SAMPLE_TEXTURE2D_LOD", "UNITY_SAMPLE_TEX2D_LOD_SAMPLER").Replace("sampler_", "_");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+                    
+                    if (line.Contains("SAMPLE_TEXTURECUBE"))
+                    {
+                        var newLine = line.Replace("SAMPLE_TEXTURECUBE", "UNITY_SAMPLE_TEXCUBE_SAMPLER").Replace("sampler_", "_");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+                    
+                    if (line.Contains("SAMPLE_TEXTURECUBE_LOD"))
+                    {
+                        var newLine = line.Replace("SAMPLE_TEXTURECUBE_LOD", "UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD").Replace("sampler_", "_");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+                    
+                    processedSource.AppendLine(line);
+                }
+
+                textSource = processedSource.ToString();
+            }
+
+            return textSource;
         }
     }
 }
