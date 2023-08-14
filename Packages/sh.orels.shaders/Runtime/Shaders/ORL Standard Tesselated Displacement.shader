@@ -2,107 +2,108 @@ Shader "orels1/Standard Tesselated Displacement"
 {
 	Properties
 	{
-		[ToggleUI] UI_MainHeader("# Main Settings", Int) =  0
+		UI_MainHeader("# Main Settings", Int) = 1
 		_Color("Main Color", Color) =  (1, 1, 1, 1)
 		_MainTex("Albedo", 2D) =  "white" { }
-		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_MainTex] _AlbedoChannel("Albedo Channel [_MainTex]", Int) =  0
+		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_MainTex] _AlbedoChannel("Albedo Channel %ShowIf(_MainTex)", Int) =  0
 		[Enum(UV, 0, Local Space, 1, World Space, 2)] _MappingSpace("Mapping Space", Int) =  0
-		[ToggleUI] UI_PlanarAxisSelector("!DRAWER MultiProperty _PlanarAxisX _PlanarAxisY [_MappingSpace > 0]", Int) =  0
-		[Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisX("X Axis", Int) =  0
-		[Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisY("Y Axis", Int) =  2
-		[NoScaleOffset] _MaskMap("Masks &", 2D) =  "white" { }
-		[ToggleUI][_MaskMap] UI_ChannelSelector("!DRAWER MultiProperty _MetalChannel _AOChannel _DetailMaskChannel _SmoothChannel [_MaskMap]", Int) =  0
-		[Enum(R, 0, G, 1, B, 2, A, 3)] _MetalChannel("Metal", Int) =  0
-		[Enum(R, 0, G, 1, B, 2, A, 3)] _AOChannel("AO", Int) =  1
-		[Enum(R, 0, G, 1, B, 2, A, 3)] _DetailMaskChannel("Detail", Int) =  2
-		[Enum(R, 0, G, 1, B, 2, A, 3)] _SmoothChannel("Smooth", Int) =  3
-		_Smoothness("Smoothness [!_MaskMap]", Range(0, 1)) =  0.5
-		[ToggleUI][_MaskMap] _RoughnessMode("Roughness Mode [_MaskMap]", Int) =  0
-		[ToggleUI][_MaskMap] UI_SmoothnessRemap("!DRAWER MinMax _SmoothnessRemap.x _SmoothnessRemap.y [_MaskMap]", Float) =  0
-		_Metallic("Metallic [!_MaskMap]", Range(0, 1)) =  0
-		[ToggleUI][_MaskMap] UI_MetallicRemap("!DRAWER MinMax _MetallicRemap.x _MetallicRemap.y [_MaskMap]", Float) =  0
-		[HideInInspector] _MetallicRemap("Metallic Remap", Vector) =  (0, 1, 0, 1)
-		[HideInInspector] _SmoothnessRemap("Smoothness Remap", Vector) =  (0, 1, 0, 1)
-		[_MaskMap] _OcclusionStrength("AO Strength [_MaskMap]", Range(0, 1)) =  1
-		[ToggleUI][_MaskMap] _DetailAsTintMask("Detail as Tint Mask [_MaskMap]", Int) =  0
-		[NoScaleOffset] _BumpMap("Normal Map &&", 2D) =  "bump" { }
-		_BumpScale("Normal Map Scale", Range(-1, 1)) =  1
-		[ToggleUI][_BumpMap] _FlipBumpY("Flip Y (UE Mode) [_BumpMap]", Int) =  0
+		[Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisX("X Axis %ShowIf(_MappingSpace > 0) %CombineWith(_PlanarAxisY)", Int) =  0
+		[HideInInspector][Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisY("Y Axis %ShowIf(_MappingSpace > 0)", Int) =  2
+		[NoScaleOffset] _MaskMap("Masks >", 2D) =  "white" { }
+		[Enum(R, 0, G, 1, B, 2, A, 3)] _MetalChannel("Metal %ShowIf(_MaskMap) %CombineWith(_AOChannel, _DetailMaskChannel, _SmoothChannel)", Int) =  0
+		[HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)] _AOChannel("AO", Int) =  1
+		[HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)] _DetailMaskChannel("Detail", Int) =  2
+		[HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)] _SmoothChannel("Smooth", Int) =  3
+		_Smoothness("Smoothness %ShowIf(!_MaskMap)", Range(0, 1)) =  0.5
+		[ToggleUI][_MaskMap] _RoughnessMode("Roughness Mode %ShowIf(_MaskMap)", Int) =  0
+		_Metallic("Metallic %ShowIf(!_MaskMap)", Range(0, 1)) =  0
+		_MetallicRemap("Metallic Remap %ShowIf(_MaskMap) %RemapSlider(0,1)", Vector) =  (0, 1, 0, 1)
+		_SmoothnessRemap("Smoothness Remap %ShowIf(_MaskMap) %RemapSlider(0,1)", Vector) =  (0, 1, 0, 1)
+		_OcclusionStrength("AO Strength %ShowIf(_MaskMap)", Range(0, 1)) =  1
+		[ToggleUI]_DetailAsTintMask("Detail as Tint Mask %ShowIf(_MaskMap)", Int) =  0
+		[NoScaleOffset] _BumpMap("Normal Map >", 2D) =  "bump" { }
+		_BumpScale("Normal Map Scale %ShowIf(_BumpMap)", Range(-1, 1)) =  1
+		[ToggleUI]_FlipBumpY("Flip Y (UE Mode) %ShowIf(_BumpMap)", Int) =  0
 		[Toggle(_EMISSION)] _EmissionEnabled("Emission", Int) =  0
-		[_EMISSION] _EmissionMap("Emission Map && [_EMISSION]", 2D) =  "white" { }
-		[HDR][_EMISSION] _EmissionColor("Emission Color [_EMISSION]", Color) =  (0, 0, 0, 1)
-		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_EmissionMap] _EmissionChannel("Emission Channel [_EmissionMap]", Int) =  0
-		[ToggleUI] UI_ParallaxHeader("# Parallax", Int) =  0
-		[Toggle(PARALLAX)] _EnableParallax("Enable Parallax", Int) =  0
-		[NoScaleOffset][PARALLAX] _Height("Height && [PARALLAX]", 2D) =  "black" { }
-		[PARALLAX] _HeightScale("Height Scale [PARALLAX]", Range(0, 0.1)) =  0.006
-		[PARALLAX] _HeightRefPlane("Height Ref Plane [PARALLAX]", Range(-1, 1)) =  0.5
-		[PARALLAX] _HeightStepsMin("Steps Min [PARALLAX]", Range(8, 32)) =  8
-		[PARALLAX] _HeightStepsMax("Steps Max [PARALLAX]", Range(8, 32)) =  16
-		[ToggleUI] UI_DetailsHeader("# Details", Int) =  0
-		[Toggle(DETAILS_OVERLAY)] _DetailsOverlay("Enable Details", Int) =  0
-		[ToggleUI][DETAILS_OVERLAY] _DIgnoreMask("Ignore Mask [DETAILS_OVERLAY]", Int) =  0
-		[ToggleUI][DETAILS_OVERLAY] UI_IgnoreMaskNote("!NOTE Force-draws the detail effects [DETAILS_OVERLAY]", Int) =  0
-		[KeywordEnum(Packed, Separated)][DETAILS_OVERLAY] DETAILS_MODE("Detail Map Mode [DETAILS_OVERLAY]", Int) =  0
-		[HideInInspector] _DDetailsMap("Details Map", 2D) =  "gray" { }
-		[ToggleUI] _DDetailsMapRef1("!REF _DDetailsMap [DETAILS_OVERLAY && DETAILS_MODE_PACKED]", Int) =  0
-		[ToggleUI] UI_DetailsMapNote("!NOTE R: Albedo, G: Normal G, B: Smooth, A: Normal R. Uncheck sRGB!", Int) =  0
-		[ToggleUI] _DDetailsMapRef2("!REF _DDetailsMap [DETAILS_OVERLAY && DETAILS_MODE_SEPARATED]", Int) =  0
-		[ToggleUI] UI_DetailsMapNoteSeparate("!NOTE RGB: Albedo, A: Smooth. Uncheck sRGB!", Int) =  0
-		[NoScaleOffset] _DDetailsNormal("Details Normal Map & [DETAILS_OVERLAY && DETAILS_MODE_SEPARATED]", 2D) =  "bump" { }
-		[Enum(UV, 0, Local Space, 1, World Space, 2)][DETAILS_OVERLAY] _DMappingSpace("Mapping Space [DETAILS_OVERLAY]", Int) =  0
-		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)] _DUVChannel("UV Set [_DMappingSpace == 0 && DETAILS_OVERLAY]", Int) =  0
-		[ToggleUI] UI_DPlanarAxisSelector("!DRAWER MultiProperty _DPlanarAxisX _DPlanarAxisY [_DMappingSpace > 0 && DETAILS_OVERLAY]", Int) =  0
-		[Enum(X, 0, Y, 1, Z, 2)] _DPlanarAxisX("X Axis", Int) =  0
-		[Enum(X, 0, Y, 1, Z, 2)] _DPlanarAxisY("Y Axis", Int) =  2
-		[DETAILS_OVERLAY] _DAlbedoScale("Albedo Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) =  1
-		[ToggleUI][DETAILS_OVERLAY] UI_DetailAlbedoNote("!NOTE Values < 0.5 - darken, > 0.5 - lighten [DETAILS_OVERLAY]", Int) =  0
-		[DETAILS_OVERLAY] _DNormalScale("Normal Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) =  1
-		[ToggleUI][DETAILS_OVERLAY] _DNormalFlipY("Flip Y (UE Mode) [DETAILS_OVERLAY]", Int) =  0
-		[DETAILS_OVERLAY] _DSmoothScale("Smooth Scale [DETAILS_OVERLAY]", Range(0.0, 2.0)) =  1
-		[ToggleUI][DETAILS_OVERLAY] UI_DetailSmoothNote("!NOTE Values < 0.5 - roughen, > 0.5 - smoothen [DETAILS_OVERLAY]", Int) =  0
-		[ToggleUI] UI_TessellationHeader("# Tessellation", Int) =  0
-		[ToggleUI][BAKERY_SH] UI_TessSHNote("!NOTE Bakery SH does not show up correctly on tessellated meshes at this point [BAKERY_SH]", Int) =  0
+		_EmissionMap("Emission Map > %ShowIf(_EMISSION)", 2D) =  "white" { }
+		[HDR]_EmissionColor("Emission Color %ShowIf(_EMISSION)", Color) =  (0, 0, 0, 1)
+		[Enum(RGB, 0, R, 1, G, 2, B, 3)][_EmissionMap] _EmissionChannel("Emission Channel %ShowIf(_EmissionMap)", Int) =  0
+
+		UI_ParallaxHeader("# Parallax", Int) = 0
+		UI_ParallaxDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#parallax)", Int) = 0
+		[Toggle(PARALLAX)]_EnableParallax("Enable Parallax", Int) = 0
+		[NoScaleOffset]_Height("Height > %ShowIf(PARALLAX)", 2D) = "black" {}
+		_HeightScale("Height Scale %ShowIf(PARALLAX)", Range(0, 0.1)) = 0.006
+		_HeightRefPlane("Height Ref Plane %ShowIf(PARALLAX)", Range(-1, 1)) = 0.5
+		_HeightStepsMin("Steps Min %ShowIf(PARALLAX)", Range(8, 32)) = 8
+		_HeightStepsMax("Steps Max %ShowIf(PARALLAX)", Range(8, 32)) = 16
+
+		UI_DetailsHeader("# Details", Int) = 0
+		UI_DetailsDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#details)", Int) = 0
+		[Toggle(DETAILS_OVERLAY)]_DetailsOverlay("Enable Details", Int) = 0
+		[ToggleUI]_DIgnoreMask("Ignore Mask %ShowIf(DETAILS_OVERLAY)", Int) = 0
+		UI_IgnoreMaskNote("> Force-draws the detail effects %ShowIf(DETAILS_OVERLAY)", Int) = 0
+		[KeywordEnum(Packed, Separated)]DETAILS_MODE("Detail Map Mode %ShowIf(DETAILS_OVERLAY)", Int) = 0
+		_DDetailsMap("Details Map %ShowIf(DETAILS_OVERLAY)", 2D) = "gray" { }
+		UI_DetailsMapNote("> R: Albedo, G: Normal G, B: Smooth, A: Normal R. Uncheck sRGB! %ShowIf(DETAILS_OVERLAY && DETAILS_MODE_PACKED)", Int) = 0
+		UI_DetailsMapNoteSeparate("> RGB: Albedo, A: Smooth. Uncheck sRGB! %ShowIf(DETAILS_OVERLAY && DETAILS_MODE_SEPARATED)", Int) = 0
+		[NoScaleOffset]_DDetailsNormal("Details Normal Map > %ShowIf(DETAILS_OVERLAY && DETAILS_MODE_SEPARATED)", 2D) = "bump" { }
+		[Enum(UV, 0, Local Space, 1, World Space, 2)]_DMappingSpace("Mapping Space %ShowIf(DETAILS_OVERLAY)", Int) = 0
+		[Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_DUVChannel("UV Set %ShowIf(_DMappingSpace == 0 && DETAILS_OVERLAY)", Int) = 0
+		[Enum(X, 0, Y, 1, Z, 2)]_DPlanarAxisX("X Axis %ShowIf(_DMappingSpace > 0 && DETAILS_OVERLAY) %CombineWith(_DPlanarAxisY)", Int) = 0
+		[HideInInspector][Enum(X, 0, Y, 1, Z, 2)]_DPlanarAxisY("Y Axis", Int) = 2
+		_DAlbedoScale("Albedo Scale %ShowIf(DETAILS_OVERLAY)", Range(0.0, 2.0)) = 1
+		UI_DetailAlbedoNote("> Values < 0.5 - darken, > 0.5 - lighten %ShowIf(DETAILS_OVERLAY)", Int) = 0
+		_DNormalScale("Normal Scale %ShowIf(DETAILS_OVERLAY)", Range(0.0, 2.0)) = 1
+		[ToggleUI]_DNormalFlipY("Flip Y (UE Mode) %ShowIf(DETAILS_OVERLAY)", Int) = 0
+		_DSmoothScale("Smooth Scale %ShowIf(DETAILS_OVERLAY)", Range(0.0, 2.0)) = 1
+		UI_DetailSmoothNote("> Values < 0.5 - roughen, > 0.5 - smoothen %ShowIf(DETAILS_OVERLAY)", Int) = 0
+
+		UI_TessellationHeader("# Tessellation", Int) =  0
+		UI_TessSHNote("> Bakery SH does not show up correctly on tessellated meshes at this point %ShowIf(BAKERY_SH)", Int) =  0
 		[KeywordEnum(DistanceBased, EdgeLength)] TESS_MODE("Tessellation Mode", Int) =  0
-		[IntRange][TESS_MODE_DISTANCEBASED] _TessFactor("Tessellation Factor [TESS_MODE_DISTANCEBASED]", Range(3, 64)) =  3
-		[ToggleUI] UI_TessFactorNote("!NOTE It is recommended to keep this around or below 16 for performance", Int) =  0
-		[ToggleUI] UI_TessNote("!NOTE Some AMD GPUs can have issues with tessellation, be weary when using this", Int) =  0
-		[TESS_MODE_DISTANCEBASED] _TessMinDist("Start Distance [TESS_MODE_DISTANCEBASED]", Float) =  3
-		[TESS_MODE_DISTANCEBASED] _TessMaxDist("End Distance [TESS_MODE_DISTANCEBASED]", Float) =  20
-		[TESS_MODE_EDGELENGTH] _TessEdgeLength("Max Edge Length [TESS_MODE_EDGELENGTH]", Float) =  80
-		[TESS_MODE_EDGELENGTH] _TessMaxDisplacement("Max Displacement [TESS_MODE_EDGELENGTH]", Float) =  0.1
-		[ToggleUI] UI_MaxDisplacementNote("!NOTE This defines how much you will be displacing the mesh to help with optimisations", Int) =  0
+		[IntRange]_TessFactor("Tessellation Factor %ShowIf(TESS_MODE_DISTANCEBASED)", Range(3, 64)) =  3
+		UI_TessFactorNote("> It is recommended to keep this around or below 16 for performance", Int) =  0
+		UI_TessNote("> Some AMD GPUs can have issues with tessellation, be weary when using this", Int) =  0
+		_TessMinDist("Start Distance %ShowIf(TESS_MODE_DISTANCEBASED)", Float) =  3
+		_TessMaxDist("End Distance %ShowIf(TESS_MODE_DISTANCEBASED)", Float) =  20
+		_TessEdgeLength("Max Edge Length %ShowIf(TESS_MODE_EDGELENGTH)", Float) =  80
+		_TessMaxDisplacement("Max Displacement %ShowIf(TESS_MODE_EDGELENGTH)", Float) =  0.1
+		UI_MaxDisplacementNote("> This defines how much you will be displacing the mesh to help with optimisations %ShowIf(TESS_MODE_EDGELENGTH)", Int) =  0
 		[Toggle(PHONG)] _TessPhong("Enable Phong", Int) =  0
-		[ToggleUI] UI_PhongNote("!NOTE Phong smoothes the mesh along its normals", Int) =  0
-		[ToggleUI] UI_VertexHeightHeader("# Displacement", Int) =  0
+		UI_PhongNote("> Phong smoothes the mesh along its normals", Int) =  0
+
+		UI_VertexHeightHeader("# Displacement", Int) =  0
 		_VertexHeight("Displacement Map", 2D) =  "gray" {}
 		_VertexHeightAmount("Displacement Amount", Range(0, 3)) =  0
 		_VertexHeightOffset("Displacement Offset", Range(-1, 1)) =  0.5
-		[ToggleUI] UI_AdvancedHeader("# Advanced Features", Float) = 0
-		[Enum(UnityEngine.Rendering.CullMode)] _CullMode("Culling Mode", Int) = 2
-		[Enum(Off, 0, On, 1)] _ZWrite("Depth Write", Int) = 1
-		[Enum(UnityEngine.Rendering.CompareFunction)] _ZTest("Depth Test", Int) = 4
-		[ToggleUI] UI_GSAAHeader("## GSAA", Float) = 0
-		[Toggle(GSAA)] _EnableGSAA("GSAA Enabled", Int) = 1
-		[ToggleUI] UI_GSAANote("!NOTE GSAA dramatically reduces specular aliasing", Int) = 0
-		_GSAAVariance("- GSAA Variance [GSAA]", Range(0, 1)) = 0.05
-		_GSAAThreshold("- GSAA Threshold [GSAA]", Range(0, 1)) = 0.1
-		[Toggle(FORCE_BOX_PROJECTION)] _ForceBoxPorject("Force Box Projection", Int) = 0
-		[ToggleUI] UI_ForceBoxProjectionNote("!NOTE Forces the shader to use box projection for reflection probes even if its disabled, e.g. for Quest", Int) = 0
-		[ToggleUI] UI_LightmappingHeader("# Lightmapping", Int) = 0
-		_SpecOcclusion("Specular Occlusion", Range(0, 1)) = 1
+
+		UI_AdvancedSettingsHeader("# Advanced Settings", Int) = 1
+		[Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
+		[Enum(Off, 0, On, 1)]_ZWrite("Depth Write", Int) = 1
+		[Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("Depth Test", Int) = 4
+		UI_GSAAHeader("## GSAA", Float) = 0
+		[Toggle(GSAA)]_EnableGSAA("GSAA Enabled", Int) = 1
+		UI_GSAANote("> GSAA dramatically reduces specular aliasing", Int) = 0
+		_GSAAVariance("GSAA Variance %ShowIf(GSAA)", Range(0, 1)) = 0.05
+		_GSAAThreshold("GSAA Threshold %ShowIf(GSAA)", Range(0, 1)) = 0.1
+		[Toggle(NONLINEAR_SH)]_NonlinearSH("Non-Linear Lightprobe SH", Int) = 0
+		[Toggle(FORCE_BOX_PROJECTION)]_ForceBoxProjection("Force Box Projection", Int) = 0
+		UI_LightmappingHeader("# Lightmapping", Int) = 1
+		UI_LightmappingDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#lightmapping)", Int) = 0
+		_SpecOcclusion("Specular Occlusion", Range(0, 1)) = 0.75
 		_SpecularRoughnessMod("Specular Roughness Mod", Range(0, 1)) = 1
-		[Toggle(BICUBIC_LIGHTMAP)] _Bicubic("Bicubic Sampling", Int) = 0
-		[Toggle(BAKED_SPECULAR)] _BakedSpecular("Baked Specular", Int) = 0
-		[ToggleUI] UI_BakeryHeader("## Bakery Features", Int) = 0
-		[Toggle(BAKERY_ENABLED)] _BakeryEnabled("Enable Bakery Features", Int) = 0
-		[KeywordEnum(None, SH, RNM)] BAKERY("Bakery Mode", Int) = 0
-		[Toggle(BAKERY_SHNONLINEAR)] _BakerySHNonLinear("Bakery Non-Linear SH [BAKERY_ENABLED]", Int) = 0
-		[ToggleUI] UI_InternalsHeader("# Internal", Int) = 0
-		[NonModifiableTextureData] _DFG("DFG LUT &", 2D) = "black" {}
-		_RNM0("RNM0 &", 2D) = "black" {}
-		_RNM1("RNM1 &", 2D) = "black" {}
-		_RNM2("RNM2 &", 2D) = "black" {}
+		[Toggle(BICUBIC_LIGHTMAP)]_Bicubic("Bicubic Sampling", Int) = 0
+		[Toggle(BAKED_SPECULAR)]_BakedSpecular("Baked Specular", Int) = 0
+		UI_BakeryHeader("## Bakery Features", Int) = 0
+		[Toggle(BAKERY_ENABLED)]_BakeryEnabled("Enable Bakery Features", Int) = 0
+		[KeywordEnum(None, MONOSH, SH, RNM)]BAKERY("Bakery Mode %ShowIf(BAKERY_ENABLED)", Int) = 0
+		[Toggle(BAKERY_SHNONLINEAR)]_BakerySHNonLinear("Bakery Non-Linear SH %ShowIf(BAKERY_ENABLED)", Int) = 1
+		UI_InternalHeader("# Internal", Int) = 0
+		[NonModifiableTextureData]_DFG("DFG > %RequiredTexture(@/dfg-multiscatter.exr)", 2D) = "white" {}
+		_RNM0("RNM0 >", 2D) = "black" {}
+		_RNM1("RNM1 >", 2D) = "black" {}
+		_RNM2("RNM2 >", 2D) = "black" {}
 	}
 	SubShader
 	{
@@ -9196,5 +9197,5 @@ Shader "orels1/Standard Tesselated Displacement"
 		}
 		
 	}
-	CustomEditor "Needle.MarkdownShaderGUI"
+	CustomEditor "ORL.ShaderInspector.InspectorGUI"
 }
