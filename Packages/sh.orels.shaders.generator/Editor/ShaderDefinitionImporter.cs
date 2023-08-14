@@ -746,7 +746,7 @@ namespace ORL.ShaderGenerator
                     var texMatch = _texRegex.Match(line);
                     if (texMatch.Success)
                     {
-                        var newLine = line.Replace(texMatch.Value, $"Texture2D<float4> {texMatch.Groups["identifier"]}");
+                        var newLine = line.Replace(texMatch.Value, $"Texture2D<float4> {texMatch.Groups["identifier"].Value}");
                         processedSource.AppendLine(newLine);
                         continue;
                     }
@@ -754,7 +754,7 @@ namespace ORL.ShaderGenerator
                     var samplerMatch = _samplerRegex.Match(line);
                     if (samplerMatch.Success)
                     {
-                        var newLine = line.Replace(samplerMatch.Value, $"SamplerState {samplerMatch.Groups["identifier"]}");
+                        var newLine = line.Replace(samplerMatch.Value, $"SamplerState {samplerMatch.Groups["identifier"].Value}");
                         processedSource.AppendLine(newLine);
                         continue;
                     }
