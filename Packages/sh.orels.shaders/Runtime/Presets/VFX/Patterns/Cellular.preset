@@ -15,7 +15,7 @@ Preset:
   - target: {fileID: 0}
     propertyPath: m_Shader
     value: 
-    objectReference: {fileID: -8512187303908658807, guid: 5936271be8d78184cb61dc333654f6fd,
+    objectReference: {fileID: -8512187303908658807, guid: e78910dcb2149f147bd1338b9d08b929,
       type: 3}
   - target: {fileID: 0}
     propertyPath: m_ShaderKeywords
