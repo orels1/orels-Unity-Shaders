@@ -2,6 +2,8 @@
 {
     UI_PatternsHeader("# Patterns", Int) = 1
     UI_PatternsPresesets("Selected Preset %Preset(@/Presets/VFX/Patterns)", Int) = 0
+    [KeywordEnum(None, 2x, 4x)]PATTERN_SUPERSAMPLING("Super Sampling", Int) = 0
+    UI_PatternsSuperSamplingNote("> If the patterns look too jagged, you can try increasing the Super Sampling amount", Int) = 0
     // [KeywordEnum(Circles, Triangles, Lines)]PATTERN("Pattern", Int) = 0
     [HDR]_CirclesColor1("Color 1 %ShowIf(PATTERN_CIRCLES)", Color) = (0, 0, 0, 1)
     [HDR]_CirclesColor2("Color 2 %ShowIf(PATTERN_CIRCLES)", Color) = (1, 1, 1, 1)
@@ -36,11 +38,20 @@
 %ShaderFeatures()
 {
     // #pragma shader_feature_local PATTERN_CIRCLES PATTERN_TRIANGLES PATTERN_LINES
+    #pragma shader_feature_local PATTERN_SUPERSAMPLING_NONE PATTERN_SUPERSAMPLING_2X PATTERN_SUPERSAMPLING_4X
 }
 
 %ShaderDefines()
 {
     #define PATTERN_CIRCLES
+
+    #if defined(PATTERN_SUPERSAMPLING_NONE)
+        #define PATTERN_SAMPLES 1
+    #elif defined(PATTERN_SUPERSAMPLING_2X)
+        #define PATTERN_SAMPLES 2
+    #elif defined(PATTERN_SUPERSAMPLING_4X)
+        #define PATTERN_SAMPLES 4
+    #endif
 }
 
 %Variables()
@@ -113,34 +124,60 @@
         return uv;
     }
 
+    half3 CirclesDist(half2 uv)
+    {
+        uv = uv - 0.5;
+        if (_CirclesKaleidoscopeUV)
+        {
+            uv = GetKaleidoscopeUV(uv, _CirclesKaleidoscopeSlices, _Time.y * _CirclesKaleidoscopeSpinSpeed + _CirclesKaleidoscopeSpinOffset, _CirclesKaleidoscopeTiling);
+        }
+        uv = uv + _CircleOrigin;
+        half timeFactor = _Time.y * _CircleExpandSpeed + _CircleExpandTimeOffset;
+        half dist = sdCircle(uv, timeFactor);
+        dist = cos(_CircleCount * -dist);
+        dist = 1 - smoothstep(0, _CircleSmoothing, dist);
+
+        if (_CircleAddLines) {
+            half ogDist = sdCircle(uv, timeFactor < 0.0001 ? 1000 : timeFactor) / 2;
+            ogDist = (floor(-ogDist * _CircleCount / UNITY_PI) % 2.0);
+            ogDist = smoothstep(0, 0.2, ogDist);
+            half alternateFactor = lerp(1, lerp(-1,1,ogDist),_CircleLinesSpinAlternate);
+            uv = Rotate2D(uv, _Time.y * _CircleLinesSpinSpeed * alternateFactor + _CircleLinesSpinTimeOffset * alternateFactor);
+            uv = GetPolarUV(uv * max(0.01, 1.0 / _CircleLinesThickness), _CircleLinesDegreeOffset);
+            half lineMask = abs(uv.x);
+            dist *= smoothstep(0, _CircleLinesSmoothing / 20.0, lineMask - 0.005);
+        }
+        return dist;
+    }
+
     void PatternsFragment(MeshData d, inout SurfaceData o)
     {
+        half2 uv = d.uv0;
+        float2 dxuv = ddx(d.uv0);
+        float2 dyuv = ddy(d.uv0);
+        float goldenRatio = 1.61803398875;
+
+        // Supersampling code from d4rkpl4y3r
+        // https://github.com/d4rkc0d3r
         #if defined(PATTERN_CIRCLES)
         {
-            half2 uv = d.uv0;
-            uv = uv - 0.5;
-            if (_CirclesKaleidoscopeUV)
+            #if defined(PATTERN_SUPERSAMPLING_2X) || defined(PATTERN_SUPERSAMPLING_4X)
+            
+            [unroll(PATTERN_SAMPLES)]
+            for (uint i = 0; i < PATTERN_SAMPLES; i++)
             {
-                uv = GetKaleidoscopeUV(uv, _CirclesKaleidoscopeSlices, _Time.y * _CirclesKaleidoscopeSpinSpeed + _CirclesKaleidoscopeSpinOffset, _CirclesKaleidoscopeTiling);
+                float2 jitter = float2(frac(i * goldenRatio), (i + 0.5) / PATTERN_SAMPLES) - 0.5;
+                uv = d.uv0 + dxuv * jitter.x + dyuv * jitter.y;
+                o.Emission += lerp(_CirclesColor1, _CirclesColor2, CirclesDist(uv));
             }
-            uv = uv + _CircleOrigin;
-            half timeFactor = _Time.y * _CircleExpandSpeed + _CircleExpandTimeOffset;
-            half dist = sdCircle(uv, timeFactor);
-            dist = cos(_CircleCount * -dist);
-            dist = 1 - smoothstep(0, _CircleSmoothing, dist);
+            o.Emission /= float(PATTERN_SAMPLES);
 
-            if (_CircleAddLines) {
-                half ogDist = sdCircle(uv, timeFactor < 0.0001 ? 1000 : timeFactor) / 2;
-                ogDist = (floor(-ogDist * _CircleCount / UNITY_PI) % 2.0);
-                ogDist = smoothstep(0, 0.2, ogDist);
-                half alternateFactor = lerp(1, lerp(-1,1,ogDist),_CircleLinesSpinAlternate);
-                uv = Rotate2D(uv, _Time.y * _CircleLinesSpinSpeed * alternateFactor + _CircleLinesSpinTimeOffset * alternateFactor);
-                uv = GetPolarUV(uv * max(0.01, 1.0 / _CircleLinesThickness), _CircleLinesDegreeOffset);
-                half lineMask = abs(uv.x);
-                dist *= smoothstep(0, _CircleLinesSmoothing / 20.0, lineMask - 0.005);
-            }
+            #else
 
-            o.Emission = lerp(_CirclesColor1, _CirclesColor2, dist);
+            o.Emission = lerp(_CirclesColor1, _CirclesColor2, CirclesDist(uv));
+            
+            #endif
+
         }
         #endif
 
