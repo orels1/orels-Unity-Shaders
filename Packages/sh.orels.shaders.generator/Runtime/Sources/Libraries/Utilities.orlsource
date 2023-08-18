@@ -412,4 +412,9 @@
     {
         return (((x)-(y)*floor((x)/(y))));
     }
+
+    float2 GLSLMod(float2 x, float2 y)
+    {
+        return (((x)-(y)*floor((x)/(y))));
+    }
 }
