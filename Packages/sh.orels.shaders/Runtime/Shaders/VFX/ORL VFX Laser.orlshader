@@ -11,6 +11,7 @@
 
     UI_NoiseControlHeader("# Noise Control", Int) = 1
     _Scale("Noise Scale", Float) = 1.6
+    [Enum(World, 0, Local, 1)]_NoiseSpace("Noise Coordinate Space", Int) = 0
     _Noise1Strength("1st Noise Strength", Range(-2, 2)) = 0.24
     _Noise1Contrast("1st Noise Contrast %RemapSlider(0,1)", Vector) = (0.02, 0.4, 0, 1)
     [Enum(World, 0, Local, 1)]_Noise1ScrollSpace("1st Noise Scroll Space", Int) = 0
@@ -49,6 +50,7 @@
     int _UseTrailColor;
     half _ColorBoost;
     half _Scale;
+    int _NoiseSpace;
     half _Noise1Strength;
     half4 _Noise1Contrast;
     half4 _Noise1Scroll;
@@ -84,7 +86,7 @@
             length(unity_ObjectToWorld._m01_m11_m21),
             length(unity_ObjectToWorld._m02_m12_m22)
         );
-        half3 pos = d.worldSpacePosition;
+        half3 pos = _NoiseSpace ? d.localSpacePosition : d.worldSpacePosition;
         half3 convertedScroll1Dir = _Noise1ScrollSpace ? mul(unity_ObjectToWorld, half4(_Noise1Scroll.xyz / scale, 0)).xyz : _Noise1Scroll.xyz;
         pos += _Time.y * convertedScroll1Dir;
         pos *= _Scale;
@@ -94,7 +96,7 @@
         pos = mul(pos, noiseTransMatrix) * 2.02;
         noise += 0.125 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
         
-        pos = d.worldSpacePosition;
+        pos = _NoiseSpace ? d.localSpacePosition : d.worldSpacePosition;
         half3 convertedScroll2Dir = _Noise2ScrollSpace ? mul(unity_ObjectToWorld, half4(_Noise2Scroll.xyz / scale , 0)).xyz : _Noise2Scroll.xyz;
         pos += _Time.y * convertedScroll2Dir;
         pos *= _Scale2;
