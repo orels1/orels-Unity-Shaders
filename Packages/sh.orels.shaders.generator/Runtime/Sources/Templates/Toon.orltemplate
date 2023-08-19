@@ -30,6 +30,114 @@ Shader %ShaderName
         // PrePasses
         %PrePasses
 
+        %TemplateFeature("PrePass")
+        {
+            Pass
+            {
+                Tags { "LightMode" = "ForwardBase" %PassTags }
+                %PrePassModifiers
+
+                // ForwardBase Depth Prepass
+                CGPROGRAM
+                #pragma target 4.5
+                #pragma multi_compile_instancing
+                #pragma multi_compile_fwdbase
+                #pragma multi_compile_fog
+                #pragma vertex Vertex
+                #pragma fragment Fragment
+                %ShaderFeatures
+
+                #define UNITY_INSTANCED_LOD_FADE
+                #define UNITY_INSTANCED_SH
+                #define UNITY_INSTANCED_LIGHTMAPSTS
+
+                #ifndef PASS_PREPASS
+                    #define PASS_PREPASS
+                #endif
+
+                #ifndef UNITY_PASS_FORWARDBASE
+                    #define UNITY_PASS_FORWARDBASE
+                #endif
+
+                // ShaderDefines
+                %ShaderDefines
+                // DataStructs
+                %DataStructs
+                // GlobalVariables
+                %GlobalVariables
+
+                #if defined(NEED_DEPTH)
+                    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+                #endif
+
+                // Variables
+                %Variables
+
+                // Textures
+                %Textures
+
+                // Functions
+                %Functions
+
+                // ForwardBase Depth Prepass Vertex
+                FragmentData Vertex(VertexData v)
+                {
+                    UNITY_SETUP_INSTANCE_ID(v);
+                    FragmentData o;
+                    UNITY_INITIALIZE_OUTPUT(FragmentData, o);
+                    UNITY_TRANSFER_INSTANCE_ID(v, o);
+                    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+                    // ForwardBase Depth Prepass Vertex Chain
+                    %VertexFunctions
+
+                    // ForwardBase Depth Prepass VertexBase
+                    %VertexBase
+
+                    return o;
+                }
+
+                // ForwardBase Depth Prepass Fragment
+                half4 Fragment(FragmentData i, int facing: VFACE) : SV_TARGET
+                {
+                    UNITY_SETUP_INSTANCE_ID(i);
+                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+                    #ifdef FOG_COMBINED_WITH_TSPACE
+                        UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+                    #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+                        UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+                    #else
+                        UNITY_EXTRACT_FOG(i);
+                    #endif
+
+                    half4 FinalColor = 1;
+                    #if defined(NEED_FRAGMENT_IN_PREPASS)
+                    SurfaceData o = CreateSurfaceData();
+                    MeshData d = CreateMeshData(i);
+
+                    // ForwardBase Depth Prepass Fragment Chain
+                    %FragmentFunctions
+
+                    // ForwardBase Depth Prepass FragmentBase
+                    %FragmentBase
+
+                    UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+                    
+                    // ForwardBase Depth Prepass Color Chain
+                    %ColorFunctions
+                    #endif
+
+                    // ForwardBase Depth Prepass-only Chain
+                    %PrePassColorFunctions
+
+                    return FinalColor;
+                }
+
+                ENDCG
+                // ForwardBase Depth Prepass End
+            }
+        }
+
         Pass
         {
             Tags { "LightMode" = "ForwardBase" %PassTags }
