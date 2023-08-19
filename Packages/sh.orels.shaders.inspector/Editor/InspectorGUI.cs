@@ -340,6 +340,8 @@ namespace ORL.ShaderInspector
             }
             
             // Draw the Preset management
+            // This is disabled for now as this functionality isn't ready
+            #if false
             if (GUILayout.Button("Open AmbientCG Browser"))
             {
                 if (!_libraryOpen)
@@ -351,6 +353,7 @@ namespace ORL.ShaderInspector
                     }, material));
                 }
             }
+            #endif
 
             EditorGUILayout.Space();
 
