@@ -66,7 +66,8 @@
             env = getEnvReflection(d.worldSpaceViewDir.xyz, d.worldSpacePosition.xyz, normal, o.Smoothness, 5);
         #endif
         
-        o.RimLight = rim * _RimTint * lerp(1, o.Albedo.rgbb, _RimAlbedoTint) * lerp(1, env.rgbb, _RimEnvironmentTint);
+        o.RimLight = rim * _RimTint * lerp(1, half4(o.Albedo.rgb,1), _RimAlbedoTint) * lerp(1, half4(env.rgb,1), _RimEnvironmentTint);
+        o.RimLight *= _RimTint.a;
         o.RimAttenuation = _RimAttenuation;
         
         #endif
