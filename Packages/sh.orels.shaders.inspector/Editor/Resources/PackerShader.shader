@@ -112,11 +112,11 @@
 					alphaData = 1 - alphaData;
 				}
 
-				if (!_IsLinear)
-				{
-					return float4(pow(float3(redData, greenData, blueData),2.2), alphaData);
-				}
-				return float4(redData, greenData, blueData, alphaData);
+				// if (!_IsLinear)
+				// {
+				// 	return float4(pow(float3(redData, greenData, blueData),2.2), alphaData);
+				// }
+				return float4(redData, greenData, blueData, _AlphaTexPresent ? pow(alphaData, 1.0/2.2) : alphaData);
 			}
 			ENDCG
 		}

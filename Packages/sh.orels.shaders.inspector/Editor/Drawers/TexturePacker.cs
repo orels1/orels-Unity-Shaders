@@ -179,7 +179,7 @@ namespace ORL.Drawers
             {
                 if (textures[i] == null) continue;
                 var channelTexPath = AssetDatabase.GetAssetPath(textures[i]);
-                var tex = new Texture2D(4, 4, TextureFormat.RGBA32, false, isLinear);
+                var tex = new Texture2D(4, 4, TextureFormat.RGBA32, false, true);
                 tex.LoadImage(File.ReadAllBytes(channelTexPath));
                 rawTextures[i] = tex;
             }
