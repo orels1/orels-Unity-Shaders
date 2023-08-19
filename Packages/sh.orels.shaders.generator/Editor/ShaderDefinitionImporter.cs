@@ -15,7 +15,7 @@ namespace ORL.ShaderGenerator
     {
         public bool debugBuild;
         
-        private HashSet<string> _paramsOnlyBlock = new HashSet<string>
+        private readonly HashSet<string> _paramsOnlyBlock = new HashSet<string>
         {
             "%ShaderName",
             "%CustomEditor"
@@ -23,7 +23,7 @@ namespace ORL.ShaderGenerator
 
         private List<ShaderBlock> _builtInBlocks;
 
-        private string[] _dataStructs = {
+        private readonly string[] _dataStructs = {
             "@/Structs/VertexData",
             "@/Structs/FragmentData"
         };
@@ -56,10 +56,9 @@ namespace ORL.ShaderGenerator
         
         private List<ShaderBlock> _builtInFunctions;
         
-        private string[] _functions = {
+        private readonly string[] _functions = {
         };
 
-        private Regex _callSignRegex = new Regex(@"(?:^void\s*)(?<fnName>[\w]+)\((?<params>[\w\,\s]+)\)");
         private List<ShaderBlock> BuiltInFunctions
         {
             get
@@ -79,12 +78,12 @@ namespace ORL.ShaderGenerator
             }
         }
 
-        private string[] _libraries = {
+        private readonly string[] _libraries = {
             "@/Libraries/Utilities"
         };
 
-        private string _samplingLib = "@/Libraries/SamplingLibrary";
-        
+        private const string SamplingLib = "@/Libraries/SamplingLibrary";
+
         private List<ShaderBlock> _builtInLibraries;
         
         private List<ShaderBlock> BuiltInLibraries
@@ -104,7 +103,7 @@ namespace ORL.ShaderGenerator
                 // Add sampling lib directly as well, we want it everywhere
                 {
                     var parser = new Parser();
-                    var sourceStrings = Utils.GetORLSource(_samplingLib);
+                    var sourceStrings = Utils.GetORLSource(SamplingLib);
                     var blockSource = parser.Parse(sourceStrings);
                     blocks.AddRange(blockSource);
                 }
@@ -114,10 +113,13 @@ namespace ORL.ShaderGenerator
             }
         }
 
-        private string _defaultLightignModel = "@/LightingModels/PBR";
-        
+        private const string DefaultLightingModel = "@/LightingModels/PBR";
+
         // Matches %BlockName without nuking %FunctionName()
-        private Regex _replacerRegex = new Regex(@"(?<!\/\/\s*)(%[a-zA-Z]+[\w\d]+)(?:$|[""\;\s])");
+        private readonly Regex _replacerRegex = new Regex(@"(?<!\/\/\s*)(%[a-zA-Z]+[\w\d]+)(?:$|[""\;\s])");
+        
+        // Matches %TemplateFeature(<FeatureName>)
+        private readonly Regex _templateFeatureRegex = new Regex(@"%TemplateFeature\((?<identifier>""\w+"")\)");
 
         /// <summary>
         /// Here's the import flow:
@@ -156,7 +158,7 @@ namespace ORL.ShaderGenerator
             depList.AddRange(_dataStructs);
             depList.AddRange(_functions);
             depList.AddRange(_libraries);
-            depList.Add(_samplingLib);
+            depList.Add(SamplingLib);
             RegisterDependencies(depList, ctx);
 
             // Adding all the dependencies to the list of blocks
@@ -225,7 +227,7 @@ namespace ORL.ShaderGenerator
                 var lightingModelIndex = blocks.FindIndex(b => b.Name == "%LightingModel");
                 // If we don't have a lighting model, use the default (PBR)
                 var lightingModelName = lightingModelIndex == -1
-                    ? _defaultLightignModel
+                    ? DefaultLightingModel
                     : blocks[lightingModelIndex].Params[0].Replace("\"", "");
                 var lightingModelPath =
                     Utils.ResolveORLAsset(lightingModelName, lightingModelName.StartsWith("@/"), workingFolder);
@@ -316,6 +318,90 @@ namespace ORL.ShaderGenerator
                 ctx.LogImportError($"Failed to load Template in {ctx.assetPath}", this);
                 throw;
             }
+            
+            // Find and toggle template features
+            try
+            {
+                var templateFeatures = new List<string>();
+                var templateFeaturesIndex = blocks.FindIndex(b => b.Name == "%TemplateFeatures");
+                if (templateFeaturesIndex > -1)
+                {
+                    templateFeatures = blocks[templateFeaturesIndex].Params.Select(p => p.Replace("\"", "")).ToList();
+                }
+
+                // run through the template and mutate it based on the features
+                var newTemplate = new StringBuilder();
+                var enteredFeature = false;
+                string currentFeatureName = null;
+                var skippingFeature = false;
+                var nestLevel = 0;
+                for (var index = 0; index < template.Length; index++)
+                {
+                    var trimmedLine = template[index].Trim();
+                    if (trimmedLine.StartsWith("//", StringComparison.InvariantCulture))
+                    {
+                        newTemplate.AppendLine(template[index]);
+                        continue;
+                    }
+
+                    if (enteredFeature)
+                    {
+                        if (trimmedLine.StartsWith("{")) nestLevel++;
+                        if (trimmedLine.StartsWith("}")) nestLevel--;
+                    }
+
+                    if (enteredFeature && nestLevel == 0)
+                    {
+                        enteredFeature = false;
+                        skippingFeature = false;
+                        // feature exited, skip this line for the closing `}`
+                        continue;
+                    }
+                    
+                    var match = _templateFeatureRegex.Match(trimmedLine);
+                    // add all normal lines
+                    if (!match.Success)
+                    {
+                        if (!skippingFeature)
+                        {
+                            newTemplate.AppendLine(template[index]);
+                        }
+                        continue;
+                    }
+
+                    // if encountered nested feature - abort
+                    if (enteredFeature)
+                    {
+                        ctx.LogImportError($"Found nested Template Features in {ctx.assetPath}. {match.Groups["identifier"].Value} was inside {currentFeatureName}", this);
+                        throw new Exception("Nested Template Features are not supported");
+                    }
+                    
+                    currentFeatureName = match.Groups["identifier"].Value.Replace("\"", string.Empty);
+                    
+                    // if this isn't a feature we want - skip it altogether
+                    if (!templateFeatures.Contains(currentFeatureName))
+                    {
+                        skippingFeature = true;
+                        enteredFeature = true;
+                        // we skip 1 line for the opening `{`
+                        nestLevel++;
+                        index++;
+                        continue;
+                    }
+                    
+                    enteredFeature = true;
+                    // we skip 1 line for the opening `{`
+                    nestLevel++;
+                    index++;
+                }
+                template = newTemplate.ToString().Split(new[] { Environment.NewLine, "\n"}, StringSplitOptions.None);
+            }
+            catch (Exception ex)
+            {
+                ctx.LogImportError(ex.ToString());
+                ctx.LogImportError($"Failed to toggle Template Features in {ctx.assetPath}", this);
+                throw;
+            }
 
             // Collapse non-function blocks together and de-dupe things where makes sense
             blocks = OptimizeBlocks(blocks);
@@ -346,6 +432,17 @@ namespace ORL.ShaderGenerator
                         case "%Functions":
                         {
                             InsertContentsAtPosition(ref newLine, functionBlocks, match.Index, matchLen);
+                            continue;
+                        }
+                        // Here we insert function calls into the pre-pass fragment stage
+                        case "%PrePassColorFunctions":
+                        {
+                            var fragmentFns = functionBlocks.FindAll(b => b.Name == "%PrePassColor");
+                            fragmentFns.Reverse();
+                            fragmentFns.Sort((a,b) => a.Order.CompareTo(b.Order));
+                            // the calls are inserted in reverse order to maintain offsets, so we reverse them back
+                            fragmentFns.Reverse();
+                            InsertFnCallAtPosition(ref newLine, fragmentFns, match.Index, matchLen);
                             continue;
                         }
                         // Here we insert function calls into the fragment stage
