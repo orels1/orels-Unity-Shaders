@@ -7,6 +7,9 @@
     _BackfaceAlbedoTint("Backface Albedo Tint", Range(0,1)) = 1
     [ToggleUI]_TintByVertexColor("Tint By Vertex Color", Int) = 0
     _MainTex("Albedo", 2D) = "white" {}
+    [Toggle(SEPARATE_ALPHA)]_SeparateAlpha("Separate Transparency Texture", Int) = 0
+    _AlphaTex("Transparency %ShowIf(_SeparateAlpha)", 2D) = "white" {}
+    _AlphaScale("Alpha Scale %ShowIf(_MainTex || SEPARATE_ALPHA)", Range(0,2)) = 1
     [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_MainTexUVSet("UV Set", Int) = 0
     _Hue("Hue", Range(0,1)) = 0
     _Saturation("Saturation", Range(-1,1)) = 0
@@ -20,6 +23,11 @@
     #define GLOBAL_UV_SET
 }
 
+%ShaderFeatures()
+{
+    #pragma shader_feature_local SEPARATE_ALPHA
+}
+
 
 %Variables()
 {
@@ -29,6 +37,7 @@
     half4 _Color;
     half4 _BackfaceColor;
     half _BackfaceAlbedoTint;
+    half _AlphaScale;
     half _Hue;
     half _Saturation;
     half _Value;
@@ -41,6 +50,10 @@
 {
     TEXTURE2D(_MainTex);
     SAMPLER(sampler_MainTex);
+
+    #if defined(SEPARATE_ALPHA)
+    TEXTURE2D(_AlphaTex);
+    #endif
 }
 
 %Fragment("ToonMainFragment")
@@ -78,7 +91,13 @@
         }
         o.Albedo = albedo.rgb;
         #if defined(NEED_ALBEDO_ALPHA)
-        o.Alpha = albedo.a;
+        {
+            #if defined(SEPARATE_ALPHA) 
+            o.Alpha = saturate(SAMPLE_TEXTURE2D(_AlphaTex, sampler_MainTex, GLOBAL_uv).r * _AlphaScale);
+            #else
+            o.Alpha = saturate(albedo.a * _AlphaScale);
+            #endif
+        }
         #else
         o.Alpha = 1;
         #endif
