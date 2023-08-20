@@ -10,15 +10,14 @@
     _PuddlesColor("Color", Color) = (0.5, 0.5, 0.5, 1)
     UI_PuddlesMaskHeader("## Masking", Int) = 0
     _PuddlesMask("Puddles Mask", 2D) = "white" {}
-    UI_PuddlesMaskNote("> Red - puddles mask", Int) = 0
     [Enum(World Space, 0, Local Space, 1, UV, 2, Triplanar, 3)]_PuddlesMaskMappingSpace("Mapping Space %ShowIf(_PuddlesMask)", Int) = 0
     [Enum(XY, 0, XZ, 1, YZ, 2)]_PuddlesMaskMappingAxis("Mapping Axis %ShowIf(_PuddlesMask && _PuddlesMaskMappingSpace < 2)", Int) = 1
     _PuddlesMaskStrength("Mask Strength %ShowIf(_PuddlesMask)", Range(0, 1)) = 1
 
     UI_RaindropsHeader("## Raindrops", Int) = 0
     [Toggle(RAINDROPS_ENABLE)]_RaindropsEnable("Enable Raindrops", Int) = 1
-    _RaindropsMap("Raindrops Texture %ShowIf(RAINDROPS_ENABLE)", 2D) = "white" {}
-    UI_RaindropsMapNote("> Red - Progression Gradient, Green/Blue - Raindrop Normal, Alpha - Raindrop Animation Time Offset %ShowIf(RAINDROPS_ENABLE)", Int) = 0
+    _RaindropsMap("Raindrops Texture %ShowIf(RAINDROPS_ENABLE) %RequiredTexture(@/Puddles_raindropsMask.exr)", 2D) = "white" {}
+    UI_RaindropsMapNote("?> Red - Progression Gradient\nGreen/Blue - Raindrop Normal\nAlpha - Raindrop Animation Time Offset %ShowIf(RAINDROPS_ENABLE)", Int) = 0
     [Enum(World Space, 0, Local Space, 1, UV, 2)]_RaindropsMappingSpace("Mapping Space %ShowIf(RAINDROPS_ENABLE)", Int) = 0
     [Enum(XY, 0, XZ, 1, YZ, 2)]_RaindropsMappingAxis("Mapping Axis %ShowIf(RAINDROPS_ENABLE && _RaindropsMappingSpace != 2)", Int) = 1
     _RaindropsAmount("Amount %ShowIf(RAINDROPS_ENABLE)", Range(0, 1)) = 0
