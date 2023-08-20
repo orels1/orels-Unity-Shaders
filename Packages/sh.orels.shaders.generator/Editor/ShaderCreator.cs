@@ -52,7 +52,13 @@ namespace ORL.ShaderGenerator
             CreateShaderFromTemplate("UI");
         }
 
-        private static void CreateShaderFromTemplate(string templateId)
+        [MenuItem("Assets/Create/Shader/orels1/Configurable Shader", priority = 9)]
+        private static void CreateConfigurableShader()
+        {
+            CreateShaderFromTemplate("Configurable", ".orlconfshader");
+        }
+
+        private static void CreateShaderFromTemplate(string templateId, string extension = ".orlshader")
         {
             var checkResource = Resources.Load<TextAsset>($"ShaderTemplates/{templateId}");
             if (checkResource == null) return;
@@ -65,7 +71,7 @@ namespace ORL.ShaderGenerator
             }
             object obj = getActiveFolderPath.Invoke(null, new object[0]);
             string pathToCurrentFolder = obj.ToString();
-            string uniquePath = AssetDatabase.GenerateUniqueAssetPath($"{pathToCurrentFolder}/New Shader.orlshader");
+            string uniquePath = AssetDatabase.GenerateUniqueAssetPath($"{pathToCurrentFolder}/New Shader{extension}");
 
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<ShaderCreateEndAction>(), uniquePath, null, templateId);
         }

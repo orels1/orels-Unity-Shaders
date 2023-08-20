@@ -4,23 +4,19 @@
 
 %Properties()
 {
-    UI_MainHeader("# Main Settings", Int) = 1
     UI_ToonDocs("[This shader has documentation](https://shaders.orels.sh/docs/toon)", Int) = 0
-    _Color("Main Color", Color) = (1, 1, 1, 1)
-    [ToggleUI]_TintByVertexColor("Tint By Vertex Color", Int) = 0
-    _MainTex("Albedo", 2D) = "white" {}
-    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_MainTexUVSet("UV Set", Int) = 0
-    _Hue("Hue", Range(0,1)) = 0
-    _Saturation("Saturation", Range(-1,1)) = 0
-    _Value("Value", Range(-1,1)) = 0
-    _Ramp("Ramp %Gradient()", 2D) = "grayscaleRamp" {}
-    _ShadowSharpness("Shadow Sharpness", Range(0,1)) = 0.5
+}
+
+%ShaderTags()
+{
+    "RenderType" = "Opaque" "Queue" = "Geometry"
 }
 
 %Includes()
 {
     "@/Modules/AudioLink",
     "self",
+    "@/Modules/Toon/Main",
     "@/Modules/Toon/Occlusion",
     "@/Modules/Toon/Normals",
     "@/Modules/Toon/Outline",
@@ -30,59 +26,4 @@
     "@/Modules/Toon/Emission",
     "@/Modules/Toon/RimLight",
     "@/Modules/Toon/ShadowRim"
-}
-
-%Variables()
-{
-    float4 _MainTex_ST;
-    int _MainTexUVSet;
-    int _TintByVertexColor;
-    half4 _Color;
-    half _Hue;
-    half _Saturation;
-    half _Value;
-    half _ShadowSharpness;
-
-    half2 GLOBAL_uv;
-}
-
-%Textures()
-{
-    TEXTURE2D(_MainTex);
-    SAMPLER(sampler_MainTex);
-}
-
-%Fragment("ToonFragment")
-{
-    void ToonFragment(MeshData d, inout SurfaceData o)
-    {
-        half2 uv = 0;
-        switch (_MainTexUVSet) {
-            case 0: uv = d.uv0; break;
-            case 1: uv = d.uv1; break;
-            case 2: uv = d.uv2; break;
-            case 3: uv = d.uv3; break;
-        }
-        uv = uv * _MainTex_ST.xy + _MainTex_ST.zw;
-        GLOBAL_uv = uv;
-        half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
-        albedo *= _Color;
-        half3 albedoHSV = RGB2HSV(albedo.rgb);
-
-        albedoHSV.x = fmod(albedoHSV.x + _Hue, 1);
-        albedoHSV.y = saturate(albedoHSV.y + _Saturation);
-        albedoHSV.z = saturate(albedoHSV.z + _Value);
-        albedo.rgb = HSV2RGB(albedoHSV);
-
-        o.Hue = _Hue;
-        o.Saturation = _Saturation;
-        o.Value = _Value;
-        
-        if (_TintByVertexColor) {
-            albedo.rgb *= d.vertexColor.rgb;
-        }
-        o.Albedo = albedo.rgb;
-        o.Alpha = albedo.a;
-        o.ShadowSharpness = _ShadowSharpness;
-    }
 }

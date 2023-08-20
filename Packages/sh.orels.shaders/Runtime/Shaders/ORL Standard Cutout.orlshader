@@ -44,6 +44,15 @@
 %Fragment("CutoutFragment")
 {
     void CutoutFragment(inout SurfaceData o) {
+        #if defined(_NATIVE_A2C) && defined(UNITY_PASS_FORWARDBASE)
+        
+        half antiAliased = o.Alpha - 0.5;
+        antiAliased /= max(0.0001, fwidth(o.Alpha));
+        antiAliased += 0.5;
+        o.Alpha = saturate(antiAliased);
+
+        #endif
+        
         #if !defined(_NATIVE_A2C) || !defined(UNITY_PASS_FORWARDBASE)
         if (o.Alpha < _Cutoff)  {
             clip(-1);

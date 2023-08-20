@@ -4,6 +4,7 @@
     [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
     [Enum(Off, 0, On, 1)]_ZWrite("Depth Write", Int) = 1
     [Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("Depth Test", Int) = 4
+    [ToggleUI]_IgnoreLightprobeNormal("Uniform Lightprobe Color", Int) = 0
 }
 
 %Includes()
@@ -25,6 +26,11 @@
     #define NEED_SCREEN_POS
 
     #define grayscaleVec float3(0.2125, 0.7154, 0.0721)
+}
+
+%Variables()
+{
+    int _IgnoreLightprobeNormal;
 }
 
 %Textures()
@@ -182,6 +188,7 @@
         specular = lerp(directSpecularNonAniso, directSpecularAniso, saturate(abs(anisotropy * 100)));
         specular = lerp(specular, smoothstep(0.5, 0.51, specular), o.SpecularSharpness) * 3 * lightColor.xyz * specularIntensity; // Multiply by 3 to bring up to brightness of standard
         specular *= lerp(1, o.Albedo, o.SpecularAlbedoTint);
+        specular = clamp(specular, 0, specularIntensity);
         return specular;
     }
 
@@ -235,11 +242,23 @@
         o.Normal = normalize(mul(o.Normal, d.TBNMatrix));
         half3 reflDir = calcReflView(d.worldSpaceViewDir, o.Normal);
 
+        // Light Direction, based on method derived by Xiexe and Merlin
         #ifndef USING_DIRECTIONAL_LIGHT
-            fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
+            half3 lightDir = UnityWorldSpaceLightDir(d.worldSpacePosition);
         #else
-            fixed3 lightDir = _WorldSpaceLightPos0.xyz;
+            half3 lightDir = _WorldSpaceLightPos0.xyz;
         #endif
+
+        half3 probeLightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+        lightDir = (lightDir + probeLightDir);
+
+        #if !defined(POINT) && !defined(SPOT)
+        if(length(unity_SHAr.xyz*unity_SHAr.w + unity_SHAg.xyz*unity_SHAg.w + unity_SHAb.xyz*unity_SHAb.w) == 0 && length(lightDir) < 0.1)
+        {
+            lightDir = half4(1, 1, 1, 0);
+        }
+        #endif
+        lightDir = Unity_SafeNormalize(lightDir);
 
         // Attenuation
         UNITY_LIGHT_ATTENUATION(lightAttenuation, i, d.worldSpacePosition);
@@ -279,9 +298,9 @@
         // Indirect diffuse
         #if !defined(LIGHTMAP_ON)
             half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-            indirectDiffuse.r = shEvaluateDiffuseL1Geomerics(L0.r, unity_SHAr.xyz, o.Normal);
-            indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, unity_SHAg.xyz, o.Normal);
-            indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, unity_SHAb.xyz, o.Normal);
+            indirectDiffuse.r = shEvaluateDiffuseL1Geomerics(L0.r, unity_SHAr.xyz, lerp(o.Normal, half3(0,0.5,0), _IgnoreLightprobeNormal));
+            indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, unity_SHAg.xyz, lerp(o.Normal, half3(0,0.5,0), _IgnoreLightprobeNormal));
+            indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, unity_SHAb.xyz, lerp(o.Normal, half3(0,0.5,0), _IgnoreLightprobeNormal));
             indirectDiffuse = max(0, indirectDiffuse);
         #else
             indirectDiffuse = 0;
@@ -289,17 +308,10 @@
         indirectDiffuse *= lerp(occlusion, 1, o.OcclusionMode);
 
         bool lightEnv = any(lightDir.xyz);
-        // if there is no realtime light - we create it from indirect diffuse
+        // if there is no realtime light - we rely solely on probes
         if (!lightEnv) {
             lightColor = indirectDiffuse * 0.6;
             indirectDiffuse = indirectDiffuse * 0.4;
-
-            // Lightprobe-based light direction
-            lightDir = Unity_SafeNormalize(unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz);
-            lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
-            lightNoL = dot(o.Normal, lightDir);
-            lightLoH = dot(lightDir, lightHalfVector);
-            NoH = saturate(dot(o.Normal, lightHalfVector));
         }
 
         half lightAvg = (dot(indirectDiffuse.rgb, grayscaleVec) + dot(lightColor.rgb, grayscaleVec)) / 2;

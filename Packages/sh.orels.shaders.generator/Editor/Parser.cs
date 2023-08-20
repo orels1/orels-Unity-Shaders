@@ -20,6 +20,7 @@ namespace ORL.ShaderGenerator
     {
         private static HashSet<string> _functionIdentifiers = new HashSet<string>
         {
+            "%PrePassColor",
             "%Fragment",
             "%FragmentBase",
             "%Vertex",

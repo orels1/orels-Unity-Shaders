@@ -1,0 +1,9 @@
+%ShaderName("orels1/VFX/Glitch Screen")
+%LightingModel("@/LightingModels/VFX")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Modules/VFX/GlitchScreen",
+    "self"
+}

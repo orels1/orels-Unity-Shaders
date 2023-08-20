@@ -1,13 +1,14 @@
 %Properties()
 {
     UI_OutlineHeader("# Outline", Int) = 0
-    [Toggle(OUTLINE_ENABLED)]_Outline("Enable Outline", Int) = 0
+    [Toggle(OUTLINE_ENABLED)]_Outline("Enable Outline %SetProp((OUTLINE_ENABLED), _StencilBasePass, 2, 0)", Int) = 0
     _OutlineTex("Texture > %ShowIf(OUTLINE_ENABLED)", 2D) = "white" {}
     [HDR]_OutlineColor("Color %ShowIf(OUTLINE_ENABLED)", Color) = (0.5, 0.5, 0.5, 1)
     [Enum(Lit, 0, Emissive, 1)]_OutlineLightingMode("Lighting Mode %ShowIf(OUTLINE_ENABLED)", Int) = 0
     _OutlineAlbedoTint("Albedo Tint %ShowIf(OUTLINE_ENABLED)", Range(0, 1)) = 0
     [Tooltip(Uses the Red channel)]_OutlineMask("Width Mask > %ShowIf(OUTLINE_ENABLED)", 2D) = "white" {}
-    _OutlineWidth("Width %ShowIf(OUTLINE_ENABLED)", Range(0, 5)) = 1
+    [PowerSlider(3.0)]_OutlineWidth("Width %ShowIf(OUTLINE_ENABLED)", Range(0, 5)) = 1
+    [HideInInspector]_StencilBasePass("Stencil Base Pass", Float) = 0
 }
 
 %ShaderFeatures()
@@ -17,6 +18,8 @@
 
 %Variables()
 {
+    int _StencilBasePass;
+
     half4 _OutlineColor;
     int _OutlineLightingMode;
     half _OutlineAlbedoTint;

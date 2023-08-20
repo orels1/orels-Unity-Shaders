@@ -1,0 +1,163 @@
+%Properties()
+{
+    UI_GlitchHeader("# Glitch Screen", Int) = 1
+    UI_GlitchDocs("[This module has documentation](https://shaders.orels.sh/docs/vfx/glitch-screen)", Int) = 0
+    _GlitchTexture("Base Texture", 2D) = "white" {}
+    [HDR]_PosterEmission("Emission", Color) = (1,1,1,1)
+    _GlitchEffectCycleSpeed("Effects Cycle Speed", Float) = 0.5
+    UI_GlitchEffectCycleNote("> Controls how often the whole effect will be switched around", Int) = 0
+    UI_GlitchPixelHeader("## Subpixel Effect", Int) = 1
+    [ToggleUI]_GlitchPixelEnabled("Add Subpixel Effect", Int) = 1
+    _GlitchPixel("Subpixel Texture > %RequiredTexture(@/Old CRT - 1px - NoAlpha.tga) %ShowIf(_GlitchPixelEnabled)", 2D) = "white" {}
+    _GlitchPixelHorizontal("Horizontal Pixels %ShowIf(_GlitchPixelEnabled)", Float) = 200
+    _GlitchPixelVertical("Vertical Pixels %ShowIf(_GlitchPixelEnabled)", Float) = 0.9
+    _GlitchColorScales("Color Scales (R,G,B) %ShowIf(_GlitchPixelEnabled)", Vector) = (1,1,1)
+
+    UI_GlitchShiftHeader("## Shift Glitch", Int) = 1
+    _GlitchShiftMask("Shift Mask %RequiredTexture(@/GlitchScreen_shiftMask.png)", 2D) = "black" {}
+    UI_GlitchShiftMaskNote("?> Red - area to be shifted\nGreen - shift time offset\nBlue - max shift distance\nAlpha - 64x64 time randomisation offset", Int) = 0
+    _GlitchShiftChance("Shift Chance", Range(0,1)) = 1
+    _GlitchSiftRandomizationAmount("Shift Randomization Amount", Float) = 0.2
+    UI_GlitchShiftNote("> Controls how much the shift amount will be randomized cycle to cycle", Int) = 0
+    
+    UI_GlitchColorGlitchHeader("## Color Glitch", Int) = 1
+    _GlitchColorGlitchMask("Mask %RequiredTexture(@/GlitchScreen_colorGlitchMask.png)", 2D) = "black" {}
+    UI_GlitchColorGlitchMaskNote("?> Red - 8x4 color glitch areas with time offset\nGreen - 32x32 time offset of pixels within color glitch areas\nAlpha - 64x64 time randomisation offset", Int) = 0
+    _GlitchColorGlitchChance("Chance", Range(0,2)) = 0.5
+    _GlitchColorGlitchSpeed("Speed", Float) = 0.5
+}
+
+%Variables()
+{
+    half4 _GlitchTexture_ST;
+    half4 _PosterEmission;
+    half _GlitchEffectCycleSpeed;
+
+    int _GlitchPixelEnabled;
+    half4 _GlitchPixel_ST;
+    float _GlitchPixelHorizontal;
+    float _GlitchPixelVertical;
+    half3 _GlitchColorScales;
+    
+    half4 _GlitchShiftMask_ST;
+    half _GlitchShiftChance;
+    half _GlitchSiftRandomizationAmount;
+
+    half4 _GlitchColorGlitchMask_ST;
+    half _GlitchColorGlitchChance;
+    half _GlitchColorGlitchSpeed;
+}
+
+%Textures()
+{
+    TEXTURE2D(_GlitchPixel);
+    SAMPLER(sampler_GlitchPixel);
+    TEXTURE2D(_GlitchShiftMask);
+    SAMPLER(sampler_GlitchShiftMask);
+    TEXTURE2D(_GlitchTexture);
+    SAMPLER(sampler_GlitchTexture);
+    TEXTURE2D(_GlitchColorGlitchMask);
+}
+
+%Fragment("GlitchFragment")
+{
+    // RGB Pixel function heavily based on https://github.com/Xiexe/RGBSubPixelDisplay-Shader
+
+    // MIT License
+    //
+    // Copyright (c) 2018 Jordan
+    //
+    // Permission is hereby granted, free of charge, to any person obtaining a copy
+    // of this software and associated documentation files (the "Software"), to deal
+    // in the Software without restriction, including without limitation the rights
+    // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    // copies of the Software, and to permit persons to whom the Software is
+    // furnished to do so, subject to the following conditions:
+    //
+    // The above copyright notice and this permission notice shall be included in all
+    // copies or substantial portions of the Software.
+    //
+    // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    // SOFTWARE.
+    half3 RGBPixel(Texture2D subpixel, SamplerState pixelSampler, half3 viewDir, half3 worldNormal, half2 uv, half3 sourceCol)
+    {
+        half4 rgbpixel = subpixel.Sample(pixelSampler, uv);
+
+        half NoV = dot(viewDir, worldNormal);
+        half backlight = dot(rgbpixel, 0.5);
+        backlight *= 0.005;
+
+        //sample the main textures color channels to derive how strong any given subpixel should be,
+        //and then adjust the intensity of the subpixel by the color correction values
+        half pixelR = ((_GlitchColorScales.r + rgbpixel.r) * rgbpixel.r) * sourceCol.r;
+        half pixelG = ((_GlitchColorScales.g + rgbpixel.g) * rgbpixel.g) * sourceCol.g;
+        half pixelB = ((_GlitchColorScales.b + rgbpixel.b) * rgbpixel.b) * sourceCol.b;
+
+        //if the texture has an alpha, then use that to control how the subpixel lights up
+        pixelR = lerp(0, pixelR, saturate(rgbpixel.a + sourceCol.r));
+        pixelG = lerp(0, pixelG, saturate(rgbpixel.a + sourceCol.g));
+        pixelB = lerp(0, pixelB, saturate(rgbpixel.a + sourceCol.b));
+
+        //add the backlight, if there is any, and ensure that it only happens within
+        //the area of a subpixel. We don't want lightleak through the black areas of the texture.
+        pixelR += backlight * rgbpixel.r;
+        pixelG += backlight * rgbpixel.g;
+        pixelB += backlight * rgbpixel.b;
+
+        //return all of our pixel values in a half3
+        half3 pixelValue = half3(pixelR, pixelG, pixelB);
+
+        //do the color shift at large viewing angles, shifting to whatever color we want, based on
+        //1 - the dot product of the viewdir and the normals, multiplied, to make the dot larger.
+        //i'm sure there's a more accurate way to handle this.
+        half3 screenCol = lerp(pixelValue, half4(0, 0, 0, 1), max(0, (1 - NoV * 1.2)));
+        return screenCol;
+    }
+
+    void GlitchFragment(MeshData d, inout SurfaceData o)
+    {
+        int index = floor(_Time.x * (_GlitchEffectCycleSpeed / 100.0) * 64.0 * 64.0) % (64*64);
+        half2 offset = half2(floor(index % 64.0), floor(index / 64.0)) / 64.0;
+        half4 offsetMask = SAMPLE_TEXTURE2D(_GlitchShiftMask, sampler_GlitchShiftMask, offset);
+        half2 uv = d.uv0 * _GlitchShiftMask_ST.xy + _GlitchShiftMask_ST.zw;
+        uv += (offsetMask.aa - 0.5) * (10 * offsetMask.a);
+        half4 shiftMask = SAMPLE_TEXTURE2D(_GlitchShiftMask, sampler_GlitchShiftMask, uv);
+
+        uv = d.uv0 * _GlitchTexture_ST.xy + _GlitchTexture_ST.zw;
+        if (offsetMask.a >= (1 - _GlitchShiftChance)) {
+            uv.y -= saturate((frac(_Time.y * 0.2 + shiftMask.g + offsetMask.a * 0.5) % (shiftMask.b + (offsetMask.a - 0.5) * _GlitchSiftRandomizationAmount))) * shiftMask.r;
+        }
+        o.Albedo = SAMPLE_TEXTURE2D(_GlitchTexture, sampler_GlitchTexture, uv);
+
+        uv = d.uv0 * _GlitchColorGlitchMask_ST.xy + _GlitchColorGlitchMask_ST.zw;
+        uv += half2(floor(offsetMask.a * 8) / 8.0, floor(offsetMask.a * 4) / 4.0);
+        half4 colorGlitch = SAMPLE_TEXTURE2D(_GlitchColorGlitchMask, sampler_GlitchShiftMask, uv);
+
+        index = floor(_Time.x * (_GlitchColorGlitchSpeed / 10.0) * 64.0 * 64.0) % (64*64);
+        offset = half2(floor(index % 64.0), floor(index / 64.0)) / 64.0;
+        half4 colorGlitchProgression = SAMPLE_TEXTURE2D(_GlitchColorGlitchMask, sampler_GlitchShiftMask, offset);
+        
+        uv = d.uv0;
+        uv += floor(colorGlitchProgression.a * 32) / 32.0;
+        half4 colorGlitchOffset = SAMPLE_TEXTURE2D(_GlitchColorGlitchMask, sampler_GlitchShiftMask, uv);
+
+        half glitchedZone = colorGlitch.r > saturate(offsetMask.a + (1 -_GlitchColorGlitchChance));
+
+        o.Albedo = lerp(o.Albedo, saturate(1 - o.Albedo - 0.8), glitchedZone * saturate(colorGlitchOffset.g  + 0.5));
+
+        if (_GlitchPixelEnabled)
+        {
+            half3 subpixeledColor = RGBPixel(_GlitchPixel, sampler_GlitchPixel, d.worldSpaceViewDir, d.worldNormal, d.uv0 * half2(_GlitchPixelHorizontal, _GlitchPixelVertical), o.Albedo.rgb);
+            o.Albedo = subpixeledColor;
+            o.Emission = subpixeledColor * _PosterEmission;
+            return;
+        }
+
+        o.Emission = o.Albedo * _PosterEmission;
+    }
+}

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.IO;
 using ORL.Drawers;
+using ORL.ShaderInspector.MaterialLibraries;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -32,6 +33,8 @@ namespace ORL.ShaderInspector
 
         private List<string> _shaderFeatures;
         private List<string> _multiCompiles;
+        
+        #region State Management
         private string[] _persistedKeys = new[] { "debugShown" };
 
         private void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties)
@@ -210,6 +213,9 @@ namespace ORL.ShaderInspector
 
         private void SaveState(Material target)
         {
+            // currently the setting persistence is disabled
+            return;
+#pragma warning disable CS0162
             var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(target));
             var filtered = new Dictionary<string, object>();
             var toPersist = _drawers.Select(d => d.PersistentKeys).SelectMany(k => k).ToList();
@@ -267,14 +273,52 @@ namespace ORL.ShaderInspector
             }
             importer.userData = EditorJsonUtility.ToJson(userData);
             importer.SaveAndReimport();
+#pragma warning restore CS0162
         }
+        
+        private bool StateHasChanged(Dictionary<string, object> oldState, Dictionary<string, object> newState)
+        {
+            if (oldState.Count != newState.Count)
+            {
+                return true;
+            }
+
+            foreach (var el in oldState)
+            {
+                if (!newState.ContainsKey(el.Key))
+                {
+                    return true;
+                }
+
+                if (el.Value == null && newState[el.Key] != null)
+                {
+                    return true;
+                }
+
+                if (el.Value != null && newState[el.Key] == null)
+                {
+                    return true;
+                }
+
+                if (el.Value != null && newState[el.Key] != null && !el.Value.Equals(newState[el.Key]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        
+        #endregion
 
         private Shader _initialShader;
         private int _oldPropCount;
+        private bool _libraryOpen;
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
             var material = materialEditor.target as Material;
+            if (material == null) return;
             if (_initialShader == null)
             {
                 _initialShader = material.shader;
@@ -294,6 +338,25 @@ namespace ORL.ShaderInspector
             {
                 Initialize(materialEditor, properties);
             }
+            
+            // Draw the Preset management
+            // This is disabled for now as this functionality isn't ready
+            #if false
+            if (GUILayout.Button("Open AmbientCG Browser"))
+            {
+                if (!_libraryOpen)
+                {
+                    _libraryOpen = true;
+                    PopupWindow.Show(GUILayoutUtility.GetLastRect(), new AmbientCGBrowser(() =>
+                    {
+                        _libraryOpen = false;
+                    }, material));
+                }
+            }
+            #endif
+
+            EditorGUILayout.Space();
+
             EditorGUIUtility.fieldWidth = 64f;
             var propIndex = 0;
             var oldState = new Dictionary<string, object>(_uiState);
@@ -328,39 +391,6 @@ namespace ORL.ShaderInspector
             {
                 SaveState(materialEditor.target as Material);
             }
-        }
-
-        private bool StateHasChanged(Dictionary<string, object> oldState, Dictionary<string, object> newState)
-        {
-            if (oldState.Count != newState.Count)
-            {
-                return true;
-            }
-
-            foreach (var el in oldState)
-            {
-                if (!newState.ContainsKey(el.Key))
-                {
-                    return true;
-                }
-
-                if (el.Value == null && newState[el.Key] != null)
-                {
-                    return true;
-                }
-
-                if (el.Value != null && newState[el.Key] == null)
-                {
-                    return true;
-                }
-
-                if (el.Value != null && newState[el.Key] != null && !el.Value.Equals(newState[el.Key]))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         #region Drawing
@@ -446,6 +476,7 @@ namespace ORL.ShaderInspector
                 tooltip = tooltip.Substring(tooltip.IndexOf("(") + 1);
                 tooltip = tooltip.Substring(0, tooltip.LastIndexOf(")"));
             }
+            
             if (isSingleLine)
             {
                 var buttonRect = editor.TexturePropertySingleLine(new GUIContent(strippedName, tooltip), property);
@@ -468,9 +499,9 @@ namespace ORL.ShaderInspector
             {
                 var buttonRect = controlRect;
                 var labelSize = EditorStyles.label.CalcSize(new GUIContent(strippedName)) * EditorGUIUtility.pixelsPerPoint;
-                buttonRect.xMin += labelSize.x + 34f * EditorGUIUtility.pixelsPerPoint;
                 buttonRect.height = labelSize.y;
-                buttonRect.width -= 52 * EditorGUIUtility.pixelsPerPoint;
+                buttonRect.xMin = EditorGUIUtility.labelWidth;
+                buttonRect.xMax -= EditorGUIUtility.fieldWidth;
                 editor.TextureProperty(controlRect, property, strippedName, tooltip, (property.flags & MaterialProperty.PropFlags.NoScaleOffset) == 0);
                 // We can only repack 2D textures
                 if (property.textureDimension != TextureDimension.Tex2D) return;

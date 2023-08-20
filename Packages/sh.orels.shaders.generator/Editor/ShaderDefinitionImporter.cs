@@ -7,14 +7,15 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace ORL.ShaderGenerator
 {
     [ScriptedImporter(1, "orlshader")]
     public class ShaderDefinitionImporter : ScriptedImporter
     {
-        private HashSet<string> _paramsOnlyBlock = new HashSet<string>
+        public bool debugBuild;
+        
+        private readonly HashSet<string> _paramsOnlyBlock = new HashSet<string>
         {
             "%ShaderName",
             "%CustomEditor"
@@ -22,7 +23,7 @@ namespace ORL.ShaderGenerator
 
         private List<ShaderBlock> _builtInBlocks;
 
-        private string[] _dataStructs = {
+        private readonly string[] _dataStructs = {
             "@/Structs/VertexData",
             "@/Structs/FragmentData"
         };
@@ -55,10 +56,9 @@ namespace ORL.ShaderGenerator
         
         private List<ShaderBlock> _builtInFunctions;
         
-        private string[] _functions = {
+        private readonly string[] _functions = {
         };
 
-        private Regex _callSignRegex = new Regex(@"(?:^void\s*)(?<fnName>[\w]+)\((?<params>[\w\,\s]+)\)");
         private List<ShaderBlock> BuiltInFunctions
         {
             get
@@ -78,12 +78,12 @@ namespace ORL.ShaderGenerator
             }
         }
 
-        private string[] _libraries = {
+        private readonly string[] _libraries = {
             "@/Libraries/Utilities"
         };
 
-        private string _samplingLib = "@/Libraries/SamplingLibrary";
-        
+        private const string SamplingLib = "@/Libraries/SamplingLibrary";
+
         private List<ShaderBlock> _builtInLibraries;
         
         private List<ShaderBlock> BuiltInLibraries
@@ -103,7 +103,7 @@ namespace ORL.ShaderGenerator
                 // Add sampling lib directly as well, we want it everywhere
                 {
                     var parser = new Parser();
-                    var sourceStrings = Utils.GetORLSource(_samplingLib);
+                    var sourceStrings = Utils.GetORLSource(SamplingLib);
                     var blockSource = parser.Parse(sourceStrings);
                     blocks.AddRange(blockSource);
                 }
@@ -113,10 +113,13 @@ namespace ORL.ShaderGenerator
             }
         }
 
-        private string _defaultLightignModel = "@/LightingModels/PBR";
-        
+        private const string DefaultLightingModel = "@/LightingModels/PBR";
+
         // Matches %BlockName without nuking %FunctionName()
-        private Regex _replacerRegex = new Regex(@"(?<!\/\/\s*)(%[a-zA-Z]+[\w\d]+)(?:$|[""\;\s])");
+        private readonly Regex _replacerRegex = new Regex(@"(?<!\/\/\s*)(%[a-zA-Z]+[\w\d]+)(?:$|[""\;\s])");
+        
+        // Matches %TemplateFeature(<FeatureName>)
+        private readonly Regex _templateFeatureRegex = new Regex(@"%TemplateFeature\((?<identifier>""\w+"")\)");
 
         /// <summary>
         /// Here's the import flow:
@@ -155,7 +158,7 @@ namespace ORL.ShaderGenerator
             depList.AddRange(_dataStructs);
             depList.AddRange(_functions);
             depList.AddRange(_libraries);
-            depList.Add(_samplingLib);
+            depList.Add(SamplingLib);
             RegisterDependencies(depList, ctx);
 
             // Adding all the dependencies to the list of blocks
@@ -224,7 +227,7 @@ namespace ORL.ShaderGenerator
                 var lightingModelIndex = blocks.FindIndex(b => b.Name == "%LightingModel");
                 // If we don't have a lighting model, use the default (PBR)
                 var lightingModelName = lightingModelIndex == -1
-                    ? _defaultLightignModel
+                    ? DefaultLightingModel
                     : blocks[lightingModelIndex].Params[0].Replace("\"", "");
                 var lightingModelPath =
                     Utils.ResolveORLAsset(lightingModelName, lightingModelName.StartsWith("@/"), workingFolder);
@@ -315,6 +318,90 @@ namespace ORL.ShaderGenerator
                 ctx.LogImportError($"Failed to load Template in {ctx.assetPath}", this);
                 throw;
             }
+            
+            // Find and toggle template features
+            try
+            {
+                var templateFeatures = new List<string>();
+                var templateFeaturesIndex = blocks.FindIndex(b => b.Name == "%TemplateFeatures");
+                if (templateFeaturesIndex > -1)
+                {
+                    templateFeatures = blocks[templateFeaturesIndex].Params.Select(p => p.Replace("\"", "")).ToList();
+                }
+
+                // run through the template and mutate it based on the features
+                var newTemplate = new StringBuilder();
+                var enteredFeature = false;
+                string currentFeatureName = null;
+                var skippingFeature = false;
+                var nestLevel = 0;
+                for (var index = 0; index < template.Length; index++)
+                {
+                    var trimmedLine = template[index].Trim();
+                    if (trimmedLine.StartsWith("//", StringComparison.InvariantCulture))
+                    {
+                        newTemplate.AppendLine(template[index]);
+                        continue;
+                    }
+
+                    if (enteredFeature)
+                    {
+                        if (trimmedLine.StartsWith("{")) nestLevel++;
+                        if (trimmedLine.StartsWith("}")) nestLevel--;
+                    }
+
+                    if (enteredFeature && nestLevel == 0)
+                    {
+                        enteredFeature = false;
+                        skippingFeature = false;
+                        // feature exited, skip this line for the closing `}`
+                        continue;
+                    }
+                    
+                    var match = _templateFeatureRegex.Match(trimmedLine);
+                    // add all normal lines
+                    if (!match.Success)
+                    {
+                        if (!skippingFeature)
+                        {
+                            newTemplate.AppendLine(template[index]);
+                        }
+                        continue;
+                    }
+
+                    // if encountered nested feature - abort
+                    if (enteredFeature)
+                    {
+                        ctx.LogImportError($"Found nested Template Features in {ctx.assetPath}. {match.Groups["identifier"].Value} was inside {currentFeatureName}", this);
+                        throw new Exception("Nested Template Features are not supported");
+                    }
+                    
+                    currentFeatureName = match.Groups["identifier"].Value.Replace("\"", string.Empty);
+                    
+                    // if this isn't a feature we want - skip it altogether
+                    if (!templateFeatures.Contains(currentFeatureName))
+                    {
+                        skippingFeature = true;
+                        enteredFeature = true;
+                        // we skip 1 line for the opening `{`
+                        nestLevel++;
+                        index++;
+                        continue;
+                    }
+                    
+                    enteredFeature = true;
+                    // we skip 1 line for the opening `{`
+                    nestLevel++;
+                    index++;
+                }
+                template = newTemplate.ToString().Split(new[] { Environment.NewLine, "\n"}, StringSplitOptions.None);
+            }
+            catch (Exception ex)
+            {
+                ctx.LogImportError(ex.ToString());
+                ctx.LogImportError($"Failed to toggle Template Features in {ctx.assetPath}", this);
+                throw;
+            }
 
             // Collapse non-function blocks together and de-dupe things where makes sense
             blocks = OptimizeBlocks(blocks);
@@ -345,6 +432,17 @@ namespace ORL.ShaderGenerator
                         case "%Functions":
                         {
                             InsertContentsAtPosition(ref newLine, functionBlocks, match.Index, matchLen);
+                            continue;
+                        }
+                        // Here we insert function calls into the pre-pass fragment stage
+                        case "%PrePassColorFunctions":
+                        {
+                            var fragmentFns = functionBlocks.FindAll(b => b.Name == "%PrePassColor");
+                            fragmentFns.Reverse();
+                            fragmentFns.Sort((a,b) => a.Order.CompareTo(b.Order));
+                            // the calls are inserted in reverse order to maintain offsets, so we reverse them back
+                            fragmentFns.Reverse();
+                            InsertFnCallAtPosition(ref newLine, fragmentFns, match.Index, matchLen);
                             continue;
                         }
                         // Here we insert function calls into the fragment stage
@@ -546,7 +644,7 @@ namespace ORL.ShaderGenerator
         // Matches _VarNames
         private Regex _propertyRegex = new Regex(@"(?:\[.*\])*\s*(?<identifier>[\w]+)(?:\s?\(\"".*\""\,[\w\s\(\,\.\-\)]+\)\s*=)");
         // Matches floatX halfX and intX variables
-        private Regex _varRegex = new Regex(@"(?:uniform)?(?:\s*)(?:half|float|int|real|fixed){1}(?:\d)?\s+(?<identifier>\w+)");
+        private Regex _varRegex = new Regex(@"(?:uniform)?(?:\s*)(?:half|float|int|real|fixed|bool|float2x2|float3x3|float4x4|half2x2|half3x3|half4x4|fixed2x2|fixed3x3|fixed4x4|real2x2|real3x3|real4x4){1}(?:\d)?\s+(?<identifier>\w+)");
         // Matches either TEXTUREXXX() or SAMPLER()
         private Regex _texSamplerCombinedRegex =
             new Regex(@"(?:SAMPLER)(?:_CMP)?\(([\w]+)\)|(?:RW_)?(?:TEXTURE[23DCUBE]+[_A-Z]*)\(([\w]+)\)");
@@ -582,7 +680,10 @@ namespace ORL.ShaderGenerator
                 var identifier = matcher.Match(item).Groups.Cast<Group>().Skip(1).ToList().Find(m => !string.IsNullOrEmpty(m.Value)).Value;
                 if (keySet.Contains(identifier))
                 {
-                    Debug.LogWarning("Found duplicate item, skipping: " + identifier);
+                    if (debugBuild)
+                    {
+                        Debug.LogWarning("Found duplicate item, skipping: " + identifier);
+                    }
                     continue;
                 }
                 keySet.Add(identifier);
@@ -652,11 +753,57 @@ namespace ORL.ShaderGenerator
             return sb.ToString();
         }
 
-        public static void GenerateShader(string assetPath, string outputPath) {
+        /// <summary>
+        /// Saves the generated shader source to the path provided
+        /// </summary>
+        /// <param name="assetPath">Path to the source shader</param>
+        /// <param name="outputPath">Save path</param>
+        /// <param name="stripSamplingMacros">Strips the sampling macros from the final shader</param>
+        public static void GenerateShader(string assetPath, string outputPath, bool stripSamplingMacros = false) {
             var importer = GetAtPath(assetPath) as ShaderDefinitionImporter;
-            var finalShader = AssetDatabase.LoadAssetAtPath<Shader>(importer.assetPath);
+            if (importer == null)
+            {
+                Debug.LogWarning($"Shader at {assetPath} is not an ORL shader");
+                return;
+            }
+
+            var textSource = importer.GenerateShader(stripSamplingMacros);
+            if (textSource == null)
+            {
+                return;
+            }
+            
+            File.WriteAllText(outputPath, textSource);
+            AssetDatabase.Refresh();
+        }
+        
+        /// <summary>
+        /// Gets the generated shader code from the asset
+        /// </summary>
+        /// <param name="assetPath">Path to .orlshader file</param>
+        /// <param name="stripSamplingMacros">Strips the sampling macros from the final shader</param>
+        /// <returns></returns>
+        public static string GenerateShader(string assetPath, bool stripSamplingMacros = false)
+        {
+            var importer = GetAtPath(assetPath) as ShaderDefinitionImporter;
+            if (importer == null)
+            {
+                Debug.LogWarning($"Shader at {assetPath} is not an ORL shader");
+                return null;
+            }
+
+            return importer.GenerateShader(stripSamplingMacros);
+        }
+
+        /// <summary>
+        /// Gets the generated shader code from the asset
+        /// </summary>
+        /// <param name="stripSamplingMacros">Strips the sampling macros from the final shader</param>
+        /// <returns></returns>
+        public string GenerateShader(bool stripSamplingMacros = false)
+        {
             var textSource = "";
-            var assets = AssetDatabase.LoadAllAssetsAtPath(importer.assetPath);
+            var assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
             foreach (var asset in assets)
             {
                 if (asset is TextAsset textAsset)
@@ -665,13 +812,85 @@ namespace ORL.ShaderGenerator
                     textSource = text;
                 }
             }
+            
             if (string.IsNullOrWhiteSpace(textSource))
             {
-                Debug.LogWarning($"Shader source for {assetPath} is empty! Skipping generation");
-                return;
+                Debug.LogWarning($"Shader source for {assetPath} is empty! Generation likely failed");
+                return null;
             }
-            File.WriteAllText(outputPath, textSource);
-            AssetDatabase.Refresh();
+            
+            if (stripSamplingMacros)
+            {
+                var source = textSource.Split(new[] {Environment.NewLine, "\n"}, StringSplitOptions.None);
+                var processedSource = new StringBuilder();
+
+                var skippingSampling = false;
+                foreach (var line in source)
+                {
+                    if (line.Contains("// Sampling Library Module Start"))
+                    {
+                        skippingSampling = true;
+                        continue;
+                    }
+
+                    if (line.Contains("// Sampling Library Module End"))
+                    {
+                        skippingSampling = false;
+                        continue;
+                    }
+                    if (skippingSampling) continue;
+                    
+                    var texMatch = _texRegex.Match(line);
+                    if (texMatch.Success)
+                    {
+                        var newLine = line.Replace(texMatch.Value, $"Texture2D<float4> {texMatch.Groups["identifier"].Value}");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+                    
+                    var samplerMatch = _samplerRegex.Match(line);
+                    if (samplerMatch.Success)
+                    {
+                        var newLine = line.Replace(samplerMatch.Value, $"SamplerState {samplerMatch.Groups["identifier"].Value}");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+
+                    if (line.Contains("SAMPLE_TEXTURE2D"))
+                    {
+                        var newLine = line.Replace("SAMPLE_TEXTURE2D", "UNITY_SAMPLE_TEX2D_SAMPLER").Replace("sampler_", "_");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+                    
+                    if (line.Contains("SAMPLE_TEXTURE2D_LOD"))
+                    {
+                        var newLine = line.Replace("SAMPLE_TEXTURE2D_LOD", "UNITY_SAMPLE_TEX2D_LOD_SAMPLER").Replace("sampler_", "_");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+                    
+                    if (line.Contains("SAMPLE_TEXTURECUBE"))
+                    {
+                        var newLine = line.Replace("SAMPLE_TEXTURECUBE", "UNITY_SAMPLE_TEXCUBE_SAMPLER").Replace("sampler_", "_");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+                    
+                    if (line.Contains("SAMPLE_TEXTURECUBE_LOD"))
+                    {
+                        var newLine = line.Replace("SAMPLE_TEXTURECUBE_LOD", "UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD").Replace("sampler_", "_");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+                    
+                    processedSource.AppendLine(line);
+                }
+
+                textSource = processedSource.ToString();
+            }
+
+            return textSource;
         }
     }
 }

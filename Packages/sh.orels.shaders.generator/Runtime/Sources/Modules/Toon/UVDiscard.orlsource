@@ -1,0 +1,98 @@
+%Properties()
+{
+    UI_UVDiscardHeader("# UV Discard", Int) = 0
+    [Toggle(UV_DISCARD)]_UVDiscardOn("Enable UV Discard", Int) = 0
+    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_UVDiscardUVSet("UV Set %ShowIf(_UVDiscardOn)", Int) = 2
+    [ToggleUI]_UVDiscardHide0("Hide 0 %ShowIf(_UVDiscardOn)", Int) = 0
+    [ToggleUI]_UVDiscardHide1("Hide 1 %ShowIf(_UVDiscardOn)", Int) = 0
+    [ToggleUI]_UVDiscardHide2("Hide 2 %ShowIf(_UVDiscardOn)", Int) = 0
+    [ToggleUI]_UVDiscardHide3("Hide 3 %ShowIf(_UVDiscardOn)", Int) = 0
+    [ToggleUI]_UVDiscardHide4("Hide 4 %ShowIf(_UVDiscardOn)", Int) = 0
+    [ToggleUI]_UVDiscardHide5("Hide 5 %ShowIf(_UVDiscardOn)", Int) = 0
+    [ToggleUI]_UVDiscardHide6("Hide 6 %ShowIf(_UVDiscardOn)", Int) = 0
+    [ToggleUI]_UVDiscardHide7("Hide 7 %ShowIf(_UVDiscardOn)", Int) = 0
+    [ToggleUI]_UVDiscardHide8("Hide 8 %ShowIf(_UVDiscardOn)", Int) = 0
+    [ToggleUI]_UVDiscardHide9("Hide 9 %ShowIf(_UVDiscardOn)", Int) = 0
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local UV_DISCARD
+}
+
+%Variables()
+{
+    int _UVDiscardUVSet;
+    int _UVDiscardHide0;
+    int _UVDiscardHide1;
+    int _UVDiscardHide2;
+    int _UVDiscardHide3;
+    int _UVDiscardHide4;
+    int _UVDiscardHide5;
+    int _UVDiscardHide6;
+    int _UVDiscardHide7;
+    int _UVDiscardHide8;
+    int _UVDiscardHide9;
+}
+
+
+%Vertex("ToonUVDiscardVertex", -1)
+{
+    void VertDiscard(inout VertexData v)
+    {
+        v.vertex = asfloat(-1);
+    }
+
+    void ToonUVDiscardVertex(inout VertexData v) {
+        #if defined(UV_DISCARD)
+        half2 uv = v.uv0;
+        switch (_UVDiscardUVSet)
+        {
+            case 0: uv = v.uv0; break;
+            case 1: uv = v.uv1; break;
+            case 2: uv = v.uv2; break;
+            case 3: uv = v.uv3; break;
+        }
+        if (_UVDiscardHide0 == 1 && uv.x < 1)
+        {
+            VertDiscard(v); return; 
+        } 
+        if (_UVDiscardHide1 == 1 && uv.x > 1 && uv.x < 2)
+        {
+            VertDiscard(v); return; 
+        } 
+        if (_UVDiscardHide2 == 1 && uv.x > 2 && uv.x < 3)
+        {
+            VertDiscard(v); return; 
+        } 
+        if (_UVDiscardHide3 == 1 && uv.x > 3 && uv.x < 4)
+        {
+            VertDiscard(v); return; 
+        } 
+        if (_UVDiscardHide4 == 1 && uv.x > 4 && uv.x < 5)
+        {
+            VertDiscard(v); return; 
+        } 
+        if (_UVDiscardHide5 == 1 && uv.x > 5 && uv.x < 6)
+        {
+            VertDiscard(v); return; 
+        } 
+        if (_UVDiscardHide6 == 1 && uv.x > 6 && uv.x < 7)
+        {
+            VertDiscard(v); return; 
+        } 
+        if (_UVDiscardHide7 == 1 && uv.x > 7 && uv.x < 8)
+        {
+            VertDiscard(v); return; 
+        } 
+        if (_UVDiscardHide8 == 1 && uv.x > 8 && uv.x < 9)
+        {
+            VertDiscard(v); return; 
+        } 
+        if (_UVDiscardHide9 == 1 && uv.x > 9 && uv.x < 10)
+        {
+            VertDiscard(v); return; 
+        } 
+        #endif
+    }
+}

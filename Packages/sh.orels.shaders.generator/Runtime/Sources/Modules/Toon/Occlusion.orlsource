@@ -2,27 +2,62 @@
 {
     _OcclusionMap("Occlusion >", 2D) = "white" {}
     _OcclusionStrength("Occlusion Strength %ShowIf(_OcclusionMap)", Range(0,1)) = 0
-    [Enum(Classic, 0, Integrated, 1)]_OcclusionMode("Occlusion Mode %ShowIf(_OcclusionMap)", Int) = 0
-    UI_OcclusionIndirectModeNote("> Multiplies indirect light by occlusion %ShowIf(_OcclusionMap && _OcclusionMode == 0)", Int) = 0
-    UI_OcclusionIntegrateModeNote("> Multiplies the shadow ramp by occlusion %ShowIf(_OcclusionMap && _OcclusionMode == 1)", Int) = 0
+    [Enum(Synced With Albedo, 0, Independent, 1)]_OcclusionTilingMode("Tiling Mode %ShowIf(_OcclusionMap)", Int) = 0
+    _OcclusionTiling("Tiling %ShowIf(_OcclusionMap)", Float) = 1
+    UI_OcclusionTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_OcclusionTilingMode == 0 && _OcclusionMap)", Int) = 0
+    UI_OcclusionTilingIndependentNote("> Will scale UVs on its own %ShowIf(_OcclusionTilingMode == 1 && _OcclusionMap)", Int) = 0
+
+    [ToggleUI]_OcclusionDetailEnabled("Occlusion Detail Enabled", Int) = 0
+    _OcclusionDetail("Occlusion Detail > %ShowIf(_OcclusionDetailEnabled)", 2D) = "white" {}
+    _OcclusionDetailStrength("Occlusion Detail Strength %ShowIf(_OcclusionDetail && _OcclusionDetailEnabled)", Range(0,1)) = 1
+    [Enum(Synced With Albedo, 0, Independent, 1)]_OcclusionDetailTilingMode("Tiling Mode %ShowIf(_OcclusionDetail)", Int) = 0
+    _OcclusionDetailTiling("Tiling %ShowIf(_OcclusionDetail)", Float) = 1
+    UI_OcclusionDetailTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_OcclusionDetailTilingMode == 0 && _OcclusionDetail)", Int) = 0
+    UI_OcclusionDetailTilingIndependentNote("> Will scale UVs on its own %ShowIf(_OcclusionDetailTilingMode == 1 && _OcclusionDetail)", Int) = 0
+
+    [Enum(Classic, 0, Integrated, 1)]_OcclusionMode("Occlusion Mode %ShowIf(_OcclusionMap || _OcclusionDetail)", Int) = 0
+    UI_OcclusionIndirectModeNote("> Multiplies indirect light by occlusion %ShowIf((_OcclusionMap || _OcclusionDetail) && _OcclusionMode == 0)", Int) = 0
+    UI_OcclusionIntegrateModeNote("> Multiplies the shadow ramp by occlusion %ShowIf((_OcclusionMap || _OcclusionDetail) && _OcclusionMode == 1)", Int) = 0
 }
 
 %Variables()
 {
     int _OcclusionMode;
     half _OcclusionStrength;
+    int _OcclusionTilingMode;
+    half _OcclusionTiling;
+
+    int _OcclusionDetailEnabled;
+    half _OcclusionDetailStrength;
+    int _OcclusionDetailTilingMode;
+    half _OcclusionDetailTiling;
 }
 
 %Textures()
 {
     TEXTURE2D(_OcclusionMap);
+    TEXTURE2D(_OcclusionDetail);
 }
 
 %Fragment("ToonOcclusionFragment")
 {
-    void ToonOcclusionFragment(inout SurfaceData o) {
-        half occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_MainTex, GLOBAL_uv).r;
+    void ToonOcclusionFragment(MeshData d, inout SurfaceData o) {
+        half2 globalUv = 0;
+
+        #if defined(GLOBAL_UV_SET)
+        globalUv = GLOBAL_uv;
+        #else
+        globalUv = d.uv0;
+        #endif
+
+        half occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_MainTex, lerp(globalUv * _OcclusionTiling, d.uv0 * _OcclusionTiling, _OcclusionTilingMode)).r;
         o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
+        
+        if (_OcclusionDetailEnabled) {
+            half occlusionDetail = SAMPLE_TEXTURE2D(_OcclusionDetail, sampler_MainTex, lerp(globalUv * _OcclusionDetailTiling, d.uv0 * _OcclusionDetailTiling, _OcclusionDetailTilingMode)).r;
+            o.Occlusion *= lerp(1, occlusionDetail, _OcclusionDetailStrength);
+        }
+
         o.OcclusionMode = _OcclusionMode;
     }
 }

@@ -30,7 +30,28 @@ namespace ORL.Tools
             AssetDatabase.ExportPackage
             (
                 _exportFolders, 
-                Path.Combine(exportDir, $"sh.orels.shaders-full-{manifest.Version}.unitypackage"),
+                Path.Combine(exportDir, $"orl-shaders-combined-{manifest.Version}.unitypackage"),
+                ExportPackageOptions.Recurse | ExportPackageOptions.Interactive
+            );
+            
+            AssetDatabase.ExportPackage
+            (
+                _exportFolders[0], 
+                Path.Combine(exportDir, $"sh.orels.shaders-standalone-{manifest.Version}.unitypackage"),
+                ExportPackageOptions.Recurse | ExportPackageOptions.Interactive
+            );
+            
+            AssetDatabase.ExportPackage
+            (
+                _exportFolders[1], 
+                Path.Combine(exportDir, $"sh.orels.shaders.inspector-standalone-{manifest.Version}.unitypackage"),
+                ExportPackageOptions.Recurse | ExportPackageOptions.Interactive
+            );
+            
+            AssetDatabase.ExportPackage
+            (
+                _exportFolders[2], 
+                Path.Combine(exportDir, $"sh.orels.shaders.generator-standalone-{manifest.Version}.unitypackage"),
                 ExportPackageOptions.Recurse | ExportPackageOptions.Interactive
             );
         }

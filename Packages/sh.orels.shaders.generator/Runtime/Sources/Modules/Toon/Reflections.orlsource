@@ -7,18 +7,27 @@
     UI_FallbackNote("> Will be used if world has no reflections %ShowIf(REFLECTION_MODE_PBR)", Int) = 0
     _MetallicGlossMap("Metallic Smoothness > %ShowIf(REFLECTION_MODE_PBR || REFLECTION_MODE_BAKED_CUBEMAP)", 2D) = "white" {}
     UI_MetallicNote("> R - Metallic, A - Smoothness %ShowIf(REFLECTION_MODE_PBR || REFLECTION_MODE_BAKED_CUBEMAP)", Int) = 0
+    [Enum(Synced With Albedo, 0, Independent, 1)]_MetallicGlossMapTilingMode("Tiling Mode %ShowIf(_MetallicGlossMap)", Int) = 0
+    _MetallicGlossMapTiling("Tiling %ShowIf(_MetallicGlossMap)", Float) = 1
+    UI_MetallicGlossMapTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_MetallicGlossMapTilingMode == 0 && _MetallicGlossMap)", Int) = 0
+    UI_MetallicGlossMapTilingIndependentNote("> Will scale UVs on its own %ShowIf(_MetallicGlossMapTilingMode == 1 && _MetallicGlossMap)", Int) = 0
+
     _Smoothness ("Smoothness %ShowIf(!_MetallicGlossMap && (REFLECTION_MODE_PBR || REFLECTION_MODE_BAKED_CUBEMAP))", Range(0, 1)) = 0.5
     [ToggleUI]_RoughnessMode ("Roughness Mode %ShowIf(_MetallicGlossMap && (REFLECTION_MODE_PBR || REFLECTION_MODE_BAKED_CUBEMAP))", Int) = 0
     _Metallic ("Metallic %ShowIf(!_MetallicGlossMap && (REFLECTION_MODE_PBR || REFLECTION_MODE_BAKED_CUBEMAP))", Range(0, 1)) = 0
     [HideInInspector]_MetallicRemap ("Metallic Remap %ShowIf(_MetallicGlossMap && (REFLECTION_MODE_PBR || REFLECTION_MODE_BAKED_CUBEMAP)) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
     [HideInInspector]_SmoothnessRemap ("Smoothness Remap %ShowIf(_MetallicGlossMap && (REFLECTION_MODE_PBR || REFLECTION_MODE_BAKED_CUBEMAP)) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
-    _ReflectionAnisotropy("Anisotropy %ShowIf(REFLECTION_MODE_PBR)", Range(-1, 1)) = 0
+    _ReflectionAnisotropy("Anisotropy %ShowIf(REFLECTION_MODE_PBR || REFLECTION_MODE_BAKED_CUBEMAP)", Range(-1, 1)) = 0
 
     _Matcap("Matcap > %ShowIf(REFLECTION_MODE_MATCAP)", 2D) = "black" {}
     _MatcapBlur("Matcap Blur Level %ShowIf(REFLECTION_MODE_MATCAP)", Range(0, 1)) = 0
     _MatcapTintToDiffuse("Tint Matcap to Diffuse %ShowIf(REFLECTION_MODE_MATCAP)", Range(0, 1)) = 0
 
     _ReflectivityMask("Reflectivity Mask > %ShowIf(!REFLECTION_MODE_OFF)", 2D) = "white" {}
+    [Enum(Synced With Albedo, 0, Independent, 1)]_ReflectivityMaskTilingMode("Tiling Mode %ShowIf(_ReflectivityMask)", Int) = 0
+    _ReflectivityMaskTiling("Tiling %ShowIf(_ReflectivityMask)", Float) = 1
+    UI_ReflectivityMaskTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_ReflectivityMaskTilingMode == 0 && _ReflectivityMask)", Int) = 0
+    UI_ReflectivityMaskTilingIndependentNote("> Will scale UVs on its own %ShowIf(_ReflectivityMaskTilingMode == 1 && _ReflectivityMask)", Int) = 0
     _ReflectivityLevel("Reflectivity %ShowIf(!REFLECTION_MODE_OFF)", Range(0, 1)) = 0.5
 }
 
@@ -34,12 +43,18 @@
     half _Smoothness;
     half _Metallic;
     int _RoughnessMode;
+    int _MetallicGlossMapTilingMode;
+    half _MetallicGlossMapTiling;
+
     half4 _MetallicRemap;
     half4 _SmoothnessRemap;
     half4 _MetallicGlossMap_TexelSize;
     half _ReflectionAnisotropy;
     half _MatcapBlur;
     half _MatcapTintToDiffuse;
+
+    int _ReflectivityMaskTilingMode;
+    half _ReflectivityMaskTiling;
     half _ReflectivityLevel;
 }
 
@@ -60,12 +75,20 @@
 
         o.ReflectionBlendMode = _ReflectionBlendMode;
 
-        half mask = SAMPLE_TEXTURE2D(_ReflectivityMask, sampler_MainTex, GLOBAL_uv).r;
+        half2 globalUv = 0;
+        
+        #if defined(GLOBAL_UV_SET)
+        globalUv = GLOBAL_uv;
+        #else
+        globalUv = d.uv0;
+        #endif
+
+        half mask = SAMPLE_TEXTURE2D(_ReflectivityMask, sampler_MainTex, lerp(globalUv * _ReflectivityMaskTiling, d.uv0 * _ReflectivityMaskTiling, _ReflectivityMaskTilingMode)).r;
         mask *= _ReflectivityLevel;
         
         #if defined(REFLECTION_MODE_PBR) || defined(REFLECTION_MODE_BAKED_CUBEMAP)
             
-        half4 metalSmooth = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MainTex, GLOBAL_uv);
+        half4 metalSmooth = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MainTex, lerp(globalUv * _MetallicGlossMapTiling, d.uv0 * _MetallicGlossMapTiling, _MetallicGlossMapTilingMode));
         int hasMetallicSmooth = _MetallicGlossMap_TexelSize.z > 8;
         half metal = metalSmooth.r;
         half smooth = metalSmooth.a;

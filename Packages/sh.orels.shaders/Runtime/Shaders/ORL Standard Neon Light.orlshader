@@ -17,8 +17,10 @@
     _NeonTubePower("Tube Rim Power", Float) = 5
     _NeonTubeSmoothing("Tube Rim Smoothing", Float) = 10
     [ToggleUI]_NeonTubeCapEnabled("Tube Cap Enabled", Int) = 0
-    [Enum(X, 0, Y, 1, Z, 2, Negative X, 3, Negative Y, 4, Negative Z, 5)]_NeonTubeCapDirection("Tube Cap Direction %ShowIf(_NeonTubeCapEnabled)", Int) = 5
-    _NeonTubeCapOffset("Tube Cap Offset %ShowIf(_NeonTubeCapEnabled)", Float) = 0
+    [Enum(Local Position, 0, Texture, 1)]_NeonTubeCapSource("Tube Cap Source %ShowIf(_NeonTubeCapEnabled)", Int) = 0
+    _NeonTubeCapMask("Tube Cap Mask %ShowIf(_NeonTubeCapSource)", 2D) = "white" {}
+    [Enum(X, 0, Y, 1, Z, 2, Negative X, 3, Negative Y, 4, Negative Z, 5)]_NeonTubeCapDirection("Tube Cap Direction %ShowIf(_NeonTubeCapEnabled && !_NeonTubeCapSource)", Int) = 5
+    _NeonTubeCapOffset("Tube Cap Offset %ShowIf(_NeonTubeCapEnabled && !_NeonTubeCapSource)", Float) = 0
     _NeonTubeCapColor("Tube Cap Color %ShowIf(_NeonTubeCapEnabled)", Color) = (0.3, 0.3, 0.3, 1)
     _NeonTubeCapSmoothness("Tube Cap Smoothness %ShowIf(_NeonTubeCapEnabled)", Range(0, 1)) = 0.5
 
@@ -47,6 +49,8 @@
     half _NeonTubePower;
     half _NeonTubeSmoothing;
     int _NeonTubeCapEnabled;
+    int _NeonTubeCapSource;
+    half4 _NeonTubeCapMask_ST;
     int _NeonTubeCapDirection;
     half _NeonTubeCapOffset;
     half4 _NeonTubeCapColor;
@@ -62,6 +66,8 @@
 {
     TEXTURE2D(_BakedNoiseTex);
     SAMPLER(sampler_BakedNoiseTex);
+    TEXTURE2D(_NeonTubeCapMask);
+    SAMPLER(sampler_NeonTubeCapMask);
 }
 
 %Fragment("NeonFragment")
@@ -107,13 +113,17 @@
             length(unity_ObjectToWorld._m02_m12_m22)
             );
             half mask = 1;
-            if (_NeonTubeCapDirection > 2)
-            {
-                mask = d.localSpacePosition[_NeonTubeCapDirection - 3] < (_NeonTubeCapOffset / scale / 100);
-            }
-            else
-            {
-                mask = d.localSpacePosition[_NeonTubeCapDirection] > (_NeonTubeCapOffset / scale / 100);
+            if (_NeonTubeCapSource) {
+                mask = 1 - saturate(length(SAMPLE_TEXTURE2D(_NeonTubeCapMask, sampler_NeonTubeCapMask, d.uv0.xy * _NeonTubeCapMask_ST.xy + _NeonTubeCapMask_ST.zw).rgb));
+            } else {
+                if (_NeonTubeCapDirection > 2)
+                {
+                    mask = d.localSpacePosition[_NeonTubeCapDirection - 3] < (_NeonTubeCapOffset / scale / 100);
+                }
+                else
+                {
+                    mask = d.localSpacePosition[_NeonTubeCapDirection] > (_NeonTubeCapOffset / scale / 100);
+                }
             }
             mask = saturate(mask);
             

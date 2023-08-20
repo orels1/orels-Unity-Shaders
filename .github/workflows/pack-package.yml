@@ -49,14 +49,14 @@ jobs:
           filename: "../../${{env.zipFile}}" # make the zip file two directories up, since we start two directories in above
           
           
-      - name: Install Unity Packager
-        run: |
-          git clone https://github.com/Lachee/Unity-Package-Exporter.git "../tools/unity-package-exporter"
-          dotnet publish -c Release -o ../tools "../tools/unity-package-exporter/UnityPackageExporter"
+      # - name: Install Unity Packager
+      #   run: |
+      #     git clone https://github.com/Lachee/Unity-Package-Exporter.git "../tools/unity-package-exporter"
+      #     dotnet publish -c Release -o ../tools "../tools/unity-package-exporter/UnityPackageExporter"
 
-      - name: Create Unitypackage
-        run: |
-          dotnet ../tools/UnityPackageExporter.dll ./Packages/${{inputs.package-name}} ${{ env.unityPackage }}
+      # - name: Create Unitypackage
+      #   run: |
+      #     dotnet ../tools/UnityPackageExporter.dll ./Packages/${{inputs.package-name}} ${{ env.unityPackage }}
 
       - name: Add Summary
         run: |
@@ -65,7 +65,7 @@ jobs:
           echo "saved as"
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- ${{ env.zipFile }}" >> $GITHUB_STEP_SUMMARY
-          echo "- ${{ env.unityPackage }}" >> $GITHUB_STEP_SUMMARY    
+        # echo "- ${{ env.unityPackage }}" >> $GITHUB_STEP_SUMMARY    
         
       - name: Make Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
@@ -74,7 +74,7 @@ jobs:
           tag_name: "v${{ steps.version.outputs.prop }}"
           files: |
             ${{ env.zipFile }}
-            ${{ env.unityPackage }}
+        # ${{ env.unityPackage }}
 #            Packages/${{ inputs.package-name }}/package.json
 
       - name: Make Pre-Release
@@ -86,6 +86,6 @@ jobs:
           prerelease: true
           files: |
             ${{ env.zipFile }}
-            ${{ env.unityPackage }}
+          # ${{ env.unityPackage }}
         #            Packages/${{ inputs.package-name }}/package.json
 

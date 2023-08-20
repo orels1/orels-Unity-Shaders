@@ -1,0 +1,222 @@
+%Properties()
+{
+    UI_PatternsHeader("# Patterns", Int) = 1
+    UI_PatternsDocs("[This module has documentation](https://shaders.orels.sh/docs/vfx/patterns)", Int) = 0
+    UI_PatternsPresesets("Selected Preset %Preset(@/Presets/VFX/Patterns)", Int) = 0
+    [KeywordEnum(None, 2x, 4x)]PATTERN_SUPERSAMPLING("Super Sampling", Int) = 0
+    UI_PatternsSuperSamplingNote("> If the patterns look too jagged, you can try increasing the Super Sampling amount", Int) = 0
+    // [KeywordEnum(Circles, Triangles, Lines)]PATTERN("Pattern", Int) = 0
+    [HDR]_CirclesColor1("Color 1 %ShowIf(PATTERN_CIRCLES)", Color) = (0, 0, 0, 1)
+    [HDR]_CirclesColor2("Color 2 %ShowIf(PATTERN_CIRCLES)", Color) = (1, 1, 1, 1)
+    
+    UI_CirclesKaleidoscopeHeader("## Kaleidoscope %ShowIf(PATTERN_CIRCLES)", Int) = 1
+    [ToggleUI]_CirclesKaleidoscopeUV("Kaleidoscope UV %ShowIf(PATTERN_CIRCLES)", Int) = 0
+    UI_CirclesKaleidoscopeUVNote("> Adds Kaleidoscope effect, recommended to use with Circle Offset of 0,0 %ShowIf(PATTERN_CIRCLES)", Int) = 0
+    _CirclesKaleidoscopeSlices("Slice Count %ShowIf(PATTERN_CIRCLES && _CirclesKaleidoscopeUV)", Int) = 2
+    _CirclesKaleidoscopeSpinSpeed("Spin Speed %ShowIf(PATTERN_CIRCLES && _CirclesKaleidoscopeUV)", Float) = 0.5
+    _CirclesKaleidoscopeSpinOffset("Spin Time Offset %ShowIf(PATTERN_CIRCLES && _CirclesKaleidoscopeUV)", Float) = 0
+    _CirclesKaleidoscopeTiling("Tiling %ShowIf(PATTERN_CIRCLES && _CirclesKaleidoscopeUV)", Float) = 1
+
+    UI_CirclesSettingsHeader("## Circles Settings", Int) = 0
+    _CircleOrigin("Circle Origin %ShowIf(PATTERN_CIRCLES)", Vector) = (0.2, 0.2, 0, 0)
+    UI_CircleOriginNote("> Only X and Y values are used", Int) = 1
+    _CircleCount("Circle Count %ShowIf(PATTERN_CIRCLES)", Float) = 30
+    _CircleSmoothing("Circle Smoothing %ShowIf(PATTERN_CIRCLES)", Float) = 0.1
+    _CircleExpandSpeed("Expand Speed %ShowIf(PATTERN_CIRCLES)", Float) = 0.1
+    _CircleExpandTimeOffset("Time Offset", Float) = 0
+    
+    UI_LinesHeader("## Lines Mask %ShowIf(PATTERN_CIRCLES)", Int) = 1
+    [ToggleUI]_CircleAddLines("Add Lines %ShowIf(PATTERN_CIRCLES)", Int) = 0
+    _CircleLinesThickness("Line Thickness %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Float) = 5
+    _CircleLinesSmoothing("Line Smoothing %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Float) = 0.1
+    _CircleLinesDegreeOffset("Offset (Degrees) %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Float) = 30
+    UI_CircleLinesDegreeOffsetNote("> Add a line every X degrees. E.g. a value of 30 will draw a line every 30 degrees %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Int) = 0
+    _CircleLinesSpinSpeed("Spin Speed %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Float) = 0.1
+    [ToggleUI]_CircleLinesSpinAlternate("Alternate Spin %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Int) = 1
+    _CircleLinesSpinTimeOffset("Spin Time Offset %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Float) = 0
+}
+
+%ShaderFeatures()
+{
+    // #pragma shader_feature_local PATTERN_CIRCLES PATTERN_TRIANGLES PATTERN_LINES
+    #pragma shader_feature_local PATTERN_SUPERSAMPLING_NONE PATTERN_SUPERSAMPLING_2X PATTERN_SUPERSAMPLING_4X
+}
+
+%ShaderDefines()
+{
+    #define PATTERN_CIRCLES
+
+    #if defined(PATTERN_SUPERSAMPLING_NONE)
+        #define PATTERN_SAMPLES 1
+    #elif defined(PATTERN_SUPERSAMPLING_2X)
+        #define PATTERN_SAMPLES 2
+    #elif defined(PATTERN_SUPERSAMPLING_4X)
+        #define PATTERN_SAMPLES 4
+    #endif
+}
+
+%Variables()
+{
+    half _CircleCount;
+    half4 _CirclesColor1;
+    half4 _CirclesColor2;
+
+    int _CirclesKaleidoscopeUV;
+    half _CirclesKaleidoscopeSlices;
+    half _CirclesKaleidoscopeSpinSpeed;
+    half _CirclesKaleidoscopeSpinOffset;
+    half _CirclesKaleidoscopeTiling;
+
+    half2 _CircleOrigin;
+    half _CircleSmoothing;
+    half _CircleExpandSpeed;
+    half _CircleExpandTimeOffset;
+    
+    int _CircleAddLines;
+    half _CircleLinesThickness;
+    half _CircleLinesSmoothing;
+    half _CircleLinesDegreeOffset;
+    half _CircleLinesSpinSpeed;
+    int _CircleLinesSpinAlternate;
+    half _CircleLinesSpinTimeOffset;
+}
+
+%Fragment("PatternsFragment")
+{
+    // https://iquilezles.org/articles/distfunctions2d/
+    float sdSegment( in half2 p, in half2 a, in half2 b )
+    {
+        half2 pa = p-a, ba = b-a;
+        float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+        return length( pa - ba*h );
+    }
+
+    float sdCircle( half2 p, float r )
+    {
+        return length(p) - r;
+    }
+
+    float smoothQuint( float x )
+    {
+        return x*x*x*(x*(x*6.0-15.0)+10.0);
+    }
+
+
+    half2 GetKaleidoscopeUV(half2 uv, half repeats, half rotation, half scale) 
+    {
+        half timeFactor = rotation;
+        half cosR = cos(rotation) * scale;
+        half sinR = sin(rotation) * scale;
+        for (int i = 0; i < repeats; i++) {
+            uv = abs(uv);
+            uv -= 0.25;
+            uv = uv * cosR + sinR * uv.yx * half2(1, -1);
+        }
+        return uv;
+    }
+
+    half2 GetPolarUV(half2 uv, half angle)
+    {
+        angle = angle / 180 * UNITY_PI;
+        half atanAng = atan2(uv.x, uv.y);
+        half dist = length(uv);
+        atanAng = GLSLMod(atanAng + angle / 2.0, angle) - angle / 2.0;
+        uv = half2(sin(atanAng), cos(atanAng)) * dist;
+        return uv;
+    }
+
+    half3 CirclesDist(half2 uv)
+    {
+        uv = uv - 0.5;
+        if (_CirclesKaleidoscopeUV)
+        {
+            uv = GetKaleidoscopeUV(uv, _CirclesKaleidoscopeSlices, _Time.y * _CirclesKaleidoscopeSpinSpeed + _CirclesKaleidoscopeSpinOffset, _CirclesKaleidoscopeTiling);
+        }
+        uv = uv + _CircleOrigin;
+        half timeFactor = _Time.y * _CircleExpandSpeed + _CircleExpandTimeOffset;
+        half dist = sdCircle(uv, timeFactor);
+        dist = cos(_CircleCount * -dist);
+        dist = 1 - smoothstep(0, _CircleSmoothing, dist);
+
+        if (_CircleAddLines) {
+            half ogDist = sdCircle(uv, timeFactor < 0.0001 ? 1000 : timeFactor) / 2;
+            ogDist = (floor(-ogDist * _CircleCount / UNITY_PI) % 2.0);
+            ogDist = smoothstep(0, 0.2, ogDist);
+            half alternateFactor = lerp(1, lerp(-1,1,ogDist),_CircleLinesSpinAlternate);
+            uv = Rotate2D(uv, _Time.y * _CircleLinesSpinSpeed * alternateFactor + _CircleLinesSpinTimeOffset * alternateFactor);
+            uv = GetPolarUV(uv * max(0.01, 1.0 / _CircleLinesThickness), _CircleLinesDegreeOffset);
+            half lineMask = abs(uv.x);
+            dist *= smoothstep(0, _CircleLinesSmoothing / 20.0, lineMask - 0.005);
+        }
+        return dist;
+    }
+
+    void PatternsFragment(MeshData d, inout SurfaceData o)
+    {
+        half2 uv = d.uv0;
+        float2 dxuv = ddx(d.uv0);
+        float2 dyuv = ddy(d.uv0);
+        float goldenRatio = 1.61803398875;
+
+        // Supersampling code from d4rkpl4y3r
+        // https://github.com/d4rkc0d3r
+        #if defined(PATTERN_CIRCLES)
+        {
+            #if defined(PATTERN_SUPERSAMPLING_2X) || defined(PATTERN_SUPERSAMPLING_4X)
+            
+            [unroll(PATTERN_SAMPLES)]
+            for (uint i = 0; i < PATTERN_SAMPLES; i++)
+            {
+                float2 jitter = float2(frac(i * goldenRatio), (i + 0.5) / PATTERN_SAMPLES) - 0.5;
+                uv = d.uv0 + dxuv * jitter.x + dyuv * jitter.y;
+                o.Emission += lerp(_CirclesColor1, _CirclesColor2, CirclesDist(uv));
+            }
+            o.Emission /= float(PATTERN_SAMPLES);
+
+            #else
+
+            o.Emission = lerp(_CirclesColor1, _CirclesColor2, CirclesDist(uv));
+            
+            #endif
+
+        }
+        #endif
+
+        // Currently disabled
+        // TODO: Add more options
+        #if defined(PATTERN_LINES)
+        half2 uv = d.uv0;
+        uv = uv - 0.5;
+        {
+            // uv = Rotate2D(uv, _Time.y);
+            half2 kaleidocscope = GetKaleidoscopeUV(uv, 2, _Time.y * 0.5, .5);
+            // half rotatedUv = 
+            // uv = Rotate2D(kaleidocscope, _Time.y);
+            uv = kaleidocscope;
+            half alData = AudioLinkLerp(ALPASS_FILTEREDAUDIOLINK + half2(4, 0));
+            half dist = sdSegment(uv, half2(0,0), half2(1,1));
+            dist = min(
+                dist,
+                sdCircle(uv + 0.2, 0.1)
+            );
+
+            dist = min(
+                dist,
+                sdCircle(uv - 0.2, 0.1)
+            );
+            half dCos = cos(200 * dist);
+            // dist = dist;
+
+            dist = 1 - smoothstep(0, 0.2 * lerp(0.5, 1,alData), dist);
+            dist = smoothQuint(dist);
+            half3 col1 = half3(0.4, 0.9, 0.02);
+            half3 col2 = half3(frac(0.7), 0.9, 0.5);
+            half3 tint = HSV2RGB(lerp(col1, col2, dist));
+            o.Emission = pow(tint * 2, 2.2);
+            o.Metallic = lerp(0, 1, smoothstep(0, 0.01, dist));
+            // o.Emission = lerp(0, tint, 1 - smoothstep(0, 0.01, abs(dist - 0.01)));
+            o.Smoothness = lerp(0, 0.6 , smoothstep(0, 0.01, dist));
+        }
+        #endif
+    }
+}

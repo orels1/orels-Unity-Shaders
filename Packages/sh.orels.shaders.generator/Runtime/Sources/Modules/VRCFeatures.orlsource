@@ -1,7 +1,7 @@
 %Properties()
 {
     UI_VRCFeaturesHeader("# VRChat Features", Int) = 0
-    UI_VRCDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standar#vr-chat-features)", Int) = 0
+    UI_VRCDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#vr-chat-features)", Int) = 0
     [Toggle(VRC_FEATURES)]_VRCFeaturesEnabled("VRChat Features Enabled", Int) = 0
     UI_VRCHideMainViewHeader("## Hide from Main View %ShowIf(VRC_FEATURES)", Int) = 0
     [ToggleUI]_VRCHideInVR("In VR %ShowIf(VRC_FEATURES)", Int) = 0
@@ -26,7 +26,6 @@
 
     int _VRCHideInVRCamera;
     int _VRCHideInDesktopCamera;
-
     int _VRCHideInVRMirror;
     int _VRCHideInDesktopMirror;
 

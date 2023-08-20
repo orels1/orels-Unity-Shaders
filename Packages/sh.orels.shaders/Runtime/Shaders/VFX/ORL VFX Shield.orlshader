@@ -6,6 +6,7 @@
 {
     [HDR]_Color("Global Tint", Color) = (1,1,1,1)
     [NonModifiableTextureData][NoScaleOffset]_BakedNoiseTex("Noise Texture > %RequiredTexture(@/BakedNoise.png)", 2D) = "white" { }
+    [Enum(World, 0, Local, 1)]_NoiseSpace("Noise Coordinate Space", Int) = 0
     UI_Layer1Header("# Layer 1", Int) = 1
     [HDR]_Layer1Color("Color", Color) = (1,1,1,1)
     _Layer1Smoothing("Smoothing", Float) = 0.01
@@ -55,6 +56,7 @@
 %Variables()
 {
     half4 _Color;
+    int _NoiseSpace;
     half4 _Layer1Color;
     half _Layer1Smoothing;
     half _Layer1Width;
@@ -104,7 +106,7 @@
     {
         // layer 1
         {
-            half3 pos = d.worldSpacePosition.xyz + _Layer1Movement.xyz * _Time.y;
+            half3 pos = (_NoiseSpace ? d.localSpacePosition.xyz : d.worldSpacePosition.xyz) + _Layer1Movement.xyz * _Time.y;
             pos *= _Layer1Scale;
             half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.5;
             half stepped = StepMask(noise, 0.11, 0.11 + _Layer1Width, _Layer1Smoothing);
@@ -114,7 +116,7 @@
 
         // layer 2
         {
-            half3 pos = d.worldSpacePosition.xyz + _Layer2Movement.xyz * _Time.y;
+            half3 pos = (_NoiseSpace ? d.localSpacePosition.xyz : d.worldSpacePosition.xyz) + _Layer2Movement.xyz * _Time.y;
             pos *= _Layer2Scale;
             half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.5;
             half stepped = StepMask(noise, 0.3, 0.3 + _Layer2Width, _Layer2Smoothing);
@@ -128,7 +130,7 @@
             float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(d.extraV2F0)));
             float depth = sceneZ - d.extraV2F0.z;
             
-            half3 pos = d.worldSpacePosition.xyz * 8;
+            half3 pos = (_NoiseSpace ? d.localSpacePosition : d.worldSpacePosition.xyz) * 8;
             half edgeMask = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.5;
             pos *= 2.1;
             edgeMask += getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.25;

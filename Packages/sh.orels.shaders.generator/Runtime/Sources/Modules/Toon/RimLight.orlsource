@@ -27,6 +27,8 @@
     half _RimRange;
     half _RimThreshold;
     half _RimSharpness;
+
+    half3 GLOBAL_pixelNormal;
 }
 
 %Fragment("ToonRimLightFragment")
@@ -43,8 +45,16 @@
         if (!lightEnv) {
             lightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
         }
-        half lightNoL = saturate(dot(GLOBAL_pixelNormal, lightDir));
-        half SVDNoN = abs(dot(d.svdn, GLOBAL_pixelNormal));
+
+        half3 normal = 0;
+        #if defined(PIXEL_NORMAL_SET)
+        normal = GLOBAL_pixelNormal;
+        #else
+        normal = o.Normal;
+        #endif
+
+        half lightNoL = saturate(dot(normal, lightDir));
+        half SVDNoN = abs(dot(d.svdn, normal));
 
         half rimIntensity = saturate((1 - SVDNoN)) * saturate(pow(lightNoL, _RimThreshold));
         rimIntensity = smoothstep(_RimRange - _RimSharpness, _RimRange + _RimSharpness, rimIntensity);
@@ -53,10 +63,11 @@
         // Rim Light Env Tint
         half3 env = 0;
         #if defined(UNITY_PASS_FORWARDBASE)
-            env = getEnvReflection(d.worldSpaceViewDir.xyz, d.worldSpacePosition.xyz, GLOBAL_pixelNormal, o.Smoothness, 5);
+            env = getEnvReflection(d.worldSpaceViewDir.xyz, d.worldSpacePosition.xyz, normal, o.Smoothness, 5);
         #endif
         
-        o.RimLight = rim * _RimTint * lerp(1, o.Albedo.rgbb, _RimAlbedoTint) * lerp(1, env.rgbb, _RimEnvironmentTint);
+        o.RimLight = rim * _RimTint * lerp(1, half4(o.Albedo.rgb,1), _RimAlbedoTint) * lerp(1, half4(env.rgb,1), _RimEnvironmentTint);
+        o.RimLight *= _RimTint.a;
         o.RimAttenuation = _RimAttenuation;
         
         #endif

@@ -5,7 +5,7 @@
 <p align="center">
   <sub>Built with ❤︎ by
   <a href="https://twitter.com/orels1_">orels1</a> and
-  <a href="https://github.com/orels1/orels1-Unity-Scripts/graphs/contributors">
+  <a href="https://github.com/orels1/orels-Unity-Shaders/graphs/contributors">
     contributors
   </a>
   </sub>

@@ -1,0 +1,9 @@
+%ShaderName("orels1/VFX/Patterns")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "@/Modules/VFX/Patterns",
+    "self"
+}

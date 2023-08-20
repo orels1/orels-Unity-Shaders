@@ -2,14 +2,14 @@ name: Build Release
 
 on: 
   workflow_dispatch:
-  push:
-    branches:
-      - main
-      - dev
-    paths:
-      - Packages/sh.orels.shaders/**
-      - Packages/sh.orels.shaders.generator/**
-      - Packages/sh.orels.shaders.inspector/**
+  # push:
+  #   branches:
+  #     - main
+  #     - dev
+  #   paths:
+  #     - Packages/sh.orels.shaders/**
+  #     - Packages/sh.orels.shaders.generator/**
+  #     - Packages/sh.orels.shaders.inspector/**
 
 jobs:
   pack-shaders:
@@ -29,12 +29,12 @@ jobs:
     with:
       package-name: "sh.orels.shaders.generator"
 
-  pack-repo:
-    uses: ./.github/workflows/pack-repo.yml
-    needs: [pack-shaders, pack-inspector, pack-generator]
+  # pack-repo:
+  #   uses: ./.github/workflows/pack-repo.yml
+  #   needs: [pack-shaders, pack-inspector, pack-generator]
 
   update-release:
-    needs: pack-repo
+    needs: [pack-shaders, pack-inspector, pack-generator]
     runs-on: ubuntu-latest
     steps:
 

@@ -1,0 +1,232 @@
+%Properties()
+{
+    UI_PuddlesHeader("# Puddles", Int) = 1
+    UI_PuddlesDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/puddles)", Int) = 0
+    [Enum(Height Based, 0, Texture Mask, 1, Vertex Color Mask, 2)]_PuddlesMode("Puddles Mode", Int) = 0
+    UI_PuddlesModeHeightMissingNote("> Height texture is missing. Make sure to enable parallax and set a height texture, or use a different Puddles Mode %ShowIf(_PuddlesMode == 0 && (!_Height || !PARALLAX))", Int) = 0
+    UI_PuddlesModeHeightNode("> Height Based Mode: Uses Height texture as a base for water level %ShowIf(_PuddlesMode == 0 && _Height && PARALLAX)", Int) = 0
+    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_PuddlesVertexChannel("Vertex Channel %ShowIf(_PuddlesMode == 2)", Int) = 0
+    _PuddlesLevel("Water Level", Range(0, 1)) = 0
+    _PuddlesSmoothing("Water Edge Smoothing", Range(0, 1)) = 0.2
+    _PuddlesColor("Color", Color) = (0.5, 0.5, 0.5, 1)
+    UI_PuddlesMaskHeader("## Masking", Int) = 0
+    _PuddlesMask("Puddles Mask", 2D) = "white" {}
+    [Enum(World Space, 0, Local Space, 1, UV, 2, Triplanar, 3)]_PuddlesMaskMappingSpace("Mapping Space %ShowIf(_PuddlesMask)", Int) = 0
+    [Enum(XY, 0, XZ, 1, YZ, 2)]_PuddlesMaskMappingAxis("Mapping Axis %ShowIf(_PuddlesMask && _PuddlesMaskMappingSpace < 2)", Int) = 1
+    _PuddlesMaskStrength("Mask Strength %ShowIf(_PuddlesMask)", Range(0, 1)) = 1
+
+    UI_RaindropsHeader("## Raindrops", Int) = 0
+    [Toggle(RAINDROPS_ENABLE)]_RaindropsEnable("Enable Raindrops", Int) = 1
+    _RaindropsMap("Raindrops Texture %ShowIf(RAINDROPS_ENABLE) %RequiredTexture(@/Puddles_raindropsMask.exr)", 2D) = "white" {}
+    UI_RaindropsMapNote("?> Red - Progression Gradient\nGreen/Blue - Raindrop Normal\nAlpha - Raindrop Animation Time Offset %ShowIf(RAINDROPS_ENABLE)", Int) = 0
+    [Enum(World Space, 0, Local Space, 1, UV, 2)]_RaindropsMappingSpace("Mapping Space %ShowIf(RAINDROPS_ENABLE)", Int) = 0
+    [Enum(XY, 0, XZ, 1, YZ, 2)]_RaindropsMappingAxis("Mapping Axis %ShowIf(RAINDROPS_ENABLE && _RaindropsMappingSpace != 2)", Int) = 1
+    _RaindropsAmount("Amount %ShowIf(RAINDROPS_ENABLE)", Range(0, 1)) = 0
+    _RaindropsNormalStrength("Normal Strength %ShowIf(RAINDROPS_ENABLE)", Range(-2, 2)) = 1
+    _RaindropsSpeed("Speed %ShowIf(RAINDROPS_ENABLE)", Float) = 1
+    _RaindropsLayer2Rotation("Layer 2 Rotation %ShowIf(RAINDROPS_ENABLE)", Range(0, 1)) = 0.5
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local RAINDROPS_ENABLE
+}
+
+%Variables()
+{
+    int _PuddlesMode;
+    int _PuddlesVertexChannel;
+    half _PuddlesLevel;
+    half _PuddlesSmoothing;
+    half4 _PuddlesColor;
+
+    int _PuddlesMaskMappingSpace;
+    int _PuddlesMaskMappingAxis;
+    half _PuddlesMaskStrength;
+    half4 _PuddlesMask_ST;
+
+    half4 _RaindropsMap_ST;
+    int _RaindropsMappingSpace;
+    int _RaindropsMappingAxis;
+    half _RaindropsNormalStrength;
+    half _RaindropsAmount;
+    half _RaindropsSpeed;
+    half _RaindropsLayer2Rotation;
+
+    half GLOBAL_heightMask;
+    half GLOBAL_heightMaskSmoothing;
+
+    int GLOBAL_heightSet;
+    half GLOBAL_height;
+}
+
+%Textures()
+{
+    TEXTURE2D(_RaindropsMap);
+    SAMPLER(sampler_RaindropsMap);
+    TEXTURE2D(_PuddlesMask);
+    SAMPLER(sampler_PuddlesMask);
+}
+
+%Fragment("PuddlesFragment")
+{
+    void PuddlesFragment(MeshData d, inout SurfaceData o) {
+        half mask = 0;
+        switch (_PuddlesMode)
+        {
+            case 0: // Height Based
+                mask = lerp(1, smoothstep(GLOBAL_height - _PuddlesSmoothing, GLOBAL_height, _PuddlesLevel), GLOBAL_heightSet);
+                break;
+            case 1:
+                mask = 1;
+                break;
+            case 2:
+                mask = d.vertexColor[_PuddlesVertexChannel];
+                break;
+        }
+
+        half2 maskUv = 0;
+        switch (_PuddlesMaskMappingSpace) {
+            case 0: // World Space
+                switch (_PuddlesMaskMappingAxis) {
+                    case 0:
+                        maskUv = d.worldSpacePosition.xy;
+                        break;
+                    case 1:
+                        maskUv = d.worldSpacePosition.xz;
+                        break;
+                    case 2:
+                        maskUv = d.worldSpacePosition.yz;
+                        break;
+                }
+                break;
+            case 1: // Local Space
+                switch (_PuddlesMaskMappingAxis) {
+                    case 0:
+                        maskUv = d.localSpacePosition.xy;
+                        break;
+                    case 1:
+                        maskUv = d.localSpacePosition.xz;
+                        break;
+                    case 2:
+                        maskUv = d.localSpacePosition.yz;
+                        break;
+                }
+                break;
+            case 2: // UV
+                maskUv = d.uv0.xy;
+                break;
+            case 3:
+                break;
+        }
+
+        half puddlesMask = 1;
+
+        if (_PuddlesMaskMappingSpace == 3) {
+            half2 uvX, uvY, uvZ;
+            half weightX, weightY, weightZ;
+            GetTriplanarUV(d.worldSpacePosition.xyz * _PuddlesMask_ST.x, uvX, uvY, uvZ);
+            GetTriplanarWeights(d.worldNormal, weightX, weightY, weightZ);
+            puddlesMask = SAMPLE_TEXTURE2D(_PuddlesMask, sampler_PuddlesMask, uvX).r * weightX;
+            puddlesMask += SAMPLE_TEXTURE2D(_PuddlesMask, sampler_PuddlesMask, uvY).r * weightY;
+            puddlesMask += SAMPLE_TEXTURE2D(_PuddlesMask, sampler_PuddlesMask, uvZ).r * weightZ;
+        } else {
+            maskUv = maskUv * _PuddlesMask_ST.xy + _PuddlesMask_ST.zw;
+            puddlesMask = SAMPLE_TEXTURE2D(_PuddlesMask, sampler_PuddlesMask, maskUv).r;
+        }
+
+        if (_PuddlesMode == 1) {
+            puddlesMask = smoothstep(puddlesMask - _PuddlesSmoothing, puddlesMask, _PuddlesLevel);
+        }
+
+
+        mask *= lerp(1, puddlesMask, _PuddlesMaskStrength);
+
+        o.Smoothness = lerp(o.Smoothness, 1, mask);
+        o.Metallic = lerp(o.Metallic, 0, mask);
+        o.Normal = normalize(lerp(o.Normal, UnpackScaleNormal(half4(0.5, 0.5, 0.5, 1.0), 0), mask));
+        o.Albedo = lerp(o.Albedo, o.Albedo * _PuddlesColor.rgb, mask * _PuddlesColor.a);
+
+        #if defined(RAINDROPS_ENABLE)
+
+        half2 uv = 0;
+
+        switch (_RaindropsMappingSpace) {
+            case 0: // World Space
+                switch (_RaindropsMappingAxis) {
+                    case 0:
+                        uv = d.worldSpacePosition.xy;
+                        break;
+                    case 1:
+                        uv = d.worldSpacePosition.xz;
+                        break;
+                    case 2:
+                        uv = d.worldSpacePosition.yz;
+                        break;
+                }
+                break;
+            case 1: // Local Space
+                switch (_RaindropsMappingAxis) {
+                    case 0:
+                        uv = d.localSpacePosition.xy;
+                        break;
+                    case 1:
+                        uv = d.localSpacePosition.xz;
+                        break;
+                    case 2:
+                        uv = d.localSpacePosition.yz;
+                        break;
+                }
+                break;
+            case 2: // UV
+                uv = d.uv0.xy;
+                break;
+        }
+
+        uv = uv * _RaindropsMap_ST.xy + _RaindropsMap_ST.zw;
+
+        // uv += half2(0.5, 1) * floor(_Time.y);
+        half4 packed = SAMPLE_TEXTURE2D(_RaindropsMap, sampler_RaindropsMap, uv);
+
+        half raindropsFilter = smoothstep(packed.a, packed.a + 0.05, _RaindropsAmount);
+
+        half time = saturate((_Time.y * _RaindropsSpeed + packed.a) % 1.0);
+
+        half sweepMask = clamp((time - 1) + packed.r, 0, 3) * UNITY_PI * 5;
+        sweepMask = sin(sweepMask);
+        sweepMask *= (1 - time) * packed.r;
+
+        // half blendLoop = sin((_Time.y * UNITY_PI + UNITY_PI/2.0)) * 0.5 + 0.5;
+        // blendLoop = smoothstep(0, 1, blendLoop);
+
+        half4 packedNormal = half4(packed.gb, 0.5, 1);
+        float3 unpackedNormal = UnpackScaleNormal(packedNormal, _RaindropsNormalStrength * sweepMask * raindropsFilter * mask);
+        // o.Normal = unpackedNormal;
+        // o.Emission = blendLoop;
+        // return;
+
+        uv += half2(0.23, 1.45); //* floor(_Time.y - 0.5);
+        half angle = _RaindropsLayer2Rotation * 360.0;
+        half sinAngle = sin(angle);
+        half cosAngle = cos(angle);
+        half2x2 rotMat = {cosAngle, sinAngle, -sinAngle, cosAngle};
+        uv = mul(uv, rotMat);
+        
+        packed = SAMPLE_TEXTURE2D(_RaindropsMap, sampler_RaindropsMap, uv);
+
+        raindropsFilter = smoothstep(packed.a, packed.a + 0.05, _RaindropsAmount);
+
+        time = saturate((_Time.y * _RaindropsSpeed + packed.a + 0.5) % 1.0);
+
+        sweepMask = clamp((time - 1) + packed.r, 0, 3) * UNITY_PI * 5;
+        sweepMask = sin(sweepMask);
+        sweepMask *= (1 - time) * packed.r;
+
+        packedNormal = half4(packed.gb, 0.5, 1);
+        float3 unpackedNormal2 = UnpackScaleNormal(packedNormal, _RaindropsNormalStrength * sweepMask * raindropsFilter * mask);
+        
+        o.Normal = BlendNormals(o.Normal, BlendNormals(unpackedNormal, unpackedNormal2));
+
+        #endif
+    }
+}
