@@ -1,6 +1,7 @@
 %Properties()
 {
     UI_PatternsHeader("# Patterns", Int) = 1
+    UI_PatternsDocs("[This module has documentation](https://shaders.orels.sh/docs/vfx/patterns)", Int) = 0
     UI_PatternsPresesets("Selected Preset %Preset(@/Presets/VFX/Patterns)", Int) = 0
     [KeywordEnum(None, 2x, 4x)]PATTERN_SUPERSAMPLING("Super Sampling", Int) = 0
     UI_PatternsSuperSamplingNote("> If the patterns look too jagged, you can try increasing the Super Sampling amount", Int) = 0

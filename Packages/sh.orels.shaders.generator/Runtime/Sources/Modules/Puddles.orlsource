@@ -1,6 +1,7 @@
 %Properties()
 {
     UI_PuddlesHeader("# Puddles", Int) = 1
+    UI_PuddlesDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/puddles)", Int) = 0
     [Enum(Height Based, 0, Texture Mask, 1, Vertex Color Mask, 2)]_PuddlesMode("Puddles Mode", Int) = 0
     UI_PuddlesModeHeightMissingNote("> Height texture is missing. Make sure to enable parallax and set a height texture, or use a different Puddles Mode %ShowIf(_PuddlesMode == 0 && (!_Height || !PARALLAX))", Int) = 0
     UI_PuddlesModeHeightNode("> Height Based Mode: Uses Height texture as a base for water level %ShowIf(_PuddlesMode == 0 && _Height && PARALLAX)", Int) = 0

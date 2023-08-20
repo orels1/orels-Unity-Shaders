@@ -1,6 +1,7 @@
 %Properties()
 {
     UI_GlitchHeader("# Glitch Screen", Int) = 1
+    UI_GlitchDocs("[This module has documentation](https://shaders.orels.sh/docs/vfx/glitch-screen)", Int) = 0
     _GlitchTexture("Base Texture", 2D) = "white" {}
     [HDR]_PosterEmission("Emission", Color) = (1,1,1,1)
     _GlitchEffectCycleSpeed("Effects Cycle Speed", Float) = 0.5
