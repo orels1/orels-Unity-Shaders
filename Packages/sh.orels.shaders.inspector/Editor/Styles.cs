@@ -141,6 +141,9 @@ namespace ORL.ShaderInspector
             var rect = EditorGUILayout.GetControlRect();
             rect.yMax += 1f * EditorGUIUtility.pixelsPerPoint;
             rect.xMin -= 15f * EditorGUIUtility.pixelsPerPoint;
+            #if UNITY_2022_1_OR_NEWER
+            rect.xMin -= 15f * EditorGUIUtility.pixelsPerPoint;
+            #endif
             rect.xMax += 5f * EditorGUIUtility.pixelsPerPoint;
             var dividerRect = rect;
             dividerRect.y -= 1f;
@@ -160,6 +163,9 @@ namespace ORL.ShaderInspector
             var rect = EditorGUILayout.GetControlRect();
             rect.yMax += 1f * EditorGUIUtility.pixelsPerPoint;
             rect.xMin -= 15f * EditorGUIUtility.pixelsPerPoint;
+            #if UNITY_2022_1_OR_NEWER
+            rect.xMin -= 15f * EditorGUIUtility.pixelsPerPoint;
+            #endif
             rect.xMax += 5f * EditorGUIUtility.pixelsPerPoint;
             var dividerRect = rect;
             dividerRect.y -= 1f;

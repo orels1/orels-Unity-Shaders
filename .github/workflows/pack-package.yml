@@ -72,6 +72,7 @@ jobs:
         if: startsWith(github.ref, 'refs/heads/main')
         with:
           tag_name: "v${{ steps.version.outputs.prop }}"
+          draft: true
           files: |
             ${{ env.zipFile }}
         # ${{ env.unityPackage }}

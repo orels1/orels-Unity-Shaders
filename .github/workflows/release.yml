@@ -2,6 +2,16 @@ name: Build Release
 
 on: 
   workflow_dispatch:
+      inputs:
+        package-name:
+          description: 'Name of the package to release'
+          required: true
+          type: choice
+          options:
+            - All
+            - Shaders
+            - Generator
+            - Inspector
   # push:
   #   branches:
   #     - main
@@ -13,19 +23,22 @@ on:
 
 jobs:
   pack-shaders:
+    if: ${{ inputs.package-name == 'All' || inputs.package-name == 'Shaders' }}
     uses: ./.github/workflows/pack-package.yml
     with:
       package-name: "sh.orels.shaders"
 
   pack-inspector:
     uses: ./.github/workflows/pack-package.yml
-    needs: pack-shaders
+    if: ${{ inputs.package-name == 'All' || inputs.package-name == 'Inspector' }}
+#    needs: pack-shaders
     with:
       package-name: "sh.orels.shaders.inspector"
 
   pack-generator:
+    if: ${{ inputs.package-name == 'All' || inputs.package-name == 'Generator' }}
     uses: ./.github/workflows/pack-package.yml
-    needs: [pack-shaders, pack-inspector]
+#    needs: [pack-shaders, pack-inspector]
     with:
       package-name: "sh.orels.shaders.generator"
 
@@ -35,6 +48,7 @@ jobs:
 
   update-release:
     needs: [pack-shaders, pack-inspector, pack-generator]
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
 
@@ -42,24 +56,41 @@ jobs:
         uses: actions/checkout@v3
       
       - name: get version
-        id: version
+        if: ${{ inputs.package-name == 'All' || inputs.package-name == 'Shaders' }}
+        id: version-all
         uses: notiz-dev/github-action-json-property@7c8cf5cc36eb85d8d287a8086a39dac59628eb31
         with: 
             path: "Packages/sh.orels.shaders/package.json"
             prop_path: "version"
+            
+      - name: get version (Generator)
+        if: ${{ inputs.package-name == 'Generator' }}
+        id: version-generator
+        uses: notiz-dev/github-action-json-property@7c8cf5cc36eb85d8d287a8086a39dac59628eb31
+        with:
+          path: "Packages/sh.orels.shaders.generator/package.json"
+          prop_path: "version"
+
+      - name: get version (Inspector)
+        if: ${{ inputs.package-name == 'Inspector' }}
+        id: version-inspector
+        uses: notiz-dev/github-action-json-property@7c8cf5cc36eb85d8d287a8086a39dac59628eb31
+        with:
+          path: "Packages/sh.orels.shaders.inspector/package.json"
+          prop_path: "version"
 
       - name: Make Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: "v${{ steps.version.outputs.prop }}"
+          tag_name: "v${{ ((inputs.package-name == 'All' || inputs.package-name == 'Shaders') && steps.version-all.outputs.prop) || (inputs.package-name == 'Generator' && steps.version-generator.outputs.prop) || steps.version-inspector.outputs.prop }}"
           generate_release_notes: true
 
       - name: Make Pre-Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
         if: startsWith(github.ref, 'refs/heads/dev')
         with:
-          tag_name: "v${{ steps.version.outputs.prop }}"
+          tag_name: "v${{ ((inputs.package-name == 'All' || inputs.package-name == 'Shaders') && steps.version-all.outputs.prop) || (inputs.package-name == 'Generator' && steps.version-generator.outputs.prop) || steps.version-inspector.outputs.prop }}"
           draft: true
           prerelease: true
           generate_release_notes: true

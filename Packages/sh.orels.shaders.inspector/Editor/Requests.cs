@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_2019_4
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -106,3 +107,4 @@ namespace ORL.ShaderInspector
         }
     }
 }
+#endif

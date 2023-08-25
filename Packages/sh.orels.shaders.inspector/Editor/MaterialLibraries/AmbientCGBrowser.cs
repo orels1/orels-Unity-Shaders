@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_2019_4
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -439,3 +440,4 @@ namespace ORL.ShaderInspector.MaterialLibraries
         }
     }
 }
+#endif
