@@ -446,12 +446,34 @@ namespace ORL.ShaderInspector
                         .ToList()
                         .ForEach(g => groups.Add(g.Value));
                 }
+                #if UNITY_2022_1_OR_NEWER
+                var oldIndentLevel = EditorGUI.indentLevel;
+                var shouldRestore = oldIndentLevel != -1;
+                EditorGUI.indentLevel = oldIndentLevel != -1 ? Mathf.Max(0, EditorGUI.indentLevel - 1) : oldIndentLevel;
+                #endif
                 drawn = MatchDrawerFuncStack(groups, editor, properties, property, index);
+                #if UNITY_2022_1_OR_NEWER
+                if (shouldRestore && EditorGUI.indentLevel != -1)
+                {
+                    EditorGUI.indentLevel = oldIndentLevel;
+                }
+                #endif
             }
 
             if (!drawn)
             {
+                #if UNITY_2022_1_OR_NEWER
+                var oldIndentLevel = EditorGUI.indentLevel;
+                var shouldRestore = oldIndentLevel != -1;
+                EditorGUI.indentLevel = oldIndentLevel != -1 ? Mathf.Max(0, EditorGUI.indentLevel - 1) : oldIndentLevel;
+                #endif
                 drawn = MatchDrawerStack(drawerStack, editor, properties, property, index);
+                #if UNITY_2022_1_OR_NEWER
+                if (shouldRestore && EditorGUI.indentLevel != -1)
+                {
+                    EditorGUI.indentLevel = oldIndentLevel;
+                }
+                #endif
             }
             return drawn;
         }
@@ -460,6 +482,12 @@ namespace ORL.ShaderInspector
 
         public void DrawRegularProp(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index)
         {
+            #if UNITY_2022_1_OR_NEWER
+            var oldIndentLevel = EditorGUI.indentLevel;
+            var shouldRestore = oldIndentLevel != -1;
+            EditorGUI.indentLevel = oldIndentLevel != -1 ? Mathf.Max(0, EditorGUI.indentLevel - 1) : oldIndentLevel;
+            #endif
+            
             var strippedName = Utils.StripInternalSymbols(property.displayName);
             var isSingleLine = property.type == MaterialProperty.PropType.Texture && _singleLineRegex.IsMatch(property.displayName);
             var defaultProps =
@@ -486,6 +514,12 @@ namespace ORL.ShaderInspector
                 if (property.textureDimension != TextureDimension.Tex2D) return;
                 var packerKey = property.name + "_packer";
                 _uiState[packerKey] = TexturePacker.DrawPacker(buttonRect, (bool) _uiState[packerKey], ref _uiState, packerKey, editor.target as Material, property, editor);
+                #if UNITY_2022_1_OR_NEWER
+                if (shouldRestore)
+                {
+                    EditorGUI.indentLevel = oldIndentLevel;
+                }
+                #endif
                 return;
             }
 
@@ -507,9 +541,21 @@ namespace ORL.ShaderInspector
                 if (property.textureDimension != TextureDimension.Tex2D) return;
                 var packerKey = property.name + "_packer";
                 _uiState[packerKey] = TexturePacker.DrawPacker(buttonRect, (bool) _uiState[packerKey], ref _uiState, packerKey, editor.target as Material, property, editor);
+                #if UNITY_2022_1_OR_NEWER
+                if (shouldRestore && EditorGUI.indentLevel != -1)
+                {
+                    EditorGUI.indentLevel = oldIndentLevel;
+                }
+                #endif
                 return;
             }
             editor.ShaderProperty(controlRect, property, new GUIContent(strippedName, tooltip));
+            #if UNITY_2022_1_OR_NEWER
+            if (shouldRestore)
+            {
+                EditorGUI.indentLevel = oldIndentLevel;
+            }
+            #endif
         }
         #endregion
 
@@ -517,6 +563,9 @@ namespace ORL.ShaderInspector
         {
             Styles.DrawStaticHeader("Extras");
             EditorGUI.indentLevel = 1;
+            #if UNITY_2022_1_OR_NEWER
+            EditorGUI.indentLevel = 0;
+            #endif
             editor.RenderQueueField();
             editor.EnableInstancingField();
             editor.LightmapEmissionFlagsProperty(0, true, true);
@@ -535,6 +584,11 @@ namespace ORL.ShaderInspector
             }
 
             if (!newValue) return;
+            
+            #if UNITY_2022_1_OR_NEWER
+            // Unity 2022 is 1 more level nested
+            EditorGUI.indentLevel = 0;
+            #endif
 
             EditorGUILayout.LabelField("Active Keywords", EditorStyles.boldLabel);
             using (new EditorGUI.DisabledGroupScope(true)) {
