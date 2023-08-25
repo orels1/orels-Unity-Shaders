@@ -83,14 +83,14 @@ jobs:
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: "v${{ (inputs.package-name == 'All' || inputs.package-name == 'Shaders') ? steps.version-all.outputs.prop : (inputs.package-name == 'Generator' ? steps.version-generator.outputs.prop : steps.version-inspector.outputs.prop ) }}"
+          tag_name: "v${{ ((inputs.package-name == 'All' || inputs.package-name == 'Shaders') && steps.version-all.outputs.prop) || (inputs.package-name == 'Generator' && steps.version-generator.outputs.prop) || steps.version-inspector.outputs.prop }}"
           generate_release_notes: true
 
       - name: Make Pre-Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
         if: startsWith(github.ref, 'refs/heads/dev')
         with:
-          tag_name: "v${{ (inputs.package-name == 'All' || inputs.package-name == 'Shaders') ? steps.version-all.outputs.prop : (inputs.package-name == 'Generator' ? steps.version-generator.outputs.prop : steps.version-inspector.outputs.prop ) }}"
+          tag_name: "v${{ ((inputs.package-name == 'All' || inputs.package-name == 'Shaders') && steps.version-all.outputs.prop) || (inputs.package-name == 'Generator' && steps.version-generator.outputs.prop) || steps.version-inspector.outputs.prop }}"
           draft: true
           prerelease: true
           generate_release_notes: true
