@@ -57,7 +57,7 @@ jobs:
       
       - name: get version
         if: ${{ inputs.package-name == 'All' || inputs.package-name == 'Shaders' }}
-        id: version
+        id: version-all
         uses: notiz-dev/github-action-json-property@7c8cf5cc36eb85d8d287a8086a39dac59628eb31
         with: 
             path: "Packages/sh.orels.shaders/package.json"
@@ -65,7 +65,7 @@ jobs:
             
       - name: get version (Generator)
         if: ${{ inputs.package-name == 'Generator' }}
-        id: version
+        id: version-generator
         uses: notiz-dev/github-action-json-property@7c8cf5cc36eb85d8d287a8086a39dac59628eb31
         with:
           path: "Packages/sh.orels.shaders.generator/package.json"
@@ -73,7 +73,7 @@ jobs:
 
       - name: get version (Inspector)
         if: ${{ inputs.package-name == 'Inspector' }}
-        id: version
+        id: version-inspector
         uses: notiz-dev/github-action-json-property@7c8cf5cc36eb85d8d287a8086a39dac59628eb31
         with:
           path: "Packages/sh.orels.shaders.inspector/package.json"
@@ -83,14 +83,14 @@ jobs:
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: "v${{ steps.version.outputs.prop }}"
+          tag_name: "v${{ (inputs.package-name == 'All' || inputs.package-name == 'Shaders') ? steps.version-all.outputs.prop : (inputs.package-name == 'Generator' ? steps.version-generator.outputs.prop : steps.version-inspector.outputs.prop ) }}"
           generate_release_notes: true
 
       - name: Make Pre-Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
         if: startsWith(github.ref, 'refs/heads/dev')
         with:
-          tag_name: "v${{ steps.version.outputs.prop }}"
+          tag_name: "v${{ (inputs.package-name == 'All' || inputs.package-name == 'Shaders') ? steps.version-all.outputs.prop : (inputs.package-name == 'Generator' ? steps.version-generator.outputs.prop : steps.version-inspector.outputs.prop ) }}"
           draft: true
           prerelease: true
           generate_release_notes: true
