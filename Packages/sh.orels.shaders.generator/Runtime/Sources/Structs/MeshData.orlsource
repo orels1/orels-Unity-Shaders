@@ -43,7 +43,7 @@
         d.vertexColor = i.vertexColor;
 
         #if !defined(UNITY_PASS_SHADOWCASTER)
-        float3 bitangent = normalize(cross(i.worldTangent.xyz, d.worldNormal) * i.worldTangent.w * - 1);
+        float3 bitangent = Unity_SafeNormalize(cross(i.worldTangent.xyz, d.worldNormal) * i.worldTangent.w * - 1);
         d.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, d.worldNormal);
         d.tangentSpaceViewDir = mul(d.TBNMatrix, d.worldSpaceViewDir);
         #endif
