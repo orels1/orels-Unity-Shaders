@@ -48,7 +48,6 @@ jobs:
         if: startsWith(github.ref, 'refs/heads/main')
         with:
           tag_name: "v${{ steps.version.outputs.prop }}"
-          draft: true
           files: |
             ${{ env.zipFile }}
 
@@ -57,7 +56,6 @@ jobs:
         if: startsWith(github.ref, 'refs/heads/dev')
         with:
           tag_name: "v${{ steps.version.outputs.prop }}"
-          draft: true
           prerelease: true
           files: |
             ${{ env.zipFile }}
