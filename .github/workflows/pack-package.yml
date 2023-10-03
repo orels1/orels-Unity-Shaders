@@ -47,7 +47,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: "v${{ steps.version.outputs.prop }}"
+          tag_name: "${{inputs.package-name}}@v${{ steps.version.outputs.prop }}"
+          generate_release_notes: true
+          draft: true
           files: |
             ${{ env.zipFile }}
 
@@ -55,8 +57,10 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/heads/dev')
         with:
-          tag_name: "v${{ steps.version.outputs.prop }}"
+          tag_name: "${{inputs.package-name}}@v${{ steps.version.outputs.prop }}"
           prerelease: true
+          draft: true
+          generate_release_notes: true
           files: |
             ${{ env.zipFile }}
 
