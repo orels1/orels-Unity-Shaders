@@ -6,7 +6,11 @@ on:
       package-name:
         description: 'Name of the package to pack'
         required: true
-        type: string
+        type: choice
+        options:
+          - sh.orels.shaders
+          - sh.orels.shaders.generator
+          - sh.orels.shaders.inspector
 
 jobs:
   pack-job:
@@ -14,11 +18,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      
-      - name: Get .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '3.1.x'
       
       - name: get version
         id: version
@@ -28,18 +27,11 @@ jobs:
             prop_path: "version"
             
       - run: echo ${{steps.version.outputs.prop}} 
-    
-      - name: Set Environment Variables (Shaders-specific)
-        if: contains(inputs.package-name, 'sh.orels.shaders')
-        run: |
-          echo "zipFile=${{ inputs.package-name }}-${{ steps.version.outputs.prop }}".zip >> $GITHUB_ENV
-          echo "unityPackage=${{ inputs.package-name }}-standalone-${{ steps.version.outputs.prop }}.unitypackage" >> $GITHUB_ENV
 
       - name: Set Environment Variables
         if: contains(inputs.package-name, 'sh.orels.shaders.')
         run: |
           echo "zipFile=${{ inputs.package-name }}-${{ steps.version.outputs.prop }}".zip >> $GITHUB_ENV
-          echo "unityPackage=${{ inputs.package-name }}-${{ steps.version.outputs.prop }}.unitypackage" >> $GITHUB_ENV
         
       - name: Create Zip
         uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
@@ -47,16 +39,6 @@ jobs:
           type: "zip"
           directory: "Packages/${{inputs.package-name}}/"
           filename: "../../${{env.zipFile}}" # make the zip file two directories up, since we start two directories in above
-          
-          
-      # - name: Install Unity Packager
-      #   run: |
-      #     git clone https://github.com/Lachee/Unity-Package-Exporter.git "../tools/unity-package-exporter"
-      #     dotnet publish -c Release -o ../tools "../tools/unity-package-exporter/UnityPackageExporter"
-
-      # - name: Create Unitypackage
-      #   run: |
-      #     dotnet ../tools/UnityPackageExporter.dll ./Packages/${{inputs.package-name}} ${{ env.unityPackage }}
 
       - name: Add Summary
         run: |
@@ -64,8 +46,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "saved as"
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- ${{ env.zipFile }}" >> $GITHUB_STEP_SUMMARY
-        # echo "- ${{ env.unityPackage }}" >> $GITHUB_STEP_SUMMARY    
+          echo "- ${{ env.zipFile }}" >> $GITHUB_STEP_SUMMARY 
         
       - name: Make Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
@@ -75,8 +56,6 @@ jobs:
           draft: true
           files: |
             ${{ env.zipFile }}
-        # ${{ env.unityPackage }}
-#            Packages/${{ inputs.package-name }}/package.json
 
       - name: Make Pre-Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
@@ -87,6 +66,4 @@ jobs:
           prerelease: true
           files: |
             ${{ env.zipFile }}
-          # ${{ env.unityPackage }}
-        #            Packages/${{ inputs.package-name }}/package.json
 
