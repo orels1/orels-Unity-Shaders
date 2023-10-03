@@ -25,7 +25,6 @@ jobs:
       - run: echo ${{steps.version.outputs.prop}} 
 
       - name: Set Environment Variables
-        if: contains(inputs.package-name, 'sh.orels.shaders.')
         run: |
           echo "zipFile=${{ inputs.package-name }}-${{ steps.version.outputs.prop }}".zip >> $GITHUB_ENV
         
