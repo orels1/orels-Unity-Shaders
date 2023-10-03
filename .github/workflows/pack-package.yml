@@ -6,11 +6,7 @@ on:
       package-name:
         description: 'Name of the package to pack'
         required: true
-        type: choice
-        options:
-          - sh.orels.shaders
-          - sh.orels.shaders.generator
-          - sh.orels.shaders.inspector
+        type: string
 
 jobs:
   pack-job:
