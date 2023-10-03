@@ -17,7 +17,7 @@ jobs:
       
       - name: get version
         id: version
-        uses: notiz-dev/github-action-json-property@release
+        uses: notiz-dev/github-action-json-property@v0.2.0
         with: 
             path: "Packages/${{inputs.package-name}}/package.json"
             prop_path: "version"
@@ -29,7 +29,7 @@ jobs:
           echo "zipFile=${{ inputs.package-name }}-${{ steps.version.outputs.prop }}".zip >> $GITHUB_ENV
         
       - name: Create Zip
-        uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
+        uses: thedoctor0/zip-release@0.7.0
         with:
           type: "zip"
           directory: "Packages/${{inputs.package-name}}/"
@@ -44,7 +44,7 @@ jobs:
           echo "- ${{ env.zipFile }}" >> $GITHUB_STEP_SUMMARY 
         
       - name: Make Release
-        uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
+        uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/heads/main')
         with:
           tag_name: "v${{ steps.version.outputs.prop }}"
@@ -53,7 +53,7 @@ jobs:
             ${{ env.zipFile }}
 
       - name: Make Pre-Release
-        uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
+        uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/heads/dev')
         with:
           tag_name: "v${{ steps.version.outputs.prop }}"
