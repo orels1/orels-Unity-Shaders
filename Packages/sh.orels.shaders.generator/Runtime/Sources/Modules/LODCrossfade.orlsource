@@ -1,0 +1,40 @@
+%ShaderFeatures()
+{
+    #pragma multi_compile _ LOD_FADE_CROSSFADE
+}
+
+%ShaderDefines()
+{
+    #ifndef NEED_SCREEN_POS
+        #define NEED_SCREEN_POS
+    #endif
+}
+
+%ShaderTags()
+{
+    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout"
+}
+
+%Fragment("CrossfadeFragment", -100)
+{
+    void CrossfadeFragment(inout SurfaceData o, MeshData d) {
+        #if defined(LOD_FADE_CROSSFADE)
+
+        float2 vpos = d.screenPos.xy / d.screenPos.w * _ScreenParams.xy;
+        UnityApplyDitherCrossFade(vpos);
+
+        #endif
+    }
+}
+
+%Shadow("CrossfadeShadow")
+{
+    void CrossfadeShadow(FragmentData i) {
+        #if defined(LOD_FADE_CROSSFADE)
+
+        float2 vpos = i.screenPos.xy / i.screenPos.w * _ScreenParams.xy;
+        UnityApplyDitherCrossFade(vpos);
+
+        #endif
+    }
+}
