@@ -8,6 +8,9 @@
     "name": "orels1",
     "url": "https://github.com/orels1"
   },
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json" : "2.0.2"
+  },
   "documentationUrl": "https://shaders.orels.sh",
   "keywords": [
     "shaders",
