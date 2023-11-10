@@ -5,13 +5,23 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "1bd7212219f54443a418128b78dbdd033d783b49"
+      "hash": "01079b99d35c08ee91dfe778016d607f5bf657eb"
     },
     "com.llealloo.audiolink": {
       "version": "file:com.llealloo.audiolink",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}
+    },
+    "com.singularitygroup.hotreload": {
+      "version": "git+https://gitlab.hotreload.net/root/hot-reload-releases.git#1.12.8",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0",
+        "com.unity.modules.unitywebrequest": "1.0.0"
+      },
+      "hash": "ff60e352632357969bf3ff54ce63c8c4ba171566"
     },
     "com.unity.ext.nunit": {
       "version": "1.0.6",
@@ -148,7 +158,9 @@
       "version": "file:sh.orels.shaders.inspector",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "2.0.2"
+      }
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",
