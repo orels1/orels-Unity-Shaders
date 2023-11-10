@@ -9,7 +9,7 @@ namespace ORL.Drawers
 {
     public class HeaderDrawer : IDrawer
     {
-        // Matches %ShowIf(Condition);
+        // Matches # or ## headers;
         private readonly Regex _matcher = new Regex(@"^(#+)");
 
         public bool MatchDrawer(MaterialProperty property)
