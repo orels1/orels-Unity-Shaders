@@ -29,6 +29,12 @@
         return (v - a) / (b - a);
     }
 
+    half3 invLerp(half3 a, half3 b, half3 v)
+    {
+        return (v - a) / (b - a);
+    }
+
+
     // w0, w1, w2, and w3 are the four cubic B-spline basis functions
     half w0(half a)
     {
