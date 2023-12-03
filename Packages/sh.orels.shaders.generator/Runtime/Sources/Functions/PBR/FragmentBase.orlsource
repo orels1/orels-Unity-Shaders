@@ -23,9 +23,9 @@
     [Toggle(BAKERY_SHNONLINEAR)]_BakerySHNonLinear("Bakery Non-Linear SH %ShowIf(BAKERY_ENABLED)", Int) = 1
     UI_InternalHeader("# Internal", Int) = 0
     [NonModifiableTextureData]_DFG("DFG > %RequiredTexture(@/dfg-multiscatter.exr)", 2D) = "white" {}
-    _RNM0("RNM0 >", 2D) = "black" {}
-    _RNM1("RNM1 >", 2D) = "black" {}
-    _RNM2("RNM2 >", 2D) = "black" {}
+    _RNM0("RNM0 >", 2D) = "white" {}
+    _RNM1("RNM1 >", 2D) = "white" {}
+    _RNM2("RNM2 >", 2D) = "white" {}
 }
 
 %ShaderFeatures()
@@ -161,8 +161,15 @@
             #if defined(DIRLIGHTMAP_COMBINED)
                 half4 lightMapDirection = tex2DFastBicubicSample(unity_LightmapInd, samplerunity_Lightmap, lightmapUV);
                 #if !defined(BAKERY_MONOSH)
-                lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
+                    lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
                 #endif
+            #endif
+
+            // Unity+Bakery often results in a full clear of DIRLIGHTMAP_COMBINED keyword
+            // which in turn results in no lightmap being applied when MONOSH is enabled
+            // this is an escape hatch for such a case to improve dev experience
+            #if defined(BAKERY_MONOSH) && defined(BAKERY_ENABLED) && !defined(DIRLIGHTMAP_COMBINED)
+                lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
             #endif
 
             #if defined(BAKERY_MONOSH) && defined(BAKERY_ENABLED) && defined(DIRLIGHTMAP_COMBINED)
