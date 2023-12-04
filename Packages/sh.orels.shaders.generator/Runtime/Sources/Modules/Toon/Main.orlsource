@@ -58,7 +58,7 @@
 
 %Fragment("ToonMainFragment")
 {
-    void ToonMainFragment(MeshData d, inout SurfaceData o, int facing)
+    void ToonMainFragment(MeshData d, inout SurfaceData o, bool facing)
     {
         half2 uv = 0;
         switch (_MainTexUVSet) {
@@ -70,7 +70,7 @@
         uv = uv * _MainTex_ST.xy + _MainTex_ST.zw;
         GLOBAL_uv = uv;
         half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
-        if (facing > 0) {
+        if (facing) {
             albedo *= _Color;
         } else {
             albedo = lerp(_BackfaceColor, albedo * _BackfaceColor, _BackfaceAlbedoTint);

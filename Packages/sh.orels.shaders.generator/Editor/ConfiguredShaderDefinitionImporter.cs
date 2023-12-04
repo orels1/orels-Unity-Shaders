@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+#if UNITY_2022_3_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
 using UnityEditor.Experimental.AssetImporters;
+#endif
 
 namespace ORL.ShaderGenerator
 {

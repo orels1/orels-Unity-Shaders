@@ -11,7 +11,8 @@
 
 %Includes()
 {
-    "/Packages/sh.orels.shaders/Runtime/Shaders/ORL Standard",
+    "@/Modules/LODCrossfade",
+    "@/Shaders/ORL Standard",
     "self",
     "@/Modules/DitherFade"
 }

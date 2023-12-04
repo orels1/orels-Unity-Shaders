@@ -25,5 +25,6 @@
     "@/Modules/Toon/AudioLink",
     "@/Modules/Toon/Emission",
     "@/Modules/Toon/RimLight",
-    "@/Modules/Toon/ShadowRim"
+    "@/Modules/Toon/ShadowRim",
+    "@/Modules/VRCFeatures"
 }

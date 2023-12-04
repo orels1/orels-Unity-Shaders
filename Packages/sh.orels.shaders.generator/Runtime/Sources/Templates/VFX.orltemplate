@@ -6,7 +6,7 @@
 
     SubShader
     {
-        Tags { %ShaderTags }
+        Tags { "VRCFallback"="Hidden" %ShaderTags }
         %ShaderModifiers
 
         // Global Include Start
@@ -88,7 +88,7 @@
             }
 
             // ForwardBase Fragment
-            half4 Fragment(FragmentData i, int facing: VFACE) : SV_TARGET
+            half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
