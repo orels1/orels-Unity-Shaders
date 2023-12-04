@@ -6,7 +6,7 @@
 
     SubShader
     {
-        Tags { %ShaderTags }
+        Tags { "VRCFallback"="Hidden" %ShaderTags }
         %ShaderModifiers
 
         // Global Include Start
