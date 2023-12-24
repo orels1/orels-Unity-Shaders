@@ -8,6 +8,7 @@
     [ToggleUI]_UseTrailColor("Use Trail Color", Int) = 0
     UI_UseTrailColorNote("> This will ignore the Color option above and use the trail gradient", Int) = 0
     _ColorBoost("Color Boost %ShowIf(_UseTrailColor)", Float) = 1
+    [ToggleUI]_LinearColor("Linear Trail Color %ShowIf(_UseTrailColor)", Int) = 0
 
     UI_NoiseControlHeader("# Noise Control", Int) = 1
     [Enum(World, 0, Local, 1, UV, 2)]_NoiseSpace("Noise Coordinate Space", Int) = 0
@@ -53,6 +54,7 @@
 {
     half4 _Color;
     int _UseTrailColor;
+    int _LinearColor;
     half _ColorBoost;
     half _Scale;
     half _ScaleY;
@@ -130,6 +132,9 @@
         half waviness = SAMPLE_TEXTURE2D(_WavinessTex, sampler_WavinessTex, waveUv);
         waviness = saturate(invLerp(_WavinessContrast.x, _WavinessContrast.y, waviness));
         
+        if (_LinearColor) {
+            d.vertexColor.rgb = pow(d.vertexColor.rgb, 2.2);
+        }
         o.Albedo = blended * lerp(_Color.rgb, d.vertexColor.rgb * _ColorBoost, _UseTrailColor);
         o.Alpha = blended * lerp(1, d.vertexColor.a, _UseTrailColor);
         o.Alpha *= waviness;
