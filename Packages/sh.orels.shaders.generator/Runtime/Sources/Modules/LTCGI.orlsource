@@ -9,6 +9,8 @@
     UI_LTCGIDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/ltcgi)", Int) = 0
     [Toggle(INTEGRATE_LTCGI)]_IntegrateLTCGI("Integrate LTCGI", Int) = 0
     UI_LTCGIDownload("[Make sure to download LTCGI before enabling this option](https://github.com/PiMaker/ltcgi/releases)", Int) = 0
+    [ToggleUI]_LTCGIClampBrightness("Clamp Brightness", Int) = 0
+    _LTCGIMaxBrightness("Max Brightness %ShowIf(_LTCGIClampBrightness)", Range(0,1)) = 1
 }
 
 %ShaderFeatures()
@@ -24,20 +26,37 @@
     #endif
 }
 
+%Variables()
+{
+    int _LTCGIClampBrightness;
+    half _LTCGIMaxBrightness;
+}
+
 %Fragment("LTCGIFragment") {
     // this function MUST be named IntegrateCustomGI as its called from the Lighting code
     void IntegrateCustomGI(MeshData d, SurfaceData o, inout half3 indirectSpecular, inout half3 indirectDiffuse)
     {
         #if defined(INTEGRATE_LTCGI) && !defined(PLAT_QUEST)
+            half3 diffuse = 0;
+            half3 specular = 0;
             LTCGI_Contribution(
-            d.worldSpacePosition.xyz,
-            o.Normal.xyz,
-            d.worldSpaceViewDir,
-            1 - o.Smoothness,
-            d.uv1.xy,
-            indirectDiffuse,
-            indirectSpecular
+                d.worldSpacePosition.xyz,
+                o.Normal.xyz,
+                d.worldSpaceViewDir,
+                1 - o.Smoothness,
+                d.uv1.xy,
+                diffuse,
+                specular
             );
+
+            if (_LTCGIClampBrightness) {
+                half3 hsv = RGB2HSV(specular);
+                hsv.z = tanh(hsv.z) * max(0, _LTCGIMaxBrightness);
+                indirectSpecular = HSV2RGB(hsv);
+            } else {
+                indirectSpecular += specular;
+                indirectDiffuse += diffuse;
+            }
         #endif
     }
 
