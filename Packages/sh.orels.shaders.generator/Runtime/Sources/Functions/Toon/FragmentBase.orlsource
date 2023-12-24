@@ -302,8 +302,40 @@
             indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, unity_SHAg.xyz, lerp(o.Normal, half3(0,0.5,0), _IgnoreLightprobeNormal));
             indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, unity_SHAb.xyz, lerp(o.Normal, half3(0,0.5,0), _IgnoreLightprobeNormal));
             indirectDiffuse = max(0, indirectDiffuse);
-        #else
-            indirectDiffuse = 0;
+        #elif defined(UNITY_PASS_FORWARDBASE)
+            // This here is an attempt to provide a somewhat usable ramp for lightmaps
+            half2 lightmapUV = d.lightmapUv.xy;
+            half4 bakedColorTex = 0;
+            half3 lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
+
+            // Support basic directionality
+            #if defined(DIRLIGHTMAP_COMBINED)
+                half4 lightMapDirection = tex2DFastBicubicSample(unity_LightmapInd, samplerunity_Lightmap, lightmapUV);
+                
+                // use lightmap direction if we can, realtim light is ignored in that case
+                lightDir.xyz = lightMapDirection.xyz - 0.5;
+                lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
+                lightNoL = dot(o.Normal, lightDir);
+                lightLoH = dot(lightDir, lightHalfVector);
+                
+                lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
+
+                lightColor = lightMap * 0.6;
+                indirectDiffuse = lightMap * 0.4;
+            #else
+                // Hacky way to support both cases of dirlight + baked and bakedy only but no directionality
+                // baked generates a light dir of 0,1,0
+                if (dot(lightDir.xyz, half3(0,1,0)) > 0.95) {
+                    lightDir.xyz = 0;
+                    lightNoL = 1;
+                }
+                indirectDiffuse = lightMap;
+            #endif
+
+            // we can end up using this twice, once above in the Dirlight logic and once here if both a realtime light
+            // and baked lightmap are present
+            half sharp2 = o.ShadowSharpness * 0.5;
+            lightAttenuation = smoothstep(sharp, 1 - sharp, saturate(length(lightMap)));
         #endif
         indirectDiffuse *= lerp(occlusion, 1, o.OcclusionMode);
 
