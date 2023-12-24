@@ -541,7 +541,7 @@ Shader %ShaderName
             Cull Front
             Stencil {
                 Ref 69
-                Comp NotEqual
+                Comp [_StencilOutlineComp]
                 Pass Zero
                 Fail Zero
             }
