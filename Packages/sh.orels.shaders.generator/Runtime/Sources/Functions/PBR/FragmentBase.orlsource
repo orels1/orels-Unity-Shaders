@@ -17,6 +17,10 @@
     _SpecularRoughnessMod("Specular Roughness Mod", Range(0, 1)) = 1
     [Toggle(BICUBIC_LIGHTMAP)]_Bicubic("Bicubic Sampling", Int) = 0
     [Toggle(BAKED_SPECULAR)]_BakedSpecular("Baked Specular", Int) = 0
+    UI_GITweaksHeader("## Global Illumination Tweaks", Int) = 0
+    _GIEmissiveBoost("GI Emissive Boost", Float) = 1
+    [ToggleUI]_IgnoreRealtimeGI("Ignore Relatime GI", Int) = 0
+    UI_IgnoreRealtimeGINote("> This will make the material ignore Unity Realtime GI system. It does not affect custom RTGI systems like LTCGI", Int) = 0
     UI_BakeryHeader("## Bakery Features", Int) = 0
     [Toggle(BAKERY_ENABLED)]_BakeryEnabled("Enable Bakery Features", Int) = 0
     [KeywordEnum(None, MONOSH, SH, RNM)]BAKERY("Bakery Mode %ShowIf(BAKERY_ENABLED)", Int) = 0
@@ -56,6 +60,8 @@
     half _GSAAThreshold;
     half _SpecOcclusion;
     half _SpecularRoughnessMod;
+    half _GIEmissiveBoost;
+    int _IgnoreRealtimeGI;
 }
 
 %Textures()
@@ -110,11 +116,15 @@
         pixelLight = lightNoL * lightColor * Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
 
         // READ THE LIGHTMAP
-        #if defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
+        // Can be Baked, Realtime, both or either
+        #if (defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)) && !defined(UNITY_PASS_FORWARDADD)
             half3 lightMap = 0;
             half4 bakedColorTex = 0;
             half2 lightmapUV = d.lightmapUv.xy;
 
+            // explicitly checking for lightmap on because we can be in rtgi only mode
+            #if defined(LIGHTMAP_ON)
+            
             // UNITY LIGHTMAPPING
             #if !defined(BAKERYLM_ENABLED) || !defined(BAKERY_ENABLED)
                 lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
@@ -172,6 +182,7 @@
                 lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
             #endif
 
+            // Bakery MonoSH handling
             #if defined(BAKERY_MONOSH) && defined(BAKERY_ENABLED) && defined(DIRLIGHTMAP_COMBINED)
                 half3 L0 = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
                 half3 nL1 = lightMapDirection.xyz * 2.0 - 1.0;
@@ -196,9 +207,26 @@
                 lightMap = max(lightMap, 0.0);
             #endif
 
-            #if defined(DYNAMICLIGHTMAP_ON) && !defined(UNITY_PBS_USE_BRDF2)
-                half3 realtimeLightMap = getRealtimeLightmap(d.lightmapUv.zw, o.Normal);
-                lightMap += realtimeLightMap;
+            #endif // defined(LIGHTMAP_ON)
+
+            // Handle RTGI specifically
+            #if defined(DYNAMICLIGHTMAP_ON) && !defined(PLAT_QUEST)
+                // only branch on non-meta passes
+                #if !defined(UNITY_PASS_META)
+                {
+                    [branch]
+                    if (!_IgnoreRealtimeGI) {
+                        half3 realtimeLightMap = getRealtimeLightmap(d.lightmapUv.zw, o.Normal);
+                        lightMap += realtimeLightMap;
+                    }
+                    // o.Emission = realtimeLightMap;
+                }
+                #else
+                {
+                    half3 realtimeLightMap = getRealtimeLightmap(d.lightmapUv.zw, o.Normal);
+                    lightMap += realtimeLightMap;
+                }
+                #endif
             #endif
 
             #if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
@@ -370,7 +398,19 @@
 
         // FINAL COLOR
         FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
+        
         FinalColor.rgb += o.Emission;
+        #endif
+    }
+}
+
+%Color("FragmentBaseMetaColor", 1000)
+{
+    void FragmentBaseMetaColor(inout SurfaceData o)
+    {
+        // Boost emissive for Meta (mostly for RTGI)
+        #if defined(UNITY_PASS_META)
+        o.Emission *= pow(_GIEmissiveBoost, 2.2);
         #endif
     }
 }
