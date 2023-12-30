@@ -1,6 +1,7 @@
 %Properties()
 {
     UI_DissolveHeader("# Dissolve", Int) = 1
+    UI_DissolveDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/dissolve)", Int) = 0
     _DissolveCutoff("Cutoff", Range(0,1)) = 0.04
     [Enum(Local Position, 0, UV, 1, Texture, 2)]_DissolveSource("Fade Based On", Int) = 0
     _DissolveTexture("Fade Texture %ShowIf(_DissolveSource == 2)", 2D) = "grayscaleRamp" {}
