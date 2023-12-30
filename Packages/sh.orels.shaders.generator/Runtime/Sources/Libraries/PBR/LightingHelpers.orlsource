@@ -206,11 +206,11 @@
     half3 getRealtimeLightmap(half2 uv, half3 worldNormal)
     {
         half2 realtimeUV = uv;
-        half4 bakedCol = UNITY_SAMPLE_TEX2D(unity_DynamicLightmap, realtimeUV);
+        half4 bakedCol = tex2DFastBicubicSample(unity_DynamicLightmap, samplerunity_DynamicLightmap, realtimeUV);
         half3 realtimeLightmap = DecodeRealtimeLightmap(bakedCol);
 
         #ifdef DIRLIGHTMAP_COMBINED
-        half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
+        half4 realtimeDirTex = tex2DFastBicubicSample(unity_DynamicDirectionality, samplerunity_DynamicLightmap, realtimeUV);
         realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
         #endif
 
