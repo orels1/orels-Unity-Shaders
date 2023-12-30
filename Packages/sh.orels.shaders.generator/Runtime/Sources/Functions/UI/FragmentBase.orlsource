@@ -52,7 +52,7 @@
     #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
 }
 
-%ShadeDefines()
+%ShaderDefines()
 {
     #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
       #define PLAT_QUEST
@@ -61,6 +61,8 @@
         #undef PLAT_QUEST
       #endif
     #endif
+
+    #include "UnityUI.cginc"
 }
 
 %FragmentBase("FragmentBase")
