@@ -98,3 +98,6 @@ Packages/sh.orels.shaders.inspector/Editor/MaterialLibraries/Resources/**/*.json
 /Assets/Gizmos.meta
 /Assets/LTCGI-Generated
 /Assets/LTCGI-Generated.meta
+
+/Assets/Samples
+/Assets/Samples.meta
