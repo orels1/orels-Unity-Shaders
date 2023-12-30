@@ -1,0 +1,61 @@
+%Properties()
+{
+    UI_MaskedTweaksHeader("# Masked Tweaks", Int) = 1
+    [Toggle(MASKED_TWEAKS)]_MaskedTweaksEnabled("Enable Masked Tweaks", Int) = 0
+    _MaskedTweaksMap("Masked Tweaks Map %ShowIf(_MaskedTweaksColor && MASKED_TWEAKS)", 2D) = "black" {}
+    [ToggleUI]_MaskedTweaksColor("Tweak Colors %ShowIf(MASKED_TWEAKS)", Int) = 0
+    [HDR]_MaskedTweaksRed("Red Mask Color %ShowIf(_MaskedTweaksColor && MASKED_TWEAKS)", Color) = (0.932,0.231,0.278,1)
+    [HDR]_MaskedTweaksGreen("Green Mask Color %ShowIf(_MaskedTweaksColor && MASKED_TWEAKS)", Color) = (0.0574,0.214,0.0318,1)
+    [HDR]_MaskedTweaksBlue("Blue Mask Color %ShowIf(_MaskedTweaksColor && MASKED_TWEAKS)", Color) = (0.0239,0.0815,0.401,1)
+    [ToggleUI]_MaskedTweaksSmoothness("Tweak Smoothness %ShowIf(MASKED_TWEAKS)", Int) = 0
+    _MaskedTweaksRedSmoothness("Red Mask Smoothness %ShowIf(_MaskedTweaksSmoothness && MASKED_TWEAKS)", Range(0,1)) = 0.5
+    _MaskedTweaksGreenSmoothness("Green Mask Smoothness %ShowIf(_MaskedTweaksSmoothness && MASKED_TWEAKS)", Range(0,1)) = 0.5
+    _MaskedTweaksBlueSmoothness("Blue Mask Smoothness %ShowIf(_MaskedTweaksSmoothness && MASKED_TWEAKS)", Range(0,1)) = 0.5
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local MASKED_TWEAKS
+}
+
+%Variables()
+{
+    half4 _MaskedTweaksMap_ST;
+
+    int _MaskedTweaksColor;
+    half4 _MaskedTweaksRed;
+    half4 _MaskedTweaksGreen;
+    half4 _MaskedTweaksBlue;
+
+    int _MaskedTweaksSmoothness;
+    half _MaskedTweaksRedSmoothness;
+    half _MaskedTweaksGreenSmoothness;
+    half _MaskedTweaksBlueSmoothness;
+}
+
+%Textures()
+{
+    TEXTURE2D(_MaskedTweaksMap);
+    SAMPLER(sampler_MaskedTweaksMap);
+}
+
+%Fragment("MaskedTweaksFragment")
+{
+    void MaskedTweaksFragment(MeshData d, inout SurfaceData o)
+    {
+        #if defined(MASKED_TWEAKS)
+        half4 mask = SAMPLE_TEXTURE2D(_MaskedTweaksMap, sampler_MaskedTweaksMap, d.uv0.xy * _MaskedTweaksMap_ST.xy + _MaskedTweaksMap_ST.zw);
+        if (_MaskedTweaksColor) {
+            o.Albedo = lerp(o.Albedo, _MaskedTweaksRed, mask.r);
+            o.Albedo = lerp(o.Albedo, _MaskedTweaksGreen, mask.g);
+            o.Albedo = lerp(o.Albedo, _MaskedTweaksBlue, mask.b);
+        }
+
+        if (_MaskedTweaksSmoothness) {
+            o.Smoothness = lerp(o.Smoothness, _MaskedTweaksRedSmoothness, mask.r);
+            o.Smoothness = lerp(o.Smoothness, _MaskedTweaksGreenSmoothness, mask.g);
+            o.Smoothness = lerp(o.Smoothness, _MaskedTweaksBlueSmoothness, mask.b);
+        }
+        #endif
+    }
+}
