@@ -423,4 +423,69 @@
     {
         return (((x)-(y)*floor((x)/(y))));
     }
+
+    // Found in this article on tonemapping: https://mini.gmshaders.com/p/tonemaps
+    // Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
+    float3 Tonemap_ACES(float3 x)
+    {
+        float a = 2.51;
+        float b = 0.03;
+        float c = 2.43;
+        float d = 0.59;
+        float e = 0.14;
+        return (x * (a * x + b)) / (x * (c * x + d) + e);
+    }
+
+    // Hable 2010, "Filmic Tonemapping Operators"
+    float3 Tonemap_Uncharted2(float3 x)
+    {
+        x *= 16.0;
+        float A = 0.15;
+        float B = 0.50;
+        float C = 0.10;
+        float D = 0.20;
+        float E = 0.02;
+        float F = 0.30;
+        
+        return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+    }
+
+    float3 Tonemap_Unreal(float3 x)
+    {
+        // Unreal 3, Documentation: "Color Grading"
+        // Adapted to be close to Tonemap_ACES, with similar range
+        // Gamma 2.2 correction is baked in, don't use with sRGB conversion!
+        return x / (x + 0.155) * 1.019;
+    }
+
+    // https://github.com/yuki-koyama/enhancer
+    // MIT License
+
+    // Copyright (c) 2018 Yuki Koyama
+
+    // Permission is hereby granted, free of charge, to any person obtaining a copy
+    // of this software and associated documentation files (the "Software"), to deal
+    // in the Software without restriction, including without limitation the rights
+    // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    // copies of the Software, and to permit persons to whom the Software is
+    // furnished to do so, subject to the following conditions:
+
+    // The above copyright notice and this permission notice shall be included in all
+    // copies or substantial portions of the Software.
+
+    // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    // SOFTWARE.
+    float3 applyLiftGammaGainEffect(float3 linear_rgb, float3 lift, float3 gamma, float3 gain)
+    {
+        float3 lift_applied_linear_rgb  = clamp((linear_rgb - 1.0) * (2.0 - lift) + 1.0, 0.0, 1.0);
+        float3 gain_applied_linear_rgb  = lift_applied_linear_rgb * gain;
+        float3 gamma_applied_linear_rgb = pow(gain_applied_linear_rgb, 1.0 / gamma);
+
+        return gamma_applied_linear_rgb;
+    }
 }
