@@ -120,7 +120,7 @@ Parser.Default.ParseArguments<Options>(Args)
                     return;
                 }
                 var preReleaseSplit = parsed.PreRelease.Split('.');
-                var newVersion = $"{preReleaseSplit[0]}.{int.Parse(preReleaseSplit[1]) + 1}";
+                var newVersion = $"{parsed.Major}.{parsed.Minor}.{parsed.Patch}-{preReleaseSplit[0]}.{int.Parse(preReleaseSplit[1]) + 1}";
                 packageJSON["version"] = newVersion;
                 Console.WriteLine($" -> {newVersion}");
 
