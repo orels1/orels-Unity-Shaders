@@ -9,10 +9,16 @@
     UI_GSAANote("> GSAA dramatically reduces specular aliasing", Int) = 0
     _GSAAVariance("GSAA Variance %ShowIf(GSAA)", Range(0, 1)) = 0.05
     _GSAAThreshold("GSAA Threshold %ShowIf(GSAA)", Range(0, 1)) = 0.1
-    [Toggle(NONLINEAR_SH)]_NonlinearSH("Non-Linear Lightprobe SH", Int) = 0
+    UI_MobileTweaks("## Mobile Tweaks", Int) = 1
     [Toggle(FORCE_BOX_PROJECTION)]_ForceBoxProjection("Force Box Projection", Int) = 0
+    [Toggle(APPLY_COLOR_CORRECTION)]_ApplyColorCorrection("Apply Color Correction", Int) = 0
+    UI_ApplyColorCorrectionNote("> Enables in-shader color correction, useful for Mobile platforms where PostProcessing is not available", Int) = 0
+    _ColorCorrLift("Lift %ShowIf(_ApplyColorCorrection)", Range(0, 2)) = 1
+    _ColorCorrGamma("Gamma %ShowIf(_ApplyColorCorrection)", Range(0,2)) = 1.1
+    _ColorCorrGain("Gain %ShowIf(_ApplyColorCorrection)", Range(0, 2)) = 1.4
     UI_LightmappingHeader("# Lightmapping", Int) = 1
     UI_LightmappingDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#lightmapping)", Int) = 0
+    [Toggle(NONLINEAR_SH)]_NonlinearSH("Non-Linear Lightprobe SH", Int) = 0
     _SpecOcclusion("Specular Occlusion", Range(0, 1)) = 0.75
     _SpecularRoughnessMod("Specular Roughness Mod", Range(0, 1)) = 1
     [Toggle(BICUBIC_LIGHTMAP)]_Bicubic("Bicubic Sampling", Int) = 0
@@ -39,6 +45,7 @@
     #pragma shader_feature_local GSAA
     #pragma shader_feature_local FORCE_BOX_PROJECTION
     #pragma shader_feature_local NONLINEAR_SH
+    #pragma shader_feature_local APPLY_COLOR_CORRECTION
 }
 
 %ShaderDefines()
@@ -58,6 +65,10 @@
 {
     half _GSAAVariance;
     half _GSAAThreshold;
+    half _ColorCorrLift;
+    half _ColorCorrGamma;
+    half _ColorCorrGain;
+
     half _SpecOcclusion;
     half _SpecularRoughnessMod;
     half _GIEmissiveBoost;
@@ -411,6 +422,16 @@
         // Boost emissive for Meta (mostly for RTGI)
         #if defined(UNITY_PASS_META)
         o.Emission *= pow(_GIEmissiveBoost, 2.2);
+        #endif
+    }
+}
+
+%Color("FragmentBaseColorCorr", 1001)
+{
+    void FragmentBaseColorCorr(inout half4 FinalColor) {
+        #if defined(APPLY_COLOR_CORRECTION) && defined(PLAT_QUEST)
+        FinalColor.rgb = pow(Tonemap_Unreal(FinalColor.rgb), 2.2);
+        FinalColor.rgb = applyLiftGammaGainEffect(FinalColor.rgb, _ColorCorrLift, _ColorCorrGamma, _ColorCorrGain);
         #endif
     }
 }
