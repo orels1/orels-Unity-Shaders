@@ -1,6 +1,8 @@
 #r "nuget: CommandLineParser, 2.9.1"
+#r "nuget: SemanticVersioning, 3.0.0-beta2"
 
 using CommandLine;
+using SemanticVersioning;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -33,6 +35,8 @@ public class Options
 
     [Value(0)]
     public string Version { get; set; }
+    [Option("deps", HelpText = "Updates dependencies to use the new version (lockstep release)")]
+    public bool UpdateDependencies { get; set; }
 }
 
 Dictionary<TargetPackages, string> PackageIds = new() {
@@ -92,6 +96,39 @@ Parser.Default.ParseArguments<Options>(Args)
             if (settingExactVersion) {
                 Console.WriteLine($" -> {o.Version}");
                 packageJSON["version"] = o.Version;
+                
+                // Update lockstep deps
+                if (o.UpdateDependencies && packageJSON!["name"]!.ToString() == "sh.orels.shaders") {
+                    Console.WriteLine($"Updating dependencies to {o.Version} as well");
+                    packageJSON["vpmDependencies"]["sh.orels.shaders.generator"] = $"^{o.Version}";
+                    packageJSON["vpmDependencies"]["sh.orels.shaders.inspector"] = $"^{o.Version}";
+                }
+            } else if (!string.IsNullOrWhiteSpace(o.NewBetaVersion)) {
+                var newVersion = $"{version}-{o.NewBetaVersion}.1";
+                Console.WriteLine($" -> {newVersion}");
+                packageJSON["version"] = newVersion;
+
+                if (o.UpdateDependencies && packageJSON!["name"]!.ToString() == "sh.orels.shaders") {
+                    Console.WriteLine($"Updating dependencies to {newVersion} as well");
+                    packageJSON["vpmDependencies"]["sh.orels.shaders.generator"] = $"^{newVersion}";
+                    packageJSON["vpmDependencies"]["sh.orels.shaders.inspector"] = $"^{newVersion}";
+                }
+            } else if (o.Beta) {
+                var parsed = new Version(version.ToString());
+                if (!parsed.IsPreRelease) {
+                    Console.WriteLine($"\nVersion {version} is not a pre-release, cannot bump");
+                    return;
+                }
+                var preReleaseSplit = parsed.PreRelease.Split('.');
+                var newVersion = $"{preReleaseSplit[0]}.{int.Parse(preReleaseSplit[1]) + 1}";
+                packageJSON["version"] = newVersion;
+                Console.WriteLine($" -> {newVersion}");
+
+                if (o.UpdateDependencies && packageJSON!["name"]!.ToString() == "sh.orels.shaders") {
+                    Console.WriteLine($"Updating dependencies to {newVersion} as well");
+                    packageJSON["vpmDependencies"]["sh.orels.shaders.generator"] = $"^{newVersion}";
+                    packageJSON["vpmDependencies"]["sh.orels.shaders.inspector"] = $"^{newVersion}";
+                }
             }
             File.WriteAllText(packagePath, packageJSON!.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         }
