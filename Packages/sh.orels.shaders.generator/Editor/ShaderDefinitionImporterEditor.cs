@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.Linq;
+using System.Text;
 using UnityEditor;
 #if UNITY_2022_3_OR_NEWER
 using UnityEditor.AssetImporters;
@@ -17,6 +19,16 @@ namespace ORL.ShaderGenerator
         private Vector2 _sourceScrollPos;
         private string[] _linedText;
         private ulong _lastTimestamp;
+        private int _goToLineNum;
+        private int _currentLine;
+        private bool _stripMacros;
+
+        private readonly string[] _passList = {
+            "ForwardBase",
+            "ForwardAdd",
+            "Meta",
+            "ShadowCaster"
+        };
 
         public override void OnInspectorGUI()
         {
@@ -83,6 +95,21 @@ namespace ORL.ShaderGenerator
                 }
             }
 
+            EditorGUILayout.LabelField("Stats", EditorStyles.boldLabel);
+            var oldWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = 64;
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    EditorGUILayout.IntField("Features:", serializedObject.FindProperty("featureCount").intValue);
+                    EditorGUILayout.IntField("Textures:", serializedObject.FindProperty("textureCount").intValue);
+                    EditorGUILayout.IntField("Samplers:", serializedObject.FindProperty("samplerCount").intValue);
+                }
+            }
+
+            EditorGUIUtility.labelWidth = oldWidth;
+            EditorGUILayout.Space();
             _sourceCodeFoldout = EditorGUILayout.Foldout(_sourceCodeFoldout, "Compiled Source");
             if (_sourceCodeFoldout && !string.IsNullOrWhiteSpace(textSource))
             {
@@ -91,6 +118,65 @@ namespace ORL.ShaderGenerator
                     font = _monoFont,
                     wordWrap = false
                 };
+                using (var c = new EditorGUI.ChangeCheckScope())
+                {
+                    _goToLineNum = EditorGUILayout.IntField("Go To Line", _goToLineNum);
+                    if (c.changed)
+                    {
+                        _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, _goToLineNum - 5) * (style.lineHeight + 0.4f));
+                    }
+                }
+
+                _currentLine = Mathf.Max(0, Mathf.FloorToInt(_sourceScrollPos.y / (style.lineHeight + 0.4f)));
+                EditorGUILayout.LabelField("Quick Jump", EditorStyles.boldLabel);
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    foreach (var pass in _passList)
+                    {
+                        if (GUILayout.Button(pass))
+                        {
+                            var lineNum = Array.FindIndex(_linedText, l => l.Contains($"{pass} Pass Start"));
+                            if (lineNum > -1)
+                            {
+                                _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, lineNum - 5) * (style.lineHeight + 0.4f));
+                            }
+                        }
+                    }
+                }
+                EditorGUILayout.LabelField(new GUIContent("Closest Jump", "Jumps to the closest instance of selected type"), EditorStyles.boldLabel);
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    var lineNum = 0;
+                    if (GUILayout.Button("Vertex"))
+                    {
+                        lineNum = Array.FindIndex(_linedText.Skip(_currentLine).ToArray(), l => l.Contains("FragmentData Vertex(VertexData v)"));
+                    }
+                    if (GUILayout.Button("Fragment"))
+                    {
+                        lineNum = Array.FindIndex(_linedText.Skip(_currentLine).ToArray(), l => l.Contains("half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace)"));
+                    }
+                    
+                    if (GUILayout.Button("Variables"))
+                    {
+                        lineNum = Array.FindIndex(_linedText.Skip(_currentLine).ToArray(), l => l.Contains("// Variables"));
+                    }
+                    
+                    if (GUILayout.Button("Textures"))
+                    {
+                        lineNum = Array.FindIndex(_linedText.Skip(_currentLine).ToArray(), l => l.Contains("// Textures"));
+                    }
+                    
+                    if (GUILayout.Button("Functions"))
+                    {
+                        lineNum = Array.FindIndex(_linedText.Skip(_currentLine).ToArray(), l => l.Contains("// Functions"));
+                    }
+                    
+                    if (lineNum > 0)
+                    {
+                        _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, lineNum + _currentLine - 5) * (style.lineHeight + 0.4f));
+                    }
+                }
+                EditorGUILayout.Space();
                 using (var sv = new EditorGUILayout.ScrollViewScope(_sourceScrollPos, GUILayout.Height(500 * EditorGUIUtility.pixelsPerPoint)))
                 {
                     EditorGUILayout.TextArea(string.Join("\n", _linedText), style);
@@ -102,8 +188,9 @@ namespace ORL.ShaderGenerator
 
             if (GUILayout.Button("Generate Static .shader File"))
             {
-                ShaderDefinitionImporter.GenerateShader(importer.assetPath, importer.assetPath.Replace(".orlshader", ".shader").Replace(".orlconfshader", ".shader"));
+                ShaderDefinitionImporter.GenerateShader(importer.assetPath, importer.assetPath.Replace(".orlshader", ".shader").Replace(".orlconfshader", ".shader"), _stripMacros);
             }
+            _stripMacros = EditorGUILayout.ToggleLeft("Strip Sampling Macros", _stripMacros);
 
             serializedObject.ApplyModifiedProperties();
             ApplyRevertGUI();

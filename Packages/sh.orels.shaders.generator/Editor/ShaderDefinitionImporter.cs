@@ -18,6 +18,9 @@ namespace ORL.ShaderGenerator
     public class ShaderDefinitionImporter : ScriptedImporter
     {
         public bool debugBuild;
+        public int samplerCount;
+        public int textureCount;
+        public int featureCount;
         
         private readonly HashSet<string> _paramsOnlyBlock = new HashSet<string>
         {
@@ -568,6 +571,8 @@ namespace ORL.ShaderGenerator
                 hideFlags = HideFlags.HideInHierarchy
             };
 
+            UpdateStats(blocks, ref finalShader);
+
             ctx.AddObjectToAsset("Shader", shader);
             ctx.SetMainObject(shader);
             ctx.AddObjectToAsset("Shader Source", textAsset);
@@ -729,7 +734,6 @@ namespace ORL.ShaderGenerator
             }
         }
         
-
         private string IndentContents(List<string> contents, int indentLevel)
         {
             var sb = new StringBuilder();
@@ -755,6 +759,30 @@ namespace ORL.ShaderGenerator
             }
 
             return sb.ToString();
+        }
+
+        private void UpdateStats(List<ShaderBlock> blocks, ref StringBuilder shaderContent)
+        {
+            var split = shaderContent.ToString().Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            var shaderFeatureLines = split.Where(line => line.Trim().StartsWith("#pragma shader_feature")).ToList();
+            var features = new List<string>();
+            foreach (var line in shaderFeatureLines)
+            {
+                var foundfeatures = line.Trim().Replace("#pragma shader_feature_local", "").Replace("#pragma shader_feature", "").Split(' ');
+                foreach (var feature in foundfeatures)
+                {
+                    var featureName = feature.Trim();
+                    if (string.IsNullOrWhiteSpace(featureName) || featureName == "_" || features.Contains(featureName))
+                    {
+                        continue;
+                    }
+                    features.Add(featureName);
+                }
+            }
+
+            featureCount = features.Count;
+            textureCount = blocks.Find(b => b.Name == "%Textures").Contents.Count(line => line.Contains("TEXTURE"));
+            samplerCount = blocks.Find(b => b.Name == "%Textures").Contents.Count(line => line.Contains("SAMPLER"));
         }
 
         /// <summary>
@@ -859,6 +887,44 @@ namespace ORL.ShaderGenerator
                         processedSource.AppendLine(newLine);
                         continue;
                     }
+                    
+                    if (line.Contains("SAMPLE_TEXTURE2D_GRAD"))
+                    {
+                        // search and parse parameters to rewrite into a `tex.SampleGrad` call
+                        var substring = line.Substring(line.IndexOf("SAMPLE_TEXTURE2D_GRAD") + 21);
+                        substring = substring.Substring(substring.IndexOf("(") + 1);
+                        var levelsIn = 1;
+                        var iterations = 0;
+                        while (true)
+                        {
+                            if (substring[iterations] == '(') levelsIn++;
+                            if (substring[iterations] == ')') levelsIn--;
+                            if (levelsIn == 0) break;
+                            iterations++;
+                            if (iterations > 10000) break;
+                        }
+
+                        if (iterations > 10000)
+                        {
+                            Debug.LogWarning("Could find the end of macro in 10000 iterations\n" +
+                                             $"Line was {substring}");
+                            continue;
+                        }
+
+                        var parametersString = substring.Substring(0, iterations);
+                        var parameterList = Regex.Split(parametersString, @",(?=(?:[^()]*\([^()]*\))*[^()]*$)");
+                        var newLine = line.Replace($"SAMPLE_TEXTURE2D_GRAD({parametersString})", $"{parameterList[0].Trim()}.SampleGrad({parameterList[1].Trim()}, {parameterList[2].Trim()}, {parameterList[3].Trim()}, {parameterList[4].Trim()})");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+
+                    
+                    if (line.Contains("SAMPLE_TEXTURE2D_LOD"))
+                    {
+                        var newLine = line.Replace("SAMPLE_TEXTURE2D_LOD", "UNITY_SAMPLE_TEX2D_LOD_SAMPLER").Replace("sampler_", "_");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
 
                     if (line.Contains("SAMPLE_TEXTURE2D"))
                     {
@@ -867,9 +933,9 @@ namespace ORL.ShaderGenerator
                         continue;
                     }
                     
-                    if (line.Contains("SAMPLE_TEXTURE2D_LOD"))
+                    if (line.Contains("SAMPLE_TEXTURECUBE_LOD"))
                     {
-                        var newLine = line.Replace("SAMPLE_TEXTURE2D_LOD", "UNITY_SAMPLE_TEX2D_LOD_SAMPLER").Replace("sampler_", "_");
+                        var newLine = line.Replace("SAMPLE_TEXTURECUBE_LOD", "UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD").Replace("sampler_", "_");
                         processedSource.AppendLine(newLine);
                         continue;
                     }
@@ -877,13 +943,6 @@ namespace ORL.ShaderGenerator
                     if (line.Contains("SAMPLE_TEXTURECUBE"))
                     {
                         var newLine = line.Replace("SAMPLE_TEXTURECUBE", "UNITY_SAMPLE_TEXCUBE_SAMPLER").Replace("sampler_", "_");
-                        processedSource.AppendLine(newLine);
-                        continue;
-                    }
-                    
-                    if (line.Contains("SAMPLE_TEXTURECUBE_LOD"))
-                    {
-                        var newLine = line.Replace("SAMPLE_TEXTURECUBE_LOD", "UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD").Replace("sampler_", "_");
                         processedSource.AppendLine(newLine);
                         continue;
                     }
