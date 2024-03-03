@@ -79,7 +79,11 @@ Shader %ShaderName
                 // Functions
                 %Functions
 
+                // Free Functions
+                %FreeFunctions
+
                 // ForwardBase Depth Prepass Vertex
+                #if !defined(TESS_ENABLED)
                 FragmentData Vertex(VertexData v)
                 {
                     UNITY_SETUP_INSTANCE_ID(v);
@@ -96,6 +100,7 @@ Shader %ShaderName
 
                     return o;
                 }
+                #endif
 
                 // ForwardBase Depth Prepass Fragment
                 half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
@@ -186,7 +191,11 @@ Shader %ShaderName
             // Functions
             %Functions
 
+            // Free Functions
+            %FreeFunctions
+
             // ForwardBase Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -203,6 +212,7 @@ Shader %ShaderName
 
                 return o;
             }
+            #endif
 
             // ForwardBase Fragment
             half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
@@ -284,7 +294,11 @@ Shader %ShaderName
             // Functions
             %Functions
 
+            // Free Functions
+            %FreeFunctions
+
             // ForwardAdd Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -301,6 +315,7 @@ Shader %ShaderName
 
                 return o;
             }
+            #endif
 
             // ForwardAdd Fragment
             half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
@@ -385,7 +400,11 @@ Shader %ShaderName
             // Functions
             %Functions
 
+            // Free Functions
+            %FreeFunctions
+
             // ForwardBase Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -402,6 +421,7 @@ Shader %ShaderName
 
                 return o;
             }
+            #endif
 
             // Meta Fragment
             half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
@@ -485,7 +505,11 @@ Shader %ShaderName
             // Functions
             %Functions
 
+            // Free Functions
+            %FreeFunctions
+
             // ShadowCaster Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -504,6 +528,7 @@ Shader %ShaderName
 
                 return o;
             }
+            #endif
 
             // ShadowCaster Fragment
             half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
@@ -585,7 +610,11 @@ Shader %ShaderName
             // Functions
             %Functions
 
+            // Free Functions
+            %FreeFunctions
+
             // Outline Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -611,6 +640,7 @@ Shader %ShaderName
 
                 #endif
             }
+            #endif
 
             // Outline Fragment
             half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET

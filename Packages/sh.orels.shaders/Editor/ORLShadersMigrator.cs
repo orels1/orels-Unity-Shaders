@@ -41,7 +41,8 @@ namespace ORL.Shaders
             "0caac922b36d9e74e8435b8316baf498",
             "5f69cf125658cc046a729a5a5b4b9a11",
             "307b9906231b0784884d4b52416215a8",
-            "e67e822f851164b40b6b701128914625"
+            "e67e822f851164b40b6b701128914625",
+            "2758518bdcab40a3abd3807018be68ca"
         };
 
         private static HashSet<string> _revertableShaders = new HashSet<string>
@@ -63,7 +64,8 @@ namespace ORL.Shaders
             "650f7b5fdb04efe42ac612d9fd0d03cb",
             "7de358116a341004b94136337d239d1b",
             "10f0534e8e8748a409849338afe43251",
-            "2758518bdcab40a3abd3807018be68ca"
+            "2758518bdcab40a3abd3807018be68ca",
+            "09e7e0cd1d5730140b52f4296dc3a4ac"
         };
 
         // old GUID -> new GUID
@@ -86,7 +88,8 @@ namespace ORL.Shaders
             { "0caac922b36d9e74e8435b8316baf498", "650f7b5fdb04efe42ac612d9fd0d03cb" },
             { "5f69cf125658cc046a729a5a5b4b9a11", "7de358116a341004b94136337d239d1b" },
             { "307b9906231b0784884d4b52416215a8", "10f0534e8e8748a409849338afe43251" },
-            { "e67e822f851164b40b6b701128914625", "2758518bdcab40a3abd3807018be68ca" }
+            { "e67e822f851164b40b6b701128914625", "09e7e0cd1d5730140b52f4296dc3a4ac" }, // v5 tess displacement -> v6 tess displacement
+            { "2758518bdcab40a3abd3807018be68ca", "09e7e0cd1d5730140b52f4296dc3a4ac"} // static tess displacement -> orlshader tess displacement
         };
         
         // new GUID -> old GUID
@@ -109,7 +112,7 @@ namespace ORL.Shaders
             { "650f7b5fdb04efe42ac612d9fd0d03cb", "0caac922b36d9e74e8435b8316baf498" },
             { "7de358116a341004b94136337d239d1b", "5f69cf125658cc046a729a5a5b4b9a11" },
             { "10f0534e8e8748a409849338afe43251", "307b9906231b0784884d4b52416215a8" },
-            { "2758518bdcab40a3abd3807018be68ca", "e67e822f851164b40b6b701128914625" }
+            { "09e7e0cd1d5730140b52f4296dc3a4ac", "e67e822f851164b40b6b701128914625" },
         };
         
         // name -> old GUID
@@ -132,12 +135,13 @@ namespace ORL.Shaders
             { "orels1/VFX/Block Fader", "0caac922b36d9e74e8435b8316baf498" },
             { "orels1/VFX/Clouds", "5f69cf125658cc046a729a5a5b4b9a11" },
             { "orels1/VFX/Cubemap Screen", "307b9906231b0784884d4b52416215a8" },
-            { "orels1/Standard Tesselated Displacement", "e67e822f851164b40b6b701128914625" }
+            { "orels1/Standard Tesselated Displacement", "e67e822f851164b40b6b701128914625" },
         };
 
         // private static string _fileId = "-8512187303908658807";
 
         private List<string> _affectedMaterials = new List<string>();
+        private List<bool> _affectedMaterialsSelected = new List<bool>();
         private Vector2 _affectedMatsScrollPos = Vector2.zero;
         private bool _dryRun;
 
@@ -198,6 +202,11 @@ namespace ORL.Shaders
             if (GUILayout.Button("Find Materials using ORL Shaders", GUILayout.Height(30)))
             {
                 _affectedMaterials = FindAffectedMaterials();
+                _affectedMaterialsSelected = new List<bool>();
+                for (var i = 0; i < _affectedMaterials.Count; i++)
+                {
+                    _affectedMaterialsSelected.Add(true);
+                }
             }
             EditorGUILayout.HelpBox(new GUIContent("Clicking this button will look through your assets to find materials that might need migration"));
 
@@ -210,9 +219,35 @@ namespace ORL.Shaders
                     using (var scroller = new GUILayout.ScrollViewScope(_affectedMatsScrollPos))
                     {
                         _affectedMatsScrollPos = scroller.scrollPosition;
+                        var index = 0;
                         foreach (var mat in _affectedMaterials)
                         {
-                            EditorGUILayout.ObjectField(AssetDatabase.LoadAssetAtPath<Material>(mat), typeof (Material), false);
+                            using (new GUILayout.HorizontalScope())
+                            {
+                                _affectedMaterialsSelected[index] = EditorGUILayout.Toggle(_affectedMaterialsSelected[index], GUILayout.Width(16));
+                                EditorGUILayout.ObjectField(AssetDatabase.LoadAssetAtPath<Material>(mat), typeof (Material), false);
+                            }
+
+                            index++;
+                        }
+                    }
+                }
+
+                using (new GUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("Select All"))
+                    {
+                        for (var i = 0; i < _affectedMaterialsSelected.Count; i++)
+                        {
+                            _affectedMaterialsSelected[i] = true;
+                        }
+                    }
+                    
+                    if (GUILayout.Button("Deselect All"))
+                    {
+                        for (var i = 0; i < _affectedMaterialsSelected.Count; i++)
+                        {
+                            _affectedMaterialsSelected[i] = false;
                         }
                     }
                 }
@@ -315,6 +350,10 @@ namespace ORL.Shaders
             {
                 foreach (var path in _affectedMaterials)
                 {
+                    if (!_affectedMaterialsSelected[_affectedMaterials.IndexOf(path)])
+                    {
+                        continue;
+                    }
                     var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
                     var matYamlSource =
                         File.ReadAllLines(Application.dataPath.Replace("\\", "/").Replace("Assets", "") + path);
@@ -322,14 +361,14 @@ namespace ORL.Shaders
                     if (shaderLines.Count == 0)
                     {
                         EditorUtility.DisplayProgressBar("Migrating Materials", $"Skipping {path}..",
-                            i / _affectedMaterials.Count);
+                            i / _affectedMaterialsSelected.Count);
                         i++;
                         invalidCount++;
                         continue;
                     }
 
                     EditorUtility.DisplayProgressBar("Migrating Materials", $"Migrating {path}...",
-                        i / _affectedMaterials.Count);
+                        i / _affectedMaterialsSelected.Count);
                     var shaderGuid = "";
                     if (_nameMap.ContainsKey(mat.shader.name))
                     {
@@ -348,7 +387,7 @@ namespace ORL.Shaders
                         if (!guidLine.Contains("guid: "))
                         {
                             EditorUtility.DisplayProgressBar("Migrating Materials", $"Skipping {path}..",
-                                i / _affectedMaterials.Count);
+                                i / _affectedMaterialsSelected.Count);
                             i++;
                             invalidCount++;
                             continue;
@@ -357,7 +396,7 @@ namespace ORL.Shaders
                         if (!shaderGuid.Contains(","))
                         {
                             EditorUtility.DisplayProgressBar("Migrating Materials", $"Skipping {path}..",
-                                i / _affectedMaterials.Count);
+                                i / _affectedMaterialsSelected.Count);
                             i++;
                             invalidCount++;
                             continue;
@@ -399,11 +438,11 @@ namespace ORL.Shaders
                 EditorUtility.ClearProgressBar();
                 if (_dryRun)
                 {
-                    Debug.Log($"DRY RUN. Migration finished. Would have migrated {migratedCount} / {_affectedMaterials.Count} materials. Could not find shaders for {missedCount} / {_affectedMaterials.Count} materials. Invalid materials {invalidCount} / {_affectedMaterials.Count}.");
+                    Debug.Log($"DRY RUN. Migration finished. Would have migrated {migratedCount} / {_affectedMaterialsSelected.Count} materials. Could not find shaders for {missedCount} / {_affectedMaterialsSelected.Count} materials. Invalid materials {invalidCount} / {_affectedMaterialsSelected.Count}.");
                 }
                 else
                 {
-                    Debug.Log($"Migration finished. Migrated {migratedCount} / {_affectedMaterials.Count} materials. Could not find shaders for {missedCount} / {_affectedMaterials.Count} materials. Invalid materials {invalidCount} / {_affectedMaterials.Count}.");
+                    Debug.Log($"Migration finished. Migrated {migratedCount} / {_affectedMaterialsSelected.Count} materials. Could not find shaders for {missedCount} / {_affectedMaterialsSelected.Count} materials. Invalid materials {invalidCount} / {_affectedMaterialsSelected.Count}.");
                 }
             }
         }
@@ -415,6 +454,11 @@ namespace ORL.Shaders
             if (GUILayout.Button("Find Materials using ORL Shaders", GUILayout.Height(30)))
             {
                 _affectedMaterials = FindAffectedMaterials(true);
+                _affectedMaterialsSelected = new List<bool>();
+                for (var i = 0; i < _affectedMaterials.Count; i++)
+                {
+                    _affectedMaterialsSelected.Add(true);
+                }
             }
             EditorGUILayout.HelpBox(new GUIContent("Clicking this button will look through your assets to find materials that can be reverted"));
 
@@ -427,9 +471,35 @@ namespace ORL.Shaders
                     using (var scroller = new GUILayout.ScrollViewScope(_affectedMatsScrollPos))
                     {
                         _affectedMatsScrollPos = scroller.scrollPosition;
+                        var index = 0;
                         foreach (var mat in _affectedMaterials)
                         {
-                            EditorGUILayout.ObjectField(AssetDatabase.LoadAssetAtPath<Material>(mat), typeof (Material), false);
+                            using (new GUILayout.HorizontalScope())
+                            {
+                                _affectedMaterialsSelected[index] = EditorGUILayout.Toggle(_affectedMaterialsSelected[index], GUILayout.Width(16));
+                                EditorGUILayout.ObjectField(AssetDatabase.LoadAssetAtPath<Material>(mat), typeof (Material), false);
+                            }
+
+                            index++;
+                        }
+                    }
+                }
+                
+                using (new GUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("Select All"))
+                    {
+                        for (var i = 0; i < _affectedMaterialsSelected.Count; i++)
+                        {
+                            _affectedMaterialsSelected[i] = true;
+                        }
+                    }
+                    
+                    if (GUILayout.Button("Deselect All"))
+                    {
+                        for (var i = 0; i < _affectedMaterialsSelected.Count; i++)
+                        {
+                            _affectedMaterialsSelected[i] = false;
                         }
                     }
                 }

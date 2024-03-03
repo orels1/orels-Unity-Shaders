@@ -1,9 +1,9 @@
-%ShaderName("orels1/Standard Puddles")
+%ShaderName("orels1/Standard Tessellated Displacement")
 %CustomEditor("ORL.ShaderInspector.InspectorGUI")
 
 %Includes()
 {
     "@/Shaders/ORL Standard",
-    "@/Modules/Puddles",
+    "@/Modules/Displacement",
     "self",
 }
