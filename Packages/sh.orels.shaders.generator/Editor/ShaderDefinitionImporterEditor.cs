@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor;
@@ -15,7 +16,12 @@ namespace ORL.ShaderGenerator
     public class ShaderDefinitionImporterEditor : ScriptedImporterEditor
     {
         private bool _sourceCodeFoldout;
+        private bool _shaderCompilationIssuesFoldout;
+        private bool _shaderGenerationIssuesFoldout;
         private Font _monoFont;
+        private GUIStyle _monoStyle;
+        private GUIStyle _boldFoldoutStyle;
+        private GUIStyle _richLabelStyle;
         private Vector2 _sourceScrollPos;
         private string[] _linedText;
         private ulong _lastTimestamp;
@@ -29,6 +35,7 @@ namespace ORL.ShaderGenerator
             "Meta",
             "ShadowCaster"
         };
+        
 
         public override void OnInspectorGUI()
         {
@@ -36,8 +43,30 @@ namespace ORL.ShaderGenerator
             if (_monoFont == null)
             {
                 _monoFont = Font.CreateDynamicFontFromOSFont("Consolas", 12);
+                _monoStyle = new GUIStyle(EditorStyles.textArea)
+                {
+                    font = _monoFont,
+                    wordWrap = false,
+                    richText = true
+                };
             }
 
+            if (_boldFoldoutStyle == null)
+            {
+                _boldFoldoutStyle = new GUIStyle(EditorStyles.foldout)
+                {
+                    fontStyle = FontStyle.Bold
+                };
+            }
+
+            if (_richLabelStyle == null)
+            {
+                _richLabelStyle = new GUIStyle(EditorStyles.wordWrappedLabel)
+                {
+                    richText = true,
+                };
+            }
+            
             var importer = target as ShaderDefinitionImporter;
             if (importer == null) return;
 
@@ -76,22 +105,109 @@ namespace ORL.ShaderGenerator
                 }
             }
 
+            // if (importer.FunctionErrors.Any())
+            // {
+            //     EditorGUILayout.LabelField("Shader Generation Issues", EditorStyles.boldLabel);
+            //     foreach (var error in importer.FunctionErrors)
+            //     {
+            //         EditorGUILayout.LabelField($"{error.Value} on line {error.Key.Span.Start.Line}");
+            //         // error.Key.
+            //         // EditorGUILayout.TextArea(snippet.ToString());
+            //     }
+            // }
+            
+            if (importer.Errors.Any())
+            {
+                EditorGUILayout.LabelField("Shader Generation Issues", EditorStyles.boldLabel);
+                foreach (var error in importer.Errors)
+                {
+                    var line = error.Line + error.Block.Line;
+                    var snippet = new StringBuilder();
+                    var currFile = string.IsNullOrWhiteSpace(error.Block.Path);
+                    string[] fileContents = new string[0];
+                    if (currFile)
+                    {
+                        fileContents = File.ReadAllLines(importer.assetPath);
+                    }
+
+                    var startLine = Mathf.Max(0, line - 5);
+                    var endLine = Mathf.Min(fileContents.Length, line + 5);
+                    for (int i = startLine; i < endLine; i++)
+                    {
+                        snippet.AppendFormat("{0,4}", i + 1);
+                        snippet.Append(" ");
+                        if (i + 1 == line)
+                        {
+                            if (error.StartIndex > -1)
+                            {
+                                var offset = fileContents[i].Length - fileContents[i].TrimStart().Length;
+                                snippet.Append(fileContents[i].Substring(0, error.StartIndex + offset));
+                                snippet.Append("<color=#ff6188>");
+                                snippet.Append(fileContents[i].Substring(error.StartIndex + offset, error.EndIndex - error.StartIndex));
+                                snippet.Append("</color>");
+                                snippet.Append(fileContents[i].Substring(error.EndIndex + offset));
+                                snippet.AppendLine();
+                            }
+                            else
+                            {
+                                snippet.Append("<color=#ff6188>");
+                                snippet.Append(fileContents[i]);
+                                snippet.Append("</color>");
+                                snippet.AppendLine();
+                            }
+                        }
+                        else
+                        {
+                            snippet.AppendLine(fileContents[i]);
+                        }
+                    }
+
+                    var message = $"{error.Message} on line <b>{line}</b>";
+                    if (!currFile)
+                    {
+                        message += $" in {error.Block.Path}";
+                    }
+
+                    EditorGUILayout.LabelField(message, _richLabelStyle);
+                    EditorGUILayout.TextArea(snippet.ToString(), _monoStyle);
+                    // if (EditorGUILayout.LinkButton("Open Source File"))
+                    // {
+                    //     AssetDatabase.OpenAsset(importer, line);
+                    // }
+                }
+            }
+            
             var finalShader = AssetDatabase.LoadAssetAtPath<Shader>(importer.assetPath);
             if (ShaderUtil.ShaderHasError(finalShader))
             {
-                EditorGUILayout.LabelField("Shader Compilation Issues", EditorStyles.boldLabel);
-                var errors = ShaderUtil.GetShaderMessages(finalShader);
-                foreach (var error in errors)
+                _shaderCompilationIssuesFoldout =
+                    EditorGUILayout.Foldout(_shaderCompilationIssuesFoldout, "Shader Compilation Issues", _boldFoldoutStyle);
+                // EditorGUILayout.LabelField("Shader Compilation Issues", EditorStyles.boldLabel);
+                if (_shaderCompilationIssuesFoldout)
                 {
-                    var line = error.line;
-                    var snippet = new StringBuilder();
-                    for (int i = Mathf.Max(0, line - 10); i < Mathf.Min(_linedText.Length, line + 10); i++)
+                    var errors = ShaderUtil.GetShaderMessages(finalShader);
+                    foreach (var error in errors)
                     {
-                        snippet.AppendLine(_linedText[i]);
-                    }
+                        var line = error.line;
+                        var snippet = new StringBuilder();
+                        for (int i = Mathf.Max(0, line - 5); i < Mathf.Min(_linedText.Length, line + 5); i++)
+                        {
+                            if (i + 1 == line)
+                            {
+                                snippet.Append("<color=#ff6188>");
+                            }
+                            snippet.Append(_linedText[i]);
+                            if (i + 1 == line)
+                            {
+                                snippet.Append("</color>");
+                            }
 
-                    EditorGUILayout.LabelField($"{error.message} on line {line}");
-                    EditorGUILayout.TextArea(snippet.ToString());
+                            snippet.AppendLine();
+                        }
+
+                        EditorGUILayout.LabelField($"{error.message} on line {line}");
+                        EditorGUILayout.TextArea(snippet.ToString(), _monoStyle);
+                    }
                 }
             }
 
@@ -113,21 +229,16 @@ namespace ORL.ShaderGenerator
             _sourceCodeFoldout = EditorGUILayout.Foldout(_sourceCodeFoldout, "Compiled Source");
             if (_sourceCodeFoldout && !string.IsNullOrWhiteSpace(textSource))
             {
-                var style = new GUIStyle(EditorStyles.textArea)
-                {
-                    font = _monoFont,
-                    wordWrap = false
-                };
                 using (var c = new EditorGUI.ChangeCheckScope())
                 {
                     _goToLineNum = EditorGUILayout.IntField("Go To Line", _goToLineNum);
                     if (c.changed)
                     {
-                        _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, _goToLineNum - 5) * (style.lineHeight + 0.4f));
+                        _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, _goToLineNum - 5) * (_monoStyle.lineHeight + 0.4f));
                     }
                 }
 
-                _currentLine = Mathf.Max(0, Mathf.FloorToInt(_sourceScrollPos.y / (style.lineHeight + 0.4f)));
+                _currentLine = Mathf.Max(0, Mathf.FloorToInt(_sourceScrollPos.y / (_monoStyle.lineHeight + 0.4f)));
                 EditorGUILayout.LabelField("Quick Jump", EditorStyles.boldLabel);
                 using (new EditorGUILayout.HorizontalScope())
                 {
@@ -138,7 +249,7 @@ namespace ORL.ShaderGenerator
                             var lineNum = Array.FindIndex(_linedText, l => l.Contains($"{pass} Pass Start"));
                             if (lineNum > -1)
                             {
-                                _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, lineNum - 5) * (style.lineHeight + 0.4f));
+                                _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, lineNum - 5) * (_monoStyle.lineHeight + 0.4f));
                             }
                         }
                     }
@@ -173,13 +284,13 @@ namespace ORL.ShaderGenerator
                     
                     if (lineNum > 0)
                     {
-                        _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, lineNum + _currentLine - 5) * (style.lineHeight + 0.4f));
+                        _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, lineNum + _currentLine - 5) * (_monoStyle.lineHeight + 0.4f));
                     }
                 }
                 EditorGUILayout.Space();
                 using (var sv = new EditorGUILayout.ScrollViewScope(_sourceScrollPos, GUILayout.Height(500 * EditorGUIUtility.pixelsPerPoint)))
                 {
-                    EditorGUILayout.TextArea(string.Join("\n", _linedText), style);
+                    EditorGUILayout.TextArea(string.Join("\n", _linedText), _monoStyle);
                     _sourceScrollPos = sv.scrollPosition;
                 }
             }
