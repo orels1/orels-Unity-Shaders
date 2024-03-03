@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using ORL.Serialization.OdinSerializer;
 using UnityEditor;
 #if UNITY_2022_3_OR_NEWER
 using UnityEditor.AssetImporters;
@@ -11,16 +13,62 @@ using UnityEditor.AssetImporters;
 using UnityEditor.Experimental.AssetImporters;
 #endif
 using UnityEngine;
+using UnityShaderParser.Common;
+using UnityShaderParser.HLSL;
+using Debug = UnityEngine.Debug;
 
 namespace ORL.ShaderGenerator
 {
     [ScriptedImporter(1, "orlshader")]
-    public class ShaderDefinitionImporter : ScriptedImporter
+    public class ShaderDefinitionImporter : ScriptedImporter, ISerializationCallbackReceiver
     {
+        [SerializeField, HideInInspector]
+        private SerializationData serializationData;
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            UnitySerializationUtility.DeserializeUnityObject(this, ref this.serializationData);
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            UnitySerializationUtility.SerializeUnityObject(this, ref this.serializationData);
+        }
+        
         public bool debugBuild;
         public int samplerCount;
         public int textureCount;
         public int featureCount;
+
+        public Dictionary<FunctionDefinitionNode, string> FunctionErrors =
+            new Dictionary<FunctionDefinitionNode, string>();
+        
+        [NonSerialized, OdinSerialize]
+        public List<ShaderError> Errors = new List<ShaderError>();
+
+        [Serializable]
+        public struct ShaderError
+        {
+            [NonSerialized, OdinSerialize]
+            public ShaderBlock Block;
+            public int Line;
+            public string File;
+            public string Message;
+            public int StartIndex;
+            public int EndIndex;
+            public string PrettyCode;
+            
+            public ShaderError(ShaderBlock block, int line, string file, string message, string prettyCode = "", int startIndex = -1, int endIndex = -1)
+            {
+                Block = block;
+                Line = line;
+                File = file;
+                Message = message;
+                PrettyCode = prettyCode;
+                StartIndex = startIndex;
+                EndIndex = endIndex;
+            }
+        }
         
         private readonly HashSet<string> _paramsOnlyBlock = new HashSet<string>
         {
@@ -153,6 +201,8 @@ namespace ORL.ShaderGenerator
         /// <param name="ctx"></param>
         public override void OnImportAsset(AssetImportContext ctx)
         {
+            FunctionErrors.Clear();
+            Errors.Clear();
             var textContent = File.ReadAllLines(ctx.assetPath);
             var workingFolder = ctx.assetPath.Substring(0, ctx.assetPath.LastIndexOf("/", StringComparison.InvariantCulture));
 
@@ -571,7 +621,7 @@ namespace ORL.ShaderGenerator
                 hideFlags = HideFlags.HideInHierarchy
             };
 
-            UpdateStats(blocks, ref finalShader);
+            UpdateStats(blocks, ref finalShader, ref ctx);
 
             ctx.AddObjectToAsset("Shader", shader);
             ctx.SetMainObject(shader);
@@ -761,28 +811,93 @@ namespace ORL.ShaderGenerator
             return sb.ToString();
         }
 
-        private void UpdateStats(List<ShaderBlock> blocks, ref StringBuilder shaderContent)
+        private class StatsUpdater : HLSLSyntaxVisitor
         {
-            var split = shaderContent.ToString().Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            var shaderFeatureLines = split.Where(line => line.Trim().StartsWith("#pragma shader_feature")).ToList();
-            var features = new List<string>();
-            foreach (var line in shaderFeatureLines)
+            public struct FunctionParamerror
             {
-                var foundfeatures = line.Trim().Replace("#pragma shader_feature_local", "").Replace("#pragma shader_feature", "").Split(' ');
-                foreach (var feature in foundfeatures)
+                public string Name;
+                public string Type;
+                public int StartIndex;
+                public int EndIndex;
+                public int Line;
+            }
+            
+            public Dictionary<FunctionParamerror, string> Errors = new Dictionary<FunctionParamerror, string>();
+        
+            public override void VisitFunctionDefinitionNode(FunctionDefinitionNode node)
+            {
+                var allowedParams = new List<string> {"v", "d", "o", "FinalColor" };
+                foreach (var parameter in node.Parameters)
                 {
-                    var featureName = feature.Trim();
-                    if (string.IsNullOrWhiteSpace(featureName) || featureName == "_" || features.Contains(featureName))
+                    if (!allowedParams.Contains(parameter.Declarator.Name))
                     {
-                        continue;
+                        var paramType = "";
+                        switch (parameter.ParamType)
+                        {
+                            case ScalarTypeNode s:
+                                paramType = PrintingUtil.GetEnumName(s.Kind);
+                                break;
+                            case VectorTypeNode v:
+                                paramType = PrintingUtil.GetEnumName(v.Kind) + v.Dimension;
+                                break;
+                        }
+
+                        Errors.Add(new FunctionParamerror
+                            {
+                                Line = parameter.Span.Start.Line,
+                                StartIndex = parameter.Span.Start.Index,
+                                EndIndex = parameter.Span.End.Index,
+                                Name = parameter.Declarator.Name,
+                                Type = paramType,
+                            }, $"Invalid {paramType} parameter {parameter.Declarator.Name} in function {node.Name.GetName()}, only {string.Join(", ", allowedParams)} are supported");
+                        // if (!Errors.ContainsKey(node))
+                        // {
+                        // }
+                        // Debug.LogError($"Invalid {paramType} parameter {parameter.Declarator.Name} in function {node.Name.GetName()}, only {string.Join(", ", allowedParams)} are supported");
                     }
-                    features.Add(featureName);
                 }
+                // Debug.Log($"Function declaration {node.Name.GetName()}");
+            }
+        }
+
+        private void UpdateStats(List<ShaderBlock> blocks, ref StringBuilder shaderContent, ref AssetImportContext ctx)
+        {
+            // var split = shaderContent.ToString().Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            // var shaderFeatureLines = split.Where(line => line.Trim().StartsWith("#pragma shader_feature")).ToList();
+            // var features = new List<string>();
+            // foreach (var line in shaderFeatureLines)
+            // {
+            //     var foundfeatures = line.Trim().Replace("#pragma shader_feature_local", "").Replace("#pragma shader_feature", "").Split(' ');
+            //     foreach (var feature in foundfeatures)
+            //     {
+            //         var featureName = feature.Trim();
+            //         if (string.IsNullOrWhiteSpace(featureName) || featureName == "_" || features.Contains(featureName))
+            //         {
+            //             continue;
+            //         }
+            //         features.Add(featureName);
+            //     }
+            // }
+            //
+            // featureCount = features.Count;
+            // var texBlocks = blocks.Find(b => b.Name == "%Textures");
+            // if (texBlocks != null && texBlocks.Contents != null)
+            // {
+            //     textureCount = texBlocks.Contents.Count(line => line.Contains("TEXTURE"));
+            //     samplerCount = texBlocks.Contents.Count(line => line.Contains("SAMPLER"));
+            // }
+
+            var shader = shaderContent.ToString();
+            try
+            {
+                var vertBlock = blocks.Find(b => b.Name == "%Vertex");
+                ShaderBlockValidations.ValidateVertexFunction(vertBlock, ref ctx, this);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
             }
 
-            featureCount = features.Count;
-            textureCount = blocks.Find(b => b.Name == "%Textures").Contents.Count(line => line.Contains("TEXTURE"));
-            samplerCount = blocks.Find(b => b.Name == "%Textures").Contents.Count(line => line.Contains("SAMPLER"));
         }
 
         /// <summary>

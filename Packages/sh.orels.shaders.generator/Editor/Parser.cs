@@ -6,14 +6,18 @@ using Debug = UnityEngine.Debug;
 
 namespace ORL.ShaderGenerator
 {
+    [Serializable]
     public class ShaderBlock
     {
-        public string Name { get; set; }
-        public List<string> Params { get; set; }
-        public List<string> Contents { get; set; }
-        public bool IsFunction { get; set; }
-        public string CallSign { get; set; }
-        public int Order { get; set; } = 0;
+        public string Name;
+        public List<string> Params;
+        public List<string> Contents;
+        public bool IsFunction;
+        public string CallSign;
+        public int Order;
+        public string Path;
+        public int Line;
+        public int Indentation;
     }
 
     public class Parser
@@ -41,7 +45,7 @@ namespace ORL.ShaderGenerator
 
         private bool _debugMode;
 
-        public List<ShaderBlock> Parse(string[] source)
+        public List<ShaderBlock> Parse(string[] source, string path = null)
         {
             _lines = source;
             var blocks = new List<ShaderBlock>();
@@ -83,6 +87,7 @@ namespace ORL.ShaderGenerator
                                     Debug.Log($"Found Block: {blockName}");
                                 }
 
+                                var blockIndentation = _current;
                                 _start = _current + 1;
                                 var paramsString = ConsumeUntil(')');
                                 var paramsList = new List<string>();
@@ -98,9 +103,11 @@ namespace ORL.ShaderGenerator
 
                                 var contentOffset = BlockHasContent();
                                 var blockContent = new List<string>();
+                                var blockStartLine = _lineNumber;
                                 if (contentOffset > 0)
                                 {
                                     _lineNumber += contentOffset;
+                                    blockStartLine = _lineNumber;
                                     if (_debugMode)
                                     {
                                         Debug.Log($"{blockName} Has block content");
@@ -121,25 +128,32 @@ namespace ORL.ShaderGenerator
                                 {
                                     Name = blockName,
                                     Params = paramsList,
-                                    Contents = blockContent
+                                    Contents = blockContent,
+                                    Path = path,
+                                    Line = blockStartLine,
+                                    Indentation = blockIndentation
                                 };
                                 if (_functionIdentifiers.Contains(blockName))
                                 {
-                                    newBlock.IsFunction = true;
-                                    newBlock.Order = newBlock.Params.Count > 1
-                                        ? int.Parse(newBlock.Params[1].Replace("\"", ""))
-                                        : 0; 
                                     var fnName = newBlock.Params[0].Replace("\"", "");
                                     var fnLine = newBlock.Contents.Find(s => s.Contains($"void {fnName}"));
-                                    var fnStartIndex = fnLine.IndexOf(fnName, StringComparison.InvariantCulture);
-                                    if (fnStartIndex > 0)
+                                    if (!string.IsNullOrEmpty(fnLine))
                                     {
-                                        var callSignLine = fnLine.Substring(fnStartIndex, fnLine.Substring(fnStartIndex).IndexOf(')') + 1) + ";";
-                                        var callSignMatch = _callSignRegex.Match(callSignLine);
-                                        var paramsStr = callSignMatch.Groups["params"].Value;
-                                        var fnParams = paramsStr.Split(',');
-                                        fnParams = fnParams.Select(p => p.Split(' ').Last().Trim()).ToArray();
-                                        newBlock.CallSign = $"{fnName}({string.Join(", ", fnParams)});";
+                                        var fnStartIndex = fnLine.IndexOf(fnName, StringComparison.InvariantCulture);
+                                        if (fnStartIndex > 0)
+                                        {
+                                            var callSignLine = fnLine.Substring(fnStartIndex, fnLine.Substring(fnStartIndex).IndexOf(')') + 1) + ";";
+                                            var callSignMatch = _callSignRegex.Match(callSignLine);
+                                            var paramsStr = callSignMatch.Groups["params"].Value;
+                                            var fnParams = paramsStr.Split(',');
+                                            fnParams = fnParams.Select(p => p.Split(' ').Last().Trim()).ToArray();
+                                            newBlock.IsFunction = true;
+                                            newBlock.Order = newBlock.Params.Count > 1
+                                                ? int.Parse(newBlock.Params[1].Replace("\"", ""))
+                                                : 0; 
+                                            newBlock.CallSign = $"{fnName}({string.Join(", ", fnParams)});";
+                                        }
+                                        
                                     }
                                 }
                                 blocks.Add(newBlock);
