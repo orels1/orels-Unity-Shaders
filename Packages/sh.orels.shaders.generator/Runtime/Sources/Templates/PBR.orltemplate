@@ -72,7 +72,11 @@
             // Functions
             %Functions
 
+            // FreeFunctions
+            %FreeFunctions
+
             // ForwardBase Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -89,6 +93,7 @@
 
                 return o;
             }
+            #endif
 
             // ForwardBase Fragment
             half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
@@ -170,7 +175,11 @@
             // Functions
             %Functions
 
+            // FreeFunctions
+            %FreeFunctions
+
             // ForwardAdd Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -187,6 +196,7 @@
 
                 return o;
             }
+            #endif
 
             // ForwardAdd Fragment
             half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
@@ -271,7 +281,11 @@
             // Functions
             %Functions
 
+            // FreeFunctions
+            %FreeFunctions
+
             // ForwardBase Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -288,6 +302,7 @@
 
                 return o;
             }
+            #endif
 
             // Meta Fragment
             half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
@@ -371,7 +386,11 @@
             // Functions
             %Functions
 
+            // FreeFunctions
+            %FreeFunctions
+
             // ShadowCaster Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -390,6 +409,7 @@
 
                 return o;
             }
+            #endif
 
             // ShadowCaster Fragment
             half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET

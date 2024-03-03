@@ -2,10 +2,10 @@
 {
     struct MeshData
     {
-        half2 uv0;
-        half2 uv1;
-        half2 uv2;
-        half2 uv3;
+        half4 uv0;
+        half4 uv1;
+        half4 uv2;
+        half4 uv3;
         #if !defined(UNITY_PASS_SHADOWCASTER)
         half4 lightmapUv;
         #endif

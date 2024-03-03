@@ -9,10 +9,10 @@
         #endif
         
         float3 normal : RAW_NORMAL;
-        float2 uv0 : TEXCOORD1;
-        float2 uv1 : TEXCOORD2;
-        float2 uv2 : TEXCOORD3;
-        float2 uv3 : TEXCOORD4;
+        float4 uv0 : TEXCOORD1;
+        float4 uv1 : TEXCOORD2;
+        float4 uv2 : TEXCOORD3;
+        float4 uv3 : TEXCOORD4;
         float3 worldPos : WORLD_POS;
         float3 worldNormal : WORLD_NORMAL;
         float4 worldTangent : WORLD_TANGENT;
