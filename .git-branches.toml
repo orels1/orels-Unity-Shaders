@@ -28,7 +28,7 @@ push-new-branches = false
 # You want to disable this if your code hosting platform
 # (GitHub, GitLab, etc) deletes head branches when
 # merging pull requests through its UI.
-ship-delete-tracking-branch = false
+ship-delete-tracking-branch = true
 
 # Should "git ship" sync branches before shipping them?
 #
@@ -41,7 +41,7 @@ ship-delete-tracking-branch = false
 # between the feature branch to ship and the main development branch
 # on the feature branch. This helps keep the main branch green.
 # But this also triggers another CI run and delays shipping.
-sync-before-ship = false
+sync-before-ship = true
 
 # Should "git sync" also fetch updates from the upstream remote?
 #
@@ -58,13 +58,13 @@ sync-upstream = false
 # The main branch is the branch from which you cut new feature branches,
 # and into which you ship feature branches when they are done.
 # This branch is often called "main", "master", or "development".
-main = "main"
+main = "dev"
 
 # Perennial branches are long-lived branches.
 # They are never shipped and have no ancestors.
 # Typically, perennial branches have names like
 # "development", "staging", "qa", "production", etc.
-perennials = []
+perennials = ["main"]
 
 [hosting]
 
