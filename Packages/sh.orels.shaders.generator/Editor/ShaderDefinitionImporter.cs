@@ -9,6 +9,7 @@ using ORL.Serialization.OdinSerializer;
 using UnityEditor;
 #if UNITY_2022_3_OR_NEWER
 using UnityEditor.AssetImporters;
+
 #else
 using UnityEditor.Experimental.AssetImporters;
 #endif
@@ -661,8 +662,7 @@ namespace ORL.ShaderGenerator
                 switch (block.Name)
                 {
                     case "%Properties":
-                        collapsedBlocks[i].Contents = DeDuplicateByRegex(block.Contents, _propertyRegex);
-                        DeDuplicateByParser(block.Contents, DeDupeType.Properties);
+                        collapsedBlocks[i].Contents = DeDuplicateByParser(block.Contents, DeDupeType.Properties);
                         continue;
                     case "%Variables":
                         collapsedBlocks[i].Contents = DeDuplicateByRegex(block.Contents, _varRegex);
@@ -676,8 +676,6 @@ namespace ORL.ShaderGenerator
             return collapsedBlocks;
         }
 
-        // Matches _VarNames
-        private Regex _propertyRegex = new Regex(@"(?:\[.*\])*\s*(?<identifier>[\w]+)(?:\s?\(\"".*\""\,[\w\s\(\,\.\-\)]+\)\s*=)");
         // Matches floatX halfX and intX variables
         private Regex _varRegex = new Regex(@"(?:uniform)?(?:\s*)(?:half|float|int|real|fixed|bool|float2x2|float3x3|float4x4|half2x2|half3x3|half4x4|fixed2x2|fixed3x3|fixed4x4|real2x2|real3x3|real4x4){1}(?:\d)?\s+(?<identifier>\w+)");
         // Matches either TEXTUREXXX() or SAMPLER()
@@ -696,21 +694,32 @@ namespace ORL.ShaderGenerator
         private List<string> DeDuplicateByParser(List<string> source, DeDupeType type)
         {
             var keySet = new HashSet<string>();
-            foreach (var item in source)
+            var deduped = new List<string>();
+            var combined = string.Join(Environment.NewLine, source);
+            switch (type)
             {
-                switch (type)
-                {
-                    case DeDupeType.Properties:
+                case DeDupeType.Properties:
+                    {
+                        var tokens = ShaderLabLexer.Lex(combined, null, null, false, out _);
+                        var nodes = ShaderLabParser.ParseShaderProperties(tokens, ShaderAnalyzers.SLConfig, out _);
+                        foreach (var node in nodes)
                         {
-                            // var tokens = ShaderLabLexer.Lex(item, ShaderAnalyzers.SLConfig.BasePath, ShaderAnalyzers.SLConfig.FileName, false, out _);
-                            // var rootNode = ShaderLabParser.Parse(tokens, ShaderAnalyzers.SLConfig, out _);
-                            // if (node is not ShaderPropertyNode propNode) break;
+                            if (keySet.Contains(node.Uniform))
+                            {
+                                if (debugBuild)
+                                {
+                                    Debug.LogWarning("Found duplicate item, skipping: " + node.Uniform);
+                                }
+                                continue;
+                            }
+                            keySet.Add(node.Uniform);
+                            deduped.Add(node.GetCodeInSourceText(combined));
 
-                            break;
                         }
-                }
+                        break;
+                    }
             }
-            return keySet.ToList();
+            return deduped;
         }
 
         private List<string> DeDuplicateByRegex(List<String> source, Regex matcher)
