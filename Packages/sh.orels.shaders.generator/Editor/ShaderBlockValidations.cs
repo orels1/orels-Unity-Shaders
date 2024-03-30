@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+
 #if UNITY_2022_3_OR_NEWER
 using UnityEditor.AssetImporters;
 #else
@@ -9,7 +11,6 @@ using UnityShaderParser.Common;
 using UnityShaderParser.HLSL;
 using UnityShaderParser.HLSL.PreProcessor;
 using UnityShaderParser.ShaderLab;
-using TokenKind = UnityShaderParser.HLSL.TokenKind;
 
 namespace ORL.ShaderGenerator
 {
@@ -19,7 +20,7 @@ namespace ORL.ShaderGenerator
         {
             IncludeResolver = new DefaultPreProcessorIncludeResolver(new List<string>
             {
-                "C:\\Program Files\\Unity\\Hub\\Editor\\2019.4.31f1\\Editor\\Data\\CGIncludes"
+                Path.Combine(UnityEditor.EditorApplication.applicationContentsPath, "CGIncludes")
             }),
             PreProcessorMode = PreProcessorMode.ExpandAll,
             Defines = new Dictionary<string, string>
@@ -27,54 +28,43 @@ namespace ORL.ShaderGenerator
                 {"SHADER_API_D3D11", "1"}
             }
         };
-        
-        public class VertexBlockValidator : HLSLSyntaxVisitor
+
+        public struct FunctionParamError
         {
-            private readonly string _mainFnName;
-            
-            public struct FunctionParamError
-            {
-                public string Name;
-                public string Type;
-                public int StartIndex;
-                public int EndIndex;
-                public int Line;
-                public string PrettyCode;
-            }
+            public string Name;
+            public string Type;
+            public int StartIndex;
+            public int EndIndex;
+            public int Line;
+            public string PrettyCode;
+        }
 
-            public struct ParamType
-            {
-                public Type NodeType;
-                public ScalarType Kind;
-                public int Dimension;
-                public string Name;
-            }
+        public struct FunctionParamType
+        {
+            public Type NodeType;
+            public ScalarType Kind;
+            public int Dimension;
+            public string Name;
+        }
 
-            private readonly List<(ParamType paramType, string paramName)> _allowedParams =
-                new List<(ParamType paramType, string paramName)>
-                {
-                    (new ParamType
-                    {
-                        NodeType = typeof(NamedTypeNode),
-                        Name = "VertexData",
-                    }, "v"),
-                    (new ParamType
-                    {
-                        NodeType = typeof(NamedTypeNode),
-                        Name = "FragmentData",
-                    }, "o")
-                };
-            
-            private readonly string _allowedParamsFormatted = "VertexData v, FragmentData o";
-            
+        public class FunctionBlockValidator : HLSLSyntaxVisitor
+        {
+            protected string _mainFnName;
+
+            protected List<(FunctionParamType paramType, string paramName)> _allowedParams;
+
+            protected string AllowedParamsFormatted => string.Join(", ", _allowedParams.ConvertAll(p => $"{p.paramType.Name} {p.paramName}"));
+
             public Dictionary<FunctionParamError, string> Errors = new Dictionary<FunctionParamError, string>();
+
+
             public List<string> FoundFunctions = new List<string>();
 
-            public VertexBlockValidator(string mainFnName) : base()
+            public FunctionBlockValidator(string mainFnName) : base()
             {
                 _mainFnName = mainFnName;
             }
-        
+
             public override void VisitFunctionDefinitionNode(FunctionDefinitionNode node)
             {
                 FoundFunctions.Add(node.Name.GetName());
@@ -96,6 +86,9 @@ namespace ORL.ShaderGenerator
                             case VectorTypeNode vector:
                                 if (vector.Kind != p.paramType.Kind || vector.Dimension != p.paramType.Dimension) return false;
                                 break;
+                            default:
+                                UnityEngine.Debug.LogWarning($"Unknown parameter type {parameter.ParamType.GetType()} for {parameter.Declarator.Name}");
+                                return false;
                         }
                         return true;
                     });
@@ -113,16 +106,66 @@ namespace ORL.ShaderGenerator
                         }
 
                         Errors.Add(new FunctionParamError
-                            {
-                                Line = parameter.Span.Start.Line,
-                                StartIndex = parameter.Span.Start.Index,
-                                EndIndex = parameter.Span.End.Index,
-                                Name = parameter.Declarator.Name,
-                                Type = paramType,
-                                PrettyCode = node.GetPrettyPrintedCode()
-                            }, $"Invalid <b>{paramType} {parameter.Declarator.Name}</b> parameter in function <b>{node.Name.GetName()}</b>, only <b>{_allowedParamsFormatted}</b> are supported");
+                        {
+                            Line = parameter.Span.Start.Line,
+                            StartIndex = parameter.Span.Start.Index,
+                            EndIndex = parameter.Span.End.Index,
+                            Name = parameter.Declarator.Name,
+                            Type = paramType,
+                            PrettyCode = node.GetPrettyPrintedCode()
+                        }, $"Invalid <b>{paramType} {parameter.Declarator.Name}</b> parameter in function <b>{node.Name.GetName()}</b>, only <b>{AllowedParamsFormatted}</b> are supported");
                     }
                 }
+            }
+        }
+
+        public class VertexBlockValidator : FunctionBlockValidator
+        {
+            public VertexBlockValidator(string mainFnName) : base(mainFnName)
+            {
+                _allowedParams = new List<(FunctionParamType paramType, string paramName)>
+                {
+                    (new FunctionParamType
+                    {
+                        NodeType = typeof(NamedTypeNode),
+                        Name = "VertexData",
+                    }, "v"),
+                    (new FunctionParamType
+                    {
+                        NodeType = typeof(NamedTypeNode),
+                        Name = "FragmentData",
+                    }, "o")
+                };
+            }
+        }
+
+        public class FragmentBlockValidator : FunctionBlockValidator
+        {
+            public FragmentBlockValidator(string mainFnName) : base(mainFnName)
+            {
+                _allowedParams = new List<(FunctionParamType paramType, string paramName)>
+                {
+                    (new FunctionParamType
+                    {
+                        NodeType = typeof(NamedTypeNode),
+                        Name = "MeshData",
+                    }, "d"),
+                    (new FunctionParamType
+                    {
+                        NodeType = typeof(NamedTypeNode),
+                        Name = "SurfaceData",
+                    }, "o"),
+                    (new FunctionParamType
+                    {
+                        NodeType = typeof(NamedTypeNode),
+                        Name = "FragmentData",
+                    }, "i"),
+                    (new FunctionParamType
+                    {
+                        NodeType = typeof(ScalarTypeNode),
+                        Kind = ScalarType.Bool
+                    }, "facing")
+                };
             }
         }
 
@@ -143,6 +186,28 @@ namespace ORL.ShaderGenerator
                 importer.Errors.Add(new ShaderDefinitionImporter.ShaderError(block, -1, "somefile", message));
             }
             foreach (var error in vertexValidator.Errors)
+            {
+                ctx.LogImportError(error.Value, importer);
+                importer.Errors.Add(new ShaderDefinitionImporter.ShaderError(block, error.Key.Line, "somefile", error.Value, error.Key.PrettyCode, error.Key.StartIndex, error.Key.EndIndex));
+            }
+        }
+
+        public static void ValidateFragmentFunction(ShaderBlock block, ref AssetImportContext ctx, ShaderDefinitionImporter importer)
+        {
+            if (block == null) return;
+            var blockSource = string.Join("\n", block.Contents.ToArray());
+            var parsedBlock = ShaderParser.ParseTopLevelDeclarations(blockSource, SLConfig);
+            var strippedName = block.Params[0].Replace("\"", string.Empty);
+            var fragmentValidator = new FragmentBlockValidator(strippedName);
+            fragmentValidator.VisitMany(parsedBlock);
+            if (!fragmentValidator.FoundFunctions.Contains(strippedName))
+            {
+                var message =
+                    $"Fragment function set to <b>{strippedName}</b>, but only <b>{string.Join(", ", fragmentValidator.FoundFunctions)}</b> found";
+                ctx.LogImportError(message, importer);
+                importer.Errors.Add(new ShaderDefinitionImporter.ShaderError(block, -1, "somefile", message));
+            }
+            foreach (var error in fragmentValidator.Errors)
             {
                 ctx.LogImportError(error.Value, importer);
                 importer.Errors.Add(new ShaderDefinitionImporter.ShaderError(block, error.Key.Line, "somefile", error.Value, error.Key.PrettyCode, error.Key.StartIndex, error.Key.EndIndex));
