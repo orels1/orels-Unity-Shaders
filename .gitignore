@@ -106,3 +106,5 @@ Packages/sh.orels.shaders.inspector/Editor/MaterialLibraries/Resources/**/*.json
 
 /Assets/Samples
 /Assets/Samples.meta
+
+/UserSettings/**/*
