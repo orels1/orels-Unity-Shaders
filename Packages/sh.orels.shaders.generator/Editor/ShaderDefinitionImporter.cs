@@ -15,6 +15,7 @@ using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
 using UnityShaderParser.Common;
 using UnityShaderParser.HLSL;
+using UnityShaderParser.ShaderLab;
 using Debug = UnityEngine.Debug;
 
 namespace ORL.ShaderGenerator
@@ -238,7 +239,7 @@ namespace ORL.ShaderGenerator
                     throw new MissingParameterException("name", "%ShaderName", "");
                 }
                 var includesIndex = blocks.FindIndex(b => b.Name == "%Includes");
-                // Shaders can have direct includes (not via LightingModel or anything else
+                // Shaders can have direct includes (not via LightingModel or anything else)
                 // Here we deep-resolve them and inject them back into the blocks in the respective order
                 if (includesIndex != -1)
                 {
@@ -483,66 +484,36 @@ namespace ORL.ShaderGenerator
 
                     // Functions are a special case, they insert their code into the %Functions block
                     // And then insert a call to the function in the respective stage
-                    switch (matchVal)
+
+                    // Here we save all the function source code into the shader %Functions space
+                    if (matchVal == "%Functions")
                     {
-                        // Here we save all the function source code into the shader %Functions space
-                        case "%Functions":
-                            {
-                                InsertContentsAtPosition(ref newLine, functionBlocks, match.Index, matchLen);
-                                continue;
-                            }
-                        // Here we insert function calls into the pre-pass fragment stage
-                        case "%PrePassColorFunctions":
-                            {
-                                var fragmentFns = functionBlocks.FindAll(b => b.Name == "%PrePassColor");
-                                fragmentFns.Reverse();
-                                fragmentFns.Sort((a, b) => a.Order.CompareTo(b.Order));
-                                // the calls are inserted in reverse order to maintain offsets, so we reverse them back
-                                fragmentFns.Reverse();
-                                InsertFnCallAtPosition(ref newLine, fragmentFns, match.Index, matchLen);
-                                continue;
-                            }
-                        // Here we insert function calls into the fragment stage
-                        case "%FragmentFunctions":
-                            {
-                                var fragmentFns = functionBlocks.FindAll(b => b.Name == "%Fragment");
-                                fragmentFns.Reverse();
-                                fragmentFns.Sort((a, b) => a.Order.CompareTo(b.Order));
-                                // the calls are inserted in reverse order to maintain offsets, so we reverse them back
-                                fragmentFns.Reverse();
-                                InsertFnCallAtPosition(ref newLine, fragmentFns, match.Index, matchLen);
-                                continue;
-                            }
-                        // Here we insert function calls into the vertex stage
-                        case "%VertexFunctions":
-                            {
-                                var vertexFns = functionBlocks.FindAll(b => b.Name == "%Vertex");
-                                vertexFns.Reverse();
-                                vertexFns.Sort((a, b) => a.Order.CompareTo(b.Order));
-                                vertexFns.Reverse();
-                                InsertFnCallAtPosition(ref newLine, vertexFns, match.Index, matchLen);
-                                continue;
-                            }
-                        // Here we insert function calls into the vertex stage
-                        case "%ColorFunctions":
-                            {
-                                var colorFns = functionBlocks.FindAll(b => b.Name == "%Color");
-                                colorFns.Reverse();
-                                colorFns.Sort((a, b) => a.Order.CompareTo(b.Order));
-                                colorFns.Reverse();
-                                InsertFnCallAtPosition(ref newLine, colorFns, match.Index, matchLen);
-                                continue;
-                            }
-                        // Here we insert function calls into the fragment stage of shadowcaster
-                        case "%ShadowFunctions":
-                            {
-                                var shadowFns = functionBlocks.FindAll(b => b.Name == "%Shadow");
-                                shadowFns.Reverse();
-                                shadowFns.Sort((a, b) => a.Order.CompareTo(b.Order));
-                                shadowFns.Reverse();
-                                InsertFnCallAtPosition(ref newLine, shadowFns, match.Index, matchLen);
-                                continue;
-                            }
+                        InsertContentsAtPosition(ref newLine, functionBlocks, match.Index, matchLen);
+                        continue;
+                    }
+
+                    // Here we insert actual function calls if they follow a couple rules
+                    // - The function block name is the same as the block name, but without the % prefix
+                    // - The functio block has a parameter which matches some HLSL function within the block
+                    if (matchVal.Contains("Functions") && matchVal != "%LibraryFunctions" && matchVal != "%FreeFunctions")
+                    {
+                        var fnName = "";
+                        try
+                        {
+                            fnName = matchVal.Substring(1).Replace("Functions", "");
+                        }
+                        catch (Exception e)
+                        {
+                            ctx.LogImportError($"Failed to extract function name from {matchVal} in {ctx.assetPath}. {e.Message}");
+                            continue;
+                        }
+
+                        var fnBlocks = functionBlocks.FindAll(b => b.Name == "%" + fnName);
+                        fnBlocks.Reverse();
+                        fnBlocks.Sort((a, b) => a.Order.CompareTo(b.Order));
+                        fnBlocks.Reverse();
+                        InsertFnCallAtPosition(ref newLine, fnBlocks, match.Index, matchLen);
+                        continue;
                     }
 
                     // For non-function blocks - we simply replace the block name with the block contents
@@ -691,6 +662,7 @@ namespace ORL.ShaderGenerator
                 {
                     case "%Properties":
                         collapsedBlocks[i].Contents = DeDuplicateByRegex(block.Contents, _propertyRegex);
+                        DeDuplicateByParser(block.Contents, DeDupeType.Properties);
                         continue;
                     case "%Variables":
                         collapsedBlocks[i].Contents = DeDuplicateByRegex(block.Contents, _varRegex);
@@ -715,6 +687,31 @@ namespace ORL.ShaderGenerator
         private Regex _texRegex = new Regex(@"(?:RW_)?(?:TEXTURE[23DCUBE]+[_A-Z]*)\((?<identifier>[\w]+)\)");
         // Matches SAMPLER()
         private Regex _samplerRegex = new Regex(@"(?:SAMPLER)(?:_CMP)?\((?<identifier>[\w]+)\)");
+
+        private enum DeDupeType
+        {
+            Properties
+        }
+
+        private List<string> DeDuplicateByParser(List<string> source, DeDupeType type)
+        {
+            var keySet = new HashSet<string>();
+            foreach (var item in source)
+            {
+                switch (type)
+                {
+                    case DeDupeType.Properties:
+                        {
+                            // var tokens = ShaderLabLexer.Lex(item, ShaderAnalyzers.SLConfig.BasePath, ShaderAnalyzers.SLConfig.FileName, false, out _);
+                            // var rootNode = ShaderLabParser.Parse(tokens, ShaderAnalyzers.SLConfig, out _);
+                            // if (node is not ShaderPropertyNode propNode) break;
+
+                            break;
+                        }
+                }
+            }
+            return keySet.ToList();
+        }
 
         private List<string> DeDuplicateByRegex(List<String> source, Regex matcher)
         {

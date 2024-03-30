@@ -19,7 +19,7 @@ namespace ORL.ShaderGenerator
 {
     public class ShaderAnalyzers
     {
-        private static ShaderLabParserConfig SLConfig = new ShaderLabParserConfig
+        public static ShaderLabParserConfig SLConfig = new ShaderLabParserConfig
         {
             IncludeResolver = new DefaultPreProcessorIncludeResolver(new List<string>
             {

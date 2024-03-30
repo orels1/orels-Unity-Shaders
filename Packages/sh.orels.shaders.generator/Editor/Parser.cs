@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using UnityShaderParser.Common;
+using UnityShaderParser.HLSL;
 using Debug = UnityEngine.Debug;
 
 namespace ORL.ShaderGenerator
@@ -18,31 +20,54 @@ namespace ORL.ShaderGenerator
         public string Path;
         public int Line;
         public int Indentation;
+
+        private List<HLSLSyntaxNode> _nodes;
+        public List<HLSLSyntaxNode> Nodes
+        {
+            get
+            {
+                if (_nodes == null)
+                {
+                    _nodes = ShaderParser.ParseTopLevelDeclarations(string.Join(Environment.NewLine, Contents), ShaderAnalyzers.SLConfig);
+                }
+                return _nodes;
+            }
+        }
+
+        private FunctionDefinitionNode _functionNode;
+
+        public FunctionDefinitionNode FunctionNode
+        {
+            get
+            {
+                if (Params.Count == 0) return null;
+                if (_functionNode == null)
+                {
+                    foreach (var node in Nodes)
+                    {
+                        if (node is FunctionDefinitionNode fnNode)
+                        {
+                            if (fnNode.Name.GetName() == Params[0].Replace("\"", ""))
+                            {
+                                _functionNode = fnNode;
+                                return _functionNode;
+                            }
+                        }
+                    }
+                }
+                return _functionNode;
+            }
+        }
     }
 
     public class Parser
     {
-        private static HashSet<string> _functionIdentifiers = new HashSet<string>
-        {
-            "%PrePassColor",
-            "%Fragment",
-            "%FragmentBase",
-            "%Vertex",
-            "%VertexBase",
-            "%TessFactor",
-            "%Color",
-            "%Shadow"
-        };
-        
-        private static Regex _callSignRegex = new Regex(@"(?<fnName>[\w]+)\((?<params>[\w\,\s]+)\)");
-
         private int _current;
         private int _start;
         private int _total;
         private int _lineNumber;
         private string[] _lines;
         private string _currentLine;
-
         private bool _debugMode;
 
         public List<ShaderBlock> Parse(string[] source, string path = null)
@@ -116,14 +141,14 @@ namespace ORL.ShaderGenerator
                                     if (contents != null)
                                     {
                                         blockContent = contents;
-                                        
+
                                         if (_debugMode)
                                         {
-                                            Debug.Log($"{blockName} block content: {string.Join(",",blockContent)}");
+                                            Debug.Log($"{blockName} block content: {string.Join(",", blockContent)}");
                                         }
                                     }
                                 }
-                                
+
                                 var newBlock = new ShaderBlock
                                 {
                                     Name = blockName,
@@ -131,30 +156,16 @@ namespace ORL.ShaderGenerator
                                     Contents = blockContent,
                                     Path = path,
                                     Line = blockStartLine,
-                                    Indentation = blockIndentation
+                                    Indentation = blockIndentation,
                                 };
-                                if (_functionIdentifiers.Contains(blockName))
+
+                                newBlock.IsFunction = newBlock.FunctionNode != null;
+                                if (newBlock.IsFunction)
                                 {
-                                    var fnName = newBlock.Params[0].Replace("\"", "");
-                                    var fnLine = newBlock.Contents.Find(s => s.Contains($"void {fnName}"));
-                                    if (!string.IsNullOrEmpty(fnLine))
-                                    {
-                                        var fnStartIndex = fnLine.IndexOf(fnName, StringComparison.InvariantCulture);
-                                        if (fnStartIndex > 0)
-                                        {
-                                            var callSignLine = fnLine.Substring(fnStartIndex, fnLine.Substring(fnStartIndex).IndexOf(')') + 1) + ";";
-                                            var callSignMatch = _callSignRegex.Match(callSignLine);
-                                            var paramsStr = callSignMatch.Groups["params"].Value;
-                                            var fnParams = paramsStr.Split(',');
-                                            fnParams = fnParams.Select(p => p.Split(' ').Last().Trim()).ToArray();
-                                            newBlock.IsFunction = true;
-                                            newBlock.Order = newBlock.Params.Count > 1
-                                                ? int.Parse(newBlock.Params[1].Replace("\"", ""))
-                                                : 0; 
-                                            newBlock.CallSign = $"{fnName}({string.Join(", ", fnParams)});";
-                                        }
-                                        
-                                    }
+                                    newBlock.Order = newBlock.Params.Count > 1
+                                        ? int.Parse(newBlock.Params[1].Replace("\"", ""))
+                                        : 0;
+                                    newBlock.CallSign = $"{newBlock.FunctionNode.Name.GetName()}({string.Join(", ", newBlock.FunctionNode.Parameters.Select(p => p.Declarator.Name))});";
                                 }
                                 blocks.Add(newBlock);
                             }
@@ -212,7 +223,7 @@ namespace ORL.ShaderGenerator
         {
             var result = new List<string>();
             if (_lineNumber + 1 >= _lines.Length) return null;
-            
+
             var subset = _lines.Skip(_lineNumber).ToList();
             var linesSkipped = 0;
             var nestLevel = 1;
