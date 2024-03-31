@@ -2,46 +2,75 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using UnityShaderParser.Common;
+using UnityShaderParser.HLSL;
 using Debug = UnityEngine.Debug;
 
 namespace ORL.ShaderGenerator
 {
+    [Serializable]
     public class ShaderBlock
     {
-        public string Name { get; set; }
-        public List<string> Params { get; set; }
-        public List<string> Contents { get; set; }
-        public bool IsFunction { get; set; }
-        public string CallSign { get; set; }
-        public int Order { get; set; } = 0;
+        public string Name;
+        public List<string> Params;
+        public List<string> Contents;
+        public bool IsFunction;
+        public string CallSign;
+        public int Order;
+        public string Path;
+        public int Line;
+        public int Indentation;
+
+        private List<HLSLSyntaxNode> _nodes;
+        public List<HLSLSyntaxNode> Nodes
+        {
+            get
+            {
+                if (_nodes == null)
+                {
+                    _nodes = ShaderParser.ParseTopLevelDeclarations(string.Join(Environment.NewLine, Contents), ShaderAnalyzers.SLConfig);
+                }
+                return _nodes;
+            }
+        }
+
+        private FunctionDefinitionNode _functionNode;
+
+        public FunctionDefinitionNode FunctionNode
+        {
+            get
+            {
+                if (Params.Count == 0) return null;
+                if (_functionNode == null)
+                {
+                    foreach (var node in Nodes)
+                    {
+                        if (node is FunctionDefinitionNode fnNode)
+                        {
+                            if (fnNode.Name.GetName() == Params[0].Replace("\"", ""))
+                            {
+                                _functionNode = fnNode;
+                                return _functionNode;
+                            }
+                        }
+                    }
+                }
+                return _functionNode;
+            }
+        }
     }
 
     public class Parser
     {
-        private static HashSet<string> _functionIdentifiers = new HashSet<string>
-        {
-            "%PrePassColor",
-            "%Fragment",
-            "%FragmentBase",
-            "%Vertex",
-            "%VertexBase",
-            "%TessFactor",
-            "%Color",
-            "%Shadow"
-        };
-        
-        private static Regex _callSignRegex = new Regex(@"(?<fnName>[\w]+)\((?<params>[\w\,\s]+)\)");
-
         private int _current;
         private int _start;
         private int _total;
         private int _lineNumber;
         private string[] _lines;
         private string _currentLine;
-
         private bool _debugMode;
 
-        public List<ShaderBlock> Parse(string[] source)
+        public List<ShaderBlock> Parse(string[] source, string path = null)
         {
             _lines = source;
             var blocks = new List<ShaderBlock>();
@@ -83,6 +112,7 @@ namespace ORL.ShaderGenerator
                                     Debug.Log($"Found Block: {blockName}");
                                 }
 
+                                var blockIndentation = _current;
                                 _start = _current + 1;
                                 var paramsString = ConsumeUntil(')');
                                 var paramsList = new List<string>();
@@ -98,9 +128,11 @@ namespace ORL.ShaderGenerator
 
                                 var contentOffset = BlockHasContent();
                                 var blockContent = new List<string>();
+                                var blockStartLine = _lineNumber;
                                 if (contentOffset > 0)
                                 {
                                     _lineNumber += contentOffset;
+                                    blockStartLine = _lineNumber;
                                     if (_debugMode)
                                     {
                                         Debug.Log($"{blockName} Has block content");
@@ -109,38 +141,31 @@ namespace ORL.ShaderGenerator
                                     if (contents != null)
                                     {
                                         blockContent = contents;
-                                        
+
                                         if (_debugMode)
                                         {
-                                            Debug.Log($"{blockName} block content: {string.Join(",",blockContent)}");
+                                            Debug.Log($"{blockName} block content: {string.Join(",", blockContent)}");
                                         }
                                     }
                                 }
-                                
+
                                 var newBlock = new ShaderBlock
                                 {
                                     Name = blockName,
                                     Params = paramsList,
-                                    Contents = blockContent
+                                    Contents = blockContent,
+                                    Path = path,
+                                    Line = blockStartLine,
+                                    Indentation = blockIndentation,
                                 };
-                                if (_functionIdentifiers.Contains(blockName))
+
+                                newBlock.IsFunction = newBlock.FunctionNode != null;
+                                if (newBlock.IsFunction)
                                 {
-                                    newBlock.IsFunction = true;
                                     newBlock.Order = newBlock.Params.Count > 1
                                         ? int.Parse(newBlock.Params[1].Replace("\"", ""))
-                                        : 0; 
-                                    var fnName = newBlock.Params[0].Replace("\"", "");
-                                    var fnLine = newBlock.Contents.Find(s => s.Contains($"void {fnName}"));
-                                    var fnStartIndex = fnLine.IndexOf(fnName, StringComparison.InvariantCulture);
-                                    if (fnStartIndex > 0)
-                                    {
-                                        var callSignLine = fnLine.Substring(fnStartIndex, fnLine.Substring(fnStartIndex).IndexOf(')') + 1) + ";";
-                                        var callSignMatch = _callSignRegex.Match(callSignLine);
-                                        var paramsStr = callSignMatch.Groups["params"].Value;
-                                        var fnParams = paramsStr.Split(',');
-                                        fnParams = fnParams.Select(p => p.Split(' ').Last().Trim()).ToArray();
-                                        newBlock.CallSign = $"{fnName}({string.Join(", ", fnParams)});";
-                                    }
+                                        : 0;
+                                    newBlock.CallSign = $"{newBlock.FunctionNode.Name.GetName()}({string.Join(", ", newBlock.FunctionNode.Parameters.Select(p => p.Declarator.Name))});";
                                 }
                                 blocks.Add(newBlock);
                             }
@@ -198,7 +223,7 @@ namespace ORL.ShaderGenerator
         {
             var result = new List<string>();
             if (_lineNumber + 1 >= _lines.Length) return null;
-            
+
             var subset = _lines.Skip(_lineNumber).ToList();
             var linesSkipped = 0;
             var nestLevel = 1;
