@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 
 
+
 #if UNITY_2022_3_OR_NEWER
 using UnityEditor.AssetImporters;
 #else
@@ -43,9 +44,20 @@ namespace ORL.ShaderGenerator
 
             public int texturesFound;
 
+            private PredefinedObjectType[] _supportedTexTypes = new PredefinedObjectType[]
+            {
+                PredefinedObjectType.Texture,
+                PredefinedObjectType.Texture2D,
+                PredefinedObjectType.Texture2DArray,
+                PredefinedObjectType.Texture3D,
+                PredefinedObjectType.TextureCube,
+                PredefinedObjectType.TextureCubeArray,
+            };
+
             public override void VisitVariableDeclarationStatementNode(VariableDeclarationStatementNode node)
             {
-                if (node.GetCodeInSourceText(_source).Trim().StartsWith("TEXTURE"))
+                if (node.Kind is not PredefinedObjectTypeNode predefinedObjectTypeNode) return;
+                if (_supportedTexTypes.Contains(predefinedObjectTypeNode.Kind))
                 {
                     texturesFound++;
                 }
@@ -65,7 +77,8 @@ namespace ORL.ShaderGenerator
 
             public override void VisitVariableDeclarationStatementNode(VariableDeclarationStatementNode node)
             {
-                if (node.GetCodeInSourceText(_source).Trim() == "SAMPLER")
+                if (node.Kind is not PredefinedObjectTypeNode predefinedObjectTypeNode) return;
+                if (predefinedObjectTypeNode.Kind == PredefinedObjectType.SamplerState)
                 {
                     samplersFound++;
                 }
@@ -76,10 +89,13 @@ namespace ORL.ShaderGenerator
         public static int CountTextureObjects(List<ShaderBlock> blocks, ref AssetImportContext ctx, ShaderDefinitionImporter importer)
         {
             var textures = 0;
+            var samplingLib = File.ReadAllLines("Packages/sh.orels.shaders.generator/Runtime/Sources/Libraries/SamplingLibrary.orlsource");
+            var samplingLibText = string.Join(Environment.NewLine, samplingLib.Skip(2).Take(samplingLib.Length - 3));
             foreach (var block in blocks)
             {
                 if (block == null) continue;
                 var blockSource = string.Join("\n", block.Contents.ToArray());
+                blockSource = samplingLibText + Environment.NewLine + blockSource;
                 var parsedBlock = ShaderParser.ParseTopLevelDeclarations(blockSource, SLConfig);
                 var texVisitor = new TextureObjectCounter(blockSource);
                 texVisitor.VisitMany(parsedBlock);
@@ -92,10 +108,13 @@ namespace ORL.ShaderGenerator
         public static int CountSamplers(List<ShaderBlock> blocks, ref AssetImportContext ctx, ShaderDefinitionImporter importer)
         {
             var samplers = 0;
+            var samplingLib = File.ReadAllLines("Packages/sh.orels.shaders.generator/Runtime/Sources/Libraries/SamplingLibrary.orlsource");
+            var samplingLibText = string.Join(Environment.NewLine, samplingLib.Skip(2).Take(samplingLib.Length - 3));
             foreach (var block in blocks)
             {
                 if (block == null) continue;
-                var blockSource = string.Join("\n", block.Contents.ToArray());
+                var blockSource = string.Join(Environment.NewLine, block.Contents.ToArray());
+                blockSource = samplingLibText + Environment.NewLine + blockSource;
                 var parsedBlock = ShaderParser.ParseTopLevelDeclarations(blockSource, SLConfig);
                 var samplerVisitor = new SamplerCounter(blockSource);
                 samplerVisitor.VisitMany(parsedBlock);
