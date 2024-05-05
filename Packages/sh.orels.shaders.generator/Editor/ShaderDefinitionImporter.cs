@@ -594,7 +594,10 @@ namespace ORL.ShaderGenerator
             };
 
             ValidateBasicFunctions(blocks, ref ctx);
-            UpdateStats(blocks, ref finalShader, ref ctx);
+
+            // This is currently too slow
+            // We should do this on the parser step
+            // UpdateStats(blocks, ref finalShader, ref ctx);
 
             ctx.AddObjectToAsset("Shader", shader);
             ctx.SetMainObject(shader);
@@ -1072,4 +1075,3 @@ namespace ORL.ShaderGenerator
             return textSource;
         }
     }
-}

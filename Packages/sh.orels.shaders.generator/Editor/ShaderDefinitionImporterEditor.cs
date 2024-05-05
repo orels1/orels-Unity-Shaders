@@ -95,7 +95,8 @@ namespace ORL.ShaderGenerator
                     _linedText[i] = $"{(i + 1).ToString(),4}    {_linedText[i]}";
                 }
                 _lastTimestamp = importer.assetTimeStamp;
-            } else if (_lastTimestamp != importer.assetTimeStamp)
+            }
+            else if (_lastTimestamp != importer.assetTimeStamp)
             {
                 _lastTimestamp = importer.assetTimeStamp;
                 _linedText = textSource.Split('\n');
@@ -105,17 +106,6 @@ namespace ORL.ShaderGenerator
                 }
             }
 
-            // if (importer.FunctionErrors.Any())
-            // {
-            //     EditorGUILayout.LabelField("Shader Generation Issues", EditorStyles.boldLabel);
-            //     foreach (var error in importer.FunctionErrors)
-            //     {
-            //         EditorGUILayout.LabelField($"{error.Value} on line {error.Key.Span.Start.Line}");
-            //         // error.Key.
-            //         // EditorGUILayout.TextArea(snippet.ToString());
-            //     }
-            // }
-            
             if (importer.Errors.Any())
             {
                 EditorGUILayout.LabelField("Shader Generation Issues", EditorStyles.boldLabel);
@@ -170,13 +160,9 @@ namespace ORL.ShaderGenerator
 
                     EditorGUILayout.LabelField(message, _richLabelStyle);
                     EditorGUILayout.TextArea(snippet.ToString(), _monoStyle);
-                    // if (EditorGUILayout.LinkButton("Open Source File"))
-                    // {
-                    //     AssetDatabase.OpenAsset(importer, line);
-                    // }
                 }
             }
-            
+
             var finalShader = AssetDatabase.LoadAssetAtPath<Shader>(importer.assetPath);
             if (ShaderUtil.ShaderHasError(finalShader))
             {
@@ -211,21 +197,23 @@ namespace ORL.ShaderGenerator
                 }
             }
 
-            EditorGUILayout.LabelField("Stats", EditorStyles.boldLabel);
-            var oldWidth = EditorGUIUtility.labelWidth;
-            EditorGUIUtility.labelWidth = 64;
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                using (new EditorGUI.DisabledScope(true))
-                {
-                    EditorGUILayout.IntField("Features:", serializedObject.FindProperty("featureCount").intValue);
-                    EditorGUILayout.IntField("Textures:", serializedObject.FindProperty("textureCount").intValue);
-                    EditorGUILayout.IntField("Samplers:", serializedObject.FindProperty("samplerCount").intValue);
-                }
-            }
+            // TODO: re-enable it when parsing of shaders is multi-threaded and fast
+            // EditorGUILayout.LabelField("Stats", EditorStyles.boldLabel);
+            // var oldWidth = EditorGUIUtility.labelWidth;
+            // EditorGUIUtility.labelWidth = 64;
+            // using (new EditorGUILayout.HorizontalScope())
+            // {
+            //     using (new EditorGUI.DisabledScope(true))
+            //     {
+            //         EditorGUILayout.IntField("Features:", serializedObject.FindProperty("featureCount").intValue);
+            //         EditorGUILayout.IntField("Textures:", serializedObject.FindProperty("textureCount").intValue);
+            //         EditorGUILayout.IntField("Samplers:", serializedObject.FindProperty("samplerCount").intValue);
+            //     }
+            // }
 
-            EditorGUIUtility.labelWidth = oldWidth;
-            EditorGUILayout.Space();
+            // EditorGUIUtility.labelWidth = oldWidth;
+            // EditorGUILayout.Space();
+
             _sourceCodeFoldout = EditorGUILayout.Foldout(_sourceCodeFoldout, "Compiled Source");
             if (_sourceCodeFoldout && !string.IsNullOrWhiteSpace(textSource))
             {
@@ -266,22 +254,22 @@ namespace ORL.ShaderGenerator
                     {
                         lineNum = Array.FindIndex(_linedText.Skip(_currentLine).ToArray(), l => l.Contains("half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace)"));
                     }
-                    
+
                     if (GUILayout.Button("Variables"))
                     {
                         lineNum = Array.FindIndex(_linedText.Skip(_currentLine).ToArray(), l => l.Contains("// Variables"));
                     }
-                    
+
                     if (GUILayout.Button("Textures"))
                     {
                         lineNum = Array.FindIndex(_linedText.Skip(_currentLine).ToArray(), l => l.Contains("// Textures"));
                     }
-                    
+
                     if (GUILayout.Button("Functions"))
                     {
                         lineNum = Array.FindIndex(_linedText.Skip(_currentLine).ToArray(), l => l.Contains("// Functions"));
                     }
-                    
+
                     if (lineNum > 0)
                     {
                         _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, lineNum + _currentLine - 5) * (_monoStyle.lineHeight + 0.4f));
