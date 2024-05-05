@@ -1075,3 +1075,5 @@ namespace ORL.ShaderGenerator
             return textSource;
         }
     }
+}
+
