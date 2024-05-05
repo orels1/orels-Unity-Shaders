@@ -99,7 +99,7 @@
         half2 dirtUV = d.uv0.xy * _HotspotDirt_ST.xy + _HotspotDirt_ST.zw;
         half3 dirt = SAMPLE_TEXTURE2D(_HotspotDirt, sampler_HotspotMask, dirtUV).r;
 
-        o.Occlusion = lerp(o.Occlusion, _HotspotGrooveAO, grooveMask);
+        o.Occlusion = lerp(o.Occlusion, lerp(1, 0, _HotspotGrooveAO), grooveMask);
 
         half3 hotspotNormal = UnpackScaleNormal(SAMPLE_TEXTURE2D(_HotspotNormal, sampler_HotspotMask, d.uv0), 1.0);
         o.Normal = BlendNormals(o.Normal, hotspotNormal);
@@ -118,6 +118,7 @@
             half4 detailMasks = SAMPLE_TEXTURE2D(_HotspotDetailMasks, sampler_HotspotDetailMasks, detailMasksUV);
             o.Metallic = lerp(o.Metallic, detailMasks.r, detailsMask);
             o.Smoothness = lerp(o.Smoothness, detailMasks.a, detailsMask);
+            o.Occlusion = lerp(o.Occlusion, detailMasks.g, detailsMask);
 
             half2 detailAlbedoUV = d.uv0.xy * _HotspotDetailAlbedo_ST.xy + _HotspotDetailAlbedo_ST.zw;
             half3 detailAlbedo = SAMPLE_TEXTURE2D(_HotspotDetailAlbedo, sampler_HotspotDetailMasks, detailAlbedoUV).rgb;
