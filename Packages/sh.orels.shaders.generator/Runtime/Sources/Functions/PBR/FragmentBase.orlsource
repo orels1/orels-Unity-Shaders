@@ -11,7 +11,7 @@
     _GSAAThreshold("GSAA Threshold %ShowIf(GSAA)", Range(0, 1)) = 0.1
     UI_MobileTweaks("## Mobile Tweaks", Int) = 1
     [Toggle(FORCE_BOX_PROJECTION)]_ForceBoxProjection("Force Box Projection", Int) = 0
-    [Toggle(APPLY_COLOR_CORRECTION)]_ApplyColorCorrection("Apply Color Correction", Int) = 0
+    [Toggle(APPLY_COLOR_CORRECTION)]_ApplyColorCorrection("Apply Mobile Color Correction", Int) = 0
     UI_ApplyColorCorrectionNote("> Enables in-shader color correction, useful for Mobile platforms where PostProcessing is not available", Int) = 0
     _ColorCorrLift("Lift %ShowIf(_ApplyColorCorrection)", Range(0, 2)) = 1
     _ColorCorrGamma("Gamma %ShowIf(_ApplyColorCorrection)", Range(0,2)) = 1.1
