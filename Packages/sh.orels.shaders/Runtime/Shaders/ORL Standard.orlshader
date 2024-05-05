@@ -115,7 +115,7 @@
         half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
         if (_AlbedoChannel > 0)
         {
-            albedo.rgb = albedo[_AlbedoChannel].xxx;
+            albedo.rgb = albedo[_AlbedoChannel - 1].xxx;
         }
         half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
         half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
