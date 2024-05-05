@@ -108,3 +108,6 @@ Packages/sh.orels.shaders.inspector/Editor/MaterialLibraries/Resources/**/*.json
 /Assets/Samples.meta
 
 /UserSettings/**/*
+UserSettings/Layouts/default-2022.dwlt
+UserSettings/EditorUserSettings.asset
+UserSettings/Search.settings
