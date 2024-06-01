@@ -46,12 +46,12 @@
         bool isInVRMirror = _VRChatMirrorMode == 1;
         bool isInDesktopMirror = _VRChatMirrorMode == 2;
 
-        if (_VRCHideInVR && isInVR)
+        if (_VRCHideInVR && isInVR && !(isInVRMirror || isInVRHandCam))
         {
             v.vertex = asfloat(-1);
             return;
         }
-        if (_VRCHideInDesktop && isInDesktop)
+        if (_VRCHideInDesktop && isInDesktop && !(isInDesktopMirror || isInDesktopHandCam))
         {
             v.vertex = asfloat(-1);
             return;
