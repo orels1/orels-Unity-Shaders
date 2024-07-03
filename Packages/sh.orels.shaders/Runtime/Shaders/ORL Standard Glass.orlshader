@@ -18,7 +18,7 @@
 %Includes()
 {
     "@/Modules/AudioLink",
-    "/Packages/sh.orels.shaders/Runtime/Shaders/ORL Standard",
+    "@/Shaders/ORL Standard",
     "self"
 }
 

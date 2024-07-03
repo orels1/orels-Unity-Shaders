@@ -4,6 +4,6 @@
 %Includes()
 {
     "@/Shaders/ORL Standard",
-    "@/Modules/AudioLinkEffects"
+    "@/Modules/AudioLinkEffects",
     "self"
 }
