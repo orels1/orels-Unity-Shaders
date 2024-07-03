@@ -664,6 +664,9 @@ namespace ORL.ShaderGenerator
                 var block = collapsedBlocks[i];
                 switch (block.Name)
                 {
+                    case "%ShaderTags":
+                        block.Contents = DeDuplicateByParser(block.Contents, DeDupeType.Tags);
+                        continue;
                     case "%Properties":
                         collapsedBlocks[i].Contents = DeDuplicateByParser(block.Contents, DeDupeType.Properties);
                         continue;
@@ -691,7 +694,8 @@ namespace ORL.ShaderGenerator
 
         private enum DeDupeType
         {
-            Properties
+            Properties,
+            Tags,
         }
 
         private List<string> DeDuplicateByParser(List<string> source, DeDupeType type)
@@ -719,6 +723,40 @@ namespace ORL.ShaderGenerator
                             deduped.Add(node.GetCodeInSourceText(combined));
 
                         }
+                        break;
+                    }
+                case DeDupeType.Tags:
+                    {
+                        var dedupedTags = new Dictionary<string, string>();
+                        var dedupedTagsString = new StringBuilder();
+                        combined = $"Tags {{{combined}}}";
+                        var tokens = ShaderLabLexer.Lex(combined, null, null, false, out _);
+                        var nodes = ShaderLabParser.ParseShaderLabCommands(tokens, ShaderAnalyzers.SLConfig, out _);
+                        foreach (var node in nodes)
+                        {
+                            if (node is not ShaderLabCommandTagsNode tags) continue;
+                            foreach (var tag in tags.Tags)
+                            {
+                                tag.Deconstruct(out var tagKey, out var tagValue);
+                                if (keySet.Contains(tagKey))
+                                {
+                                    if (debugBuild)
+                                    {
+                                        Debug.LogWarning("Found duplicate tag, updating: " + tagKey + " to " + tagValue);
+                                    }
+                                    dedupedTags[tagKey] = tagValue;
+                                    continue;
+                                }
+                                keySet.Add(tagKey);
+                                dedupedTags.Add(tagKey, tagValue);
+                            }
+                        }
+
+                        foreach (var (key, value) in dedupedTags)
+                        {
+                            dedupedTagsString.Append($"\"{key}\" = \"{value}\" ");
+                        }
+                        deduped.Add(dedupedTagsString.ToString());
                         break;
                     }
             }
