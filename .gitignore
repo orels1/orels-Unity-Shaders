@@ -111,9 +111,10 @@ Packages/sh.orels.shaders.inspector/Editor/MaterialLibraries/Resources/**/*.json
 UserSettings/Layouts/default-2022.dwlt
 UserSettings/EditorUserSettings.asset
 UserSettings/Search.settings
-Assets/TextMeshPro
-Assets/TextMeshPro.meta
+Assets/TextMesh Pro
+Assets/TextMesh Pro.meta
 Assets/XR
 Assets/XR.meta
 Assets/AmplifyShaderEditor
 Assets/AmplifyShaderEditor.meta
+/bakery-*
