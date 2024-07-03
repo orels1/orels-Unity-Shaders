@@ -21,9 +21,9 @@
 
     UI_MobileTweaks("## Mobile Tweaks", Int) = 1
     [Toggle(FORCE_BOX_PROJECTION)]_ForceBoxProjection("Force Box Projection", Int) = 0
-    [KeywordEnum(ACES, Unreal, Uncharted)]MOBILE_TONEMAP("Mobile Tonemap Mode", Int) = 0
     [Toggle(APPLY_COLOR_CORRECTION)]_ApplyColorCorrection("Apply Mobile Color Correction", Int) = 0
     UI_ApplyColorCorrectionNote("> Enables in-shader color correction, useful for Mobile platforms where PostProcessing is not available", Int) = 0
+    [KeywordEnum(ACES, Unreal, Uncharted)]MOBILE_TONEMAP("Mobile Tonemap Mode %ShowIf(_ApplyColorCorrection)", Int) = 0
     _ColorCorrLift("Lift %ShowIf(_ApplyColorCorrection)", Range(0, 2)) = 1
     _ColorCorrGamma("Gamma %ShowIf(_ApplyColorCorrection)", Range(0,2)) = 1.1
     _ColorCorrGain("Gain %ShowIf(_ApplyColorCorrection)", Range(0, 2)) = 1.4
@@ -37,14 +37,17 @@
     _SpecularRoughnessMod("Specular Roughness Mod", Range(0, 1)) = 1
     [Toggle(BICUBIC_LIGHTMAP)]_Bicubic("Bicubic Sampling", Int) = 0
     [Toggle(BAKED_SPECULAR)]_BakedSpecular("Baked Specular", Int) = 0
+    
     UI_GITweaksHeader("## Global Illumination Tweaks", Int) = 0
     _GIEmissiveBoost("GI Emissive Boost", Float) = 1
     [ToggleUI]_IgnoreRealtimeGI("Ignore Relatime GI", Int) = 0
     UI_IgnoreRealtimeGINote("> This will make the material ignore Unity Realtime GI system. It does not affect custom RTGI systems like LTCGI", Int) = 0
+    
     UI_BakeryHeader("## Bakery Features", Int) = 0
     [Toggle(BAKERY_ENABLED)]_BakeryEnabled("Enable Bakery Features", Int) = 0
     [KeywordEnum(None, MONOSH, SH, RNM)]BAKERY("Bakery Mode %ShowIf(BAKERY_ENABLED)", Int) = 0
     [Toggle(BAKERY_SHNONLINEAR)]_BakerySHNonLinear("Bakery Non-Linear SH %ShowIf(BAKERY_ENABLED)", Int) = 1
+    
     UI_InternalHeader("# Internal", Int) = 0
     [NonModifiableTextureData]_DFG("DFG > %RequiredTexture(@/dfg-multiscatter.exr)", 2D) = "white" {}
     _RNM0("RNM0 >", 2D) = "white" {}
@@ -61,8 +64,14 @@
     #pragma shader_feature_local NONLINEAR_SH
     #pragma shader_feature_local APPLY_COLOR_CORRECTION
     #pragma shader_feature_local SHADE_VERTEXLIGHTS
+    #pragma shader_feature_local MOBILE_TONEMAP_ACES MOBILE_TONEMAP_UNREAL MOBILE_TONEMAP_UNCHARTED
+
     #if defined(SHADE_VERTEXLIGHTS)
         #pragma multi_compile _ VERTEXLIGHT_ON
+    #endif
+
+    #if !defined(MOBILE_TONEMAP_ACES) && !defined(MOBILE_TONEMAP_UNREAL) && !defined(MOBILE_TONEMAP_UNCHARTED)
+        #define MOBILE_TONEMAP_ACES
     #endif
 }
 
@@ -88,6 +97,7 @@
     half _ColorCorrGain;
 
     half _SpecOcclusion;
+    half _RealtimeShadowSpecOcclusion;
     half _SpecularRoughnessMod;
     half _GIEmissiveBoost;
     int _IgnoreRealtimeGI;
