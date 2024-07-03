@@ -10,6 +10,18 @@
         ZTest[_ZTest]
         ZWrite[_ZWrite]
         Cull[_CullMode]
+
+        %TemplateFeature("Stencil")
+        {
+            Stencil
+            {
+                Ref [_StencilRef]
+                Comp [_StencilComp]
+                Pass [_StencilPassOp]
+                Fail [_StencilFailOp]
+                ZFail [_StencilZFailOp]
+            }
+        }
         
         %ShaderModifiers
 

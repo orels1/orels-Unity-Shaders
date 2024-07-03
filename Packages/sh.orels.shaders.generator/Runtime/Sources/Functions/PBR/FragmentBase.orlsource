@@ -4,6 +4,13 @@
     [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
     [Enum(Off, 0, On, 1)]_ZWrite("Depth Write", Int) = 1
     [Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("Depth Test", Int) = 4
+    UI_AdvancedSettingsStancilHeader("## Stencils", Int) = 1
+    [IntRange]_StencilRef("Reference", Range(0, 255)) = 0
+    [Enum(UnityEngine.Rendering.CompareFunction)]_StencilComp("Comparison", Float) = 8
+    [Enum(UnityEngine.Rendering.StencilOp)]_StencilPassOp("Pass Operation", Float) = 0
+    [Enum(UnityEngine.Rendering.StencilOp)]_StencilFailOp("Fail Operation", Float) = 0
+    [Enum(UnityEngine.Rendering.StencilOp)]_StencilZFailOp("ZFail Operation", Float) = 0
+    
     UI_GSAAHeader("## GSAA", Float) = 0
     [Toggle(GSAA)]_EnableGSAA("GSAA Enabled", Int) = 1
     UI_GSAANote("> GSAA dramatically reduces specular aliasing", Int) = 0
