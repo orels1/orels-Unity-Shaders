@@ -53,9 +53,9 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local _ SPIN_LOCAL SPIN_WORLD
-    #pragma shader_feature_local _ FLOATING_LOCAL FLOATING_WORLD
-    #pragma shader_feature_local _ SCALE_UNIFORM SCALE_FLOW
+    #pragma shader_feature_local SPIN_NONE SPIN_LOCAL SPIN_WORLD
+    #pragma shader_feature_local FLOATING_NONE FLOATING_LOCAL FLOATING_WORLD
+    #pragma shader_feature_local SCALE_NONE SCALE_UNIFORM SCALE_FLOW
 }
 
 %ShaderTags()
@@ -65,15 +65,6 @@
 
 %ShaderDefines()
 {
-    #if !defined(SPIN_WORLD) && !defined(SPIN_LOCAL)
-    #define SPIN_NONE
-    #endif
-    #if !defined(FLOATING_WORLD) && !defined(FLOATING_LOCAL)
-    #define FLOATING_NONE
-    #endif
-    #if !defined(SCALE_UNIFORM) && !defined(SCALE_FLOW)
-    #define SCALE_NONE
-    #endif
     #define EXTRA_V2F_0
 }
 
