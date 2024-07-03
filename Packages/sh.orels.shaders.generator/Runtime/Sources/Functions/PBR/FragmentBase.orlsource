@@ -1,4 +1,4 @@
-﻿%Properties()
+%Properties()
 {
     UI_AdvancedSettingsHeader("# Advanced Settings", Int) = 1
     [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
@@ -104,7 +104,7 @@
         half occlusion = o.Occlusion;
         half perceptualRoughness = 1 - o.Smoothness;
         half3 tangentNormal = o.Normal;
-        o.Normal = normalize(mul(o.Normal, d.TBNMatrix));
+        o.Normal = Unity_SafeNormalize(mul(o.Normal, d.TBNMatrix));
 
         #ifndef USING_DIRECTIONAL_LIGHT
         fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
