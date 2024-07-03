@@ -1,4 +1,4 @@
-﻿%ShaderName("orels1/Standard")
+%ShaderName("orels1/Standard")
 %CustomEditor("ORL.ShaderInspector.InspectorGUI")
 
 %Properties()
@@ -127,7 +127,7 @@
         half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
         if (_EmissionChannel > 0)
         {
-            emission.rgb = emission[_EmissionChannel].xxx;
+            emission.rgb = emission[_EmissionChannel - 1].xxx;
         }
         int hasMasks = _MaskMap_TexelSize.z > 8;
         half metal = masks[_MetalChannel];
