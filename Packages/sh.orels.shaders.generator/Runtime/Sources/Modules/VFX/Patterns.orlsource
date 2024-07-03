@@ -5,40 +5,38 @@
     UI_PatternsPresesets("Selected Preset %Preset(@/Presets/VFX/Patterns)", Int) = 0
     [KeywordEnum(None, 2x, 4x)]PATTERN_SUPERSAMPLING("Super Sampling", Int) = 0
     UI_PatternsSuperSamplingNote("> If the patterns look too jagged, you can try increasing the Super Sampling amount", Int) = 0
-    // [KeywordEnum(Circles, Triangles, Lines)]PATTERN("Pattern", Int) = 0
-    [HDR]_CirclesColor1("Color 1 %ShowIf(PATTERN_CIRCLES)", Color) = (0, 0, 0, 1)
-    [HDR]_CirclesColor2("Color 2 %ShowIf(PATTERN_CIRCLES)", Color) = (1, 1, 1, 1)
+    [HDR]_CirclesColor1("Color 1", Color) = (0, 0, 0, 1)
+    [HDR]_CirclesColor2("Color 2", Color) = (1, 1, 1, 1)
     
-    UI_CirclesKaleidoscopeHeader("## Kaleidoscope %ShowIf(PATTERN_CIRCLES)", Int) = 1
-    [ToggleUI]_CirclesKaleidoscopeUV("Kaleidoscope UV %ShowIf(PATTERN_CIRCLES)", Int) = 0
-    UI_CirclesKaleidoscopeUVNote("> Adds Kaleidoscope effect, recommended to use with Circle Offset of 0,0 %ShowIf(PATTERN_CIRCLES)", Int) = 0
-    _CirclesKaleidoscopeSlices("Slice Count %ShowIf(PATTERN_CIRCLES && _CirclesKaleidoscopeUV)", Int) = 2
-    _CirclesKaleidoscopeSpinSpeed("Spin Speed %ShowIf(PATTERN_CIRCLES && _CirclesKaleidoscopeUV)", Float) = 0.5
-    _CirclesKaleidoscopeSpinOffset("Spin Time Offset %ShowIf(PATTERN_CIRCLES && _CirclesKaleidoscopeUV)", Float) = 0
-    _CirclesKaleidoscopeTiling("Tiling %ShowIf(PATTERN_CIRCLES && _CirclesKaleidoscopeUV)", Float) = 1
+    UI_CirclesKaleidoscopeHeader("## Kaleidoscope", Int) = 1
+    [ToggleUI]_CirclesKaleidoscopeUV("Kaleidoscope UV", Int) = 0
+    UI_CirclesKaleidoscopeUVNote("> Adds Kaleidoscope effect, recommended to use with Circle Offset of 0,0", Int) = 0
+    _CirclesKaleidoscopeSlices("Slice Count %ShowIf(_CirclesKaleidoscopeUV)", Int) = 2
+    _CirclesKaleidoscopeSpinSpeed("Spin Speed %ShowIf(_CirclesKaleidoscopeUV)", Float) = 0.5
+    _CirclesKaleidoscopeSpinOffset("Spin Time Offset %ShowIf(_CirclesKaleidoscopeUV)", Float) = 0
+    _CirclesKaleidoscopeTiling("Tiling %ShowIf(_CirclesKaleidoscopeUV)", Float) = 1
 
     UI_CirclesSettingsHeader("## Circles Settings", Int) = 0
-    _CircleOrigin("Circle Origin %ShowIf(PATTERN_CIRCLES)", Vector) = (0.2, 0.2, 0, 0)
+    _CircleOrigin("Circle Origin", Vector) = (0.2, 0.2, 0, 0)
     UI_CircleOriginNote("> Only X and Y values are used", Int) = 1
-    _CircleCount("Circle Count %ShowIf(PATTERN_CIRCLES)", Float) = 30
-    _CircleSmoothing("Circle Smoothing %ShowIf(PATTERN_CIRCLES)", Float) = 0.1
-    _CircleExpandSpeed("Expand Speed %ShowIf(PATTERN_CIRCLES)", Float) = 0.1
+    _CircleCount("Circle Count", Float) = 30
+    _CircleSmoothing("Circle Smoothing", Float) = 0.1
+    _CircleExpandSpeed("Expand Speed", Float) = 0.1
     _CircleExpandTimeOffset("Time Offset", Float) = 0
     
-    UI_LinesHeader("## Lines Mask %ShowIf(PATTERN_CIRCLES)", Int) = 1
-    [ToggleUI]_CircleAddLines("Add Lines %ShowIf(PATTERN_CIRCLES)", Int) = 0
-    _CircleLinesThickness("Line Thickness %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Float) = 5
-    _CircleLinesSmoothing("Line Smoothing %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Float) = 0.1
-    _CircleLinesDegreeOffset("Offset (Degrees) %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Float) = 30
-    UI_CircleLinesDegreeOffsetNote("> Add a line every X degrees. E.g. a value of 30 will draw a line every 30 degrees %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Int) = 0
-    _CircleLinesSpinSpeed("Spin Speed %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Float) = 0.1
-    [ToggleUI]_CircleLinesSpinAlternate("Alternate Spin %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Int) = 1
-    _CircleLinesSpinTimeOffset("Spin Time Offset %ShowIf(PATTERN_CIRCLES && _CircleAddLines)", Float) = 0
+    UI_LinesHeader("## Lines Mask", Int) = 1
+    [ToggleUI]_CircleAddLines("Add Lines", Int) = 0
+    _CircleLinesThickness("Line Thickness %ShowIf(_CircleAddLines)", Float) = 5
+    _CircleLinesSmoothing("Line Smoothing %ShowIf(_CircleAddLines)", Float) = 0.1
+    _CircleLinesDegreeOffset("Offset (Degrees) %ShowIf(_CircleAddLines)", Float) = 30
+    UI_CircleLinesDegreeOffsetNote("> Add a line every X degrees. E.g. a value of 30 will draw a line every 30 degrees %ShowIf(_CircleAddLines)", Int) = 0
+    _CircleLinesSpinSpeed("Spin Speed %ShowIf(_CircleAddLines)", Float) = 0.1
+    [ToggleUI]_CircleLinesSpinAlternate("Alternate Spin %ShowIf(_CircleAddLines)", Int) = 1
+    _CircleLinesSpinTimeOffset("Spin Time Offset %ShowIf(_CircleAddLines)", Float) = 0
 }
 
 %ShaderFeatures()
 {
-    // #pragma shader_feature_local PATTERN_CIRCLES PATTERN_TRIANGLES PATTERN_LINES
     #pragma shader_feature_local PATTERN_SUPERSAMPLING_NONE PATTERN_SUPERSAMPLING_2X PATTERN_SUPERSAMPLING_4X
 }
 
