@@ -4,6 +4,8 @@
     [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
     [Enum(Off, 0, On, 1)]_ZWrite("Depth Write", Int) = 1
     [Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("Depth Test", Int) = 4
+    [Toggle(SHADE_VERTEXLIGHTS)]_ShadeVertexLights("Enable Vertex Lights", Int) = 0
+    UI_ShadeVertexLightsNote("> This will enable vertex-light compatible shader variants. If you're not planning to use vertex (non-important) lights - you can keep this off to make the final shader smaller", Int) = 0
     UI_AdvancedSettingsStancilHeader("## Stencils", Int) = 1
     [IntRange]_StencilRef("Reference", Range(0, 255)) = 0
     [Enum(UnityEngine.Rendering.CompareFunction)]_StencilComp("Comparison", Float) = 8
@@ -53,6 +55,10 @@
     #pragma shader_feature_local FORCE_BOX_PROJECTION
     #pragma shader_feature_local NONLINEAR_SH
     #pragma shader_feature_local APPLY_COLOR_CORRECTION
+    #pragma shader_feature_local SHADE_VERTEXLIGHTS
+    #if defined(SHADE_VERTEXLIGHTS)
+        #pragma multi_compile _ VERTEXLIGHT_ON
+    #endif
 }
 
 %ShaderDefines()
@@ -132,6 +138,24 @@
 
         half NoV = abs(dot(o.Normal, d.worldSpaceViewDir)) + 1e-5;
         pixelLight = lightNoL * lightColor * Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
+
+        // Collect Vertex Light Data and calculate direct diffuse
+        #if defined(SHADE_VERTEXLIGHTS) &&defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+        float4x4 vLightColors = getVertexLightsColors(d.worldSpacePosition, o.Normal, false);
+        float4x4 vLightDirections = getVertexLightsDir(d.worldSpacePosition);
+        float4x4 vLightHalfVectors = 0;
+        float4 vLightNoLs = 0;
+        float4 vLightLoHs = 0;
+
+        [unroll(4)]
+        for (int i = 0; i < 4; i++)
+        {
+            vLightHalfVectors[i].rgb = Unity_SafeNormalize(vLightDirections[i] + d.worldSpaceViewDir);
+            vLightLoHs[i] = saturate(dot(vLightDirections[i], vLightHalfVectors[i]));
+            vLightNoLs[i] = saturate(dot(o.Normal, vLightDirections[i]));
+            vLightColors[i] = vLightNoLs[i] * vLightColors[i] * Fd_Burley(perceptualRoughness, NoV, vLightNoLs[i], vLightLoHs[i]);
+        }
+        #endif
 
         // READ THE LIGHTMAP
         // Can be Baked, Realtime, both or either
@@ -290,7 +314,10 @@
         #endif // end of #if defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
 
         #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
-        pixelLight *= UnityComputeForwardShadows(d.lightmapUv.xy, d.worldSpacePosition, d.screenPos);
+        {
+            float3 forwardShadows = UnityComputeForwardShadows(d.lightmapUv.xy, d.worldSpacePosition, d.screenPos);
+            pixelLight *= forwardShadows;
+        }
         #endif
 
 
@@ -301,15 +328,46 @@
         half rough = perceptualRoughness * perceptualRoughness;
         half clampedRoughness = max(rough, 0.002);
 
+        // DIRECT REALTIME SPECULAR
         #if !defined(SPECULAR_HIGHLIGHTS_OFF) && defined(USING_LIGHT_MULTI_COMPILE)
-        half NoH = saturate(dot(o.Normal, lightHalfVector));
-        half3 F = F_Schlick(lightLoH, f0);
-        half D = D_GGX(NoH, clampedRoughness);
-        half V = V_SmithGGXCorrelated(NoV, lightNoL, clampedRoughness);
+        {
+            // Main Light
+            {
+                half NoH = saturate(dot(o.Normal, lightHalfVector));
+                half3 F = F_Schlick(lightLoH, f0);
+                half D = D_GGX(NoH, clampedRoughness);
+                half V = V_SmithGGXCorrelated(NoV, lightNoL, clampedRoughness);
 
-        F *= energyCompensation;
+                F *= energyCompensation;
 
-        directSpecular = max(0, D * V * F) * pixelLight * UNITY_PI;
+                directSpecular = max(0, D * V * F) * pixelLight * UNITY_PI;
+            }
+
+            // Vertex Lights
+            #if defined(SHADE_VERTEXLIGHTS) && defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+            {
+                [unroll(4)]
+                for (int i = 0; i < 4; i++)
+                {
+                    half NoH = saturate(dot(o.Normal, vLightHalfVectors[i]));
+                    half3 F = F_Schlick(vLightLoHs[i], f0);
+                    half D = D_GGX(NoH, clampedRoughness);
+                    half V = V_SmithGGXCorrelated(NoV, vLightNoLs[i], clampedRoughness);
+
+                    F *= energyCompensation;
+
+                    directSpecular += max(0, D * V * F) * vLightColors[i] * UNITY_PI;
+                }
+            }
+            #endif
+        }
+        #endif
+
+        // Composite Vertex Lights with Main Light for final diffuse mixing
+        #if defined(SHADE_VERTEXLIGHTS) && defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+        {
+            pixelLight += vLightColors[0] + vLightColors[1] + vLightColors[2] + vLightColors[3];
+        }
         #endif
 
         // BAKED SPECULAR
