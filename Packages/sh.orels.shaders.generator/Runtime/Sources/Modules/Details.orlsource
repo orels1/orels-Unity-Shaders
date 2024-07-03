@@ -150,7 +150,6 @@
 
         // Separated mdoe supports BIRP-style 2x albedo mixing
         if (_DAlbedoMixingLegacy) {
-            // o.Albedo = lerp(o.Albedo, o.Albedo * 2.0 * detailsMap.rgb, saturate(mask * _DAlbedoScale));
             o.Albedo *= LerpWhiteTo(detailsMap.rgb * unity_ColorSpaceDouble.rgb, mask * _DAlbedoScale);
         } else {
             half3 detailAlbedo = detailsMap.rgb * 2.0 - 1.0;
