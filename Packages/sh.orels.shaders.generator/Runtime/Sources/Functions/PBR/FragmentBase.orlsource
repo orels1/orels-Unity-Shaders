@@ -491,7 +491,9 @@
         // FINAL COLOR
         FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
         
+        #if !defined(UNITY_PASS_FORWARDADD)
         FinalColor.rgb += o.Emission;
+        #endif
         #endif
     }
 }
