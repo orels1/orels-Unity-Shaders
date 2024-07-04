@@ -734,27 +734,30 @@ namespace ORL.ShaderGenerator
                         var nodes = ShaderLabParser.ParseShaderLabCommands(tokens, ShaderAnalyzers.SLConfig, out _);
                         foreach (var node in nodes)
                         {
-                            if (node is not ShaderLabCommandTagsNode tags) continue;
-                            foreach (var tag in tags.Tags)
+                            if (node is ShaderLabCommandTagsNode tags)
                             {
-                                tag.Deconstruct(out var tagKey, out var tagValue);
-                                if (keySet.Contains(tagKey))
+                                foreach (var tag in tags.Tags)
                                 {
-                                    if (debugBuild)
+                                    var tagKey = tag.Key;
+                                    var tagValue = tag.Value;
+                                    if (keySet.Contains(tagKey))
                                     {
-                                        Debug.LogWarning("Found duplicate tag, updating: " + tagKey + " to " + tagValue);
+                                        if (debugBuild)
+                                        {
+                                            Debug.LogWarning("Found duplicate tag, updating: " + tagKey + " to " + tagValue);
+                                        }
+                                        dedupedTags[tagKey] = tagValue;
+                                        continue;
                                     }
-                                    dedupedTags[tagKey] = tagValue;
-                                    continue;
+                                    keySet.Add(tagKey);
+                                    dedupedTags.Add(tagKey, tagValue);
                                 }
-                                keySet.Add(tagKey);
-                                dedupedTags.Add(tagKey, tagValue);
                             }
                         }
 
-                        foreach (var (key, value) in dedupedTags)
+                        foreach (var dedupedTag in dedupedTags)
                         {
-                            dedupedTagsString.Append($"\"{key}\" = \"{value}\" ");
+                            dedupedTagsString.Append($"\"{dedupedTag.Key}\" = \"{dedupedTag.Value}\" ");
                         }
                         deduped.Add(dedupedTagsString.ToString());
                         break;

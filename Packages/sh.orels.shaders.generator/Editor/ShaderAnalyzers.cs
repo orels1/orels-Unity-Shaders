@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
-
-
 #if UNITY_2022_3_OR_NEWER
 using UnityEditor.AssetImporters;
 #else
@@ -56,11 +53,13 @@ namespace ORL.ShaderGenerator
 
             public override void VisitVariableDeclarationStatementNode(VariableDeclarationStatementNode node)
             {
+#if UNITY_2021_3_OR_NEWER
                 if (node.Kind is not PredefinedObjectTypeNode predefinedObjectTypeNode) return;
                 if (_supportedTexTypes.Contains(predefinedObjectTypeNode.Kind))
                 {
                     texturesFound++;
                 }
+#endif
             }
         }
 
@@ -77,11 +76,13 @@ namespace ORL.ShaderGenerator
 
             public override void VisitVariableDeclarationStatementNode(VariableDeclarationStatementNode node)
             {
+#if UNITY_2021_3_OR_NEWER
                 if (node.Kind is not PredefinedObjectTypeNode predefinedObjectTypeNode) return;
                 if (predefinedObjectTypeNode.Kind == PredefinedObjectType.SamplerState)
                 {
                     samplersFound++;
                 }
+#endif
             }
         }
 
