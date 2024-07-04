@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -67,17 +68,23 @@ namespace ORL.Tools
             var exportDir = Path.Combine(Directory.GetCurrentDirectory(), "Exports");
             Directory.CreateDirectory(exportDir);
 
-            ExportAsUnityPackage(_exportFolders, ignored, Path.Combine(exportDir, $"sh.orels.shaders-combined-{manifest.version}.unitypackage"), manifest.version);
-            ExportAsUnityPackage(_exportFolders[0], ignored, Path.Combine(exportDir, $"sh.orels.shaders-standalone-{manifest.version}.unitypackage"), manifest.version);
-            ExportAsUnityPackage(_exportFolders[1], ignored, Path.Combine(exportDir, $"sh.orels.shaders.inspector-standalone-{manifest.version}.unitypackage"), manifest.version);
-            ExportAsUnityPackage(_exportFolders[2], ignored, Path.Combine(exportDir, $"sh.orels.shaders.generator-standalone-{manifest.version}.unitypackage"), manifest.version);
+            // Export .unitypackage files
+            ExportAsUnityPackage(_exportFolders, ignored, Path.Combine(exportDir, $"sh.orels.shaders-combined-{manifest.version}.unitypackage"));
+            ExportAsUnityPackage(_exportFolders[0], ignored, Path.Combine(exportDir, $"sh.orels.shaders-standalone-{manifest.version}.unitypackage"));
+            ExportAsUnityPackage(_exportFolders[1], ignored, Path.Combine(exportDir, $"sh.orels.shaders.inspector-standalone-{manifest.version}.unitypackage"));
+            ExportAsUnityPackage(_exportFolders[2], ignored, Path.Combine(exportDir, $"sh.orels.shaders.generator-standalone-{manifest.version}.unitypackage"));
+
+            // Export .zip files
+            ExportAsZip(_exportFolders[0], ignored, Path.Combine(exportDir, $"sh.orels.shaders-{manifest.version}.zip"));
+            ExportAsZip(_exportFolders[1], ignored, Path.Combine(exportDir, $"sh.orels.shaders.inspector-{manifest.version}.zip"));
+            ExportAsZip(_exportFolders[2], ignored, Path.Combine(exportDir, $"sh.orels.shaders.generator-{manifest.version}.zip"));
 
             // Open the export folder
             var exportedPath = new FileInfo("Exports").FullName;
             Process.Start(exportedPath);
         }
 
-        private static void ExportAsUnityPackage(string[] baseFolders, List<string> ingored, string exportPath, string version)
+        private static void ExportAsUnityPackage(string[] baseFolders, List<string> ingored, string exportPath)
         {
             var list = baseFolders.SelectMany(f => Directory.GetFiles(f, "*", SearchOption.AllDirectories))
                 .Select(f => f.Replace('/', '\\'))
@@ -88,13 +95,38 @@ namespace ORL.Tools
             AssetDatabase.ExportPackage(list, exportPath, ExportPackageOptions.Recurse);
         }
 
-        private static void ExportAsUnityPackage(string baseFolder, List<string> ingored, string exportPath, string version)
+        private static void ExportAsUnityPackage(string baseFolder, List<string> ingored, string exportPath)
         {
             var list = Directory.GetFiles(baseFolder, "*", SearchOption.AllDirectories)
                 .Select(f => f.Replace('/', '\\'))
                 .Where(f => !ingored.Any(i => f.Contains(i, StringComparison.InvariantCultureIgnoreCase)))
                 .ToArray();
             AssetDatabase.ExportPackage(list, exportPath, ExportPackageOptions.Recurse);
+        }
+
+        private static void ExportAsZip(string baseFolder, List<string> ingored, string exportPath)
+        {
+            var list = Directory.GetFiles(baseFolder, "*", SearchOption.AllDirectories)
+                .Select(f => f.Replace('/', '\\'))
+                .Where(f => !ingored.Any(i => f.Contains(i, StringComparison.InvariantCultureIgnoreCase)))
+                .ToArray();
+
+            if (File.Exists(exportPath)) File.Delete(exportPath);
+            var basePath = baseFolder.Replace('/', '\\') + '\\';
+            using (var zip = new ZipArchive(File.OpenWrite(exportPath), ZipArchiveMode.Create))
+            {
+                foreach (var file in list)
+                {
+                    var entry = zip.CreateEntry(file.Replace(basePath, ""));
+                    using (var stream = File.OpenRead(file))
+                    {
+                        using (var entryStream = entry.Open())
+                        {
+                            stream.CopyTo(entryStream);
+                        }
+                    }
+                }
+            }
         }
     }
 }
