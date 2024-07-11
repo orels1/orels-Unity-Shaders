@@ -34,6 +34,8 @@
     _SpecOcclusion("Specular Occlusion", Range(0, 1)) = 0.75
     _RealtimeShadowSpecOcclusion("Realtime Shadow Specular Occlusion", Range(0, 1)) = 0
     UI_RealtimeShadowSpecularOcclusionNote("> While this isn't strictly physically correct, it can be useful to tone down strong reflection probes in shadowed areas", Int) = 0
+    _DirectSpecularOcclusion("Direct Specular Occlusion", Range(0, 1)) = 0.75
+    UI_DirectSpecularOcclusionNote("> If the object is lightmapped: this will adjust the intensity of the lightmap specular derived from the Directional lightmap.\nIf the object is not lightmapped: this will adjust the intensity of the specular derived from lightprobes", Int) = 0
     _SpecularRoughnessMod("Specular Roughness Mod", Range(0, 1)) = 1
     [Toggle(BICUBIC_LIGHTMAP)]_Bicubic("Bicubic Sampling", Int) = 0
     [Toggle(BAKED_SPECULAR)]_BakedSpecular("Baked Specular", Int) = 0
@@ -98,6 +100,7 @@
 
     half _SpecOcclusion;
     half _RealtimeShadowSpecOcclusion;
+    float _DirectSpecularOcclusion;
     half _SpecularRoughnessMod;
     half _GIEmissiveBoost;
     int _IgnoreRealtimeGI;
@@ -386,6 +389,7 @@
         #endif
 
         // BAKED SPECULAR
+        half3 bakedDirectSpecular = 0;
         #if defined(BAKED_SPECULAR) && !defined(BAKERYLM_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
         {
             half3 bakedDominantDirection = 1;
@@ -406,7 +410,7 @@
             #endif
 
             bakedDominantDirection = normalize(bakedDominantDirection);
-            directSpecular += GetSpecularHighlights(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+            bakedDirectSpecular = GetSpecularHighlights(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
         }
         #endif
 
@@ -428,7 +432,7 @@
                 half3 halfDir = Unity_SafeNormalize(dominantDirTangentNormalized - viewDirTangent);
                 half NoH = saturate(dot(tangentNormal, halfDir));
                 half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
-                directSpecular += spec * specColor * fresnel;
+                bakedDirectSpecular += spec * specColor * fresnel;
             }
             #endif
 
@@ -437,7 +441,7 @@
                 half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
                 half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
                 dominantDir = normalize(dominantDir);
-                directSpecular += GetSpecularHighlights(o.Normal, sh, dominantDir, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+                bakedDirectSpecular += GetSpecularHighlights(o.Normal, sh, dominantDir, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
             }
             #endif
 
@@ -446,7 +450,7 @@
                 half3 dominantDir = nL1;
                 half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
                 dominantDir = normalize(dominantDir);
-                directSpecular += GetSpecularHighlights(o.Normal, sh, dominantDir, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+                bakedDirectSpecular += GetSpecularHighlights(o.Normal, sh, dominantDir, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
             }
             #endif
         #endif // End of #if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
@@ -481,12 +485,16 @@
         dfg.x *= specularOcclusion;
         specularOcclusion = computeSpecularAO(NoV, o.Occlusion * specularOcclusion, clampedRoughness);
 
-        indirectSpecular *= specularOcclusion * EnvBRDFMultiscatter(dfg, f0);
+        half3 finalSpecOcclusion = specularOcclusion * EnvBRDFMultiscatter(dfg, f0);
+        bakedDirectSpecular *= lerp(1, finalSpecOcclusion, _DirectSpecularOcclusion);
+        indirectSpecular *= finalSpecOcclusion;
         #endif
 
         #if defined(_INTEGRATE_CUSTOMGI) && !defined(UNITY_PASS_FORWARDADD)
         IntegrateCustomGI(d, o, indirectSpecular, indirectDiffuse);
         #endif
+
+        directSpecular += bakedDirectSpecular;
 
         // FINAL COLOR
         FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
