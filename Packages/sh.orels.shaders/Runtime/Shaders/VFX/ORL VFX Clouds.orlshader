@@ -9,8 +9,6 @@
 
     UI_ShadingHeader("# Shading", Int) = 1
     _DepthTransp("Depth Transparency", Float) = 36
-    _HeightBottom("Height Bottom", Float) = 0.12
-    _HeightTop("Height Top", Float) = 1
     [Toggle(APPLY_SHADING)]_ApplyShading("Apply Shading", Int) = 0
     _ShadeRamp("Shade Ramp %ShowIf(APPLY_SHADING) %Gradient()", 2D) = "grayscaleRamp" {}
     _Tint("Tint %ShowIf(APPLY_SHADING)", Color) = (1,1,1,1)
@@ -18,6 +16,8 @@
     _NormalPrecision("Normal Precision %ShowIf(APPLY_SHADING && RECALCULATE_NORMALS)", Float) = 0.7
     _ColorBottom("Color Bottom %ShowIf(!APPLY_SHADING)", Color) = (0.5680403, 0.5980207, 0.6509434, 1)
     _ColorTop("Color Top %ShowIf(!APPLY_SHADING)", Color) = (0.8066038, 0.9495488, 1, 1)
+    _HeightBottom("Height Bottom", Float) = 0.12
+    _HeightTop("Height Top", Float) = 1
 
     UI_NoiseHeader("# Noise", Int) = 1
 
