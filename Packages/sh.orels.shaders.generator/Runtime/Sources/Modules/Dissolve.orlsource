@@ -69,7 +69,7 @@
 %Fragment("DissolveFragment")
 {
     void DissolveFragment(MeshData d, inout SurfaceData o) {
-        _DissolveCutoff = remap(_DissolveCutoff, 0, 1, -0.1, 1);
+        _DissolveCutoff = remap(_DissolveCutoff, 0, 1, -0.1, 1.1);
         half gradSource = 0;
         uint totalChannels = 3;
         switch (_DissolveSource) {
