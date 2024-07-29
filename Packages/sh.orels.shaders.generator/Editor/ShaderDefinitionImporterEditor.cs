@@ -35,7 +35,7 @@ namespace ORL.ShaderGenerator
             "Meta",
             "ShadowCaster"
         };
-        
+
 
         public override void OnInspectorGUI()
         {
@@ -66,7 +66,7 @@ namespace ORL.ShaderGenerator
                     richText = true,
                 };
             }
-            
+
             var importer = target as ShaderDefinitionImporter;
             if (importer == null) return;
 
@@ -131,6 +131,10 @@ namespace ORL.ShaderGenerator
                             if (error.StartIndex > -1)
                             {
                                 var offset = fileContents[i].Length - fileContents[i].TrimStart().Length;
+                                if (fileContents[i].Length == 0 || (error.StartIndex + offset) > fileContents[i].Length)
+                                {
+                                    continue;
+                                }
                                 snippet.Append(fileContents[i].Substring(0, error.StartIndex + offset));
                                 snippet.Append("<color=#ff6188>");
                                 snippet.Append(fileContents[i].Substring(error.StartIndex + offset, error.EndIndex - error.StartIndex));
