@@ -103,6 +103,9 @@
                 // ForwardBase VertexBase
                 %VertexBase
 
+                // ForwardBase PostVertex Chain
+                %PostVertexFunctions
+
                 return o;
             }
             #endif
@@ -205,6 +208,9 @@
 
                 // ForwardAdd VertexBase
                 %VertexBase
+
+                // ForwardAdd PostVertex Chain
+                %PostVertexFunctions
 
                 return o;
             }
@@ -312,6 +318,9 @@
                 // Meta VertexBase
                 %VertexBase
 
+                // Meta PostVertex Chain
+                %PostVertexFunctions
+
                 return o;
             }
             #endif
@@ -416,6 +425,9 @@
 
                 // ShadowCaster VertexBase
                 %VertexBase
+
+                // ShadowCaster PostVertex Chain
+                %PostVertexFunctions
 
                 TRANSFER_SHADOW_CASTER_NORMALOFFSET(o);
 

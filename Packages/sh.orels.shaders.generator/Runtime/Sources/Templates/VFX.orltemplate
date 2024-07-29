@@ -90,6 +90,9 @@
                     // ForwardBase Depth PrePass VertexBase
                     %VertexBase
 
+                    // ForwardBase Depth PrePass PostVertex Chain
+                    %PostVertexFunctions
+
                     return o;
                 }
                 #endif
@@ -197,6 +200,9 @@
 
                 // ForwardBase VertexBase
                 %VertexBase
+
+                // ForwardBase PostVertex Chain
+                %PostVertexFunctions
 
                 return o;
             }
@@ -306,6 +312,9 @@
 
                     // ShadowCaster VertexBase
                     %VertexBase
+
+                    // ShadowCaster PostVertex Chain
+                    %PostVertexFunctions
 
                     TRANSFER_SHADOW_CASTER_NORMALOFFSET(o);
 

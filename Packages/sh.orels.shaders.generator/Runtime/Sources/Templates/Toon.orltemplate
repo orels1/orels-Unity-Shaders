@@ -98,6 +98,9 @@ Shader %ShaderName
                     // ForwardBase Depth Prepass VertexBase
                     %VertexBase
 
+                    // ForwardBase Depth Prepass PostVertex Chain
+                    %PostVertexFunctions
+
                     return o;
                 }
                 #endif
@@ -209,6 +212,9 @@ Shader %ShaderName
 
                 // ForwardBase VertexBase
                 %VertexBase
+
+                // ForwardBase PostVertex Chain
+                %PostVertexFunctions
 
                 return o;
             }
@@ -343,6 +349,9 @@ Shader %ShaderName
                 // ForwardAdd Color Chain
                 %ColorFunctions
 
+                // ForwardAdd PostVertex Chain
+                %PostVertexFunctions
+
                 UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
 
                 return FinalColor;
@@ -418,6 +427,9 @@ Shader %ShaderName
 
                 // Meta VertexBase
                 %VertexBase
+
+                // Meta PostVertex Chain
+                %PostVertexFunctions
 
                 return o;
             }
@@ -523,6 +535,9 @@ Shader %ShaderName
 
                 // ShadowCaster VertexBase
                 %VertexBase
+
+                // ShadowCaster PostVertex Chain
+                %PostVertexFunctions
 
                 TRANSFER_SHADOW_CASTER_NORMALOFFSET(o);
 
@@ -630,6 +645,9 @@ Shader %ShaderName
 
                 // Outline VertexBase
                 %VertexBase
+
+                // Outline PostVertex Chain
+                %PostVertexFunctions
 
                 return o;
 
