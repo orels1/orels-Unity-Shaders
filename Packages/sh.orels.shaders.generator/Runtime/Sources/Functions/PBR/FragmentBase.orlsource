@@ -31,14 +31,15 @@
     UI_LightmappingHeader("# Lightmapping", Int) = 1
     UI_LightmappingDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#lightmapping)", Int) = 0
     [Toggle(NONLINEAR_SH)]_NonlinearSH("Non-Linear Lightprobe SH", Int) = 0
-    _SpecOcclusion("Specular Occlusion", Range(0, 1)) = 0.75
+    _SpecOcclusion("Reflection Probe Occlusion", Range(0, 1)) = 0.25
+    UI_SpecOcclusionNote("> a.k.a. Specular Occlusion. Controls how much the reflection probe specular will be occluded by the lightmap / lightprobe diffuse", Int) = 0
     _RealtimeShadowSpecOcclusion("Realtime Shadow Specular Occlusion", Range(0, 1)) = 0
-    UI_RealtimeShadowSpecularOcclusionNote("> While this isn't strictly physically correct, it can be useful to tone down strong reflection probes in shadowed areas", Int) = 0
-    _DirectSpecularOcclusion("Direct Specular Occlusion", Range(0, 1)) = 0.75
-    UI_DirectSpecularOcclusionNote("> If the object is lightmapped: this will adjust the intensity of the lightmap specular derived from the Directional lightmap.\nIf the object is not lightmapped: this will adjust the intensity of the specular derived from lightprobes", Int) = 0
-    _SpecularRoughnessMod("Specular Roughness Mod", Range(0, 1)) = 1
+    UI_RealtimeShadowSpecularOcclusionNote("> This effect is not physically correct, it can be useful to tone down strong reflection probes in shadowed areas %ShowIf(_RealtimeShadowSpecOcclusion > 0)", Int) = 0
     [Toggle(BICUBIC_LIGHTMAP)]_Bicubic("Bicubic Sampling", Int) = 0
     [Toggle(BAKED_SPECULAR)]_BakedSpecular("Baked Specular", Int) = 0
+    _SpecularRoughnessMod("Specular Roughness Mod %ShowIf(BAKED_SPECULAR)", Range(0, 1)) = 1
+    _BakedSpecularOcclusion("Baked Specular Occlusion %ShowIf(BAKED_SPECULAR)", Range(0, 1)) = 0.75
+    UI_BakedSpecularOcclusionNote("> If the object is lightmapped: this will adjust the intensity of the lightmap specular derived from the Directional lightmap.\nIf the object is not lightmapped: this will adjust the intensity of the specular derived from lightprobes %ShowIf(BAKED_SPECULAR)", Int) = 0
     
     UI_GITweaksHeader("## Global Illumination Tweaks", Int) = 0
     _GIEmissiveBoost("GI Emissive Boost", Float) = 1
@@ -100,7 +101,7 @@
 
     half _SpecOcclusion;
     half _RealtimeShadowSpecOcclusion;
-    float _DirectSpecularOcclusion;
+    float _BakedSpecularOcclusion;
     half _SpecularRoughnessMod;
     half _GIEmissiveBoost;
     int _IgnoreRealtimeGI;
@@ -486,7 +487,13 @@
         specularOcclusion = computeSpecularAO(NoV, o.Occlusion * specularOcclusion, clampedRoughness);
 
         half3 finalSpecOcclusion = specularOcclusion * EnvBRDFMultiscatter(dfg, f0);
-        bakedDirectSpecular *= lerp(1, finalSpecOcclusion, _DirectSpecularOcclusion);
+        
+        #if defined(BAKED_SPECULAR)
+        {
+            bakedDirectSpecular *= lerp(1, finalSpecOcclusion, _BakedSpecularOcclusion);
+        }
+        #endif
+
         indirectSpecular *= finalSpecOcclusion;
         #endif
 
