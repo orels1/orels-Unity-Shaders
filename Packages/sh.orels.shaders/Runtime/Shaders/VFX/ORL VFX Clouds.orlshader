@@ -2,18 +2,39 @@
 %LightingModel("@/LightingModels/VFX")
 %CustomEditor("ORL.ShaderInspector.InspectorGUI")
 
+
 %Properties()
 {
     UI_CloudsDocs("[This shader has documentation](https://shaders.orels.sh/docs/vfx/clouds)", Int) = 0
-    [NonModifiableTextureData][NoScaleOffset]_BakedNoiseTex("Noise Tex > %RequiredTexture(@/BakedNoise.png)", 2D) = "white" { }
+
+    UI_ShadingHeader("# Shading", Int) = 1
     _DepthTransp("Depth Transparency", Float) = 36
-    _ColorBottom("Color Bottom", Color) = (0.5680403, 0.5980207, 0.6509434, 1)
-    _ColorTop("Color Top", Color) = (0.8066038, 0.9495488, 1, 1)
     _HeightBottom("Height Bottom", Float) = 0.12
     _HeightTop("Height Top", Float) = 1
+    [Toggle(APPLY_SHADING)]_ApplyShading("Apply Shading", Int) = 0
+    _ShadeRamp("Shade Ramp %ShowIf(APPLY_SHADING) %Gradient()", 2D) = "grayscaleRamp" {}
+    _Tint("Tint %ShowIf(APPLY_SHADING)", Color) = (1,1,1,1)
+    [Toggle(RECALCULATE_NORMALS)]_RecalculateNormals("Recalculate Normals %ShowIf(APPLY_SHADING)", Int) = 0
+    _NormalPrecision("Normal Precision %ShowIf(APPLY_SHADING && RECALCULATE_NORMALS)", Float) = 0.7
+    _ColorBottom("Color Bottom %ShowIf(!APPLY_SHADING)", Color) = (0.5680403, 0.5980207, 0.6509434, 1)
+    _ColorTop("Color Top %ShowIf(!APPLY_SHADING)", Color) = (0.8066038, 0.9495488, 1, 1)
+
+    UI_NoiseHeader("# Noise", Int) = 1
+
+    [NonModifiableTextureData][NoScaleOffset]_BakedNoiseTex("Noise Tex > %RequiredTexture(@/BakedNoise.png)", 2D) = "white" { }
+    UI_ExtrusionHeader("## Extrusion", Int) = 0
     [Enum(Normal, 0, World Space, 1)]_ExtrusionMode("Extrusion Mode", Int) = 0
     _ExtrusionDirection("Extrusion Direction %ShowIf(_ExtrusionMode > 0)", Vector) = (0, 1, 0, 1)
     [Toggle(ONLY_TOP)]_OnlyTop("Only Top %ShowIf(_ExtrusionMode > 0)", Int) = 0
+    [Enum(None, 0, Texture, 1, Vertex Color, 2)]_ExtrusionMaskMode("Mask Mode", Int) = 0
+    _ExtrusionMask("Mask %ShowIf(_ExtrusionMaskMode == 1)", 2D) = "white" {}
+    [Enum(UV, 0, Local Space, 1, World Space, 2)] _ExtrusionMaskMappingSpace("Mapping Space %ShowIf(_ExtrusionMaskMode == 1)", Int) =  0
+    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ExtrusionMaskUVChannel("UV Set %ShowIf(_ExtrusionMaskMode == 1 && _ExtrusionMaskMappingSpace == 0)", Int) = 0
+    [Enum(X, 0, Y, 1, Z, 2)] _ExtrusionMaskPlanarAxisX("X Axis %ShowIf(_ExtrusionMaskMappingSpace > 0) %CombineWith(_ExtrusionMaskPlanarAxisY)", Int) =  0
+    [HideInInspector][Enum(X, 0, Y, 1, Z, 2)] _ExtrusionMaskPlanarAxisY("Y Axis %ShowIf(_ExtrusionMaskMappingSpace > 0)", Int) = 02
+    [Enum(R, 0, G, 1, B, 2, A, 3)]_ExtrusionMaskChannel("Mask Channel %ShowIf(_ExtrusionMaskMode > 0)", Int) = 0
+    _ExtrusionMaskStrentgh("Mask Strength %ShowIf(_ExtrusionMaskMode > 0)", Range(0, 1)) = 1
+   
 
     UI_Level1Header("## Level 1", Int) = 0
     _L1NoiseScale("Noise Scale", Float) = 1.7
@@ -34,6 +55,8 @@
 %ShaderFeatures()
 {
     #pragma shader_feature_local ONLY_TOP
+    #pragma shader_feature_local APPLY_SHADING
+    #pragma shader_feature_local RECALCULATE_NORMALS
 }
 
 %ShaderTags()
@@ -46,16 +69,21 @@
     Blend SrcAlpha OneMinusSrcAlpha
 }
 
+
 %ShaderDefines()
 {
     #define EXTRA_V2F_0
+    #define EXTRA_V2F_1
     #define NEED_DEPTH
 }
 
 %Variables()
 {
+    float _NormalPrecision;
+    half4 _Tint;
+
     half _ExtrusionMode;
-    half _ExtrusionDirection;
+    half4 _ExtrusionDirection;
     half _L1NoiseScale;
     half _L1NoiseStrength;
     half4 _L1NoiseDirection;
@@ -71,51 +99,168 @@
     half4 _ColorTop;
     half _HeightBottom;
     half _HeightTop;
+
+    int _ExtrusionMaskMode;
+    int _ExtrusionMaskMappingSpace;
+    int _ExtrusionMaskUVChannel;
+    int _ExtrusionMaskPlanarAxisX;
+    int _ExtrusionMaskPlanarAxisY;
+    int _ExtrusionMaskChannel;
+    half4 _ExtrusionMask_ST;
+    half _ExtrusionMaskStrentgh;
 }
 
 %Textures()
 {
     TEXTURE2D(_BakedNoiseTex);
     SAMPLER(sampler_BakedNoiseTex);
+
+    TEXTURE2D(_ExtrusionMask);
+    SAMPLER(sampler_ExtrusionMask);
+
+    TEXTURE2D(_ShadeRamp);
+    SAMPLER(sampler_ShadeRamp);
 }
 
 %Vertex("CloudsVertex")
 {
-    void CloudsVertex(inout VertexData v, inout FragmentData o)
+    float3 CloudExtrusion(VertexData v, float3 vertexPos, float3 wNormal, float3 exDir)
     {
-        half4 wPos = mul(unity_ObjectToWorld, v.vertex);
-        half3 wNormal = mul(unity_ObjectToWorld, float4(v.normal, 0.0)).xyz;
+        half4 wPos = mul(unity_ObjectToWorld, vertexPos);
         half3 pos = wPos.xyz / 100;
-        half3 exDir = _ExtrusionMode == 0 ? v.normal.xyz : _ExtrusionDirection;
+
+        float3 vertOffset = 0;
+
+        [branch]
+        if (_ExtrusionMaskMode > 0)
+        {
+            half mask = 1;
+            if (_ExtrusionMaskMode == 1)
+            {
+                float2 maskUv = v.uv0.xy;
+                
+                if (_ExtrusionMaskMappingSpace == 0)
+                {
+                    switch (_ExtrusionMaskUVChannel)
+                    {
+                        case 1: maskUv = v.uv1.xy; break;
+                        case 2: maskUv = v.uv2.xy; break;
+                        case 3: maskUv = v.uv3.xy; break;
+                    }
+                }
+                if (_ExtrusionMaskMappingSpace > 0)
+                {
+                    maskUv = float2(
+                        lerp(v.vertex[_ExtrusionMaskPlanarAxisX], wPos[_ExtrusionMaskPlanarAxisX], floor(_ExtrusionMaskMappingSpace - 1)),
+                        lerp(v.vertex[_ExtrusionMaskPlanarAxisY], wPos[_ExtrusionMaskPlanarAxisY], floor(_ExtrusionMaskMappingSpace - 1))
+                    );
+                }
+
+                mask = SAMPLE_TEXTURE2D_LOD(_ExtrusionMask, sampler_ExtrusionMask, maskUv.xy * _ExtrusionMask_ST.xy + _ExtrusionMask_ST.zw, 0)[_ExtrusionMaskChannel];
+            } else {
+                mask = v.color[_ExtrusionMaskChannel];
+            }
+
+            exDir = lerp(exDir, exDir * mask, _ExtrusionMaskStrentgh);
+        }
 
         #if defined(ONLY_TOP)
 
         if (dot(wNormal, half3(0, 1, 0)) > 0)
         {
-            v.vertex.xyz += exDir * (0.7 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
+            vertOffset += exDir * (0.7 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
             half3 pos2 = pos * _L2NoiseScale;
             pos2.z /= 2;
-            v.vertex.xyz += exDir * (0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
+            vertOffset += exDir * (0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
 
             half3 pos3 = pos * _L3NoiseScale;
-            v.vertex.xyz += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+            vertOffset += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
             pos3 *= 2.01;
-            v.vertex.xyz += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+            vertOffset += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
         }
 
         #else
 
-        v.vertex.xyz += exDir * (0.7 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
+        vertOffset += exDir * (0.7 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
         half3 pos2 = pos * _L2NoiseScale;
         pos2.z /= 2;
-        v.vertex.xyz += exDir * (0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
+        vertOffset += exDir * (0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
 
         half3 pos3 = pos * _L3NoiseScale;
-        v.vertex.xyz += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+        vertOffset += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
         pos3 *= 2.01;
-        v.vertex.xyz += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+        vertOffset += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
 
         #endif
+
+        return vertOffset;
+    }
+
+    void CloudsVertex(inout VertexData v, inout FragmentData o)
+    {
+        // half4 wPos = mul(unity_ObjectToWorld, v.vertex);
+        half3 wNormal = mul(unity_ObjectToWorld, float4(v.normal, 0.0)).xyz;
+        // half3 pos = wPos.xyz / 100;
+        half3 exDir = _ExtrusionMode == 0 ? v.normal.xyz : normalize(_ExtrusionDirection.xyz);
+        
+        #if defined(RECALCULATE_NORMALS) && defined(APPLY_SHADING)
+        {
+            float3 vertOffset = CloudExtrusion(v, v.vertex, wNormal, exDir);
+            float3 newVertPos = v.vertex.xyz + vertOffset;
+            
+            float3 bitangent = cross(v.normal.xyz, v.tangent.xyz);
+            
+            float3 newTangent = v.vertex.xyz + v.tangent.xyz * _NormalPrecision;
+            newTangent = (newTangent + CloudExtrusion(v, newTangent, wNormal, exDir)) - newVertPos;
+
+            float3 newBitangent = v.vertex.xyz + bitangent.xyz * _NormalPrecision;
+            newBitangent = (newBitangent + CloudExtrusion(v, newBitangent, wNormal, exDir)) - newVertPos;
+
+            // float3 newTangent = v.vertex.xyz + v.tangent.xyz * 0.01;
+            // newTangent -= newVertPos;
+            // float3 newBitangent = v.vertex.xyz + bitangent.xyz * 0.01;
+            // newBitangent -= newVertPos;
+            
+            
+            v.normal.xyz = cross(newTangent, newBitangent);
+            v.tangent.xyz = newTangent;
+            v.vertex.xyz = newVertPos;
+        }
+        #else
+        {
+            float3 vertOffset = CloudExtrusion(v, v.vertex, wNormal, exDir);
+            v.vertex.xyz += vertOffset;
+        }
+        #endif
+
+        // #if defined(ONLY_TOP)
+
+        // if (dot(wNormal, half3(0, 1, 0)) > 0)
+        // {
+        //     v.vertex.xyz += exDir * (0.7 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
+        //     half3 pos2 = pos * _L2NoiseScale;
+        //     pos2.z /= 2;
+        //     v.vertex.xyz += exDir * (0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
+
+        //     half3 pos3 = pos * _L3NoiseScale;
+        //     v.vertex.xyz += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+        //     pos3 *= 2.01;
+        //     v.vertex.xyz += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+        // }
+
+        // #else
+
+        // v.vertex.xyz += exDir * (0.7 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
+        // half3 pos2 = pos * _L2NoiseScale;
+        // pos2.z /= 2;
+        // v.vertex.xyz += exDir * (0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
+
+        // half3 pos3 = pos * _L3NoiseScale;
+        // v.vertex.xyz += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+        // pos3 *= 2.01;
+        // v.vertex.xyz += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+
+        // #endif
         o.extraV2F0 = ComputeScreenPos(UnityObjectToClipPos(v.vertex));
         // COMPUTE_EYEDEPTH macro
         o.extraV2F0.z = -UnityObjectToViewPos(v.vertex).z;
@@ -125,16 +270,44 @@
 
 %Fragment("CloudsFragment")
 {
-    void CloudsFragment(MeshData d, inout SurfaceData o)
+    void CloudsFragment(MeshData d, inout SurfaceData o, FragmentData i)
     {
         float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(d.extraV2F0)));
-        float depth = sceneZ - d.extraV2F0.z;
-        
+        float depth = sceneZ - d.extraV2F0.z;   
         depth = saturate(invLerp(0, _DepthTransp, depth));
         half heightAlpha = saturate(invLerp(_HeightBottom, _HeightTop, d.localSpacePosition.y));
-        half4 color = 0;
-        color.rgb = lerp(_ColorBottom, _ColorTop, heightAlpha);
-        o.Albedo = lerp(_ColorBottom, _ColorTop, heightAlpha);
         o.Alpha = depth;
+
+        #if defined(APPLY_SHADING)
+        {
+            #ifndef USING_DIRECTIONAL_LIGHT
+            float3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
+            #else
+            float3 lightDir = _WorldSpaceLightPos0.xyz;
+            #endif
+            
+            UNITY_LIGHT_ATTENUATION(lightAttenuation, i, d.worldSpacePosition);
+            half3 lightColor = lightAttenuation * _LightColor0.rgb;
+
+            // float3 ddxPos = ddx(d.localSpacePosition);
+            // float3 ddyPos = ddy(d.localSpacePosition)  * _ProjectionParams.x;
+            // float3 normal = normalize( cross(ddxPos, ddyPos));
+
+            // float3 worldNormal = normalize(mul((float3x3) unity_ObjectToWorld, normal));
+
+            half lightNoL = dot(d.worldNormal, lightDir);
+            half2 rampUv = half2(lightNoL * 0.5 + 0.5, 0);
+            half3 ramp = SAMPLE_TEXTURE2D(_ShadeRamp, sampler_ShadeRamp, rampUv).rgb;
+            o.Albedo = ramp * lightColor * _Tint.rgb;
+            // o.Albedo = d.worldNormal;
+            // o.Albedo = i.worldTangent;
+            o.Alpha *= _Tint.a;
+        }
+        #else
+        {
+            o.Albedo = lerp(_ColorBottom, _ColorTop, heightAlpha);
+        }
+        #endif
+
     }
 }
