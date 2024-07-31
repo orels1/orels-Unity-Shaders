@@ -71,6 +71,7 @@ namespace ORL.Drawers
                 if (hasSavedGradient)
                 {
                     oldGradCopy.SetKeys(savedGradient.colorKeys, savedGradient.alphaKeys);
+                    oldGradCopy.mode = savedGradient.mode;
                 }
                 else
                 {
