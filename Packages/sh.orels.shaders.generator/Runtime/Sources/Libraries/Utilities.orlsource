@@ -155,19 +155,45 @@
         #endif
     }
 
-    half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+    half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, float3 p)
     {
-        half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
-        half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
+        float3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+        float2 uv = (p.xy + i.xy + float2(37, 17) * i.z + .5) / 256.;
         uv.y *= -1;
         p.xy = noiseTex.SampleLevel(noiseTexSampler, uv, 0).yx;
         return lerp(p.x, p.y, p.z);
     }
 
-    half getBakedNoiseBicubic(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+    // Manual bilinear sampling to avoid 8 bit precision issues
+    // Based on https://www.shadertoy.com/view/MllSzX
+    half getBakedNoiseBilinear(Texture2D noiseTex, SamplerState noiseTexSampler, float4 texSize, float3 p)
     {
-        half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
-        half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
+        float3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+        float2 uv = (p.xy + i.xy + float2(37, 17) * i.z + .5) / 256.;
+        uv.y *= -1;
+        
+        float2 pixelUv = uv * texSize.zw + 0.5;
+        float2 pixelUvFrac = frac(pixelUv);
+
+        pixelUv = (floor(pixelUv) / texSize.zw) - texSize.xy * 0.5;
+
+        float4 sample0 = noiseTex.SampleLevel(noiseTexSampler, pixelUv, 0);
+        float4 sample1 = noiseTex.SampleLevel(noiseTexSampler, pixelUv + float2(texSize.x, 0), 0);
+        float4 sample2 = noiseTex.SampleLevel(noiseTexSampler, pixelUv + float2(0, texSize.y), 0);
+        float4 sample3 = noiseTex.SampleLevel(noiseTexSampler, pixelUv + float2(texSize.x, texSize.y), 0);
+
+        float4 filtered1 = lerp(sample0, sample1, pixelUvFrac.x);
+        float4 filtered2 = lerp(sample2, sample3, pixelUvFrac.x);
+        float4 filtered = lerp(filtered1, filtered2, pixelUvFrac.y);
+        
+        p.xy = filtered.yx;
+        return lerp(p.x, p.y, p.z);
+    }
+
+    half getBakedNoiseBicubic(Texture2D noiseTex, SamplerState noiseTexSampler, float3 p)
+    {
+        float3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+        float2 uv = (p.xy + i.xy + float2(37, 17) * i.z + .5) / 256.;
         uv.y *= -1;
         p.xy = tex2DFastBicubicSampleLevel(noiseTex, noiseTexSampler, uv, 0).yx;
         return lerp(p.x, p.y, p.z);

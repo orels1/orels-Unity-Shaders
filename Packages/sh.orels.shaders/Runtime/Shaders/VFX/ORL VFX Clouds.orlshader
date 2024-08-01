@@ -13,7 +13,7 @@
     _ShadeRamp("Shade Ramp %ShowIf(APPLY_SHADING) %Gradient()", 2D) = "grayscaleRamp" {}
     _Tint("Tint %ShowIf(APPLY_SHADING)", Color) = (1,1,1,1)
     [Toggle(RECALCULATE_NORMALS)]_RecalculateNormals("Recalculate Normals %ShowIf(APPLY_SHADING)", Int) = 0
-    _NormalPrecision("Normal Precision %ShowIf(APPLY_SHADING && RECALCULATE_NORMALS)", Float) = 0.7
+    _NormalPrecision("Normal Precision %ShowIf(APPLY_SHADING && RECALCULATE_NORMALS)", Float) = 0.01
     _ColorBottom("Color Bottom %ShowIf(!APPLY_SHADING)", Color) = (0.5680403, 0.5980207, 0.6509434, 1)
     _ColorTop("Color Top %ShowIf(!APPLY_SHADING)", Color) = (0.8066038, 0.9495488, 1, 1)
     _HeightBottom("Height Bottom", Float) = 0.12
@@ -108,6 +108,8 @@
     int _ExtrusionMaskChannel;
     half4 _ExtrusionMask_ST;
     half _ExtrusionMaskStrentgh;
+
+    float4 _BakedNoiseTex_TexelSize;
 }
 
 %Textures()
@@ -168,28 +170,28 @@
 
         if (dot(wNormal, half3(0, 1, 0)) > 0)
         {
-            vertOffset += exDir * (0.7 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
+            vertOffset += exDir * (0.7 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
             half3 pos2 = pos * _L2NoiseScale;
             pos2.z /= 2;
-            vertOffset += exDir * (0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
+            vertOffset += exDir * (0.3 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
 
             half3 pos3 = pos * _L3NoiseScale;
-            vertOffset += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+            vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
             pos3 *= 2.01;
-            vertOffset += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+            vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
         }
 
         #else
 
-        vertOffset += exDir * (0.7 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
+        vertOffset += exDir * (0.7 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
         half3 pos2 = pos * _L2NoiseScale;
         pos2.z /= 2;
-        vertOffset += exDir * (0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
+        vertOffset += exDir * (0.3 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
 
         half3 pos3 = pos * _L3NoiseScale;
-        vertOffset += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+        vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
         pos3 *= 2.01;
-        vertOffset += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+        vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
 
         #endif
 
