@@ -3,6 +3,8 @@
     UI_DissolveHeader("# Dissolve", Int) = 1
     UI_DissolveDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/dissolve)", Int) = 0
     _DissolveCutoff("Cutoff", Range(0,1)) = 0.04
+    _DissolveCutoffRangeMin("Cutoff Range Min %CombineWith(_DissolveCutoffRangeMax)", Float) = -0.1
+    [HideInInspector]_DissolveCutoffRangeMax("Max", Float) = 1.1
     [Enum(Local Position, 0, UV, 1, Texture, 2)]_DissolveSource("Fade Based On", Int) = 0
     _DissolveTexture("Fade Texture %ShowIf(_DissolveSource == 2)", 2D) = "grayscaleRamp" {}
     UI_DissolveTextureNote("> This texture will be used as a base of fade progression. Generally expected to be some kind of gradient, sometimes multiplied by a pattern %ShowIf(_DissolveSource == 2)", Int) = 0
@@ -27,6 +29,8 @@
 %Variables()
 {
     half _DissolveCutoff;
+    half _DissolveCutoffRangeMin;
+    half _DissolveCutoffRangeMax;
     int _DissolveSource;
     int _DissolveDirection;
     half4 _DissolveTexture_ST;
@@ -70,7 +74,7 @@
 %Fragment("DissolveFragment")
 {
     void DissolveFragment(MeshData d, inout SurfaceData o) {
-        _DissolveCutoff = remap(_DissolveCutoff, 0, 1, -0.1, 1);
+        _DissolveCutoff = remap(_DissolveCutoff, 0, 1, _DissolveCutoffRangeMin, _DissolveCutoffRangeMax);
         half gradSource = 0;
         uint totalChannels = 3;
         switch (_DissolveSource) {
