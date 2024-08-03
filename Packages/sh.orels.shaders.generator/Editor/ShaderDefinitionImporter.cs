@@ -485,7 +485,7 @@ namespace ORL.ShaderGenerator
                     });
 
                     // don't want to include main pass functions in extra pass blocks with an exception for the base functions
-                    var combinedList = extraPassBlocksList.Concat(blocks.Where(b => !b.IsFunction || (b.IsFunction && b.Name.Contains("Base")) || (!b.IsFunction && !b.Name.StartsWith("%Pass")))).ToList();
+                    var combinedList = extraPassBlocksList.Concat(blocks.Where(b => !b.IsFunction || (b.IsFunction && b.Name.EndsWith("Base")) || (!b.IsFunction && !b.Name.StartsWith("%Pass")))).ToList();
 
                     extraPassBlocksList = OptimizeBlocks(combinedList);
                     extraPassBlocks.Add(extraPassName, extraPassBlocksList);

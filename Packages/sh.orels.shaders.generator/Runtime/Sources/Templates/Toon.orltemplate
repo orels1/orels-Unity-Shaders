@@ -703,6 +703,9 @@ Shader %ShaderName
             // Outline Pass End
         }
 
+        // ExtraPasses
+        %ExtraPasses
+
         // PostPasses
         %PostPasses
     }
