@@ -13,7 +13,7 @@
     _ShadeRamp("Shade Ramp %ShowIf(APPLY_SHADING) %Gradient()", 2D) = "grayscaleRamp" {}
     _Tint("Tint %ShowIf(APPLY_SHADING)", Color) = (1,1,1,1)
     [Toggle(RECALCULATE_NORMALS)]_RecalculateNormals("Recalculate Normals %ShowIf(APPLY_SHADING)", Int) = 0
-    _NormalPrecision("Normal Precision %ShowIf(APPLY_SHADING && RECALCULATE_NORMALS)", Float) = 0.01
+    _NormalPrecision("Normal Precision %ShowIf(APPLY_SHADING && RECALCULATE_NORMALS)", Float) = 0.1
     _ColorBottom("Color Bottom %ShowIf(!APPLY_SHADING)", Color) = (0.5680403, 0.5980207, 0.6509434, 1)
     _ColorTop("Color Top %ShowIf(!APPLY_SHADING)", Color) = (0.8066038, 0.9495488, 1, 1)
     _HeightBottom("Height Bottom", Float) = 0.12
