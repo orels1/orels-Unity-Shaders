@@ -117,7 +117,7 @@ namespace ORL.Tools
             {
                 foreach (var file in list)
                 {
-                    var entry = zip.CreateEntry(file.Replace(basePath, ""));
+                    var entry = zip.CreateEntry(file.Replace(basePath, "").Replace('\\', '/'));
                     using (var stream = File.OpenRead(file))
                     {
                         using (var entryStream = entry.Open())
