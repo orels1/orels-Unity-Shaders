@@ -464,6 +464,9 @@
             // ShadowCaster Pass End
         }
 
+        // ExtraPasses
+        %ExtraPasses
+
         // PostPasses
         %PostPasses
     }
