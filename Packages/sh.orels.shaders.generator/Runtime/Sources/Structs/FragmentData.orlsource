@@ -13,6 +13,18 @@
         float4 uv1 : TEXCOORD2;
         float4 uv2 : TEXCOORD3;
         float4 uv3 : TEXCOORD4;
+        #if defined(NEED_UV4)
+        float4 uv4 : TEXCOORD5;
+        #endif
+        #if defined(NEED_UV5)
+        float4 uv5 : TEXCOORD6;
+        #endif
+        #if defined(NEED_UV6)
+        float4 uv6 : TEXCOORD7;
+        #endif
+        #if defined(NEED_UV7)
+        float4 uv7 : TEXCOORD8;
+        #endif
         float3 worldPos : WORLD_POS;
         float3 worldNormal : WORLD_NORMAL;
         float4 worldTangent : WORLD_TANGENT;
@@ -23,8 +35,8 @@
         centroid float4 vertexColor : VERTEX_COLOR;
 
         #if !defined(UNITY_PASS_META)
-        UNITY_LIGHTING_COORDS(5, 6)
-        UNITY_FOG_COORDS(7)
+        UNITY_LIGHTING_COORDS(9, 10)
+        UNITY_FOG_COORDS(11)
         #endif
 
         #if defined(EDITOR_VISUALIZATION)

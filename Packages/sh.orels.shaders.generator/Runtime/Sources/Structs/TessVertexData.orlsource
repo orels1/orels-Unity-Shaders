@@ -10,6 +10,18 @@
         float4 uv1 : TEXCOORD1;
         float4 uv2 : TEXCOORD2;
         float4 uv3 : TEXCOORD3;
+        #if defined(NEED_UV4)
+        float4 uv4 : TEXCOORD4;
+        #endif
+        #if defined(NEED_UV5)
+        float4 uv5 : TEXCOORD5;
+        #endif
+        #if defined(NEED_UV6)
+        float4 uv6 : TEXCOORD6;
+        #endif
+        #if defined(NEED_UV7)
+        float4 uv7 : TEXCOORD7;
+        #endif
         UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
     };

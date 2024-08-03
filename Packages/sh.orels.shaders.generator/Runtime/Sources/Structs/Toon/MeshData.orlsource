@@ -2,10 +2,22 @@
 {
     struct MeshData
     {
-        half4 uv0;
-        half4 uv1;
-        half4 uv2;
-        half4 uv3;
+        float4 uv0;
+        float4 uv1;
+        float4 uv2;
+        float4 uv3;
+        #if defined(NEED_UV4)
+        float4 uv4;
+        #endif
+        #if defined(NEED_UV5)
+        float4 uv5;
+        #endif
+        #if defined(NEED_UV6)
+        float4 uv6;
+        #endif
+        #if defined(NEED_UV7)
+        float4 uv7;
+        #endif
         #if !defined(UNITY_PASS_SHADOWCASTER)
         half4 lightmapUv;
         #endif
@@ -34,6 +46,18 @@
         d.uv1 = i.uv1;
         d.uv2 = i.uv2;
         d.uv3 = i.uv3;
+        #if defined(NEED_UV4)
+        d.uv4 = i.uv4;
+        #endif
+        #if defined(NEED_UV5)
+        d.uv5 = i.uv5;
+        #endif
+        #if defined(NEED_UV6)
+        d.uv6 = i.uv6;
+        #endif
+        #if defined(NEED_UV7)
+        d.uv7 = i.uv7;
+        #endif
         #if !defined(UNITY_PASS_SHADOWCASTER)
         d.lightmapUv = i.lightmapUv;
         #endif
