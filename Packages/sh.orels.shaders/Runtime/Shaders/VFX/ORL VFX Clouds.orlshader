@@ -14,10 +14,11 @@
     _Tint("Tint %ShowIf(APPLY_SHADING)", Color) = (1,1,1,1)
     [Toggle(RECALCULATE_NORMALS)]_RecalculateNormals("Recalculate Normals %ShowIf(APPLY_SHADING)", Int) = 0
     _NormalPrecision("Normal Precision %ShowIf(APPLY_SHADING && RECALCULATE_NORMALS)", Float) = 0.1
-    _ColorBottom("Color Bottom %ShowIf(!APPLY_SHADING)", Color) = (0.5680403, 0.5980207, 0.6509434, 1)
-    _ColorTop("Color Top %ShowIf(!APPLY_SHADING)", Color) = (0.8066038, 0.9495488, 1, 1)
-    _HeightBottom("Height Bottom", Float) = 0.12
-    _HeightTop("Height Top", Float) = 1
+    [ToggleUI]_HeightGradient("Add Height Gradient %ShowIf(APPLY_SHADING)", Int) = 0
+    _ColorBottom("Color Bottom %ShowIf(!APPLY_SHADING || _HeightGradient)", Color) = (0.5680403, 0.5980207, 0.6509434, 1)
+    _ColorTop("Color Top %ShowIf(!APPLY_SHADING || _HeightGradient)", Color) = (0.8066038, 0.9495488, 1, 1)
+    _HeightBottom("Height Bottom %ShowIf(!APPLY_SHADING || _HeightGradient)", Float) = 0.12
+    _HeightTop("Height Top %ShowIf(!APPLY_SHADING || _HeightGradient)", Float) = 1
 
     UI_NoiseHeader("# Noise", Int) = 1
 
@@ -99,6 +100,7 @@
     half4 _ColorTop;
     half _HeightBottom;
     half _HeightTop;
+    int _HeightGradient;
 
     int _ExtrusionMaskMode;
     int _ExtrusionMaskMappingSpace;
@@ -217,12 +219,6 @@
 
             float3 newBitangent = v.vertex.xyz + bitangent.xyz * _NormalPrecision;
             newBitangent = (newBitangent + CloudExtrusion(v, newBitangent, wNormal, exDir)) - newVertPos;
-
-            // float3 newTangent = v.vertex.xyz + v.tangent.xyz * 0.01;
-            // newTangent -= newVertPos;
-            // float3 newBitangent = v.vertex.xyz + bitangent.xyz * 0.01;
-            // newBitangent -= newVertPos;
-            
             
             v.normal.xyz = cross(newTangent, newBitangent);
             v.tangent.xyz = newTangent;
@@ -235,34 +231,6 @@
         }
         #endif
 
-        // #if defined(ONLY_TOP)
-
-        // if (dot(wNormal, half3(0, 1, 0)) > 0)
-        // {
-        //     v.vertex.xyz += exDir * (0.7 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
-        //     half3 pos2 = pos * _L2NoiseScale;
-        //     pos2.z /= 2;
-        //     v.vertex.xyz += exDir * (0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
-
-        //     half3 pos3 = pos * _L3NoiseScale;
-        //     v.vertex.xyz += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
-        //     pos3 *= 2.01;
-        //     v.vertex.xyz += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
-        // }
-
-        // #else
-
-        // v.vertex.xyz += exDir * (0.7 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
-        // half3 pos2 = pos * _L2NoiseScale;
-        // pos2.z /= 2;
-        // v.vertex.xyz += exDir * (0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
-
-        // half3 pos3 = pos * _L3NoiseScale;
-        // v.vertex.xyz += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
-        // pos3 *= 2.01;
-        // v.vertex.xyz += exDir * (0.5 * 0.3 * getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
-
-        // #endif
         o.extraV2F0 = ComputeScreenPos(UnityObjectToClipPos(v.vertex));
         // COMPUTE_EYEDEPTH macro
         o.extraV2F0.z = -UnityObjectToViewPos(v.vertex).z;
@@ -291,19 +259,14 @@
             UNITY_LIGHT_ATTENUATION(lightAttenuation, i, d.worldSpacePosition);
             half3 lightColor = lightAttenuation * _LightColor0.rgb;
 
-            // float3 ddxPos = ddx(d.localSpacePosition);
-            // float3 ddyPos = ddy(d.localSpacePosition)  * _ProjectionParams.x;
-            // float3 normal = normalize( cross(ddxPos, ddyPos));
-
-            // float3 worldNormal = normalize(mul((float3x3) unity_ObjectToWorld, normal));
-
             half lightNoL = dot(d.worldNormal, lightDir);
             half2 rampUv = half2(lightNoL * 0.5 + 0.5, 0);
             half3 ramp = SAMPLE_TEXTURE2D(_ShadeRamp, sampler_ShadeRamp, rampUv).rgb;
             o.Albedo = ramp * lightColor * _Tint.rgb;
-            // o.Albedo = d.worldNormal;
-            // o.Albedo = i.worldTangent;
             o.Alpha *= _Tint.a;
+            if (_HeightGradient) {
+                o.Albedo *= lerp(_ColorBottom, _ColorTop, heightAlpha);
+            }
         }
         #else
         {
