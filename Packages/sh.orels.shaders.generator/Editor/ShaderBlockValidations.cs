@@ -183,6 +183,7 @@ namespace ORL.ShaderGenerator
                 var message =
                     $"Vertex function set to <b>{strippedName}</b>, but only <b>{string.Join(", ", vertexValidator.FoundFunctions)}</b> found";
                 ctx.LogImportError(message, importer);
+                ctx.LogImportError("Block source was:\n" + blockSource, importer);
                 importer.Errors.Add(new ShaderDefinitionImporter.ShaderError(block, -1, "somefile", message));
             }
             foreach (var error in vertexValidator.Errors)
@@ -205,6 +206,7 @@ namespace ORL.ShaderGenerator
                 var message =
                     $"Fragment function set to <b>{strippedName}</b>, but only <b>{string.Join(", ", fragmentValidator.FoundFunctions)}</b> found";
                 ctx.LogImportError(message, importer);
+                ctx.LogImportError("Block source was:\n" + blockSource, importer);
                 importer.Errors.Add(new ShaderDefinitionImporter.ShaderError(block, -1, "somefile", message));
             }
             foreach (var error in fragmentValidator.Errors)
