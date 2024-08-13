@@ -154,6 +154,14 @@
         {
             o.Albedo *= lerp(albedo, albedo.rgb * _Color.rgb, detailMask);
         }
+        // Fix BC7 compression issues, unity PLS fix
+        {
+            uint a = uint(o.Alpha * 255.0);
+            a = a > 254 ? 255 : a;
+            a = a < 5 ? 0 : a;
+            o.Alpha =  a / 255.0;
+        }
+
         o.Alpha *= albedo.a * _Color.a;
         #if defined(_EMISSION)
             o.Emission = emission * _EmissionColor;
