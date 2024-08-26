@@ -70,16 +70,18 @@
         return direction;
     }
 
-    half3 getEnvReflection(half3 worldSpaceViewDir, half3 worldSpacePosition, half3 normal, half smoothness, int mip)
+    half3 getEnvReflectionDirect(float3 reflDir, half3 worldSpacePosition, half3 normal, half roughness, int mip)
     {
         half3 env = 0;
-        half3 reflDir = reflect(worldSpaceViewDir, normal);
-        half perceptualRoughness = 1 - smoothness;
-        half rough = perceptualRoughness * perceptualRoughness;
-        reflDir = lerp(reflDir, normal, rough * rough);
+
+        float mipLevel = (float) mip;
+        if (mip == -1)
+        {
+            mipLevel = perceptualRoughnessToMipmapLevel(roughness);
+        }
 
         half3 reflectionUV1 = getBoxProjection(reflDir, worldSpacePosition, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
-        half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, mip);
+        half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, mipLevel);
         half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
 
         half3 indirectSpecular;
@@ -89,7 +91,7 @@
         if (interpolator < 0.99999)
         {
             half3 reflectionUV2 = getBoxProjection(reflDir, worldSpacePosition, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
-            half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, mip);
+            half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, mipLevel);
             half3 probe1sample = DecodeHDR(probe1, unity_SpecCube1_HDR);
             indirectSpecular = lerp(probe1sample, probe0sample, interpolator);
         }
@@ -100,6 +102,26 @@
 
         env = indirectSpecular;
         return env;
+    }
+
+    half3 getEnvReflection(half3 worldSpaceViewDir, half3 worldSpacePosition, half3 normal, half smoothness)
+    {
+        float3 reflDir = reflect(worldSpaceViewDir, normal);
+        half perceptualRoughness = 1 - smoothness;
+        reflDir = lerp(reflDir, normal, max(perceptualRoughness * perceptualRoughness, 0.002));
+        perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+
+        return getEnvReflectionDirect(reflDir, worldSpacePosition, normal, perceptualRoughness, -1);
+    }
+
+    half3 getEnvReflection(half3 worldSpaceViewDir, half3 worldSpacePosition, half3 normal, half smoothness, int mip)
+    {
+        float3 reflDir = reflect(worldSpaceViewDir, normal);
+        half perceptualRoughness = 1 - smoothness;
+        reflDir = lerp(reflDir, normal, max(perceptualRoughness * perceptualRoughness, 0.002));
+        perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+
+        return getEnvReflectionDirect(reflDir, worldSpacePosition, normal, perceptualRoughness, mip);
     }
 
     half3 EnvBRDFMultiscatter(half2 dfg, half3 f0)

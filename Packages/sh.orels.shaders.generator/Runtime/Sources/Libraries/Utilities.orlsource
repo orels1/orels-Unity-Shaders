@@ -2,6 +2,11 @@
 {
     #define FLT_EPSILON     1.192092896e-07
 
+    // Helpful Macros
+    #define DEBUG_FC(x) FinalColor.rgb *= 0.0001; \
+                     FinalColor.rgb += x; \
+                     return
+
     half3 BlendOverlay(half3 target, half3 source)
     {
         return (target > 0.5) * (1 - (1 - 2 * (target - 0.5)) * (1 - source)) + (target <= 0.5) * (2 * target * source);
@@ -198,16 +203,6 @@
         p.xy = tex2DFastBicubicSampleLevel(noiseTex, noiseTexSampler, uv, 0).yx;
         return lerp(p.x, p.y, p.z);
     }
-
-    half3 TransformObjectToWorld(half3 pos)
-    {
-        return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
-    };
-
-    half3 TransformWorldToObject(half3 pos)
-    {
-        return mul(unity_WorldToObject, half4(pos, 0)).xyz;
-    };
 
     half remap(half s, half a1, half a2, half b1, half b2)
     {
