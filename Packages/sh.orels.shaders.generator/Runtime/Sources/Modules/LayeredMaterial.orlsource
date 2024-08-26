@@ -232,7 +232,7 @@
         {
         normalTex.y = 1 - normalTex.y;
         }
-        half3 normal = UnpackScaleNormal(normalTex, _LMLayer1BumpScale);
+        half3 normal = UnpackNormalScale(normalTex, _LMLayer1BumpScale);
         int hasMasks = _LMLayer1MaskMap_TexelSize.z > 8;
         half metal = masks[_LMLayer1MetalChannel];
         half smooth = masks[_LMLayer1SmoothChannel];
@@ -270,7 +270,7 @@
         {
         normalTex.y = 1 - normalTex.y;
         }
-        normal = UnpackScaleNormal(normalTex, _LMLayer2BumpScale * mask);
+        normal = UnpackNormalScale(normalTex, _LMLayer2BumpScale * mask);
         hasMasks = _LMLayer2MaskMap_TexelSize.z > 8;
         metal = masks[_LMLayer2MetalChannel];
         smooth = masks[_LMLayer2SmoothChannel];
@@ -313,7 +313,7 @@
         {
         normalTex.y = 1 - normalTex.y;
         }
-        normal = UnpackScaleNormal(normalTex, _LMLayer3BumpScale * mask);
+        normal = UnpackNormalScale(normalTex, _LMLayer3BumpScale * mask);
         hasMasks = _LMLayer3MaskMap_TexelSize.z > 8;
         metal = masks[_LMLayer3MetalChannel];
         smooth = masks[_LMLayer3SmoothChannel];
@@ -351,7 +351,7 @@
         {
         normalTex.y = 1 - normalTex.y;
         }
-        normal = UnpackScaleNormal(normalTex, _LMLayer4BumpScale * mask);
+        normal = UnpackNormalScale(normalTex, _LMLayer4BumpScale * mask);
         hasMasks = _LMLayer4MaskMap_TexelSize.z > 8;
         metal = masks[_LMLayer4MetalChannel];
         smooth = masks[_LMLayer4SmoothChannel];

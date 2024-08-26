@@ -124,7 +124,9 @@
         {
             normalTex.y = 1 - normalTex.y;
         }
-        half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
+        
+        float3 normal = UnpackNormalScale(normalTex, _BumpScale);
+
         half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, GLOBAL_uv).rgb;
         if (_EmissionChannel > 0)
         {

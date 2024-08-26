@@ -90,13 +90,9 @@
             -0.80, 0.36, -0.48,
             -0.60, -0.48, 0.64
         };
-        half3 scale = float3(
-            length(unity_ObjectToWorld._m00_m10_m20),
-            length(unity_ObjectToWorld._m01_m11_m21),
-            length(unity_ObjectToWorld._m02_m12_m22)
-        );
-        half3 pos = _NoiseSpace ? (_NoiseSpace == 2 ? d.uv0.xyx : d.localSpacePosition) : d.worldSpacePosition;
-        half3 convertedScroll1Dir = _Noise1ScrollSpace ? (_Noise1ScrollSpace == 2 ? _Noise1Scroll.xyz : mul(unity_ObjectToWorld, half4(_Noise1Scroll.xyz / scale, 0)).xyz) : _Noise1Scroll.xyz;
+        float3 scale = GetObjectScale();
+        float3 pos = _NoiseSpace ? (_NoiseSpace == 2 ? d.uv0.xyx : d.localSpacePosition) : d.worldSpacePosition;
+        half3 convertedScroll1Dir = _Noise1ScrollSpace ? (_Noise1ScrollSpace == 2 ? _Noise1Scroll.xyz : TransformObjectToWorld(_Noise1Scroll.xyz / scale)) : _Noise1Scroll.xyz;
         pos += _Time.y * convertedScroll1Dir;
         pos *= _Scale;
         if (_Noise1ScrollSpace == 2) {
@@ -109,7 +105,7 @@
         noise += 0.125 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
         
         pos = _NoiseSpace ? (_NoiseSpace == 2 ? d.uv0.xyx : d.localSpacePosition) : d.worldSpacePosition;
-        half3 convertedScroll2Dir = _Noise2ScrollSpace ? (_Noise2ScrollSpace == 2 ? _Noise2Scroll.xyz : mul(unity_ObjectToWorld, half4(_Noise2Scroll.xyz / scale , 0)).xyz) : _Noise2Scroll.xyz;
+        half3 convertedScroll2Dir = _Noise2ScrollSpace ? (_Noise2ScrollSpace == 2 ? _Noise2Scroll.xyz : TransformObjectToWorld(_Noise2Scroll.xyz / scale)) : _Noise2Scroll.xyz;
         pos += _Time.y * convertedScroll2Dir;
         pos *= _Scale2;
         if (_Noise1ScrollSpace == 2) {

@@ -130,7 +130,7 @@
         {
             detailsMap.g = 1 - detailsMap.g;
         }
-        detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
+        detailNormal = UnpackNormalScale(float4(detailsMap.ag, 1, 1), _DNormalScale);
         half detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
         half3 albedoOverlay = lerp(sqrt(o.Albedo), (detailAlbedo < 0.0) ? 0.0.xxx : 1.0.xxx, detailAlbedoSpeed * detailAlbedoSpeed);
         albedoOverlay *= albedoOverlay;
@@ -146,7 +146,7 @@
         {
             packedNormal.g = 1 - packedNormal.g;
         }
-        half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
+        half3 detailNormal = UnpackNormalScale(packedNormal, _DNormalScale);
 
         // Separated mdoe supports BIRP-style 2x albedo mixing
         if (_DAlbedoMixingLegacy) {

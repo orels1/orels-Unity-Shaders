@@ -50,8 +50,8 @@
 {
     void ColorRandomisationFragment(MeshData d, inout SurfaceData o)
     {
-        half3 objPivot = mul(unity_ObjectToWorld, half4(0..xxx, 1)).xyz;
-        half2 uv = half2(((objPivot.x + objPivot.y + objPivot.z) * 100) % 1, 0);
+        float3 objPivot = TransformObjectToWorld(0..xxx);
+        float2 uv = float2(((objPivot.x + objPivot.y + objPivot.z) * 100) % 1, 0);
         half3 color = SAMPLE_TEXTURE2D(_CRColorPalette, sampler_CRColorPalette, uv).rgb;
         #if defined(MASK_MODE_MASK_TEXTURE)
             half mask = SAMPLE_TEXTURE2D(_CRMask, sampler_CRColorPalette, d.uv0.xy).rgb;

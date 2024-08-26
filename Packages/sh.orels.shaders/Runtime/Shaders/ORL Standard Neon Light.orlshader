@@ -74,7 +74,7 @@
 {
     void NeonFragment(MeshData d, inout SurfaceData o)
     {
-        half3 pos = mul(unity_ObjectToWorld, half4(0..xxx, 1));
+        half3 pos = TransformObjectToWorld(0..xxx);
         pos *= _FlickerFrequency;
         pos += _Time.y * _FlickerSpeed;
         half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos);
@@ -107,11 +107,7 @@
         UNITY_BRANCH
         if (_NeonTubeCapEnabled)
         {
-            float3 scale = float3(
-            length(unity_ObjectToWorld._m00_m10_m20),
-            length(unity_ObjectToWorld._m01_m11_m21),
-            length(unity_ObjectToWorld._m02_m12_m22)
-            );
+            float3 scale = GetObjectScale();
             half mask = 1;
             if (_NeonTubeCapSource) {
                 mask = 1 - saturate(length(SAMPLE_TEXTURE2D(_NeonTubeCapMask, sampler_NeonTubeCapMask, d.uv0.xy * _NeonTubeCapMask_ST.xy + _NeonTubeCapMask_ST.zw).rgb));

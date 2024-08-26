@@ -76,7 +76,7 @@
         {
             normalTex.y = 1 - normalTex.y;
         }
-        half3 normal = UnpackScaleNormal(normalTex, _BumpScale);
+        half3 normal = UnpackNormalScale(normalTex, _BumpScale);
 
         o.Normal = BlendNormals(o.Normal, normal);
         #endif
@@ -107,7 +107,7 @@
         detailMaskUV *= _DetailNormalMaskTiling;
         half detailMask = SAMPLE_TEXTURE2D(_DetailNormalMask, sampler_DetailNormalMask, detailMaskUV).r;
 
-        half3 detailNormal = UnpackScaleNormal(detailNormalTex, _DetailNormalScale);
+        half3 detailNormal = UnpackNormalScale(detailNormalTex, _DetailNormalScale);
         
         o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), detailMask);
 

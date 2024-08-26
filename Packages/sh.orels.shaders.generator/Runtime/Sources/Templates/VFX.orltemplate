@@ -58,10 +58,6 @@
                 // GlobalVariables
                 %GlobalVariables
 
-                #if defined(NEED_DEPTH)
-                    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-                #endif
-
                 // Variables
                 %Variables
 
@@ -169,10 +165,6 @@
             // GlobalVariables
             %GlobalVariables
 
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
-
             // Variables
             %Variables
 
@@ -209,7 +201,11 @@
             #endif
 
             // ForwardBase Fragment
-            half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
+            half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace
+                #if defined(NEED_SV_DEPTH)
+                , out float depth: SV_Depth
+                #endif
+            ) : SV_TARGET
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
@@ -280,10 +276,6 @@
                 %DataStructs
                 // GlobalVariables
                 %GlobalVariables
-
-                #if defined(NEED_DEPTH)
-                    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-                #endif
 
                 // Variables
                 %Variables

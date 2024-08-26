@@ -28,11 +28,10 @@
     void ToonShadowRimFragment(MeshData d, inout SurfaceData o) {
         #if defined(RIMSHADOW_ON)
 
-        #ifndef USING_DIRECTIONAL_LIGHT
-            fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
-        #else
-            fixed3 lightDir = _WorldSpaceLightPos0.xyz;
-        #endif
+        Light mainLight = GetMainLight(0..xxxx, d.worldSpacePosition, 0..xxxx);
+
+        float3 lightDir = mainLight.direction;
+        
         bool lightEnv = any(lightDir.xyz);
         if (!lightEnv) {
             lightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;

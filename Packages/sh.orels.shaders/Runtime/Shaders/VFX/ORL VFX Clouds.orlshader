@@ -75,7 +75,6 @@
 {
     #define EXTRA_V2F_0
     #define EXTRA_V2F_1
-    #define NEED_DEPTH
 }
 
 %Variables()
@@ -130,8 +129,8 @@
 {
     float3 CloudExtrusion(VertexData v, float3 vertexPos, float3 wNormal, float3 exDir)
     {
-        half4 wPos = mul(unity_ObjectToWorld, vertexPos);
-        half3 pos = wPos.xyz / 100;
+        float3 wPos = TransformObjectToWorld(vertexPos);
+        float3 pos = wPos.xyz / 100;        
 
         float3 vertOffset = 0;
 
@@ -203,9 +202,9 @@
     void CloudsVertex(inout VertexData v, inout FragmentData o)
     {
         // half4 wPos = mul(unity_ObjectToWorld, v.vertex);
-        half3 wNormal = mul(unity_ObjectToWorld, float4(v.normal, 0.0)).xyz;
+        float3 wNormal = TransformObjectToWorldDir(v.normal, 0.0).xyz;
         // half3 pos = wPos.xyz / 100;
-        half3 exDir = _ExtrusionMode == 0 ? v.normal.xyz : normalize(_ExtrusionDirection.xyz);
+        float3 exDir = _ExtrusionMode == 0 ? v.normal.xyz : normalize(_ExtrusionDirection.xyz);
         
         #if defined(RECALCULATE_NORMALS) && defined(APPLY_SHADING)
         {
@@ -231,9 +230,8 @@
         }
         #endif
 
-        o.extraV2F0 = ComputeScreenPos(UnityObjectToClipPos(v.vertex));
-        // COMPUTE_EYEDEPTH macro
-        o.extraV2F0.z = -UnityObjectToViewPos(v.vertex).z;
+        o.extraV2F0 = GetScreenPosition(TransformObjectToHClip(v.vertex));
+        o.extraV2F0.z = -TransformWorldToView(TransformObjectToWorld(v.vertex)).z;
     }
 }
 
@@ -242,7 +240,7 @@
 {
     void CloudsFragment(MeshData d, inout SurfaceData o, FragmentData i)
     {
-        float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(d.extraV2F0)));
+        float sceneZ = LinearEyeDepth(SampleSceneDepth(d.extraV2F0.xy / d.extraV2F0.w));
         float depth = sceneZ - d.extraV2F0.z;   
         depth = saturate(invLerp(0, _DepthTransp, depth));
         half heightAlpha = saturate(invLerp(_HeightBottom, _HeightTop, d.localSpacePosition.y));
@@ -250,14 +248,11 @@
 
         #if defined(APPLY_SHADING)
         {
-            #ifndef USING_DIRECTIONAL_LIGHT
-            float3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
-            #else
-            float3 lightDir = _WorldSpaceLightPos0.xyz;
-            #endif
-            
-            UNITY_LIGHT_ATTENUATION(lightAttenuation, i, d.worldSpacePosition);
-            half3 lightColor = lightAttenuation * _LightColor0.rgb;
+            Light mainLight = GetMainLight(i._ShadowCoord, d.worldSpacePosition, 0..xxxx);
+
+            half3 lightAttenuation = mainLight.shadowAttenuation;
+            half3 lightColor = mainLight.color * mainLight.shadowAttenuation;
+            float3 lightDir = mainLight.direction;
 
             half lightNoL = dot(d.worldNormal, lightDir);
             half2 rampUv = half2(lightNoL * 0.5 + 0.5, 0);
