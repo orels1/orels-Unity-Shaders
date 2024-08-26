@@ -48,10 +48,7 @@
         #if defined(DITHER_FADE)
         o.extraV2F0 = GetScreenPosition(TransformObjectToHClip(v.vertex));
         o.extraV2F0.z = -TransformWorldToView(TransformObjectToWorld(v.vertex)).z;
-        // o.extraV2F0 = ComputeScreenPos(UnityObjectToClipPos(v.vertex));
-        // // COMPUTE_EYEDEPTH macro
-        // o.extraV2F0.z = -UnityObjectToViewPos(v.vertex).z;
-        
+
         // yeet the vertices completely if we're beyond the fade range
         half dist = distance(TransformObjectToWorld(0..xxx), _WorldSpaceCameraPos);
         half factor = invLerp(_DFEnd, _DFStart, dist);
