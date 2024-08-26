@@ -67,7 +67,7 @@
 
 %FragmentBase("FragmentBase")
 {
-    void FragmentBase(SurfaceData o, inout half4 FinalColor)
+    void FragmentBase(MeshData d, SurfaceData o, inout half4 FinalColor)
     {
         o.Albedo += _TextureSampleAdd;
         o.Albedo *= _Color.rgb;

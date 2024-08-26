@@ -48,7 +48,7 @@
         #if defined(PASS_OUTLINE)
         half mask = SAMPLE_TEXTURE2D_LOD(_OutlineMask, sampler_OutlineMask, v.uv0, 0);
         half3 width = mask * _OutlineWidth * .01;
-        width *= min(distance(mul(unity_ObjectToWorld, v.vertex), _WorldSpaceCameraPos) * 3, 1);
+        width *= min(distance(TransformObjectToWorld(v.vertex.xyz), _WorldSpaceCameraPos) * 3, 1);
         v.vertex.xyz += v.normal.xyz * lerp(width, width * v.color.r, _OutlineWidthAdjustByVertexColor);
         
         #endif

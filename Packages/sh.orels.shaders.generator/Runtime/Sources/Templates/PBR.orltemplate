@@ -71,10 +71,6 @@
             // GlobalVariables
             %GlobalVariables
 
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
-
             // Variables
             %Variables
 
@@ -176,10 +172,6 @@
             %DataStructs
             // GlobalVariables
             %GlobalVariables
-
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
 
             // Variables
             %Variables
@@ -286,9 +278,7 @@
             // GlobalVariables
             %GlobalVariables
 
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
+        
 
             // Variables
             %Variables
@@ -394,9 +384,7 @@
             // GlobalVariables
             %GlobalVariables
 
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
+        
 
             // Variables
             %Variables

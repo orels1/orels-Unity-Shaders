@@ -121,7 +121,7 @@
     {
         // half3 wsVert = TransformObjectToWorld(v.vertex.xyz);
         // half3 wsNormal = TransformObjectToWorld(v.normal.xyz);
-        half3 wsObjectPosition = mul(unity_ObjectToWorld, half4(0,0,0,1));
+        half3 wsObjectPosition = TransformObjectToWorld(0..xxx);
         half factor = 0;
         o.extraV2F0 = v.vertex;
         
@@ -157,11 +157,7 @@
             v.vertex.xyz = RotateAroundAxis(origin, v.vertex.xyz, _SpinAxis.xyz, factor);
             v.normal.xyz = RotateAroundAxis(origin, v.normal.xyz, _SpinAxis.xyz, factor);
             #elif defined(SPIN_WORLD)
-            float3 scale = float3(
-                length(unity_ObjectToWorld._m00_m10_m20),
-                length(unity_ObjectToWorld._m01_m11_m21),
-                length(unity_ObjectToWorld._m02_m12_m22)
-            );
+            float3 scale = GetObjectScale();
             half3 lsAxis = normalize(TransformWorldToObject(_SpinAxis.xyz));
             half3 vertRot = RotateAroundAxis(origin, v.vertex.xyz, lsAxis, factor);
             half3 normalRot = RotateAroundAxis(origin, v.normal.xyz, lsAxis, factor);

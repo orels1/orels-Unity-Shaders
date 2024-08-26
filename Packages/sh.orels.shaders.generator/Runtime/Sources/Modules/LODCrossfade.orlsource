@@ -21,7 +21,7 @@
         #if defined(LOD_FADE_CROSSFADE)
 
         float2 vpos = d.screenPos.xy / d.screenPos.w * _ScreenParams.xy;
-        UnityApplyDitherCrossFade(vpos);
+        LODFadeCrossFade(vpos);
 
         #endif
     }
@@ -33,7 +33,7 @@
         #if defined(LOD_FADE_CROSSFADE)
 
         float2 vpos = i.screenPos.xy / i.screenPos.w * _ScreenParams.xy;
-        UnityApplyDitherCrossFade(vpos);
+        LODFadeCrossFade(vpos);
 
         #endif
     }
