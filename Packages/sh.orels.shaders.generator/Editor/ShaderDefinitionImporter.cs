@@ -136,7 +136,8 @@ namespace ORL.ShaderGenerator
         }
 
         private readonly string[] _libraries = {
-            "@/Libraries/Utilities"
+            "@/Libraries/Utilities",
+            "@/Libraries/CoreRPShaderLibrary/BiRPtoURP"
         };
 
         private const string SamplingLib = "@/Libraries/SamplingLibrary";
