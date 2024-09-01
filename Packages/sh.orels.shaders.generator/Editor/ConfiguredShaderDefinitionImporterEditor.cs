@@ -181,12 +181,6 @@ namespace ORL.ShaderGenerator
         {
             var generatedContent = ConfiguredShaderDefinitionImporter.GetGeneratedContents(target as ConfiguredShaderDefinitionImporter);
             serializedObject.FindProperty("lastGeneratedContent").stringValue = generatedContent;
-            var isModified = File.ReadAllText(AssetDatabase.GetAssetPath(target)) != generatedContent;
-
-            if (isModified)
-            {
-                serializedObject.FindProperty("skipGeneration").boolValue = true;
-            }
 
             serializedObject.FindProperty("lastGeneratedTime").longValue = DateTime.Now.Ticks;
 
