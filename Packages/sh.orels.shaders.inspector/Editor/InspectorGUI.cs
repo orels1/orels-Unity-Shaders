@@ -436,7 +436,7 @@ namespace ORL.ShaderInspector
             return MatchDrawerFuncStack(funcs, editor, properties, property, index);
         }
 
-        private readonly static Regex _drawerFuncMatcher = new Regex(@"(?:%)([a-zA-Z]+)(?=\(.*\))");
+        private readonly static Regex _drawerFuncMatcher = new Regex(@"(?:%)([a-zA-Z0-9]+)(?=\(.*\))");
 
         private bool DrawUIProp(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index)
         {
@@ -515,7 +515,7 @@ namespace ORL.ShaderInspector
             if (isSingleLine)
             {
                 var buttonRect = editor.TexturePropertySingleLine(new GUIContent(strippedName, tooltip), property);
-                buttonRect.x = EditorGUIUtility.labelWidth + 20.0f;
+                buttonRect.x = EditorGUIUtility.labelWidth + 34.0f;
                 buttonRect.width = EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth - 38f;
                 // We can only repack 2D textures
                 if (property.textureDimension != TextureDimension.Tex2D) return;
