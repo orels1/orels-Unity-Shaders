@@ -1,6 +1,9 @@
 {
     "name": "ORL.ShaderInspector",
-    "references": [],
+    "rootNamespace": "",
+    "references": [
+        "GUID:a1653399f63795746b1857281d1e400d"
+    ],
     "includePlatforms": [
         "Editor"
     ],
