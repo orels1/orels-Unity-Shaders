@@ -50,12 +50,27 @@
     [Toggle(BAKERY_ENABLED)]_BakeryEnabled("Enable Bakery Features", Int) = 0
     [KeywordEnum(None, MONOSH, SH, RNM)]BAKERY("Bakery Mode %ShowIf(BAKERY_ENABLED)", Int) = 0
     [Toggle(BAKERY_SHNONLINEAR)]_BakerySHNonLinear("Bakery Non-Linear SH %ShowIf(BAKERY_ENABLED)", Int) = 1
+    [Toggle(BAKERY_VOLUME)]_BakeryVolume("Support Volumes %ShowIf(BAKERY_ENABLED)", Int) = 0
+    UI_BakeryVolumeAssigner("Volume Assigner %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME) %BakeryVolumeAssigner()", Int) = 0
+    [Toggle(BAKERY_COMPRESSED_VOLUME)]_BakeryCompressedVolume("Support Compressed Volumes %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME)", Int) = 0
+    [Toggle(BAKERY_VOLROTATIONY)]_BakeryVolumeRotationY("Support Baked Volume Rotation %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME && BAKERY_VOLROTATIONY)", Int) = 0
     
     UI_InternalHeader("# Internal", Int) = 0
     [NonModifiableTextureData]_DFG("DFG > %RequiredTexture(@/dfg-multiscatter.exr)", 2D) = "white" {}
+
+    UI_BakerySHHeader("## Bakery SH", Int) = 0
     _RNM0("RNM0 >", 2D) = "white" {}
     _RNM1("RNM1 >", 2D) = "white" {}
     _RNM2("RNM2 >", 2D) = "white" {}
+
+    UI_BakeryVolumesHeader("## Bakery Volumes", Int) = 0
+    _Volume0("Volume 0 >", 3D) = "white" {}
+    _Volume1("Volume 1 >", 3D) = "white" {}
+    _Volume2("Volume 2 >", 3D) = "white" {}
+    _Volume3("Volume 3 >", 3D) = "white" {}
+    _VolumeMask("Volume Mask >", 3D) = "white" {}
+    _VolumeMin("Volume min", Vector) = (0,0,0)
+    _VolumeInvSize("Volume Inv Size", Vector) = (1000001, 1000001, 1000001)
 }
 
 %ShaderFeatures()
@@ -176,6 +191,33 @@
         }
         #endif
 
+        // https://assetstore.unity.com/packages/tools/level-design/bakery-gpu-lightmapper-122218
+        #if defined(BAKERY_ENABLED) && defined(BAKERY_VOLUME)
+            bool isGlobalVolume = _VolumeInvSize.x > 1000000; // ~inf
+            float3 volViewDir = d.worldSpaceViewDir;
+            // Runtime volume rotation
+            // Not currently supported
+            #if defined(BAKERY_VOLROTATION)
+                float4x4 volMatrix = (isGlobalVolume ? _GlobalVolumeMatrix : _VolumeMatrix);
+                float3 volInvSize = (isGlobalVolume ? _GlobalVolumeInvSize : _VolumeInvSize);
+                float3 lpUV = mul(volMatrix, float4(d.worldSpacePosition,1)).xyz * volInvSize + 0.5f;
+                float3 volNormal = mul((float3x3)volMatrix, o.Normal);
+                #if defined(BAKED_SPECULAR)
+                    volViewDir = mul((float3x3)volMatrix, volViewDir);
+                #endif
+            #else
+                float3 lpUV = d.worldSpacePosition - (isGlobalVolume ? _GlobalVolumeMin : _VolumeMin);
+                #if defined(BAKERY_VOLROTATIONY)
+                    float2 sc = (isGlobalVolume ? _GlobalVolumeRY : _VolumeRY);
+                    lpUV.xz = mul(float2x2(sc.y, -sc.x, sc.x, sc.y), lpUV.xz);
+                #endif
+                lpUV *= (isGlobalVolume ? _GlobalVolumeInvSize : _VolumeInvSize);
+                float3 volNormal = o.Normal;
+            #endif
+
+            lightColor *= saturate(dot(_VolumeMask.Sample(sampler_Volume0, lpUV), unity_OcclusionMaskSelector));
+        #endif    
+
         // READ THE LIGHTMAP
         // Can be Baked, Realtime, both or either
         #if (defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)) && !defined(UNITY_PASS_FORWARDADD)
@@ -295,6 +337,36 @@
                 lightMap = SubtractMainLightWithRealtimeAttenuationFromLightmapMultiply(lightMap, lightAttenuation, bakedColorTex, o.Normal);
             #endif
             indirectDiffuse = lightMap;
+
+        // Bakery Volume Sampling (replaces probes and LPPVs)
+        #elif defined(BAKERY_ENABLED) && defined(BAKERY_VOLUME)
+            #ifdef BAKERY_COMPRESSED_VOLUME
+                float4 tex0, tex1, tex2, tex3;
+                float3 L0, L1x, L1y, L1z;
+                tex0 = _Volume0.Sample(sampler_Volume0, lpUV);
+                tex1 = _Volume1.Sample(sampler_Volume0, lpUV) * 2 - 1;
+                tex2 = _Volume2.Sample(sampler_Volume0, lpUV) * 2 - 1;
+                tex3 = _Volume3.Sample(sampler_Volume0, lpUV) * 2 - 1;
+                L0 = tex0.xyz;
+                L1x = tex1.xyz * L0 * 2;
+                L1y = tex2.xyz * L0 * 2;
+                L1z = tex3.xyz * L0 * 2;
+            #else
+                float4 tex0, tex1, tex2;
+                float3 L0, L1x, L1y, L1z;
+                tex0 = _Volume0.Sample(sampler_Volume0, lpUV);
+                tex1 = _Volume1.Sample(sampler_Volume0, lpUV);
+                tex2 = _Volume2.Sample(sampler_Volume0, lpUV);
+                L0 = tex0.xyz;
+                L1x = tex1.xyz;
+                L1y = tex2.xyz;
+                L1z = float3(tex0.w, tex1.w, tex2.w);
+            #endif
+            // Sample using Geomerics approach, similar to lightprobes and LPPVs
+            indirectDiffuse.r = shEvaluateDiffuseL1Geomerics(L0.r, float3(L1x.r, L1y.r, L1z.r), volNormal);
+            indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, float3(L1x.g, L1y.g, L1z.g), volNormal);
+            indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, float3(L1x.b, L1y.b, L1z.b), volNormal);
+            indirectDiffuse = max(0, indirectDiffuse);
 
         // Lightprobes Sampling
         #else
@@ -455,6 +527,17 @@
             }
             #endif
         #endif // End of #if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
+
+        // BAKERY VOLUME SPECULAR
+        #if defined(BAKERY_ENABLED) && defined(BAKERY_VOLUME) && defined(BAKERY_LMSPEC)
+            float3 nL1x = L1x / L0;
+            float3 nL1y = L1y / L0;
+            float3 nL1z = L1z / L0;
+            float3 dominantDir = float3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(nL1z, lumaConv));
+            float3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
+            float3 volumeNoV = dot(volNormal, volViewDir);
+            bakedDirectSpecular += GetSpecularHighlights(volNormal, sh, dominantDir, f0, volViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), volumeNoV, energyCompensation);
+        #endif
 
         // REFLECTIONS
         #if !defined(UNITY_PASS_FORWARDADD)

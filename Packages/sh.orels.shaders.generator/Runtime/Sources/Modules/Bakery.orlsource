@@ -3,6 +3,9 @@
     #pragma shader_feature_local BAKERY_ENABLED
     #pragma shader_feature_local _ BAKERY_RNM BAKERY_SH BAKERY_MONOSH
     #pragma shader_feature_local BAKERY_SHNONLINEAR
+    #pragma shader_feature_local BAKERY_VOLUME
+    #pragma shader_feature_local BAKERY_COMPRESSED_VOLUME
+    #pragma shader_feature_local BAKERY_VOLROTATIONY
 }
 
 %ShaderDefines()
@@ -42,11 +45,20 @@
         #endif
     #endif
 
-    #ifdef BAKERY_VOLUME
+    #if defined(BAKERY_ENABLED) && defined(BAKERY_VOLUME)
     half3 _VolumeMin;
-    half3 _VolumnInvSize;
+    half3 _VolumeInvSize;
     half3 _GlobalVolumeMin;
     half3 _GlobalVolumeInvSize;
+
+        #if defined(BAKERY_VOLROTATION)
+    float4x4 _GlobalVolumeMatrix;
+    float4x4 _VolumeMatrix;
+        #endif
+        #if defined(BAKERY_VOLROTATIONY)
+    float2 _GlobalVolumeRY;
+    float2 _VolumeRY;
+        #endif
     #endif
 }
 %Textures()
@@ -60,13 +72,16 @@
         #endif
     #endif
 
-    // Bakery volumes are technically not supported yet
-    // But I added the variables for the future
-    #ifdef BAKERY_VOLUME
+    #if defined(BAKERY_ENABLED) && defined(BAKERY_VOLUME)
     TEXTURE3D(_Volume0);
     TEXTURE3D(_Volume1);
     TEXTURE3D(_Volume2);
     TEXTURE3D(_VolumeMask);
+
+        #if defined(BAKERY_COMPRESSED_VOLUME)
+    TEXTURE3D(_Volume3);
+        #endif
+
     SAMPLER(sampler_Volume0);
     #endif
 }
