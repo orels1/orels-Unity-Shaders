@@ -4,6 +4,7 @@ using System.IO;
 using ORL.ShaderInspector;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace ORL.Drawers
 {
@@ -28,7 +29,7 @@ namespace ORL.Drawers
             "2048",
             "4096"
         };
-        
+
         public static bool DrawPacker(Rect position, bool visible, ref Dictionary<string, object> uiState, string uiKey, Material material, MaterialProperty property, MaterialEditor materialEditor)
         {
             if (EditorGUI.indentLevel == -1) return visible;
@@ -43,34 +44,34 @@ namespace ORL.Drawers
             var paddedBox = new GUIStyle(EditorStyles.helpBox)
             {
                 margin = new RectOffset(15 * (oldIndent + 1), 0, 0, 5),
-                padding = new RectOffset(5,5,5,5)
+                padding = new RectOffset(5, 5, 5, 5)
             };
             using (new GUILayout.VerticalScope(paddedBox))
             {
-                var redTex = (Texture2D) uiState[uiKey + "_red_tex"];
-                var redChannel = (int) uiState[uiKey + "_red_channel"];
-                var redVal = (float) uiState[uiKey + "_red_val"];
-                var redInvert = (bool) uiState[uiKey + "_red_invert"];
+                var redTex = (Texture2D)uiState[uiKey + "_red_tex"];
+                var redChannel = (int)uiState[uiKey + "_red_channel"];
+                var redVal = (float)uiState[uiKey + "_red_val"];
+                var redInvert = (bool)uiState[uiKey + "_red_invert"];
                 DrawPackerRow("Red", ref redTex, ref redChannel, ref redVal, ref redInvert);
-                
-                var greenTex = (Texture2D) uiState[uiKey + "_green_tex"];
-                var greenChannel = (int) uiState[uiKey + "_green_channel"];
-                var greenVal = (float) uiState[uiKey + "_green_val"];
-                var greenInvert = (bool) uiState[uiKey + "_green_invert"];
+
+                var greenTex = (Texture2D)uiState[uiKey + "_green_tex"];
+                var greenChannel = (int)uiState[uiKey + "_green_channel"];
+                var greenVal = (float)uiState[uiKey + "_green_val"];
+                var greenInvert = (bool)uiState[uiKey + "_green_invert"];
                 DrawPackerRow("Green", ref greenTex, ref greenChannel, ref greenVal, ref greenInvert);
-                
-                var blueTex = (Texture2D) uiState[uiKey + "_blue_tex"];
-                var blueChannel = (int) uiState[uiKey + "_blue_channel"];
-                var blueVal = (float) uiState[uiKey + "_blue_val"];
-                var blueInvert = (bool) uiState[uiKey + "_blue_invert"];
+
+                var blueTex = (Texture2D)uiState[uiKey + "_blue_tex"];
+                var blueChannel = (int)uiState[uiKey + "_blue_channel"];
+                var blueVal = (float)uiState[uiKey + "_blue_val"];
+                var blueInvert = (bool)uiState[uiKey + "_blue_invert"];
                 DrawPackerRow("Blue", ref blueTex, ref blueChannel, ref blueVal, ref blueInvert);
-                
-                var alphaTex = (Texture2D) uiState[uiKey + "_alpha_tex"];
-                var alphaChannel = (int) uiState[uiKey + "_alpha_channel"];
-                var alphaVal = (float) uiState[uiKey + "_alpha_val"];
-                var alphaInvert = (bool) uiState[uiKey + "_alpha_invert"];
+
+                var alphaTex = (Texture2D)uiState[uiKey + "_alpha_tex"];
+                var alphaChannel = (int)uiState[uiKey + "_alpha_channel"];
+                var alphaVal = (float)uiState[uiKey + "_alpha_val"];
+                var alphaInvert = (bool)uiState[uiKey + "_alpha_invert"];
                 DrawPackerRow("Alpha", ref alphaTex, ref alphaChannel, ref alphaVal, ref alphaInvert);
-                
+
                 uiState[uiKey + "_red_tex"] = redTex;
                 uiState[uiKey + "_red_channel"] = redChannel;
                 uiState[uiKey + "_red_val"] = redVal;
@@ -88,15 +89,15 @@ namespace ORL.Drawers
                 uiState[uiKey + "_alpha_val"] = alphaVal;
                 uiState[uiKey + "_alpha_invert"] = alphaInvert;
 
-                var isLinear = (bool) uiState[uiKey + "_linear"];
+                var isLinear = (bool)uiState[uiKey + "_linear"];
                 isLinear = EditorGUILayout.Toggle(new GUIContent("Linear Texture", "Reads source textures in linear mode, and saves the final texture as linear"), isLinear);
                 uiState[uiKey + "_linear"] = isLinear;
-                
-                var size = Array.IndexOf(_sizeOptions, (int) uiState[uiKey + "_size"]);
+
+                var size = Array.IndexOf(_sizeOptions, (int)uiState[uiKey + "_size"]);
                 size = _sizeOptions[EditorGUILayout.Popup(size, _sizeOptionLabels)];
                 uiState[uiKey + "_size"] = size;
-                
-                var texName = (string) uiState[uiKey + "_name"];
+
+                var texName = (string)uiState[uiKey + "_name"];
                 texName = EditorGUILayout.TextField(texName);
                 uiState[uiKey + "_name"] = texName;
 
@@ -112,10 +113,11 @@ namespace ORL.Drawers
 
                     savePath += ".png";
                     var result = PackTexture(
-                        new [] { redTex, greenTex, blueTex, alphaTex },
-                        new [] { redChannel, greenChannel, blueChannel, alphaChannel },
-                        new [] { redVal, greenVal, blueVal, alphaVal },
-                        new [] { redInvert, greenInvert, blueInvert, alphaInvert },
+                        new[] { redTex, greenTex, blueTex, alphaTex },
+                        new[] { redChannel, greenChannel, blueChannel, alphaChannel },
+                        new[] { redVal, greenVal, blueVal, alphaVal },
+                        new[] { redInvert, greenInvert, blueInvert, alphaInvert },
+                        new[] { !redTex?.isDataSRGB ?? false, !greenTex?.isDataSRGB ?? false, !blueTex?.isDataSRGB ?? false, !alphaTex?.isDataSRGB ?? false },
                         isLinear,
                         size,
                         savePath
@@ -125,7 +127,7 @@ namespace ORL.Drawers
                         Debug.Log("Failed to pack texture");
                         return true;
                     }
-                    
+
                     Undo.RecordObject(materialEditor.target, "Assigned Packed Texture");
                     (materialEditor.target as Material).SetTexture(property.name, result);
                 }
@@ -142,11 +144,11 @@ namespace ORL.Drawers
                 var rowRect = EditorGUILayout.GetControlRect(true, 20f, EditorStyles.layerMaskField);
                 var texFieldRect = rowRect;
                 texFieldRect.xMax = 70;
-                currTex = (Texture2D) Styles.DrawSingleLineTextureGUI<Texture2D>(texFieldRect, label, currTex);
+                currTex = (Texture2D)Styles.DrawSingleLineTextureGUI<Texture2D>(texFieldRect, label, currTex);
                 var dropdownRect = rowRect;
                 dropdownRect.xMin += 70;
                 dropdownRect.xMax = dropdownRect.xMin + 30;
-                currChannel = EditorGUI.Popup(dropdownRect, currChannel, new []{
+                currChannel = EditorGUI.Popup(dropdownRect, currChannel, new[]{
                     new GUIContent("R", $"Fills the {label} channel of the packed texture with values from the Red channel of the source texture"),
                     new GUIContent("G", $"Fills the {label} channel of the packed texture with values from the Green channel of the source texture"),
                     new GUIContent("B", $"Fills the {label} channel of the packed texture with values from the Blue channel of the source texture"),
@@ -161,7 +163,7 @@ namespace ORL.Drawers
                 EditorGUIUtility.labelWidth = 15;
                 using (new EditorGUI.DisabledScope(currTex != null))
                 {
-                    currValue = EditorGUI.Slider(sliderRect, new GUIContent("V","Fill Value. This channel will be filled uniformly with this value"), currValue, 0, 1);
+                    currValue = EditorGUI.Slider(sliderRect, new GUIContent("V", "Fill Value. This channel will be filled uniformly with this value"), currValue, 0, 1);
                 }
                 EditorGUIUtility.fieldWidth = oldWidth;
                 var invertRect = rowRect;
@@ -172,14 +174,14 @@ namespace ORL.Drawers
             }
         }
 
-        public static Texture2D PackTexture(Texture2D[] textures, int[] channels, float[] values, bool[] inverts, bool isLinear, int size, string savePath)
+        public static Texture2D PackTexture(Texture2D[] textures, int[] channels, float[] values, bool[] inverts, bool[] isSourceLinear, bool isLinear, int size, string savePath)
         {
             var rawTextures = new Texture2D[4];
             for (int i = 0; i < rawTextures.Length; i++)
             {
                 if (textures[i] == null) continue;
                 var channelTexPath = AssetDatabase.GetAssetPath(textures[i]);
-                var tex = new Texture2D(4, 4, TextureFormat.RGBA32, false, true);
+                var tex = new Texture2D(4, 4, TextureFormat.RGBA64, false, isSourceLinear[i]);
                 tex.LoadImage(File.ReadAllBytes(channelTexPath));
                 rawTextures[i] = tex;
             }
@@ -197,8 +199,8 @@ namespace ORL.Drawers
             SetPackerPropsForChannel("Alpha", ref mat, textures[3], channels[3], values[3], inverts[3]);
             mat.SetInt("_IsLinear", isLinear ? 1 : 0);
             var source = new Texture2D(size, size);
-            var buffer = new RenderTexture(size, size, 24, RenderTextureFormat.ARGB32);
-            var target = new Texture2D(size, size, TextureFormat.ARGB32, true);
+            var buffer = new RenderTexture(size, size, GraphicsFormat.R16G16B16A16_UNorm, GraphicsFormat.D24_UNorm_S8_UInt);
+            var target = new Texture2D(size, size, TextureFormat.RGBA64, true);
             Graphics.Blit(source, buffer, mat);
             RenderTexture.active = buffer;
             target.ReadPixels(new Rect(0, 0, size, size), 0, 0);
