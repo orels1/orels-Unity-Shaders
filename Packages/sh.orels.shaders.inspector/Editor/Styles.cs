@@ -6,12 +6,13 @@ namespace ORL.ShaderInspector
 {
     public static class Styles
     {
-        public static void InitTextureStyles() {
+        public static void InitTextureStyles()
+        {
             Header1BgStyle = new GUIStyle
             {
                 normal = new GUIStyleState
                 {
-                    background = CreateTexture(new Color(0f,0f,0f,0.3f))
+                    background = CreateTexture(new Color(0f, 0f, 0f, 0.3f))
                 }
             };
 
@@ -23,6 +24,11 @@ namespace ORL.ShaderInspector
                     background = CreateTexture(new Color(0f, 0f, 0f, 0.6f))
                 }
             };
+        }
+
+        public static bool IsInitialized()
+        {
+            return Header1BgStyle.normal.background != null && Divider.normal.background != null;
         }
 
         public static Texture2D CreateTexture(Color color)
@@ -58,7 +64,7 @@ namespace ORL.ShaderInspector
         {
             normal = new GUIStyleState
             {
-                background = CreateTexture(new Color(0f,0f,0f,0.3f))
+                background = CreateTexture(new Color(0f, 0f, 0f, 0.3f))
             }
         };
 
@@ -69,7 +75,7 @@ namespace ORL.ShaderInspector
             alignment = TextAnchor.MiddleLeft,
             normal = new GUIStyleState
             {
-                textColor = new Color(1f,1f,1f, 0.8f),
+                textColor = new Color(1f, 1f, 1f, 0.8f),
             }
         };
 
@@ -80,7 +86,7 @@ namespace ORL.ShaderInspector
             margin = new RectOffset(19, 0, 0, 0),
             normal = new GUIStyleState
             {
-                textColor = new Color(1f,1f,1f, 0.5f),
+                textColor = new Color(1f, 1f, 1f, 0.5f),
             }
         };
 
@@ -90,7 +96,7 @@ namespace ORL.ShaderInspector
             wordWrap = true,
             normal = new GUIStyleState
             {
-                textColor = new Color(64f/255f, 206f/255f, 245f/255f),
+                textColor = new Color(64f / 255f, 206f / 255f, 245f / 255f),
             }
         };
 
@@ -137,13 +143,12 @@ namespace ORL.ShaderInspector
         public static void DrawStaticHeader(string text)
         {
             EditorGUI.indentLevel = 0;
-            EditorGUILayout.Space(8f * EditorGUIUtility.pixelsPerPoint);
             var rect = EditorGUILayout.GetControlRect();
             rect.yMax += 1f * EditorGUIUtility.pixelsPerPoint;
             rect.xMin -= 15f * EditorGUIUtility.pixelsPerPoint;
-            #if UNITY_2022_1_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
             rect.xMin -= 15f * EditorGUIUtility.pixelsPerPoint;
-            #endif
+#endif
             rect.xMax += 5f * EditorGUIUtility.pixelsPerPoint;
             var dividerRect = rect;
             dividerRect.y -= 1f;
@@ -157,15 +162,15 @@ namespace ORL.ShaderInspector
             EditorGUILayout.Space(8f * EditorGUIUtility.pixelsPerPoint);
         }
 
-        public static bool DrawFoldoutHeader(string text, bool open) {
+        public static bool DrawFoldoutHeader(string text, bool open)
+        {
             EditorGUI.indentLevel = 0;
-            EditorGUILayout.Space(8f * EditorGUIUtility.pixelsPerPoint);
             var rect = EditorGUILayout.GetControlRect();
             rect.yMax += 1f * EditorGUIUtility.pixelsPerPoint;
             rect.xMin -= 15f * EditorGUIUtility.pixelsPerPoint;
-            #if UNITY_2022_1_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
             rect.xMin -= 15f * EditorGUIUtility.pixelsPerPoint;
-            #endif
+#endif
             rect.xMax += 5f * EditorGUIUtility.pixelsPerPoint;
             var dividerRect = rect;
             dividerRect.y -= 1f;
@@ -176,7 +181,6 @@ namespace ORL.ShaderInspector
             labelRect.y -= 1f * EditorGUIUtility.pixelsPerPoint;
             labelRect.xMin += 27f * EditorGUIUtility.pixelsPerPoint;
             GUI.Label(labelRect, text, Header1TextStyle);
-            EditorGUILayout.Space(8f * EditorGUIUtility.pixelsPerPoint);
 
             var foldoutRect = rect;
             foldoutRect.xMin = 15f * EditorGUIUtility.pixelsPerPoint;
@@ -188,30 +192,33 @@ namespace ORL.ShaderInspector
             switch (evt.type)
             {
                 case EventType.Repaint:
-                {
-                    if (open)
                     {
-                        FoldoutUnfolded.Draw(foldoutRect, "", false, false, true, false);
-                    }
-                    else
-                    {
-                        FoldoutFolded.Draw(foldoutRect, "", false, false, true, false);
-                    }
+                        if (open)
+                        {
+                            FoldoutUnfolded.Draw(foldoutRect, "", false, false, true, false);
+                        }
+                        else
+                        {
+                            FoldoutFolded.Draw(foldoutRect, "", false, false, true, false);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case EventType.MouseDown:
-                {
-                    if (rect.Contains(evt.mousePosition))
                     {
-                        return !open;
-                    }
+                        if (rect.Contains(evt.mousePosition))
+                        {
+                            return !open;
+                        }
 
-                    break;
-                }
+                        break;
+                    }
             }
 
-            GUI.Label(labelRect, text, Styles.Header1TextStyle);
+            if (open)
+            {
+                EditorGUILayout.Space(6f);
+            }
             return open;
         }
 
@@ -220,7 +227,7 @@ namespace ORL.ShaderInspector
             var rect = EditorGUILayout.GetControlRect(true, 20f, EditorStyles.layerMaskField);
             return DrawSingleLineTextureGUI<T>(rect, label, current, maxWidth);
         }
-        
+
         public static Texture DrawSingleLineTextureGUI<T>(Rect position, string label, Texture current, int maxWidth = -1)
         {
             var rect = position;
@@ -230,12 +237,12 @@ namespace ORL.ShaderInspector
             }
             var labelRect = new Rect();
             var fieldRect = new Rect();
-            var rects = new object[] {rect, labelRect, fieldRect};
+            var rects = new object[] { rect, labelRect, fieldRect };
             typeof(EditorGUI)
                 .GetMethod("GetRectsForMiniThumbnailField", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Instance)
                 ?.Invoke(null, rects);
-            labelRect = (Rect) rects[2];
-            fieldRect = (Rect) rects[1];
+            labelRect = (Rect)rects[2];
+            fieldRect = (Rect)rects[1];
             EditorGUI.LabelField(labelRect, label);
             return EditorGUI.ObjectField(fieldRect, current, typeof(T), false) as Texture;
         }
