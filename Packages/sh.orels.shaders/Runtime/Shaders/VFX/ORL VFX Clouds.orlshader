@@ -55,9 +55,9 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local ONLY_TOP
+    #pragma shader_feature_local_vertex ONLY_TOP
     #pragma shader_feature_local APPLY_SHADING
-    #pragma shader_feature_local RECALCULATE_NORMALS
+    #pragma shader_feature_local_vertex RECALCULATE_NORMALS
 }
 
 %ShaderTags()

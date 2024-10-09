@@ -94,7 +94,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local MASK_DEBUGGING
+    #pragma shader_feature_local_fragment MASK_DEBUGGING
 }
 
 %Variables()

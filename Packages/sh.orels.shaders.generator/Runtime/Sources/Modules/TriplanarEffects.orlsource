@@ -37,9 +37,9 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local DIRT_MODE_NONE DIRT_MODE_LOCAL_SPACE DIRT_MODE_WORLD_SPACE
-    #pragma shader_feature_local DAMAGE_MODE_NONE DAMAGE_MODE_ENABLED
-    #pragma shader_feature_local DEBUG_TRIPLANAR_NONE DEBUG_TRIPLANAR_DIRT DEBUG_TRIPLANAR_DAMAGE
+    #pragma shader_feature_local_fragment DIRT_MODE_NONE DIRT_MODE_LOCAL_SPACE DIRT_MODE_WORLD_SPACE
+    #pragma shader_feature_local_fragment DAMAGE_MODE_NONE DAMAGE_MODE_ENABLED
+    #pragma shader_feature_local_fragment DEBUG_TRIPLANAR_NONE DEBUG_TRIPLANAR_DIRT DEBUG_TRIPLANAR_DAMAGE
 }
 
 %ShaderDefines()

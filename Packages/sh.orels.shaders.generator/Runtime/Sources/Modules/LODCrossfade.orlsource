@@ -1,6 +1,6 @@
 %ShaderFeatures()
 {
-    #pragma multi_compile _ LOD_FADE_CROSSFADE
+    #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 }
 
 %ShaderDefines()

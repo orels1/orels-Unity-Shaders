@@ -26,8 +26,8 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local DETAILS_OVERLAY
-    #pragma shader_feature_local _ DETAILS_MODE_PACKED DETAILS_MODE_SEPARATED
+    #pragma shader_feature_local_fragment DETAILS_OVERLAY
+    #pragma shader_feature_local_fragment _ DETAILS_MODE_PACKED DETAILS_MODE_SEPARATED
 }
 
 %ShaderDefines()

@@ -1,4 +1,4 @@
-﻿%Properties()
+%Properties()
 {
     UI_ParallaxHeader("# Parallax", Int) = 0
     UI_ParallaxDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#parallax)", Int) = 0
@@ -12,7 +12,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local PARALLAX
+    #pragma shader_feature_local_fragment PARALLAX
 }
 
 %Variables()

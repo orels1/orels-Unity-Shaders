@@ -15,7 +15,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local MASKED_TWEAKS
+    #pragma shader_feature_local_fragment MASKED_TWEAKS
 }
 
 %Variables()

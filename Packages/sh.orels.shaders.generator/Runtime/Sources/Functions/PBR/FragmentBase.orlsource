@@ -75,17 +75,25 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local BICUBIC_LIGHTMAP
-    #pragma shader_feature_local BAKED_SPECULAR
-    #pragma shader_feature_local GSAA
-    #pragma shader_feature_local FORCE_BOX_PROJECTION
-    #pragma shader_feature_local NONLINEAR_SH
-    #pragma shader_feature_local APPLY_COLOR_CORRECTION
-    #pragma shader_feature_local SHADE_VERTEXLIGHTS
-    #pragma shader_feature_local MOBILE_TONEMAP_ACES MOBILE_TONEMAP_UNREAL MOBILE_TONEMAP_UNCHARTED
+    #pragma shader_feature_local_fragment BAKED_SPECULAR
+    #pragma shader_feature_local_fragment GSAA
+    #pragma shader_feature_local_fragment NONLINEAR_SH
+    #pragma shader_feature_local_fragment SHADE_VERTEXLIGHTS
+    
+    // PC Only Features
+    #if !defined(UNITY_PBS_USE_BRDF2) && !defined(SHADER_API_MOBILE)
+        #pragma shader_feature_local_fragment BICUBIC_LIGHTMAP
+    #endif
+
+    // Mobile Only Features
+    #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
+        #pragma shader_feature_local_fragment FORCE_BOX_PROJECTION
+        #pragma shader_feature_local_fragment APPLY_COLOR_CORRECTION
+        #pragma shader_feature_local_fragment MOBILE_TONEMAP_ACES MOBILE_TONEMAP_UNREAL MOBILE_TONEMAP_UNCHARTED
+    #endif
 
     #if defined(SHADE_VERTEXLIGHTS)
-        #pragma multi_compile _ VERTEXLIGHT_ON
+        #pragma multi_compile_fragment _ VERTEXLIGHT_ON
     #endif
 
     #if !defined(MOBILE_TONEMAP_ACES) && !defined(MOBILE_TONEMAP_UNREAL) && !defined(MOBILE_TONEMAP_UNCHARTED)

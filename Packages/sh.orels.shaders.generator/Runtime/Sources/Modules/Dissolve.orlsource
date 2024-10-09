@@ -63,7 +63,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local DISSOLVE_SHOW_FADE_GRAD
+    #pragma shader_feature_local_fragment DISSOLVE_SHOW_FADE_GRAD
 }
 
 %ShaderTags()

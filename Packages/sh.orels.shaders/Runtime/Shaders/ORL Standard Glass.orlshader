@@ -34,7 +34,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local BLURRY_GLASS
+    #pragma shader_feature_local_fragment BLURRY_GLASS
 }
 
 %Variables()

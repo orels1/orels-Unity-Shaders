@@ -53,9 +53,9 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local SPIN_NONE SPIN_LOCAL SPIN_WORLD
-    #pragma shader_feature_local FLOATING_NONE FLOATING_LOCAL FLOATING_WORLD
-    #pragma shader_feature_local SCALE_NONE SCALE_UNIFORM SCALE_FLOW
+    #pragma shader_feature_local_vertex SPIN_NONE SPIN_LOCAL SPIN_WORLD
+    #pragma shader_feature_local_vertex FLOATING_NONE FLOATING_LOCAL FLOATING_WORLD
+    #pragma shader_feature_local_vertex SCALE_NONE SCALE_UNIFORM SCALE_FLOW
 }
 
 %ShaderTags()

@@ -25,7 +25,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local SEPARATE_ALPHA
+    #pragma shader_feature_local_fragment SEPARATE_ALPHA
 }
 
 

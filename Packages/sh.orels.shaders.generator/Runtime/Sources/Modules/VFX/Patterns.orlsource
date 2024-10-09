@@ -37,7 +37,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local PATTERN_SUPERSAMPLING_NONE PATTERN_SUPERSAMPLING_2X PATTERN_SUPERSAMPLING_4X
+    #pragma shader_feature_local_fragment PATTERN_SUPERSAMPLING_NONE PATTERN_SUPERSAMPLING_2X PATTERN_SUPERSAMPLING_4X
 }
 
 %ShaderDefines()

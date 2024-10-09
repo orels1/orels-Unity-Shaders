@@ -21,8 +21,8 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local NORMALS_SET
-    #pragma shader_feature_local DETAIL_NORMALS_SET
+    #pragma shader_feature_local_fragment NORMALS_SET
+    #pragma shader_feature_local_fragment DETAIL_NORMALS_SET
 }
 
 %ShaderDefines()

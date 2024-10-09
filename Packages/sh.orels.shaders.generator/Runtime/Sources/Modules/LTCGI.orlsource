@@ -15,7 +15,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local INTEGRATE_LTCGI
+    #pragma shader_feature_local_fragment INTEGRATE_LTCGI
 }
 
 %ShaderDefines()

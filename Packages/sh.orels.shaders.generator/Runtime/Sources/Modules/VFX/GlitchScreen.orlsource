@@ -27,6 +27,11 @@
     _GlitchColorGlitchSpeed("Speed", Float) = 0.5
 }
 
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment SEPARATE_ALPHA
+}
+
 %Variables()
 {
     half4 _GlitchTexture_ST;

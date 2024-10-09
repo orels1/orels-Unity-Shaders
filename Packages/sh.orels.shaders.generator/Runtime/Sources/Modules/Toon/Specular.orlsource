@@ -26,7 +26,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local SPECULAR_ON
+    #pragma shader_feature_local_fragment SPECULAR_ON
 }
 
 %Variables()

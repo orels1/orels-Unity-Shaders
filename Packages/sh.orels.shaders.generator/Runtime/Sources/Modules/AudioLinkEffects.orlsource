@@ -64,7 +64,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local _ AL_EFFECT_BAND_SELECTION AL_EFFECT_UV_BASED AL_EFFECT_WAVEFORM AL_EFFECT_PULSE AL_EFFECT_BAR
+    #pragma shader_feature_local_fragment _ AL_EFFECT_BAND_SELECTION AL_EFFECT_UV_BASED AL_EFFECT_WAVEFORM AL_EFFECT_PULSE AL_EFFECT_BAR
 }
 
 %ShaderDefines()

@@ -13,6 +13,11 @@
     "self"
 }
 
+%ShaderFeatures()
+{
+    #pragma multi_compile_fragment _ VERTEXLIGHT_ON
+}
+
 %ShaderDefines()
 {
     #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)

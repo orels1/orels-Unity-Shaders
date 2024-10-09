@@ -29,8 +29,8 @@
     #pragma hull Hull
     #pragma domain Domain
     #pragma require tessellation tessHW
-    #pragma shader_feature_local TESS_PHONG
-    #pragma shader_feature_local TESS_MODE_STATIC TESS_MODE_DISTANCEBASED TESS_MODE_EDGELENGTH
+    #pragma shader_feature_local_domain TESS_PHONG
+    #pragma shader_feature_local_hull TESS_MODE_STATIC TESS_MODE_DISTANCEBASED TESS_MODE_EDGELENGTH
 }
 
 %ShaderDefines()

@@ -60,8 +60,8 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local HOTSPOT_DETAILS
-    #pragma shader_feature_local PER_TILE_VARIANCE
+    #pragma shader_feature_local_fragment HOTSPOT_DETAILS
+    #pragma shader_feature_local_fragment PER_TILE_VARIANCE
 }
 
 %ShaderTags()

@@ -1,11 +1,11 @@
 ﻿%ShaderFeatures()
 {
-    #pragma shader_feature_local BAKERY_ENABLED
-    #pragma shader_feature_local _ BAKERY_RNM BAKERY_SH BAKERY_MONOSH
-    #pragma shader_feature_local BAKERY_SHNONLINEAR
-    #pragma shader_feature_local BAKERY_VOLUME
-    #pragma shader_feature_local BAKERY_COMPRESSED_VOLUME
-    #pragma shader_feature_local BAKERY_VOLROTATIONY
+    #pragma shader_feature_local_fragment BAKERY_ENABLED
+    #pragma shader_feature_local_fragment _ BAKERY_RNM BAKERY_SH BAKERY_MONOSH
+    #pragma shader_feature_local_fragment BAKERY_SHNONLINEAR
+    #pragma shader_feature_local_fragment BAKERY_VOLUME
+    #pragma shader_feature_local_fragment BAKERY_COMPRESSED_VOLUME
+    #pragma shader_feature_local_fragment BAKERY_VOLROTATIONY
 }
 
 %ShaderDefines()

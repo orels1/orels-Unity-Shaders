@@ -29,7 +29,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local RAINDROPS_ENABLE
+    #pragma shader_feature_local_fragment RAINDROPS_ENABLE
 }
 
 %Variables()

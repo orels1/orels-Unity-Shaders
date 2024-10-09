@@ -18,7 +18,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local _NATIVE_A2C
+    #pragma shader_feature_local_fragment _NATIVE_A2C
 }
 
 %ShaderDefines()
