@@ -23,7 +23,7 @@ namespace ORL.ShaderGenerator
         {
             return "/Packages/sh.orels.shaders.generator/Runtime/Sources";
         }
-        
+
         public static string ResolveORLAsset(string path, bool bundled, string basePath = null)
         {
             if (bundled)
@@ -34,7 +34,7 @@ namespace ORL.ShaderGenerator
             var freeAsset = ResolveFreeAsset(path, basePath);
             if (freeAsset == null)
             {
-                throw new SourceAssetNotFoundException(path, new[] {basePath});
+                throw new SourceAssetNotFoundException(path, new[] { basePath });
             }
 
             return freeAsset;
@@ -51,7 +51,7 @@ namespace ORL.ShaderGenerator
             if (!string.IsNullOrWhiteSpace(builtInAsset)) return builtInAsset;
 
             var shaderPackageAsset = ResolveFreeAsset(cleaned, shaderSourcesFolder);
-            
+
             if (builtInAsset == null && shaderPackageAsset == null)
             {
                 throw new SourceAssetNotFoundException(path, new[] { sourcesFolder, shaderSourcesFolder });
@@ -65,7 +65,8 @@ namespace ORL.ShaderGenerator
             var fullPath = basePath + "/" + path;
             // Resolve absolute paths
             var isAbsoluteImport = path.StartsWith("/");
-            if (isAbsoluteImport) {
+            if (isAbsoluteImport)
+            {
                 fullPath = path.Substring(1);
             }
             // Resolve relative paths
@@ -110,12 +111,12 @@ namespace ORL.ShaderGenerator
             {
                 return (isAbsoluteImport ? path.Substring(1) : fullPath) + ".orlsource";
             }
-            
+
             if (orlShaderExists)
             {
                 return (isAbsoluteImport ? path.Substring(1) : fullPath) + ".orlshader";
             }
-            
+
             if (orlTemplateExists)
             {
                 return (isAbsoluteImport ? path.Substring(1) : fullPath) + ".orltemplate";
@@ -128,13 +129,13 @@ namespace ORL.ShaderGenerator
         {
             return ResolveORLAsset(path, true);
         }
-        
+
         public static string[] GetORLTemplate(string path)
         {
             var fullPath = ResolveORLAsset(path, true);
             return File.ReadAllLines(fullPath);
         }
-        
+
         public static string[] GetORLSource(string path)
         {
             var fullPath = ResolveORLAsset(path, true);
@@ -151,7 +152,7 @@ namespace ORL.ShaderGenerator
             var so = new SerializedObject(shader);
             var texList = so.FindProperty("m_NonModifiableTextures");
             if (texList.arraySize == 0) return null;
-            
+
             for (var i = 0; i < texList.arraySize; i++)
             {
                 var tex = texList.GetArrayElementAtIndex(i);
@@ -170,7 +171,7 @@ namespace ORL.ShaderGenerator
             foreach (var source in sourceList)
             {
                 var blocks = parser.Parse(GetAssetSource(source, basePath));
-                var includesBlockIndex = blocks.FindIndex(b => b.Name == "%Includes");
+                var includesBlockIndex = blocks.FindIndex(b => b.CoreBlockType == ShaderBlock.BlockType.Includes);
                 if (includesBlockIndex == -1)
                 {
                     dependencies.Add(source);
@@ -191,7 +192,7 @@ namespace ORL.ShaderGenerator
                     if (!dependencies.Contains(depPath))
                     {
                         var deepDeps = new List<string>();
-                        RecursivelyCollectDependencies(new List<string> {depPath}, ref deepDeps, basePath);
+                        RecursivelyCollectDependencies(new List<string> { depPath }, ref deepDeps, basePath);
                         dependencies.AddRange(deepDeps);
                     }
                 }
