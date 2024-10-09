@@ -11,7 +11,93 @@ namespace ORL.ShaderGenerator
     [Serializable]
     public class ShaderBlock
     {
+        public enum BlockType
+        {
+            Unknown,
+            ShaderName,
+            Template,
+            TemplateFeatures,
+            LightingModel,
+            Properties,
+            Includes,
+            ShaderTags,
+            ShaderModifiers,
+            PassModifiers,
+            Variables,
+            GlobalVariables,
+            Textures,
+            ShaderFeatures,
+            ShaderDefines,
+            CheckedInclude,
+            FreeFunctions,
+            LibraryFunctions,
+            DataStructs,
+            VertexBase,
+            FragmentBase,
+            ExtraPass,
+            Custom
+        }
+
+        public static BlockType GetBlockType(string name)
+        {
+            switch (name)
+            {
+                case "%ShaderName":
+                    return BlockType.ShaderName;
+                case "%Template":
+                    return BlockType.Template;
+                case "%TemplateFeatures":
+                    return BlockType.TemplateFeatures;
+                case "%LightingModel":
+                    return BlockType.LightingModel;
+                case "%Properties":
+                    return BlockType.Properties;
+                case "%Includes":
+                    return BlockType.Includes;
+                case "%ShaderTags":
+                    return BlockType.ShaderTags;
+                case "%ShaderModifiers":
+                    return BlockType.ShaderModifiers;
+                case "%PassModifiers":
+                case "%AddPassModifiers":
+                case "%MetaPassModifiers":
+                case "%ShadowPassModifiers":
+                case "%OutlinePassModifiers":
+                    return BlockType.PassModifiers;
+                case "%Variables":
+                    return BlockType.Variables;
+                case "%GlobalVariables":
+                    return BlockType.GlobalVariables;
+                case "%Textures":
+                    return BlockType.Textures;
+                case "%ShaderFeatures":
+                    return BlockType.ShaderFeatures;
+                case "%ShaderDefines":
+                    return BlockType.ShaderDefines;
+                case "%CheckedInclude":
+                    return BlockType.CheckedInclude;
+                case "%FreeFunctions":
+                    return BlockType.FreeFunctions;
+                case "%LibraryFunctions":
+                    return BlockType.LibraryFunctions;
+                case "%DataStructs":
+                    return BlockType.DataStructs;
+                case "%VertexBase":
+                    return BlockType.VertexBase;
+                case "%FragmentBase":
+                    return BlockType.FragmentBase;
+                case "%ExtraPass":
+                    return BlockType.ExtraPass;
+                case "%Custom":
+                    return BlockType.Custom;
+                default:
+                    return BlockType.Unknown;
+            }
+        }
+
+
         public string Name;
+        public BlockType CoreBlockType;
         public List<string> Params;
         public List<string> Contents;
         public bool IsFunction;
@@ -152,6 +238,7 @@ namespace ORL.ShaderGenerator
                                 var newBlock = new ShaderBlock
                                 {
                                     Name = blockName,
+                                    CoreBlockType = ShaderBlock.GetBlockType(blockName),
                                     Params = paramsList,
                                     Contents = blockContent,
                                     Path = path,
