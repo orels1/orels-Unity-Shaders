@@ -1,14 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using NUnit.Framework;
 using UnityEditor;
 using UnityEditorInternal;
-using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
-using UnityEditor.MPE;
 using System;
-using System.Runtime.InteropServices;
 using System.Reflection;
 using UnityEditor.AssetImporters;
 
@@ -373,7 +368,7 @@ namespace ORL.ShaderGenerator
                             }
                             catch (SourceAssetNotFoundException e)
                             {
-                                Debug.LogWarning($"Could not find source {e.AssetPath} at {string.Join('\n', e.AttemptedPaths[0])}\n");
+                                Debug.LogWarning($"Could not find source {e.AssetPath} at {string.Join("\n", e.AttemptedPaths[0])}\n");
                                 sourcePath = savedPath;
                             }
                             var sourceObject = AssetDatabase.LoadAssetAtPath<TextAsset>(sourcePath);
