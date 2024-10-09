@@ -226,11 +226,11 @@ namespace ORL.ShaderGenerator
                     _goToLineNum = EditorGUILayout.IntField("Go To Line", _goToLineNum);
                     if (c.changed)
                     {
-                        _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, _goToLineNum - 5) * (_monoStyle.lineHeight + 0.4f));
+                        _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, _goToLineNum - 5) * _monoStyle.lineHeight);
                     }
                 }
 
-                _currentLine = Mathf.Max(0, Mathf.FloorToInt(_sourceScrollPos.y / (_monoStyle.lineHeight + 0.4f)));
+                _currentLine = Mathf.Max(0, Mathf.FloorToInt(_sourceScrollPos.y / _monoStyle.lineHeight));
                 EditorGUILayout.LabelField("Quick Jump", EditorStyles.boldLabel);
                 using (new EditorGUILayout.HorizontalScope())
                 {
@@ -241,7 +241,7 @@ namespace ORL.ShaderGenerator
                             var lineNum = Array.FindIndex(_linedText, l => l.Contains($"{pass} Pass Start"));
                             if (lineNum > -1)
                             {
-                                _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, lineNum - 5) * (_monoStyle.lineHeight + 0.4f));
+                                _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, lineNum - 5) * _monoStyle.lineHeight);
                             }
                         }
                     }
@@ -276,7 +276,7 @@ namespace ORL.ShaderGenerator
 
                     if (lineNum > 0)
                     {
-                        _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, lineNum + _currentLine - 5) * (_monoStyle.lineHeight + 0.4f));
+                        _sourceScrollPos = new Vector2(0, 1) * (Mathf.Max(0, lineNum + _currentLine - 5) * _monoStyle.lineHeight);
                     }
                 }
                 EditorGUILayout.Space();
