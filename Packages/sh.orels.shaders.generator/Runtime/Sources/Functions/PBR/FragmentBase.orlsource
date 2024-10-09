@@ -1,4 +1,4 @@
-﻿%Properties()
+%Properties()
 {
     UI_AdvancedSettingsHeader("# Advanced Settings", Int) = 1
     [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
@@ -566,10 +566,12 @@
 
         half specularOcclusion = saturate(length(indirectDiffuse) * (1.0 / _SpecOcclusion));
         specularOcclusion *= lerp(1, lightAttenuation, _RealtimeShadowSpecOcclusion);
+
         dfg.x *= specularOcclusion;
         specularOcclusion = computeSpecularAO(NoV, o.Occlusion * specularOcclusion, clampedRoughness);
 
-        half3 finalSpecOcclusion = specularOcclusion * EnvBRDFMultiscatter(dfg, f0);
+        half3 envBRDF = EnvBRDFMultiscatter(dfg, f0);
+        half3 finalSpecOcclusion = specularOcclusion * envBRDF;
         
         #if defined(BAKED_SPECULAR)
         {
@@ -583,6 +585,11 @@
         #if defined(_INTEGRATE_CUSTOMGI) && !defined(UNITY_PASS_FORWARDADD)
         IntegrateCustomGI(d, o, indirectSpecular, indirectDiffuse);
         #endif
+
+        #if defined (_INTEGRATE_CUSTOMGI_FLEX) && !defined(UNITY_PASS_FORWARDADD)
+        %CustomGIFunctions
+        #endif
+
 
         directSpecular += bakedDirectSpecular;
 
