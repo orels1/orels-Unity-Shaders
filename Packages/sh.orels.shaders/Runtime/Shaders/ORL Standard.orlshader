@@ -1,4 +1,4 @@
-﻿%ShaderName("orels1/Standard")
+%ShaderName("orels1/Standard")
 %TemplateFeatures("Stencil")
 %CustomEditor("ORL.ShaderInspector.InspectorGUI")
 
@@ -82,7 +82,7 @@
     half4 _EmissionColor;
     int _EmissionChannel;
 
-    half2 GLOBAL_uv;
+    float2 GLOBAL_uv;
     half4 GLOBAL_maskMap;
 }
 
@@ -119,7 +119,7 @@
             albedo.rgb = albedo[_AlbedoChannel - 1].xxx;
         }
         half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
-        half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
+        float4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
         if (_FlipBumpY)
         {
             normalTex.y = 1 - normalTex.y;
