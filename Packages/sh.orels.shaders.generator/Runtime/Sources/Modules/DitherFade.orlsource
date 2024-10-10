@@ -18,7 +18,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local_fragment DITHER_FADE
+    #pragma shader_feature_local DITHER_FADE
 }
 
 %ShaderDefines()
