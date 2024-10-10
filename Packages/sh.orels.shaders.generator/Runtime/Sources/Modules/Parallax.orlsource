@@ -1,4 +1,4 @@
-%Properties()
+﻿%Properties()
 {
     UI_ParallaxHeader("# Parallax", Int) = 0
     UI_ParallaxDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#parallax)", Int) = 0
@@ -22,7 +22,7 @@
     half _HeightStepsMin;
     half _HeightStepsMax;
     
-    half2 GLOBAL_parallaxUv;
+    float2 GLOBAL_parallaxUv;
 
     half GLOBAL_heightMask;
     half GLOBAL_heightMaskSmoothing;
@@ -40,28 +40,27 @@
 %Fragment("ParallaxFragment", -100)
 {
     // mostly taken from the Amplify shader reference
-    half2 POM(Texture2D heightMap, SamplerState heightSampler, half2 uvs, half2 dx, half2 dy, half3 normalWorld, half3 viewWorld, half3 viewDirTan, int minSamples, int maxSamples, half parallax, half refPlane, half2 tilling, half2 curv, int index, half heightMask, half heightMaskSmoothing, inout half finalHeight)
+    float2 POM(Texture2D heightMap, SamplerState heightSampler, float2 uvs, float2 dx, float2 dy, float3 normalWorld, float3 viewWorld, float3 viewDirTan, int minSamples, int maxSamples, float parallax, float refPlane, float2 tilling, float2 curv, int index, float heightMask, float heightMaskSmoothing, inout float finalHeight)
     {
-        half3 result = 0;
         int stepIndex = 0;
-        int numSteps = (int)lerp((half)maxSamples, (half)minSamples, saturate(dot(normalWorld, viewWorld)));
-        half layerHeight = 1.0 / numSteps;
-        half2 plane = parallax * (viewDirTan.xy / viewDirTan.z);
+        int numSteps = (int)lerp((float)maxSamples, (float)minSamples, saturate(dot(normalWorld, viewWorld)));
+        float layerHeight = 1.0 / numSteps;
+        float2 plane = parallax * (viewDirTan.xy / viewDirTan.z);
         uvs.xy += refPlane * plane;
-        half2 deltaTex = -plane * layerHeight;
-        half2 prevTexOffset = 0;
-        half prevRayZ = 1.0f;
-        half prevHeight = 0.0f;
-        half2 currTexOffset = deltaTex;
-        half currRayZ = 1.0f - layerHeight;
-        half currHeight = 0.0f;
-        half intersection = 0;
-        half2 finalTexOffset = 0;
+        float2 deltaTex = -plane * layerHeight;
+        float2 prevTexOffset = 0;
+        float prevRayZ = 1.0f;
+        float prevHeight = 0.0f;
+        float2 currTexOffset = deltaTex;
+        float currRayZ = 1.0f - layerHeight;
+        float currHeight = 0.0f;
+        float intersection = 0;
+        float2 finalTexOffset = 0;
         while (stepIndex < numSteps + 1)
         {
             currHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + currTexOffset, dx, dy).r;
             #if defined(POM_HEIGHT_MASK_SET)
-            half mask = smoothstep(currHeight - heightMaskSmoothing, currHeight, heightMask);
+            float mask = smoothstep(currHeight - heightMaskSmoothing, currHeight, heightMask);
             currHeight = lerp(currHeight, heightMask, mask);
             #endif
             if (currHeight > currRayZ)
@@ -80,8 +79,8 @@
         }
         int sectionSteps = 2;
         int sectionIndex = 0;
-        half newZ = 0;
-        half newHeight = 0;
+        float newZ = 0;
+        float newHeight = 0;
         while (sectionIndex < sectionSteps)
         {
             intersection = (prevHeight - prevRayZ) / (prevHeight - currHeight + currRayZ - prevRayZ);
@@ -89,7 +88,7 @@
             newZ = prevRayZ - intersection * layerHeight;
             newHeight = SAMPLE_TEXTURE2D_GRAD(heightMap, heightSampler, uvs + finalTexOffset, dx, dy).r;
             #if defined(POM_HEIGHT_MASK_SET)
-            half mask = smoothstep(newHeight - heightMaskSmoothing, newHeight, heightMask);
+            float mask = smoothstep(newHeight - heightMaskSmoothing, newHeight, heightMask);
             newHeight = lerp(newHeight, heightMask, mask);
             #endif
             if (newHeight > newZ)
@@ -121,7 +120,7 @@
       // we use FragmentQueue to push the actual function call above the other modules
       GLOBAL_parallaxUv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
       #if defined(PARALLAX) && !defined(PLAT_QUEST)
-        half customHeight = 0;
+        float customHeight = 0;
         GLOBAL_parallaxUv = POM(_Height,
             sampler_Height,
             GLOBAL_parallaxUv,
@@ -134,8 +133,8 @@
             _HeightStepsMax,
             _HeightScale,
             _HeightRefPlane,
-            half2(1, 1),
-            half2(0, 0),
+            float2(1, 1),
+            float2(0, 0),
             0,
             GLOBAL_heightMask,
             GLOBAL_heightMaskSmoothing,
