@@ -5,6 +5,8 @@
     [Enum(Off, 0, On, 1)]_ZWrite("Depth Write", Int) = 1
     [Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("Depth Test", Int) = 4
     [ToggleUI]_IgnoreLightprobeNormal("Uniform Lightprobe Color", Int) = 0
+    [ToggleUI]_MinLight("Raise Minimum Light", Int) = 0
+    UI_MinLightNote("> This will raise the minimum light level and make you glow in dark environments. While not accurate to any world lighting, this can be nice to have to take pictures", Int) = 0
 }
 
 %Includes()
@@ -36,6 +38,7 @@
 %Variables()
 {
     int _IgnoreLightprobeNormal;
+    int _MinLight;
 }
 
 %Textures()
@@ -351,6 +354,14 @@
             indirectDiffuse = indirectDiffuse * 0.4;
         }
 
+        if (_MinLight)
+        {
+            if (max(lightColor.r, max(lightColor.g, lightColor.b)) < 0.05)
+            {
+                indirectDiffuse = lerp(indirectDiffuse, 0.05, saturate(max(indirectDiffuse.r, max(indirectDiffuse.g, indirectDiffuse.b)) < 0.05));
+            }
+        }
+
         half lightAvg = (dot(indirectDiffuse.rgb, grayscaleVec) + dot(lightColor.rgb, grayscaleVec)) / 2;
 
         // Light Ramp
@@ -358,6 +369,26 @@
         half4 diffuse = 1;
         ramp = calcRamp(lightNoL, lightAttenuation, occlusion, o.OcclusionMode);
         diffuse = calcDiffuse(lightAttenuation, o.Albedo.rgb, indirectDiffuse, lightColor, ramp);
+
+        #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+        float4 vLightAttenuations = 0;
+        float4x4 vLightColors = getVertexLightsColors(d.worldSpacePosition, o.Normal, vLightAttenuations, false);
+        float4x4 vLightDirections = getVertexLightsDir(d.worldSpacePosition);
+        float4x4 vLightHalfVectors = 0;
+        float4 vLightNoLs = 0;
+        float4 vLightLoHs = 0;
+        half4 vRamp = 1;
+
+        [unroll(4)]
+        for (int i = 0; i < 4; i++)
+        {
+            vLightHalfVectors[i].rgb = Unity_SafeNormalize(vLightDirections[i] + d.worldSpaceViewDir);
+            vLightLoHs[i] = saturate(dot(vLightDirections[i], vLightHalfVectors[i]));
+            vLightNoLs[i] = saturate(dot(o.Normal, vLightDirections[i]));
+            vRamp = calcRamp(vLightNoLs[i], vLightAttenuations[i], occlusion, o.OcclusionMode);
+            diffuse += calcDiffuse(vLightAttenuations[i], o.Albedo.rgb, 0, vLightColors[i], vRamp);
+        }
+        #endif
 
         // Rims
         half3 rimLight = 0;
@@ -380,6 +411,15 @@
         
         #if defined(SPECULAR_ON)
         directSpecular = calcDirectSpecular(d, o, lightNoL, NoH, NoV, lightLoH, lightColor, lightHalfVector, o.SpecularAnisotropy) * lightNoL * occlusion * lightAttenuation;
+        #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+        {
+            [unroll(4)]
+            for (int i = 0; i < 4; i++)
+            {
+                directSpecular += calcDirectSpecular(d, o, vLightNoLs[i], vLightLoHs[i], NoV, vLightLoHs[i], vLightColors[i], vLightHalfVectors[i], o.SpecularAnisotropy) * vLightNoLs[i] * occlusion * vLightAttenuations[i];
+            }
+        }
+        #endif
         #endif
 
         FinalColor.rgb = diffuse.rgb * rimShadow.rgb;
