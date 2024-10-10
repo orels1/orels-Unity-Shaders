@@ -1,0 +1,103 @@
+%Properties()
+{
+    [ToggleUI]UI_AreaLitHeader ("# AreaLit", Int) = 1
+    UI_AreaLitDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/arealit)", Int) = 0
+    [Toggle(INTEGRATE_AREALIT)]_IntegrateAreaLit("Integrate AreaLit", Int) = 0
+    UI_AreaLitDownload("[Make sure to download AreaLit before enabling this option](https://lox9973.booth.pm/items/3661829)", Int) = 0
+    [ToggleUI]_AreaLitEnableOnMobile("Enable on Mobile", Int) = 0
+    UI_AreaLitEnableOnMobileNote("?> AreaLit is pretty heavy for mobile devices, please test your content when enabling this option", Int) = 0
+    [ToggleUI]_AreaLitClampBrightness("Clamp Brightness", Int) = 0
+    _AreaLitMaxBrightness("Max Brightness %ShowIf(_AreaLitClampBrightness)", Range(0,1)) = 1
+    [ToggleOff]_OpaqueLights("Opaque Lights %ShowIf(INTEGRATE_AREALIT)", Float) = 1.0
+
+    UI_AreaLitInternalHeader("## AreaLit Inputs %ShowIf(INTEGRATE_AREALIT)", Int) = 0
+    _LightMesh("Light Mesh  > %ShowIf(INTEGRATE_AREALIT)", 2D) = "black" {}
+    _LightTex0("Light Texture 0  > %ShowIf(INTEGRATE_AREALIT)", 2D) = "white" {}
+    _LightTex1("Light Texture 1  > %ShowIf(INTEGRATE_AREALIT)", 2D) = "black" {}
+    [Tooltip(Intended for indirect light)]_LightTex2("Light Texture 2  > %ShowIf(INTEGRATE_AREALIT)", 2D) = "black" {}
+    [Tooltip(Intended for static lights)]_LightTex3("Light Texture 3  > %ShowIf(INTEGRATE_AREALIT)", 2DArray) = "black" {}
+    _AreaLitOcclusionMap("Shadowmask (Occlusion Map)  > %ShowIf(INTEGRATE_AREALIT)", 2D) = "white" {}
+    [Enum(UV0,0,UV1,1,UV1_LightmapST,9)]_AreaLitOcclusionUVSet("Shadowmask UV Set %ShowIf(INTEGRATE_AREALIT && _AreaLitOcclusionMap)", Int) = 0
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment INTEGRATE_AREALIT
+    #pragma shader_feature_local_fragment _OPAQUELIGHTS_OFF
+}
+
+%ShaderDefines()
+{
+    #if defined(INTEGRATE_AREALIT)
+        #define _INTEGRATE_CUSTOMGI_FLEX
+    #endif
+}
+
+%CheckedInclude("Assets/AreaLit/Shader/Lighting.hlsl")
+
+%Variables()
+{
+    int _AreaLitEnableOnMobile;
+    int _AreaLitClampBrightness;
+    half _AreaLitMaxBrightness;
+    int _AreaLitOcclusionUVSet;
+    float4 _AreaLitOcclusionMap_TexelSize;
+    float4 _AreaLitOcclusionMap_ST;
+}
+
+%Textures()
+{
+    TEXTURE2D(_AreaLitOcclusionMap);
+    SAMPLER(sampler_AreaLitOcclusionMap);
+}
+
+%CustomGI("AreaLitCustomGI")
+{
+    half4 GetAraLitOcclusion(half occlusion, MeshData d)
+    {
+        if (_AreaLitOcclusionMap_TexelSize.z <= 16) return occlusion.xxxx;
+
+        float2 uv = _AreaLitOcclusionUVSet == 0 ? d.uv0 : d.uv1;
+
+        uv = uv * _AreaLitOcclusionMap_ST.xy + _AreaLitOcclusionMap_ST.zw;
+
+        #if defined(LIGHTMAP_ON)
+        if (_AreaLitOcclusionUVSet == 9) {
+            uv = uv * unity_LightmapST.xy + unity_LIGHTmapST.zw;
+        }
+        #endif
+
+        return SAMPLE_TEXTURE2D(_AreaLitOcclusionMap, sampler_AreaLitOcclusionMap, uv);
+    }
+
+    void AreaLitCustomGI(MeshData d, SurfaceData o, half3 tangentNormal, FragmentData i,  half clampedRoughness,  inout half3 indirectSpecular, inout half3 indirectDiffuse)
+    {
+        #if defined(PLAT_QUEST)
+        if (!_AreaLitEnableOnMobile) return;
+        #endif
+        
+        #if defined(INTEGRATE_AREALIT)
+            half4 diffuse = 0;
+            half4 specular = 0;
+            
+            AreaLightFragInput input;
+            input.pos = d.worldSpacePosition;
+            input.normal = o.Normal;
+            input.view = d.worldSpaceViewDir;
+            input.roughness = clampedRoughness;
+            input.occlusion = GetAraLitOcclusion(o.Occlusion, d);
+            input.screenPos = i.pos.xy;
+
+            ShadeAreaLights(input, diffuse, specular, true, true, isStereoView());
+
+            if (_AreaLitClampBrightness) {
+                half3 hsv = RGB2HSV(specular);
+                hsv.z = tanh(hsv.z) * max(0, _AreaLitMaxBrightness);
+                indirectSpecular = HSV2RGB(hsv);
+            } else {
+                indirectSpecular += specular.rgb;
+                indirectDiffuse += diffuse.rgb;
+            }
+        #endif
+    }
+}
