@@ -10,7 +10,6 @@ using ORL.ShaderInspector.MaterialLibraries;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using Object = UnityEngine.Object;
 
 namespace ORL.ShaderInspector
 {
@@ -28,6 +27,7 @@ namespace ORL.ShaderInspector
         private Dictionary<string, IDrawerFunc> _drawerFuncs;
 
         private Dictionary<string, object> _uiState;
+        private GUIStyle _searchClearStyle;
 
         private bool _initialized;
 
@@ -35,12 +35,10 @@ namespace ORL.ShaderInspector
         private List<string> _multiCompiles;
 
         #region State Management
-        private string[] _persistedKeys = new[] { "debugShown" };
+        private string[] _persistedKeys = new[] { "debugShown", "mapBakerShown" };
 
         private void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
-            Styles.InitTextureStyles();
-
             // fill in our own stuff
             _drawers = Assembly
                 .GetAssembly(typeof(IDrawer)).GetTypes()
@@ -120,6 +118,10 @@ namespace ORL.ShaderInspector
             if (!_uiState.ContainsKey("debugShown"))
             {
                 _uiState.Add("debugShown", false);
+            }
+            if (!_uiState.ContainsKey("mapBakerShown"))
+            {
+                _uiState.Add("mapBakerShown", false);
             }
 
             foreach (var prop in properties)
@@ -318,6 +320,8 @@ namespace ORL.ShaderInspector
         private int _oldPropCount;
         private bool _libraryOpen;
 
+        private string _searchTerm;
+
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
             var material = materialEditor.target as Material;
@@ -345,6 +349,21 @@ namespace ORL.ShaderInspector
                 Initialize(materialEditor, properties);
             }
 
+            if (!Styles.IsInitialized())
+            {
+                Styles.InitTextureStyles();
+            }
+
+            if (_searchClearStyle == null)
+            {
+                _searchClearStyle = new GUIStyle(EditorStyles.iconButton)
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    margin = new RectOffset(0, 0, 3, 0),
+                    padding = new RectOffset(0, 0, 2, 5)
+                };
+            }
+
             // Draw the Preset management
             // This is disabled for now as this functionality isn't ready
 #if false
@@ -361,12 +380,36 @@ namespace ORL.ShaderInspector
             }
 #endif
 
+            var filteredProperties = properties;
+            using (new EditorGUI.IndentLevelScope(-1))
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    var newTerm = EditorGUILayout.DelayedTextField("Search Properties", _searchTerm);
+                    if (GUILayout.Button(new GUIContent("x", "Clear"), _searchClearStyle))
+                    {
+                        newTerm = string.Empty;
+                    }
+                    if (!string.Equals(newTerm, _searchTerm))
+                    {
+                        _searchTerm = newTerm;
+                    }
+                }
+            }
+
+            var hasSearch = !string.IsNullOrWhiteSpace(_searchTerm);
+
+            if (hasSearch)
+            {
+                filteredProperties = properties.Where(p => p.displayName.ToLowerInvariant().Contains(_searchTerm.ToLowerInvariant())).ToArray();
+            }
+
             EditorGUILayout.Space();
 
             EditorGUIUtility.fieldWidth = 64f;
             var propIndex = 0;
             var oldState = new Dictionary<string, object>(_uiState);
-            foreach (var property in properties)
+            foreach (var property in filteredProperties)
             {
                 if ((property.flags & MaterialProperty.PropFlags.HideInInspector) != 0)
                 {
@@ -391,8 +434,21 @@ namespace ORL.ShaderInspector
                 propIndex++;
             }
 
+            if (hasSearch)
+            {
+                EditorGUILayout.Space(10);
+            }
+
             DrawFooter(materialEditor);
             DrawDebug(materialEditor, materialEditor.target as Material);
+
+#if ORL_SHADER_GENERATOR
+            if (Path.GetExtension(AssetDatabase.GetAssetPath(material.shader)).Equals(".orlshader", StringComparison.InvariantCultureIgnoreCase))
+            {
+                MapBaker.DrawMapBaker(materialEditor, materialEditor.target as Material, ref _uiState);
+            }
+#endif
+
             if (!oldState.SequenceEqual(_uiState))
             {
                 SaveState(materialEditor.target as Material);
@@ -578,6 +634,7 @@ namespace ORL.ShaderInspector
             editor.EnableInstancingField();
             editor.LightmapEmissionFlagsProperty(0, true, true);
             editor.DoubleSidedGIField();
+            EditorGUILayout.Space(5);
         }
 
         private void DrawDebug(MaterialEditor editor, Material material)
@@ -621,6 +678,8 @@ namespace ORL.ShaderInspector
                     EditorGUILayout.TextArea(string.Join("\n", _multiCompiles));
                 }
             }
+
+            EditorGUILayout.Space(10);
         }
     }
 }
