@@ -2,16 +2,20 @@
 {
     UI_AdvancedSettingsHeader("# Advanced Settings", Int) = 1
     [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
+    _RenderType("Render Type %RenderType(_BlendOp, _SrcBlend, _DstBlend, _BlendOpAlpha, _SrcBlendAlpha, _DstBlendAlpha, _ZWrite)", Float) = -1
+    [Enum(UnityEngine.Rendering.BlendOp)]_BlendOp("Blend Operation %ShowIf(_RenderType == 4)", Int) = 0
+    [Enum(UnityEngine.Rendering.BlendMode)]_SrcBlend("Source Blend %ShowIf(_RenderType == 4)", Int) = 1
+    [Enum(UnityEngine.Rendering.BlendMode)]_DstBlend("Destination Blend %ShowIf(_RenderType == 4)", Int) = 0
+    [Enum(UnityEngine.Rendering.BlendOp)]_BlendOpAlpha("Blend Operation Alpha %ShowIf(_RenderType == 4)", Int) = 0
+    [Enum(UnityEngine.Rendering.BlendMode)]_SrcBlendAlpha("Source Blend Alpha %ShowIf(_RenderType == 4)", Int) = 1
+    [Enum(UnityEngine.Rendering.BlendMode)]_DstBlendAlpha("Destination Blend Alpha %ShowIf(_RenderType == 4)", Int) = 0
+    _Cutoff("Cutoff %ShowIf(_RenderType == 1)", Range(0, 1)) = 0.5
+    [Toggle(SHADE_VERTEXLIGHTS)]_ShadeVertexLights("Enable Vertex Lights", Int) = 0
+    UI_ShadeVertexLightsNote("?> This will enable vertex-light compatible shader variants. If you're not planning to use vertex (non-important) lights - you can keep this off to make the final shader smaller", Int) = 0
+
+    UI_AdvancedSettingsDepthHeader("## Depth", Int) = 1
     [Enum(Off, 0, On, 1)]_ZWrite("Depth Write", Int) = 1
     [Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("Depth Test", Int) = 4
-    [Toggle(SHADE_VERTEXLIGHTS)]_ShadeVertexLights("Enable Vertex Lights", Int) = 0
-    UI_ShadeVertexLightsNote("> This will enable vertex-light compatible shader variants. If you're not planning to use vertex (non-important) lights - you can keep this off to make the final shader smaller", Int) = 0
-    UI_AdvancedSettingsStancilHeader("## Stencils", Int) = 1
-    [IntRange]_StencilRef("Reference", Range(0, 255)) = 0
-    [Enum(UnityEngine.Rendering.CompareFunction)]_StencilComp("Comparison", Float) = 8
-    [Enum(UnityEngine.Rendering.StencilOp)]_StencilPassOp("Pass Operation", Float) = 0
-    [Enum(UnityEngine.Rendering.StencilOp)]_StencilFailOp("Fail Operation", Float) = 0
-    [Enum(UnityEngine.Rendering.StencilOp)]_StencilZFailOp("ZFail Operation", Float) = 0
     
     UI_GSAAHeader("## GSAA", Float) = 0
     [Toggle(GSAA)]_EnableGSAA("GSAA Enabled", Int) = 1
@@ -54,8 +58,16 @@
     UI_BakeryVolumeAssigner("Volume Assigner %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME) %BakeryVolumeAssigner()", Int) = 0
     [Toggle(BAKERY_COMPRESSED_VOLUME)]_BakeryCompressedVolume("Support Compressed Volumes %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME)", Int) = 0
     [Toggle(BAKERY_VOLROTATIONY)]_BakeryVolumeRotationY("Support Baked Volume Rotation %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME && BAKERY_VOLROTATIONY)", Int) = 0
+
+    UI_AdvancedSettingsStancilHeader("# Stencils", Int) = 0
+    [IntRange]_StencilRef("Reference", Range(0, 255)) = 0
+    [Enum(UnityEngine.Rendering.CompareFunction)]_StencilComp("Comparison", Float) = 8
+    [Enum(UnityEngine.Rendering.StencilOp)]_StencilPassOp("Pass Operation", Float) = 0
+    [Enum(UnityEngine.Rendering.StencilOp)]_StencilFailOp("Fail Operation", Float) = 0
+    [Enum(UnityEngine.Rendering.StencilOp)]_StencilZFailOp("ZFail Operation", Float) = 0
     
     UI_InternalHeader("# Internal", Int) = 0
+    [HideInInspector]INTERNAL_ShaderVersion("Shader Version", Int) = 700
     [NonModifiableTextureData]_DFG("DFG > %RequiredTexture(@/dfg-multiscatter.exr)", 2D) = "white" {}
 
     UI_BakerySHHeader("## Bakery SH", Int) = 0
@@ -114,6 +126,24 @@
     #define NEED_SCREEN_POS
 }
 
+%ShaderModifiers()
+{
+    Stencil
+    {
+        Ref [_StencilRef]
+        Comp [_StencilComp]
+        Pass [_StencilPassOp]
+        Fail [_StencilFailOp]
+        ZFail [_StencilZFailOp]
+    }
+    
+    ZTest[_ZTest]
+    ZWrite[_ZWrite]
+    Cull[_CullMode]
+    BlendOp [_BlendOp], [_BlendOpAlpha]
+    Blend [_SrcBlend] [_DstBlend], [_SrcBlendAlpha] [_DstBlendAlpha]
+}
+
 %Variables()
 {
     half _GSAAVariance;
@@ -128,6 +158,9 @@
     half _SpecularRoughnessMod;
     half _GIEmissiveBoost;
     int _IgnoreRealtimeGI;
+
+    int _RenderType;
+    half _Cutoff;
 }
 
 %Textures()
@@ -601,8 +634,30 @@
 
         directSpecular += bakedDirectSpecular;
 
+        float oneMinusReflectivity = 1.0 - 0.04 - o.Metallic * (1.0 - 0.04);
+
+        // Standard-Like transparent (premult alpha)
+        if (_RenderType == 2)
+        {
+            o.Albedo.rgb *= o.Alpha;
+            o.Alpha = 1 - (oneMinusReflectivity) + o.Alpha * (oneMinusReflectivity);
+        } else {
+            FinalColor.a = o.Alpha;
+        }
+
+        #if !defined(_NATIVE_A2C)
+        {
+            // Standard-Like cutout
+            if (_RenderType == 1)
+            {
+                clip(o.Alpha - _Cutoff);
+            }
+        }
+        #endif
+
         // FINAL COLOR
-        FinalColor = half4(o.Albedo.rgb * (1 - o.Metallic) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular, o.Alpha);
+        FinalColor.rgb = o.Albedo.rgb * (oneMinusReflectivity) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular;
+        FinalColor.a = o.Alpha;
         
         #if !defined(UNITY_PASS_FORWARDADD)
         FinalColor.rgb += o.Emission;

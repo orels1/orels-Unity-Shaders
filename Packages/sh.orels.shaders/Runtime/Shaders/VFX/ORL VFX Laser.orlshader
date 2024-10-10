@@ -40,7 +40,7 @@
 
 %ShaderTags()
 {
-    "Queue" = "Transparent" "RenderType" = "Transparent" "IgnoreProjector" = "True"
+    "Queue" = "Transparent" "RenderType" = "Transparent" "IgnoreProjector" = "True" "ORL_RenderType" = "Fade"
 }
 
 %ShaderModifiers()

@@ -1,9 +1,9 @@
-%ShaderName("orels1/Standard Cutout")
+%ShaderName("orels1/Standard Foliage")
 %CustomEditor("ORL.ShaderInspector.InspectorGUI")
 
 %Properties()
 {
-    UI_CutoutHeader("# Cutout", Int) = 1
+    UI_CutoutHeader("# Foliage", Int) = 1
     _Cutoff("Cutoff", Range(0, 1)) = 0.5
     [Toggle(_NATIVE_A2C)]_AlphaToMask("Alpha To Coverage (A2C)", Int) = 0
     [Toggle(DITHER_FADE)]_EnableDitherFade("Enable Dither Fade", Int) = 0
@@ -29,7 +29,7 @@
 
 %ShaderTags()
 {
-    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout"
+    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout" "ORL_RenderType" = "Cutout"
 }
 
 %PassModifiers()

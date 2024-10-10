@@ -1,3 +1,19 @@
+%Properties()
+{
+    UI_AdvancedSettingsHeader("# Advanced Settings", Int) = 1
+    [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
+    _RenderType("Render Type %RenderType(_BlendOp, _SrcBlend, _DstBlend, _BlendOpAlpha, _SrcBlendAlpha, _DstBlendAlpha, _ZWrite)", Float) = -1
+    [Enum(UnityEngine.Rendering.BlendOp)]_BlendOp("Blend Operation %ShowIf(_RenderType == 4)", Int) = 0
+    [Enum(UnityEngine.Rendering.BlendMode)]_SrcBlend("Source Blend %ShowIf(_RenderType == 4)", Int) = 1
+    [Enum(UnityEngine.Rendering.BlendMode)]_DstBlend("Destination Blend %ShowIf(_RenderType == 4)", Int) = 0
+    [Enum(UnityEngine.Rendering.BlendOp)]_BlendOpAlpha("Blend Operation Alpha %ShowIf(_RenderType == 4)", Int) = 0
+    [Enum(UnityEngine.Rendering.BlendMode)]_SrcBlendAlpha("Source Blend Alpha %ShowIf(_RenderType == 4)", Int) = 1
+    [Enum(UnityEngine.Rendering.BlendMode)]_DstBlendAlpha("Destination Blend Alpha %ShowIf(_RenderType == 4)", Int) = 0
+    [Enum(Off, 0, On, 1)]_ZWrite("Depth Write", Int) = 1
+    [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
+    _Cutoff("Cutoff %ShowIf(_RenderType == 1)", Range(0, 1)) = 0.5
+}
+
 %ShadeDefines()
 {
     #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
@@ -9,10 +25,31 @@
     #endif
 }
 
+%ShaderModifiers()
+{
+    BlendOp [_BlendOp], [_BlendOpAlpha]
+    Blend [_SrcBlend] [_DstBlend], [_SrcBlendAlpha] [_DstBlendAlpha]
+}
+
+%ShaderModifiers()
+{
+    ZWrite [_ZWrite]
+    Cull [_CullMode]
+}
+
+%Variables()
+{
+    half _Cutoff;
+    int _RenderType;
+}
+
 %FragmentBase("FragmentBase")
 {
     void FragmentBase(SurfaceData o, inout half4 FinalColor)
     {
+        if (_RenderType == 1) {
+            clip(o.Alpha - _Cutoff);
+        }
         FinalColor = half4(o.Albedo.rgb + o.Emission.rgb, o.Alpha);
     }
 }

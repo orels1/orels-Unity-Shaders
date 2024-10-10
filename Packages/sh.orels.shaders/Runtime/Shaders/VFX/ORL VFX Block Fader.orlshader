@@ -14,7 +14,7 @@
 
 %ShaderTags()
 {
-    "Queue" = "Transparent" "RenderType" = "Transparent"
+    "Queue" = "Transparent" "RenderType" = "Transparent" "ORL_RenderType" = "Transparent"
 }
 
 %PassModifications()

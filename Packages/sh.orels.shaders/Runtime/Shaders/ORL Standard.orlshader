@@ -1,4 +1,4 @@
-%ShaderName("orels1/Standard")
+﻿%ShaderName("orels1/Standard")
 %TemplateFeatures("Stencil")
 %CustomEditor("ORL.ShaderInspector.InspectorGUI")
 

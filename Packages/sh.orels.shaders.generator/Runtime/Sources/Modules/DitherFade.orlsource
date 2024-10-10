@@ -13,7 +13,7 @@
 
 %ShaderTags()
 {
-    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout"
+    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout" "ORL_RenderType" = "Cutout"
 }
 
 %ShaderFeatures()
