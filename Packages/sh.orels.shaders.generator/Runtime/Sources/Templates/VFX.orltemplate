@@ -109,7 +109,7 @@
                     #endif
 
                     SurfaceData o = CreateSurfaceData();
-                    MeshData d = CreateMeshData(i);
+                    MeshData d = CreateMeshData(i, facing);
                     half4 FinalColor = 1;
 
                     // ForwardBase Depth PrePass Fragment Chain
@@ -220,7 +220,7 @@
                 #endif
 
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 half4 FinalColor = 1;
 
                 // ForwardBase Fragment Chain

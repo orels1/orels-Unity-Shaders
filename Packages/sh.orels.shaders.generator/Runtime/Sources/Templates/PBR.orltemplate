@@ -1,4 +1,4 @@
-Shader %ShaderName
+﻿Shader %ShaderName
 {
     Properties {
         %Properties
@@ -105,7 +105,7 @@ Shader %ShaderName
                 #endif
 
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 half4 FinalColor = 1;
 
                 // ForwardBase Fragment Chain
@@ -207,7 +207,7 @@ Shader %ShaderName
                 #endif
 
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 half4 FinalColor = 1;
 
                 // ForwardAdd Fragment Chain
@@ -307,7 +307,7 @@ Shader %ShaderName
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 // Meta pass only takes Albedo, Alpha and Emission
                 half4 FinalColor = 1;
 
@@ -416,7 +416,7 @@ Shader %ShaderName
 
                 #if defined(NEED_FRAGMENT_IN_SHADOW)
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 half4 FinalColor = 1;
 
                 // ShadowCaster Fragment Chain

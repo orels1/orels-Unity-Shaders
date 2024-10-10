@@ -36,7 +36,7 @@
         float4 screenPos;
     };
 
-    MeshData CreateMeshData(FragmentData i)
+    MeshData CreateMeshData(FragmentData i, bool facing)
     {
         MeshData d = (MeshData) 0;
         d.uv0 = i.uv0;
@@ -69,6 +69,7 @@
         #if !defined(UNITY_PASS_SHADOWCASTER)
         float3 bitangent = cross(d.worldNormal, i.worldTangent.xyz) * (i.worldTangent.w > 0.0 ? 1.0 : - 1.0);
         d.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), bitangent, d.worldNormal);
+        d.TBNMatrix[2].xyz *= facing ? 1 : -1;
         d.tangentSpaceViewDir = mul(d.TBNMatrix, d.worldSpaceViewDir);
         #endif
 

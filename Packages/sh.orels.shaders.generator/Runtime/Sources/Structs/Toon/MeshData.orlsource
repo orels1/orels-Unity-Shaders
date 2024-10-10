@@ -39,7 +39,7 @@
         float4 screenPos;
     };
 
-    MeshData CreateMeshData(FragmentData i)
+    MeshData CreateMeshData(FragmentData i, bool facing)
     {
         MeshData d = (MeshData) 0;
         d.uv0 = i.uv0;
@@ -73,6 +73,7 @@
         d.bitangent = normalize(cross(i.worldTangent.xyz, d.worldNormal) * i.worldTangent.w * - 1);
         d.worldSpaceTangent = normalize(i.worldTangent.xyz);
         d.TBNMatrix = float3x3(normalize(i.worldTangent.xyz), d.bitangent, d.worldNormal);
+        d.TBNMatrix[2].xyz *= facing ? 1 : -1;
         d.tangentSpaceViewDir = mul(d.TBNMatrix, d.worldSpaceViewDir);
         #endif
 
