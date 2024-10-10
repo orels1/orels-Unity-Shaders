@@ -1,6 +1,6 @@
 %ShaderTags()
 {
-    "LTCGI" = "Always"
+    "LTCGI" = "_IntegrateLTCGI"
 }
 
 %Properties()
@@ -9,6 +9,8 @@
     UI_LTCGIDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/ltcgi)", Int) = 0
     [Toggle(INTEGRATE_LTCGI)]_IntegrateLTCGI("Integrate LTCGI", Int) = 0
     UI_LTCGIDownload("[Make sure to download LTCGI before enabling this option](https://github.com/PiMaker/ltcgi/releases)", Int) = 0
+    [ToggleUI]_LTCGIEnableOnMobile("Enable on Mobile", Int) = 0
+    UI_LTCGIEnableOnMobileNote("?> LTCGI is pretty heavy for mobile devices, please test your content when enabling this option", Int) = 0
     [ToggleUI]_LTCGIClampBrightness("Clamp Brightness", Int) = 0
     _LTCGIMaxBrightness("Max Brightness %ShowIf(_LTCGIClampBrightness)", Range(0,1)) = 1
 }
@@ -20,14 +22,16 @@
 
 %ShaderDefines()
 {
-    #if defined(INTEGRATE_LTCGI) && !defined(PLAT_QUEST)
+    #if defined(INTEGRATE_LTCGI)
         #define _INTEGRATE_CUSTOMGI
-        #include "Packages/at.pimaker.ltcgi/Shaders/LTCGI.cginc"
     #endif
 }
 
+%CheckedInclude("Packages/at.pimaker.ltcgi/Shaders/LTCGI.cginc")
+
 %Variables()
 {
+    int _LTCGIEnableOnMobile;
     int _LTCGIClampBrightness;
     half _LTCGIMaxBrightness;
 }
@@ -36,7 +40,11 @@
     // this function MUST be named IntegrateCustomGI as its called from the Lighting code
     void IntegrateCustomGI(MeshData d, SurfaceData o, inout half3 indirectSpecular, inout half3 indirectDiffuse)
     {
-        #if defined(INTEGRATE_LTCGI) && !defined(PLAT_QUEST)
+        #if defined(PLAT_QUEST)
+        if (!_LTCGIEnableOnMobile) return;
+        #endif
+
+        #if defined(INTEGRATE_LTCGI)
             half3 diffuse = 0;
             half3 specular = 0;
             LTCGI_Contribution(
