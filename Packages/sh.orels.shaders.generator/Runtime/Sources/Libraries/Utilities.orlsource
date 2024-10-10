@@ -21,6 +21,14 @@
     #endif
     }
 
+    bool isStereoView() {
+    #ifdef USING_STEREO_MATRICES
+        return true;
+    #else
+        return UNITY_MATRIX_P._13 != 0;
+    #endif
+    }
+
     half3 BlendLighten(half3 target, half3 source) {
         return max(target, source);
     }
