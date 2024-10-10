@@ -104,11 +104,15 @@
         
         #else
 
-        half3 wsAligned = (d.worldSpacePosition / - _TriplanarMaskTiling);
+        float3 wsAligned = (d.worldSpacePosition / - _TriplanarMaskTiling);
+
+        float2 xyUV = wsAligned.xy;
+        float2 zyUV = wsAligned.zy;
+        float2 xzUV = wsAligned.xz;
         
-        half3 xySample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xy).rgb;
-        half3 yzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.yz).rgb;
-        half3 xzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xz).rgb;
+        half3 xySample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, xyUV).rgb;
+        half3 zySample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, zyUV).rgb;
+        half3 xzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, xzUV).rgb;
         
         half3 worldNormal = abs(d.worldNormal);
         worldNormal = saturate(worldNormal - (1 - _TriplanarBlend));
@@ -118,7 +122,7 @@
         half yNormalMask = saturate(lerp(-1, 1, worldNormal.y));
         half zNormalMask = saturate(lerp(-1, 1, worldNormal.z));
         
-        half3 triplanarMask = lerp(lerp(lerp(0, xzSample, yNormalMask), yzSample, xNormalMask), xySample, zNormalMask);
+        half3 triplanarMask = lerp(lerp(lerp(0, xzSample, yNormalMask), zySample, xNormalMask), xySample, zNormalMask);
         
         half damageMask = triplanarMask.g;
         half dirtMask = triplanarMask.b;
@@ -197,11 +201,15 @@
 {
     void TriplanarColor(MeshData d, inout half4 FinalColor) {
         #if !defined(DEBUG_TRIPLANAR_NONE)
-        half3 wsAligned = (d.worldSpacePosition / - _TriplanarMaskTiling);
+        float3 wsAligned = (d.worldSpacePosition / - _TriplanarMaskTiling);
+
+        float2 xyUV = wsAligned.xy;
+        float2 zyUV = wsAligned.zy;
+        float2 xzUV = wsAligned.xz;
         
-        half3 xySample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xy).rgb;
-        half3 yzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.yz).rgb;
-        half3 xzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, wsAligned.xz).rgb;
+        half3 xySample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, xyUV).rgb;
+        half3 zySample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, zyUV).rgb;
+        half3 xzSample = SAMPLE_TEXTURE2D(_TriplanarMask, sampler_TriplanarMask, xzUV).rgb;
 
         half3 worldNormal = abs(d.worldNormal);
         worldNormal = saturate(worldNormal - (1 - _TriplanarBlend));
@@ -211,7 +219,7 @@
         half yNormalMask = saturate(lerp(-1, 1, worldNormal.y));
         half zNormalMask = saturate(lerp(-1, 1, worldNormal.z));
         
-        half3 triplanarMask = lerp(lerp(lerp(0, xzSample, yNormalMask), yzSample, xNormalMask), xySample, zNormalMask);
+        half3 triplanarMask = lerp(lerp(lerp(0, xzSample, yNormalMask), zySample, xNormalMask), xySample, zNormalMask);
         
         half damageMask = triplanarMask.g;
         half dirtMask = triplanarMask.b;
