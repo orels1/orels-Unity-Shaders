@@ -1,4 +1,4 @@
-%Properties()
+﻿%Properties()
 {
     UI_AdvancedSettingsHeader("# Advanced Settings", Int) = 1
     [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
@@ -22,11 +22,13 @@
     UI_GSAANote("> GSAA dramatically reduces specular aliasing", Int) = 0
     _GSAAVariance("GSAA Variance %ShowIf(GSAA)", Range(0, 1)) = 0.05
     _GSAAThreshold("GSAA Threshold %ShowIf(GSAA)", Range(0, 1)) = 0.1
+    [ToggleUI]_GSAAIncludeNormalMaps("Include Normal Maps %ShowIf(GSAA)", Int) = 1
+    UI_GSAAIncludeNormalMapsNote("?> GSAA calculation can include per-pixel normal maps. This can sometimes lead to a 'pixelated' look when used with sharp angle or heavily tiled normal maps. You can disable this option to only use mesh normals.", Int) = 0
 
     UI_MobileTweaks("## Mobile Tweaks", Int) = 1
     [Toggle(FORCE_BOX_PROJECTION)]_ForceBoxProjection("Force Box Projection", Int) = 0
     [Toggle(APPLY_COLOR_CORRECTION)]_ApplyColorCorrection("Apply Mobile Color Correction", Int) = 0
-    UI_ApplyColorCorrectionNote("> Enables in-shader color correction, useful for Mobile platforms where PostProcessing is not available", Int) = 0
+    UI_ApplyColorCorrectionNote("?> Enables in-shader color correction, useful for Mobile platforms where PostProcessing is not available", Int) = 0
     [KeywordEnum(ACES, Unreal, Uncharted)]MOBILE_TONEMAP("Mobile Tonemap Mode %ShowIf(_ApplyColorCorrection)", Int) = 0
     _ColorCorrLift("Lift %ShowIf(_ApplyColorCorrection)", Range(0, 2)) = 1
     _ColorCorrGamma("Gamma %ShowIf(_ApplyColorCorrection)", Range(0,2)) = 1.1
@@ -36,19 +38,19 @@
     UI_LightmappingDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#lightmapping)", Int) = 0
     [Toggle(NONLINEAR_SH)]_NonlinearSH("Non-Linear Lightprobe SH", Int) = 0
     _SpecOcclusion("Reflection Probe Occlusion", Range(0, 1)) = 0.25
-    UI_SpecOcclusionNote("> a.k.a. Specular Occlusion. Controls how much the reflection probe specular will be occluded by the lightmap / lightprobe diffuse", Int) = 0
+    UI_SpecOcclusionNote("?> a.k.a. Specular Occlusion. Controls how much the reflection probe specular will be occluded by the lightmap / lightprobe diffuse", Int) = 0
     _RealtimeShadowSpecOcclusion("Realtime Shadow Specular Occlusion", Range(0, 1)) = 0
     UI_RealtimeShadowSpecularOcclusionNote("> This effect is not physically correct, it can be useful to tone down strong reflection probes in shadowed areas %ShowIf(_RealtimeShadowSpecOcclusion > 0)", Int) = 0
     [Toggle(BICUBIC_LIGHTMAP)]_Bicubic("Bicubic Sampling", Int) = 0
     [Toggle(BAKED_SPECULAR)]_BakedSpecular("Baked Specular", Int) = 0
     _SpecularRoughnessMod("Specular Roughness Mod %ShowIf(BAKED_SPECULAR)", Range(0, 1)) = 1
     _BakedSpecularOcclusion("Baked Specular Occlusion %ShowIf(BAKED_SPECULAR)", Range(0, 1)) = 0.75
-    UI_BakedSpecularOcclusionNote("> If the object is lightmapped: this will adjust the intensity of the lightmap specular derived from the Directional lightmap.\nIf the object is not lightmapped: this will adjust the intensity of the specular derived from lightprobes %ShowIf(BAKED_SPECULAR)", Int) = 0
+    UI_BakedSpecularOcclusionNote("?> If the object is lightmapped: this will adjust the intensity of the lightmap specular derived from the Directional lightmap.\nIf the object is not lightmapped: this will adjust the intensity of the specular derived from lightprobes %ShowIf(BAKED_SPECULAR)", Int) = 0
     
     UI_GITweaksHeader("## Global Illumination Tweaks", Int) = 0
     _GIEmissiveBoost("GI Emissive Boost", Float) = 1
     [ToggleUI]_IgnoreRealtimeGI("Ignore Relatime GI", Int) = 0
-    UI_IgnoreRealtimeGINote("> This will make the material ignore Unity Realtime GI system. It does not affect custom RTGI systems like LTCGI", Int) = 0
+    UI_IgnoreRealtimeGINote("?> This will make the material ignore Unity Realtime GI system. It does not affect custom RTGI systems like LTCGI", Int) = 0
     
     UI_BakeryHeader("## Bakery Features", Int) = 0
     [Toggle(BAKERY_ENABLED)]_BakeryEnabled("Enable Bakery Features", Int) = 0
@@ -148,6 +150,7 @@
 {
     half _GSAAVariance;
     half _GSAAThreshold;
+    int _GSAAIncludeNormalMaps;
     half _ColorCorrLift;
     half _ColorCorrGamma;
     half _ColorCorrGain;
@@ -201,7 +204,7 @@
         #endif
 
         #if defined(GSAA)
-        perceptualRoughness = GSAA_Filament(o.Normal, perceptualRoughness, _GSAAVariance, _GSAAThreshold);
+        perceptualRoughness = GSAA_Filament(_GSAAIncludeNormalMaps ? o.Normal : d.worldNormal, perceptualRoughness, _GSAAVariance, _GSAAThreshold);
         #endif
 
         UNITY_LIGHT_ATTENUATION(lightAttenuation, i, d.worldSpacePosition);
