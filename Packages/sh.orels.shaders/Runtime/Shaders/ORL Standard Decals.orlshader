@@ -1,0 +1,64 @@
+%ShaderName("orels1/Standard Decals")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_DecalHeader("# Decals", Int) = 1
+    _Cutoff("Cutoff", Range(0, 1)) = 0.2
+    _ZOffset("Z Offset", Float) = 0.003
+    [ToggleUI]_DecalMultiplyAlphaByVertexColor("Multiply Alpha by Vertex Color", Int) = 1
+}
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "self"
+}
+
+%ShaderTags()
+{
+    "RenderType" = "Transparent" "Queue" = "Transparent" "ORL_RenderType" = "Custom"
+}
+
+%ShaderModifiers()
+{
+    ZWrite Off
+    Blend SrcAlpha OneMinusSrcAlpha
+}
+
+%AddPassModifiers()
+{
+    Blend SrcAlpha One
+}
+
+%Variables()
+{
+    float _Cutoff;
+    float _ZOffset;
+    int _DecalMultiplyAlphaByVertexColor;
+}
+
+%ShaderDefines()
+{
+    #define NEED_ALBEDO_ALPHA
+    #define NEED_FRAGMENT_IN_SHADOW
+}
+
+%Vertex("DecalVertex")
+{
+    void DecalVertex(inout VertexData v)
+    {
+        float3 worldPos = TransformObjectToWorld(v.vertex.xyz);
+        worldPos += normalize(_WorldSpaceCameraPos - worldPos) * _ZOffset;
+        v.vertex.xyz = TransformWorldToObject(worldPos);
+    }
+}
+
+%Fragment("DecalFragment")
+{
+    void DecalFragment(MeshData d, inout SurfaceData o)
+    {
+        o.Alpha *= lerp(1, d.vertexColor.r, _DecalMultiplyAlphaByVertexColor);
+        clip(o.Alpha - _Cutoff);
+    }
+}
