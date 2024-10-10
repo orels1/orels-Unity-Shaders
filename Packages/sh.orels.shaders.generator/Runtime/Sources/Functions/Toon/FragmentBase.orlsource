@@ -6,7 +6,7 @@
     [Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("Depth Test", Int) = 4
     [ToggleUI]_IgnoreLightprobeNormal("Uniform Lightprobe Color", Int) = 0
     [ToggleUI]_MinLight("Raise Minimum Light", Int) = 0
-    UI_MinLightNote("> This will raise the minimum light level and make you glow in dark environments. While not accurate to any world lighting, this can be nice to have to take pictures", Int) = 0
+    UI_MinLightNote("?> This will raise the minimum light level and make you glow in dark environments. While not accurate to any world lighting, this can be nice to have to take pictures", Int) = 0
 }
 
 %Includes()
