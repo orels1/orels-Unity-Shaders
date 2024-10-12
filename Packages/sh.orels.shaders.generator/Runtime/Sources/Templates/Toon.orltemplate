@@ -7,9 +7,6 @@ Shader %ShaderName
     SubShader
     {
         Tags { "VRCFallback"="Standard" %ShaderTags }
-        ZTest[_ZTest]
-        ZWrite[_ZWrite]
-        Cull[_CullMode]
         
         %ShaderModifiers
 
