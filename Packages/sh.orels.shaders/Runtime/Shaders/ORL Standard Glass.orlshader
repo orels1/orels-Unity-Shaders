@@ -18,13 +18,13 @@
 %Includes()
 {
     "@/Modules/AudioLink",
-    "/Packages/sh.orels.shaders/Runtime/Shaders/ORL Standard",
+    "@/Shaders/ORL Standard",
     "self"
 }
 
 %ShaderTags()
 {
-    "Queue" = "Transparent" "RenderType" = "Transparent"
+    "Queue" = "Transparent" "RenderType" = "Transparent" "ORL_RenderType" = "Transparent"
 }
 
 %ShaderModifiers()
@@ -34,7 +34,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local BLURRY_GLASS
+    #pragma shader_feature_local_fragment BLURRY_GLASS
 }
 
 %Variables()
@@ -78,13 +78,9 @@
         half3 reflDir = reflect(-viewDir, reflect(half3(0, 0, 0), wNormal));
         half glassBlurMask = SAMPLE_TEXTURE2D(_GlassBlurryMask, sampler_GlassBlurryMask, d.uv0).r;
         half rough = _GlassBlurryAmount * o.Smoothness * glassBlurMask;
-        reflDir = lerp(reflDir, wNormal, rough * rough);
+        reflDir = lerp(reflDir, wNormal, max(rough * rough, 0.002));
 
-        Unity_GlossyEnvironmentData envData;
-        envData.roughness = rough;
-        envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
-
-        half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+        half3 probe0 = getEnvReflectionDirect(reflDir, d.worldSpacePosition.xyz, wNormal, rough*(1.7 - 0.7*rough), -1);
         FinalColor.rgb += probe0 * o.Albedo;
         #endif
     }

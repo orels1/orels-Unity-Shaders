@@ -1,0 +1,10 @@
+%Template("@/Templates/VFX")
+
+%Includes()
+{
+    "target",
+    "@/Structs/MeshData",
+    "@/Structs/PBR/SurfaceData",
+    "@/Functions/MapBaker/FragmentBase",
+    "@/Functions/VertexBase",
+}

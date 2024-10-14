@@ -10,7 +10,6 @@ using ORL.ShaderInspector.MaterialLibraries;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using Object = UnityEngine.Object;
 
 namespace ORL.ShaderInspector
 {
@@ -28,19 +27,18 @@ namespace ORL.ShaderInspector
         private Dictionary<string, IDrawerFunc> _drawerFuncs;
 
         private Dictionary<string, object> _uiState;
+        private GUIStyle _searchClearStyle;
 
         private bool _initialized;
 
         private List<string> _shaderFeatures;
         private List<string> _multiCompiles;
-        
+
         #region State Management
-        private string[] _persistedKeys = new[] { "debugShown" };
+        private string[] _persistedKeys = new[] { "debugShown", "mapBakerShown" };
 
         private void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
-            Styles.InitTextureStyles();
-
             // fill in our own stuff
             _drawers = Assembly
                 .GetAssembly(typeof(IDrawer)).GetTypes()
@@ -69,9 +67,12 @@ namespace ORL.ShaderInspector
 
             var shaderSourcePath = AssetDatabase.GetAssetPath((materialEditor.target as Material).shader);
             string[] shaderSource;
-            if (shaderSourcePath.EndsWith(".orlshader")) {
+            if (shaderSourcePath.EndsWith(".orlshader"))
+            {
                 shaderSource = AssetDatabase.LoadAllAssetsAtPath(shaderSourcePath).OfType<TextAsset>().First().text.Split('\n');
-            } else {
+            }
+            else
+            {
                 shaderSource = File.ReadAllLines(Application.dataPath.Replace("\\", "/").Replace("Assets", "") + shaderSourcePath);
             }
 
@@ -118,6 +119,10 @@ namespace ORL.ShaderInspector
             {
                 _uiState.Add("debugShown", false);
             }
+            if (!_uiState.ContainsKey("mapBakerShown"))
+            {
+                _uiState.Add("mapBakerShown", false);
+            }
 
             foreach (var prop in properties)
             {
@@ -129,22 +134,22 @@ namespace ORL.ShaderInspector
                     _uiState.Add(packerKey + "_blue_tex", prop.textureValue);
                     _uiState.Add(packerKey + "_green_tex", prop.textureValue);
                     _uiState.Add(packerKey + "_alpha_tex", prop.textureValue);
-                    
+
                     _uiState.Add(packerKey + "_red_channel", 0);
                     _uiState.Add(packerKey + "_green_channel", 1);
                     _uiState.Add(packerKey + "_blue_channel", 2);
-                    _uiState.Add(packerKey + "_alpha_channel", 3);
-                    
+                    _uiState.Add(packerKey + "_alpha_channel", 0);
+
                     _uiState.Add(packerKey + "_red_val", 1f);
                     _uiState.Add(packerKey + "_blue_val", 1f);
                     _uiState.Add(packerKey + "_green_val", 1f);
                     _uiState.Add(packerKey + "_alpha_val", 1f);
-                    
+
                     _uiState.Add(packerKey + "_red_invert", false);
                     _uiState.Add(packerKey + "_blue_invert", false);
                     _uiState.Add(packerKey + "_green_invert", false);
                     _uiState.Add(packerKey + "_alpha_invert", false);
-                    
+
                     _uiState.Add(packerKey + "_size", 2048);
                     _uiState.Add(packerKey + "_linear", false);
                     _uiState.Add(packerKey + "_name", materialEditor.target.name + "_" + Utils.StripInternalSymbols(prop.displayName).Trim() + "_packed");
@@ -153,7 +158,7 @@ namespace ORL.ShaderInspector
 
             _initialized = true;
         }
-        
+
         private class SerializedState
         {
             public string[] keys;
@@ -165,7 +170,7 @@ namespace ORL.ShaderInspector
         {
             public Gradient value;
         }
-        
+
         private Dictionary<string, object> RestoreState(Material target)
         {
             var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(target));
@@ -204,10 +209,10 @@ namespace ORL.ShaderInspector
                             break;
                     }
                 }
-            
+
                 return restored;
             }
-            
+
             return new Dictionary<string, object>();
         }
 
@@ -275,7 +280,7 @@ namespace ORL.ShaderInspector
             importer.SaveAndReimport();
 #pragma warning restore CS0162
         }
-        
+
         private bool StateHasChanged(Dictionary<string, object> oldState, Dictionary<string, object> newState)
         {
             if (oldState.Count != newState.Count)
@@ -308,12 +313,14 @@ namespace ORL.ShaderInspector
 
             return false;
         }
-        
+
         #endregion
 
         private Shader _initialShader;
         private int _oldPropCount;
         private bool _libraryOpen;
+
+        private string _searchTerm;
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
@@ -328,9 +335,12 @@ namespace ORL.ShaderInspector
                 _initialized = false;
                 _initialShader = material.shader;
             }
-            if (_oldPropCount == 0) {
+            if (_oldPropCount == 0)
+            {
                 _oldPropCount = properties.Length;
-            } else  if (_oldPropCount != properties.Length) {
+            }
+            else if (_oldPropCount != properties.Length)
+            {
                 _initialized = false;
                 _oldPropCount = properties.Length;
             }
@@ -338,10 +348,29 @@ namespace ORL.ShaderInspector
             {
                 Initialize(materialEditor, properties);
             }
-            
+
+            if (!Styles.IsInitialized())
+            {
+                Styles.InitTextureStyles();
+            }
+
+            if (_searchClearStyle == null)
+            {
+#if UNITY_2022_1_OR_NEWER
+                _searchClearStyle = new GUIStyle(EditorStyles.iconButton)
+#else
+                _searchClearStyle = new GUIStyle(EditorStyles.miniButton)
+#endif
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    margin = new RectOffset(0, 0, 3, 0),
+                    padding = new RectOffset(0, 0, 2, 5)
+                };
+            }
+
             // Draw the Preset management
             // This is disabled for now as this functionality isn't ready
-            #if false
+#if false
             if (GUILayout.Button("Open AmbientCG Browser"))
             {
                 if (!_libraryOpen)
@@ -353,14 +382,38 @@ namespace ORL.ShaderInspector
                     }, material));
                 }
             }
-            #endif
+#endif
+
+            var filteredProperties = properties;
+            using (new EditorGUI.IndentLevelScope(-1))
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    var newTerm = EditorGUILayout.DelayedTextField("Search Properties", _searchTerm);
+                    if (GUILayout.Button(new GUIContent("x", "Clear"), _searchClearStyle))
+                    {
+                        newTerm = string.Empty;
+                    }
+                    if (!string.Equals(newTerm, _searchTerm))
+                    {
+                        _searchTerm = newTerm;
+                    }
+                }
+            }
+
+            var hasSearch = !string.IsNullOrWhiteSpace(_searchTerm);
+
+            if (hasSearch)
+            {
+                filteredProperties = properties.Where(p => p.displayName.ToLowerInvariant().Contains(_searchTerm.ToLowerInvariant())).ToArray();
+            }
 
             EditorGUILayout.Space();
 
             EditorGUIUtility.fieldWidth = 64f;
             var propIndex = 0;
             var oldState = new Dictionary<string, object>(_uiState);
-            foreach (var property in properties)
+            foreach (var property in filteredProperties)
             {
                 if ((property.flags & MaterialProperty.PropFlags.HideInInspector) != 0)
                 {
@@ -385,8 +438,21 @@ namespace ORL.ShaderInspector
                 propIndex++;
             }
 
+            if (hasSearch)
+            {
+                EditorGUILayout.Space(10);
+            }
+
             DrawFooter(materialEditor);
             DrawDebug(materialEditor, materialEditor.target as Material);
+
+#if ORL_SHADER_GENERATOR
+            if (Path.GetExtension(AssetDatabase.GetAssetPath(material.shader)).Equals(".orlshader", StringComparison.InvariantCultureIgnoreCase))
+            {
+                MapBaker.DrawMapBaker(materialEditor, materialEditor.target as Material, ref _uiState);
+            }
+#endif
+
             if (!oldState.SequenceEqual(_uiState))
             {
                 SaveState(materialEditor.target as Material);
@@ -409,7 +475,7 @@ namespace ORL.ShaderInspector
             }
 
             drawers.RemoveAt(0);
-            return MatchDrawerStack(drawers, editor, properties,property, index);
+            return MatchDrawerStack(drawers, editor, properties, property, index);
         }
 
         private bool MatchDrawerFuncStack(List<string> funcs, MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index)
@@ -427,10 +493,10 @@ namespace ORL.ShaderInspector
             }
 
             funcs.RemoveAt(0);
-            return MatchDrawerFuncStack(funcs, editor, properties,property, index);
+            return MatchDrawerFuncStack(funcs, editor, properties, property, index);
         }
 
-        private readonly static Regex _drawerFuncMatcher = new Regex(@"(?:%)([a-zA-Z]+)(?=\(.*\))");
+        private readonly static Regex _drawerFuncMatcher = new Regex(@"(?:%)([a-zA-Z0-9]+)(?=\(.*\))");
 
         private bool DrawUIProp(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index)
         {
@@ -446,34 +512,34 @@ namespace ORL.ShaderInspector
                         .ToList()
                         .ForEach(g => groups.Add(g.Value));
                 }
-                #if UNITY_2022_1_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
                 var oldIndentLevel = EditorGUI.indentLevel;
                 var shouldRestore = oldIndentLevel != -1;
                 EditorGUI.indentLevel = oldIndentLevel != -1 ? Mathf.Max(0, EditorGUI.indentLevel - 1) : oldIndentLevel;
-                #endif
+#endif
                 drawn = MatchDrawerFuncStack(groups, editor, properties, property, index);
-                #if UNITY_2022_1_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
                 if (shouldRestore && EditorGUI.indentLevel != -1)
                 {
                     EditorGUI.indentLevel = oldIndentLevel;
                 }
-                #endif
+#endif
             }
 
             if (!drawn)
             {
-                #if UNITY_2022_1_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
                 var oldIndentLevel = EditorGUI.indentLevel;
                 var shouldRestore = oldIndentLevel != -1;
                 EditorGUI.indentLevel = oldIndentLevel != -1 ? Mathf.Max(0, EditorGUI.indentLevel - 1) : oldIndentLevel;
-                #endif
+#endif
                 drawn = MatchDrawerStack(drawerStack, editor, properties, property, index);
-                #if UNITY_2022_1_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
                 if (shouldRestore && EditorGUI.indentLevel != -1)
                 {
                     EditorGUI.indentLevel = oldIndentLevel;
                 }
-                #endif
+#endif
             }
             return drawn;
         }
@@ -482,19 +548,20 @@ namespace ORL.ShaderInspector
 
         public void DrawRegularProp(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index)
         {
-            #if UNITY_2022_1_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
             var oldIndentLevel = EditorGUI.indentLevel;
             var shouldRestore = oldIndentLevel != -1;
             EditorGUI.indentLevel = oldIndentLevel != -1 ? Mathf.Max(0, EditorGUI.indentLevel - 1) : oldIndentLevel;
-            #endif
-            
+#endif
+
             var strippedName = Utils.StripInternalSymbols(property.displayName);
             var isSingleLine = property.type == MaterialProperty.PropType.Texture && _singleLineRegex.IsMatch(property.displayName);
             var defaultProps =
                 (editor.target as Material).shader.GetPropertyAttributes(Array.IndexOf(properties, property));
             var tooltip = Array.Find(defaultProps, attr => attr.StartsWith("Tooltip("));
             var space = Array.Find(defaultProps, attr => attr.StartsWith("Space("));
-            if (!string.IsNullOrWhiteSpace(space)) {
+            if (!string.IsNullOrWhiteSpace(space))
+            {
                 space = space.Substring(space.IndexOf("(") + 1);
                 space = space.Substring(0, space.LastIndexOf(")"));
                 EditorGUILayout.Space(float.Parse(space));
@@ -504,27 +571,28 @@ namespace ORL.ShaderInspector
                 tooltip = tooltip.Substring(tooltip.IndexOf("(") + 1);
                 tooltip = tooltip.Substring(0, tooltip.LastIndexOf(")"));
             }
-            
+
             if (isSingleLine)
             {
                 var buttonRect = editor.TexturePropertySingleLine(new GUIContent(strippedName, tooltip), property);
-                buttonRect.x = EditorGUIUtility.labelWidth + 20.0f;
+                buttonRect.x = EditorGUIUtility.labelWidth + 34.0f;
                 buttonRect.width = EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth - 38f;
                 // We can only repack 2D textures
                 if (property.textureDimension != TextureDimension.Tex2D) return;
                 var packerKey = property.name + "_packer";
-                _uiState[packerKey] = TexturePacker.DrawPacker(buttonRect, (bool) _uiState[packerKey], ref _uiState, packerKey, editor.target as Material, property, editor);
-                #if UNITY_2022_1_OR_NEWER
+                _uiState[packerKey] = TexturePacker.DrawPacker(buttonRect, (bool)_uiState[packerKey], ref _uiState, packerKey, editor.target as Material, property, editor);
+#if UNITY_2022_1_OR_NEWER
                 if (shouldRestore)
                 {
                     EditorGUI.indentLevel = oldIndentLevel;
                 }
-                #endif
+#endif
                 return;
             }
 
             var propHeight = editor.GetPropertyHeight(property, strippedName);
-            if (property.type == MaterialProperty.PropType.Vector && EditorGUIUtility.currentViewWidth > 340) {
+            if (property.type == MaterialProperty.PropType.Vector && EditorGUIUtility.currentViewWidth > 340)
+            {
                 propHeight /= 2.0f;
             }
             var controlRect = EditorGUILayout.GetControlRect(true, propHeight, EditorStyles.layerMaskField);
@@ -540,22 +608,22 @@ namespace ORL.ShaderInspector
                 // We can only repack 2D textures
                 if (property.textureDimension != TextureDimension.Tex2D) return;
                 var packerKey = property.name + "_packer";
-                _uiState[packerKey] = TexturePacker.DrawPacker(buttonRect, (bool) _uiState[packerKey], ref _uiState, packerKey, editor.target as Material, property, editor);
-                #if UNITY_2022_1_OR_NEWER
+                _uiState[packerKey] = TexturePacker.DrawPacker(buttonRect, (bool)_uiState[packerKey], ref _uiState, packerKey, editor.target as Material, property, editor);
+#if UNITY_2022_1_OR_NEWER
                 if (shouldRestore && EditorGUI.indentLevel != -1)
                 {
                     EditorGUI.indentLevel = oldIndentLevel;
                 }
-                #endif
+#endif
                 return;
             }
             editor.ShaderProperty(controlRect, property, new GUIContent(strippedName, tooltip));
-            #if UNITY_2022_1_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
             if (shouldRestore)
             {
                 EditorGUI.indentLevel = oldIndentLevel;
             }
-            #endif
+#endif
         }
         #endregion
 
@@ -563,18 +631,19 @@ namespace ORL.ShaderInspector
         {
             Styles.DrawStaticHeader("Extras");
             EditorGUI.indentLevel = 1;
-            #if UNITY_2022_1_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
             EditorGUI.indentLevel = 0;
-            #endif
+#endif
             editor.RenderQueueField();
             editor.EnableInstancingField();
             editor.LightmapEmissionFlagsProperty(0, true, true);
             editor.DoubleSidedGIField();
+            EditorGUILayout.Space(5);
         }
 
         private void DrawDebug(MaterialEditor editor, Material material)
         {
-            var currValue = (bool) _uiState["debugShown"];
+            var currValue = (bool)_uiState["debugShown"];
             var newValue = Styles.DrawFoldoutHeader("Debug", currValue);
 
             if (currValue != newValue)
@@ -584,30 +653,37 @@ namespace ORL.ShaderInspector
             }
 
             if (!newValue) return;
-            
-            #if UNITY_2022_1_OR_NEWER
+
+#if UNITY_2022_1_OR_NEWER
             // Unity 2022 is 1 more level nested
             EditorGUI.indentLevel = 0;
-            #endif
+#endif
 
             EditorGUILayout.LabelField("Active Keywords", EditorStyles.boldLabel);
-            using (new EditorGUI.DisabledGroupScope(true)) {
+            using (new EditorGUI.DisabledGroupScope(true))
+            {
                 EditorGUILayout.TextArea(string.Join("\n", material.shaderKeywords));
             }
 
-            if (_shaderFeatures.Count > 0) {
+            if (_shaderFeatures.Count > 0)
+            {
                 EditorGUILayout.LabelField("Defined Shader Features", EditorStyles.boldLabel);
-                using (new EditorGUI.DisabledGroupScope(true)) {
+                using (new EditorGUI.DisabledGroupScope(true))
+                {
                     EditorGUILayout.TextArea(string.Join("\n", _shaderFeatures));
                 }
             }
 
-            if (_multiCompiles.Count > 0) {
+            if (_multiCompiles.Count > 0)
+            {
                 EditorGUILayout.LabelField("Defined Multi-Compiles", EditorStyles.boldLabel);
-                using (new EditorGUI.DisabledGroupScope(true)) {
+                using (new EditorGUI.DisabledGroupScope(true))
+                {
                     EditorGUILayout.TextArea(string.Join("\n", _multiCompiles));
                 }
             }
+
+            EditorGUILayout.Space(10);
         }
     }
 }

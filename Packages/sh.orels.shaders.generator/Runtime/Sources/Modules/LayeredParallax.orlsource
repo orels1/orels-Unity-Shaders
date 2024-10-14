@@ -138,16 +138,16 @@
     void LayeredParallaxFragment(MeshData d, inout SurfaceData o)
     {
         // BACKGROUND
-        half2 bgUv = d.uv0.xy * _LPBackground_ST.xy + _LPBackground_ST.zw;
+        float2 bgUv = d.uv0.xy * _LPBackground_ST.xy + _LPBackground_ST.zw;
         half4 bg = SAMPLE_TEXTURE2D(_LPBackground, sampler_LPBackground, bgUv);
         o.Albedo = lerp(o.Albedo, bg.rgb, length(bg.rgb) > 0);
         
         // LAYER 1
         {
-            half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer1UV - 2)), saturate(_LPLayer1UV - 1)), saturate(_LPLayer1UV));
+            float2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer1UV - 2)), saturate(_LPLayer1UV - 1)), saturate(_LPLayer1UV));
             _LPLayer1Direction = _LPLayer1Direction / 10.0;
             layerUv = layerUv * _LPLayer1_ST.xy + _LPLayer1_ST.zw;
-            half2 offset = ParallaxOffset(-1, _LPLayer1Depth, d.tangentSpaceViewDir);
+            float2 offset = ParallaxOffset1Step(-1, _LPLayer1Depth, d.tangentSpaceViewDir);
             half uvFactor = 1;
             switch(_LPLayer1Mode)
             {
@@ -174,7 +174,7 @@
         UNITY_BRANCH
         if (_LPLayerCount < 2)
         {
-            half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+            float2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
             half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
             o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
             return;
@@ -182,10 +182,10 @@
         
         // LAYER 2
         {
-            half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer2UV - 2)), saturate(_LPLayer2UV - 1)), saturate(_LPLayer2UV));
+            float2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer2UV - 2)), saturate(_LPLayer2UV - 1)), saturate(_LPLayer2UV));
             _LPLayer2Direction = _LPLayer2Direction / 10.0;
             layerUv = layerUv * _LPLayer2_ST.xy + _LPLayer2_ST.zw;
-            half2 offset = ParallaxOffset(-1, _LPLayer2Depth, d.tangentSpaceViewDir);
+            float2 offset = ParallaxOffset1Step(-1, _LPLayer2Depth, d.tangentSpaceViewDir);
             half uvFactor = 1;
             switch(_LPLayer2Mode)
             {
@@ -212,7 +212,7 @@
         UNITY_BRANCH
         if (_LPLayerCount < 3)
         {
-            half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+            float2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
             half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
             o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
             return;
@@ -220,10 +220,10 @@
         
         // LAYER 3
         {
-            half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer3UV - 2)), saturate(_LPLayer3UV - 1)), saturate(_LPLayer3UV));
+            float2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer3UV - 2)), saturate(_LPLayer3UV - 1)), saturate(_LPLayer3UV));
             _LPLayer3Direction = _LPLayer3Direction / 10.0;
             layerUv = layerUv * _LPLayer3_ST.xy + _LPLayer3_ST.zw;
-            half2 offset = ParallaxOffset(-1, _LPLayer3Depth, d.tangentSpaceViewDir);
+            float2 offset = ParallaxOffset1Step(-1, _LPLayer3Depth, d.tangentSpaceViewDir);
             half uvFactor = 1;
             switch(_LPLayer3Mode)
             {
@@ -250,7 +250,7 @@
         UNITY_BRANCH
         if (_LPLayerCount < 4)
         {
-            half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+            float2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
             half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
             o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
             return;
@@ -258,10 +258,10 @@
         
         // LAYER 4
         {
-            half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer4UV - 2)), saturate(_LPLayer4UV - 1)), saturate(_LPLayer4UV));
+            float2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer4UV - 2)), saturate(_LPLayer4UV - 1)), saturate(_LPLayer4UV));
             _LPLayer4Direction = _LPLayer4Direction / 10.0;
             layerUv = layerUv * _LPLayer4_ST.xy + _LPLayer4_ST.zw;
-            half2 offset = ParallaxOffset(-1, _LPLayer4Depth, d.tangentSpaceViewDir);
+            float2 offset = ParallaxOffset1Step(-1, _LPLayer4Depth, d.tangentSpaceViewDir);
             half uvFactor = 1;
             switch(_LPLayer4Mode)
             {
@@ -288,7 +288,7 @@
         UNITY_BRANCH
         if (_LPLayerCount < 4)
         {
-            half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+            float2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
             half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
             o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
             return;
@@ -296,10 +296,10 @@
         
         // LAYER 5
         {
-            half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer5UV - 2)), saturate(_LPLayer5UV - 1)), saturate(_LPLayer5UV));
+            float2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer5UV - 2)), saturate(_LPLayer5UV - 1)), saturate(_LPLayer5UV));
             _LPLayer5Direction = _LPLayer5Direction / 10.0;
             layerUv = layerUv * _LPLayer5_ST.xy + _LPLayer5_ST.zw;
-            half2 offset = ParallaxOffset(-1, _LPLayer5Depth, d.tangentSpaceViewDir);
+            float2 offset = ParallaxOffset1Step(-1, _LPLayer5Depth, d.tangentSpaceViewDir);
             half uvFactor = 1;
             switch(_LPLayer5Mode)
             {
@@ -323,7 +323,7 @@
             o.Albedo = lerp(o.Albedo, layerColor.rgb * _LPLayer5Color, factor);
         }
         
-        half2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
+        float2 ovUv = d.uv0.xy * _LPOverlay_ST.xy + _LPOverlay_ST.zw;
         half4 ov = SAMPLE_TEXTURE2D(_LPOverlay, sampler_LPBackground, ovUv);
         o.Albedo = lerp(o.Albedo, ov.rgb, ov.a);
     }

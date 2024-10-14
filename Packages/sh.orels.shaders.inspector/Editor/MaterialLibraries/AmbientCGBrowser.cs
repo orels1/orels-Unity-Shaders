@@ -1,4 +1,4 @@
-﻿#if UNITY_2019_4
+﻿#if false
 using System;
 using System.Collections.Generic;
 using System.IO;

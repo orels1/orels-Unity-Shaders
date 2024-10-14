@@ -1,0 +1,9 @@
+%ShaderName("orels1/Standard AreaLit")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "@/Modules/AreaLit",
+    "self"
+}

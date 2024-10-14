@@ -17,7 +17,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local UV_DISCARD
+    #pragma shader_feature_local_vertex UV_DISCARD
 }
 
 %Variables()

@@ -9,12 +9,12 @@
     [Tooltip(Controls how much the rimlight will be visible in shadowed areas. 0 always visible)]_RimAttenuation("Attenuation %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 1
     _RimRange("Range %ShowIf(RIMLIGHT_ON)", Range(0, 1)) = 0.7
     [Tooltip(Controls how much the rim light will be offset by the light direction. 1 Will only show up in the areas hit by the light, 0 will show up everywhere)]_RimThreshold("Threshold %ShowIf(RIMLIGHT_ON)", Range(0, 1)) = 0.1
-    _RimSharpness("Sarpness %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 0.1
+    _RimSharpness("Sharpness %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 0.1
 }
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local RIMLIGHT_ON
+    #pragma shader_feature_local_fragment RIMLIGHT_ON
 }
 
 %Variables()

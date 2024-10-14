@@ -70,16 +70,18 @@
         return direction;
     }
 
-    half3 getEnvReflection(half3 worldSpaceViewDir, half3 worldSpacePosition, half3 normal, half smoothness, int mip)
+    half3 getEnvReflectionDirect(float3 reflDir, half3 worldSpacePosition, half3 normal, half roughness, int mip)
     {
         half3 env = 0;
-        half3 reflDir = reflect(worldSpaceViewDir, normal);
-        half perceptualRoughness = 1 - smoothness;
-        half rough = perceptualRoughness * perceptualRoughness;
-        reflDir = lerp(reflDir, normal, rough * rough);
+
+        float mipLevel = (float) mip;
+        if (mip == -1)
+        {
+            mipLevel = perceptualRoughnessToMipmapLevel(roughness);
+        }
 
         half3 reflectionUV1 = getBoxProjection(reflDir, worldSpacePosition, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
-        half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, mip);
+        half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, mipLevel);
         half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
 
         half3 indirectSpecular;
@@ -89,7 +91,7 @@
         if (interpolator < 0.99999)
         {
             half3 reflectionUV2 = getBoxProjection(reflDir, worldSpacePosition, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
-            half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, mip);
+            half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, mipLevel);
             half3 probe1sample = DecodeHDR(probe1, unity_SpecCube1_HDR);
             indirectSpecular = lerp(probe1sample, probe0sample, interpolator);
         }
@@ -100,6 +102,26 @@
 
         env = indirectSpecular;
         return env;
+    }
+
+    half3 getEnvReflection(half3 worldSpaceViewDir, half3 worldSpacePosition, half3 normal, half smoothness)
+    {
+        float3 reflDir = reflect(worldSpaceViewDir, normal);
+        half perceptualRoughness = 1 - smoothness;
+        reflDir = lerp(reflDir, normal, max(perceptualRoughness * perceptualRoughness, 0.002));
+        perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+
+        return getEnvReflectionDirect(reflDir, worldSpacePosition, normal, perceptualRoughness, -1);
+    }
+
+    half3 getEnvReflection(half3 worldSpaceViewDir, half3 worldSpacePosition, half3 normal, half smoothness, int mip)
+    {
+        float3 reflDir = reflect(worldSpaceViewDir, normal);
+        half perceptualRoughness = 1 - smoothness;
+        reflDir = lerp(reflDir, normal, max(perceptualRoughness * perceptualRoughness, 0.002));
+        perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+
+        return getEnvReflectionDirect(reflDir, worldSpacePosition, normal, perceptualRoughness, mip);
     }
 
     half3 EnvBRDFMultiscatter(half2 dfg, half3 f0)
@@ -206,11 +228,11 @@
     half3 getRealtimeLightmap(half2 uv, half3 worldNormal)
     {
         half2 realtimeUV = uv;
-        half4 bakedCol = UNITY_SAMPLE_TEX2D(unity_DynamicLightmap, realtimeUV);
+        half4 bakedCol = tex2DFastBicubicSample(unity_DynamicLightmap, samplerunity_DynamicLightmap, realtimeUV);
         half3 realtimeLightmap = DecodeRealtimeLightmap(bakedCol);
 
         #ifdef DIRLIGHTMAP_COMBINED
-        half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
+        half4 realtimeDirTex = tex2DFastBicubicSample(unity_DynamicDirectionality, samplerunity_DynamicLightmap, realtimeUV);
         realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
         #endif
 
@@ -281,5 +303,110 @@
 
         // 3) Pick darkest color
         return lightmap * realtimeShadow;
+    }
+
+    float4x4 getVertexLightsDir(float3 worldPos) {
+        float3 toLightX = float3(unity_4LightPosX0.x, unity_4LightPosY0.x, unity_4LightPosZ0.x);
+        float3 toLightY = float3(unity_4LightPosX0.y, unity_4LightPosY0.y, unity_4LightPosZ0.y);
+        float3 toLightZ = float3(unity_4LightPosX0.z, unity_4LightPosY0.z, unity_4LightPosZ0.z);
+        float3 toLightW = float3(unity_4LightPosX0.w, unity_4LightPosY0.w, unity_4LightPosZ0.w);
+
+        float3 dirX = normalize(toLightX - worldPos);
+        float3 dirY = length(toLightY) > 0 ? normalize(toLightY - worldPos) : 0;
+        float3 dirZ = length(toLightZ) > 0 ? normalize(toLightZ - worldPos) : 0;
+        float3 dirW = length(toLightW) > 0 ? normalize(toLightW - worldPos) : 0;
+
+        float4x4 retval = 0;
+            retval[0] = float4(dirX, 0);
+            retval[1] = float4(dirY, 0);
+            retval[2] = float4(dirZ, 0);
+            retval[3] = float4(dirW, 0);
+        return retval;
+    }
+
+    float4x4 getVertexLightsColors(float3 worldPos, float3 normal, bool usendl = true)
+    {
+        float4 toLightX = unity_4LightPosX0 - worldPos.x;
+        float4 toLightY = unity_4LightPosY0 - worldPos.y;
+        float4 toLightZ = unity_4LightPosZ0 - worldPos.z;
+
+        float4 lengthSq = 0;
+        lengthSq += toLightX * toLightX;
+        lengthSq += toLightY * toLightY;
+        lengthSq += toLightZ * toLightZ;
+        lengthSq = max(lengthSq, 0.000001);
+
+        float4 ndl = 0;
+        UNITY_BRANCH
+        if (usendl) {
+            ndl += toLightX * normal.x;
+            ndl += toLightY * normal.y;
+            ndl += toLightZ * normal.z;
+            ndl = max (float4(0,0,0,0), ndl * rsqrt(lengthSq));
+            ndl = ndl*0.5+0.5;
+        }
+
+        float4 atten = 1.0 / (1.0 + lengthSq * unity_4LightAtten0);
+        float4 atten2 = saturate(1 - (unity_4LightAtten0 * lengthSq / 25)); // Black magic
+        atten = min(atten, atten2 * atten2); // more black magic
+        atten *= usendl ? ndl : 1;
+        
+        float4x4 retval = 0;
+            retval[0] = unity_LightColor[0] * atten.x;
+            retval[1] = unity_LightColor[1] * atten.y;
+            retval[2] = unity_LightColor[2] * atten.z;
+            retval[3] = unity_LightColor[3] * atten.w;
+        return retval;
+    }
+
+    float4x4 getVertexLightsColors(float3 worldPos, float3 normal, out float4 attenuation, bool usendl = true)
+    {
+        float4 toLightX = unity_4LightPosX0 - worldPos.x;
+        float4 toLightY = unity_4LightPosY0 - worldPos.y;
+        float4 toLightZ = unity_4LightPosZ0 - worldPos.z;
+
+        float4 lengthSq = 0;
+        lengthSq += toLightX * toLightX;
+        lengthSq += toLightY * toLightY;
+        lengthSq += toLightZ * toLightZ;
+        lengthSq = max(lengthSq, 0.000001);
+
+        float4 ndl = 0;
+        UNITY_BRANCH
+        if (usendl) {
+            ndl += toLightX * normal.x;
+            ndl += toLightY * normal.y;
+            ndl += toLightZ * normal.z;
+            ndl = max (float4(0,0,0,0), ndl * rsqrt(lengthSq));
+            ndl = ndl*0.5+0.5;
+        }
+
+        float4 atten = 1.0 / (1.0 + lengthSq * unity_4LightAtten0);
+        float4 atten2 = saturate(1 - (unity_4LightAtten0 * lengthSq / 25)); // Black magic
+        atten = min(atten, atten2 * atten2); // more black magic
+        atten *= usendl ? ndl : 1;
+
+        attenuation = atten;
+        
+        float4x4 retval = 0;
+            retval[0] = unity_LightColor[0] * atten.x;
+            retval[1] = unity_LightColor[1] * atten.y;
+            retval[2] = unity_LightColor[2] * atten.z;
+            retval[3] = unity_LightColor[3] * atten.w;
+        return retval;
+    }
+
+    float4 getVertexLightRanges()
+    {
+        float4 ranges = 5.0 * (1.0 / sqrt(unity_4LightAtten0.xyzw));
+        
+        if (all(!isnan(ranges))) return ranges;
+
+        return float4(
+            isnan(ranges.x) ? 0.0 : ranges.x,
+            isnan(ranges.y) ? 0.0 : ranges.y,
+            isnan(ranges.z) ? 0.0 : ranges.z,
+            isnan(ranges.w) ? 0.0 : ranges.w
+        );
     }
 }

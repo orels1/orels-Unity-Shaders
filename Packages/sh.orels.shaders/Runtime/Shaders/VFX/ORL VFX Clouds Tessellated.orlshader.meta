@@ -1,0 +1,56 @@
+fileFormatVersion: 2
+guid: eb720ed76da30d647b3dc10ce37e6a75
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 14030a0b230d45068f811d1ad116f246, type: 3}
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {instanceID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: FunctionErrors
+      Entry: 7
+      Data: 0|System.Collections.Generic.Dictionary`2[[UnityShaderParser.HLSL.FunctionDefinitionNode,
+        UnityShaderParser],[System.String, mscorlib]], mscorlib
+    - Name: comparer
+      Entry: 7
+      Data: 1|System.Collections.Generic.ObjectEqualityComparer`1[[UnityShaderParser.HLSL.FunctionDefinitionNode,
+        UnityShaderParser]], mscorlib
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Errors
+      Entry: 7
+      Data: 2|System.Collections.Generic.List`1[[ORL.ShaderGenerator.ShaderDefinitionImporter+ShaderError,
+        ORL.ShaderGenerator]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+  debugBuild: 0
+  samplerCount: 0
+  textureCount: 0
+  featureCount: 0

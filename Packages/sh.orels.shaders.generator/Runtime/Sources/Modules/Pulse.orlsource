@@ -16,7 +16,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local PULSE_SHOW_GRAD
+    #pragma shader_feature_local_fragment PULSE_SHOW_GRAD
 }
 
 %Variables()

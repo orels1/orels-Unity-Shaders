@@ -9,7 +9,7 @@
 
 %Includes()
 {
-    "/Packages/sh.orels.shaders/Runtime/Shaders/ORL Standard AudioLink"
+    "@/Shaders/ORL Standard AudioLink",
     "self"
 }
 
@@ -21,28 +21,10 @@
 
 %ShaderTags()
 {
-    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout"
+    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout" "ORL_RenderType" = "Cutout"
 }
 
 %Variables()
 {
     half _Cutoff;
-}
-
-%Fragment("CutoutFragment")
-{
-    void CutoutFragment(inout SurfaceData o) {
-        if (o.Alpha < _Cutoff)  {
-            clip(-1);
-        }
-    }
-}
-
-%Shadow("CutoutShadow")
-{
-    void CutoutShadow(inout SurfaceData o) {
-        if (o.Alpha < _Cutoff)  {
-            clip(-1);
-        }
-    }
 }

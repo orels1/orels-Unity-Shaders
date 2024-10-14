@@ -12,6 +12,7 @@
     _SheenAlbedoTint("Albedo Tint", Range(0,1)) = 1
     [Enum(Overlay, 0, Lighten, 1, Screen, 2, Multiply, 3)]_SheenBlendType("Blending Type", Int) = 0
     UI_SheenBlendTypeNote("> The blend types match the ones provided by Photoshop", Int) = 0
+    [ToggleUI]_SheenForceDiscard("Force Discard", Int) = 0
 }
 
 %Includes()
@@ -27,11 +28,15 @@
     half4 _SheenTint;
     half _SheenAlbedoTint;
     int _SheenBlendType;
+    int _SheenForceDiscard;
 }
 
 %Fragment("UI_SheenFragment", 10)
 {
     void UI_SheenFragment(MeshData d, inout SurfaceData o) {
+        if (_SheenForceDiscard && o.Alpha < 0.999) {
+            discard;
+        }
         half NoV = saturate(dot(d.worldNormal, d.worldSpaceViewDir));
         NoV = saturate(pow(NoV, _SheenPower));
         half3 blendSource = lerp(_SheenTint, o.Albedo, _SheenAlbedoTint);

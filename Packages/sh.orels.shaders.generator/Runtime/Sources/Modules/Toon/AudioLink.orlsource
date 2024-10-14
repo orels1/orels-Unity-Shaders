@@ -25,7 +25,10 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local AL_MODE_NONE AL_MODE_SINGLE_CHANNEL AL_MODE_PACKED_MAP AL_MODE_UV_BASED
+    #pragma shader_feature_local_fragment AL_MODE_NONE AL_MODE_SINGLE_CHANNEL AL_MODE_PACKED_MAP AL_MODE_UV_BASED
+    #if !defined(AL_MODE_SINGLE_CHANNEL) && !defined(AL_MODE_PACKED_MAP) && !defined(AL_MODE_UV_BASED)
+        #define AL_MODE_NONE
+    #endif
 }
 
 %Includes()
@@ -131,6 +134,8 @@
             half sampledAL = AudioLinkLerp(aluv).x;
             half3 em = alMask.rgb * _ALEmissionColor.rgb * sampledAL;
             
+            #else
+            half3 em = 0;
             #endif
 
             half NoV = saturate(dot(d.worldNormal, d.worldSpaceViewDir));

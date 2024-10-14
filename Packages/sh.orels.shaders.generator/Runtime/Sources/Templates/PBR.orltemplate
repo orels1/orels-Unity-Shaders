@@ -7,9 +7,6 @@
     SubShader
     {
         Tags { "VRCFallback"="Standard" %ShaderTags }
-        ZTest[_ZTest]
-        ZWrite[_ZWrite]
-        Cull[_CullMode]
         
         %ShaderModifiers
 
@@ -59,10 +56,6 @@
             // GlobalVariables
             %GlobalVariables
 
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
-
             // Variables
             %Variables
 
@@ -72,7 +65,11 @@
             // Functions
             %Functions
 
+            // FreeFunctions
+            %FreeFunctions
+
             // ForwardBase Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -87,8 +84,12 @@
                 // ForwardBase VertexBase
                 %VertexBase
 
+                // ForwardBase PostVertex Chain
+                %PostVertexFunctions
+
                 return o;
             }
+            #endif
 
             // ForwardBase Fragment
             half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
@@ -104,7 +105,7 @@
                 #endif
 
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 half4 FinalColor = 1;
 
                 // ForwardBase Fragment Chain
@@ -157,10 +158,6 @@
             // GlobalVariables
             %GlobalVariables
 
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
-
             // Variables
             %Variables
 
@@ -170,7 +167,11 @@
             // Functions
             %Functions
 
+            // FreeFunctions
+            %FreeFunctions
+
             // ForwardAdd Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -185,8 +186,12 @@
                 // ForwardAdd VertexBase
                 %VertexBase
 
+                // ForwardAdd PostVertex Chain
+                %PostVertexFunctions
+
                 return o;
             }
+            #endif
 
             // ForwardAdd Fragment
             half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
@@ -202,7 +207,7 @@
                 #endif
 
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 half4 FinalColor = 1;
 
                 // ForwardAdd Fragment Chain
@@ -258,9 +263,7 @@
             // GlobalVariables
             %GlobalVariables
 
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
+        
 
             // Variables
             %Variables
@@ -271,7 +274,11 @@
             // Functions
             %Functions
 
+            // FreeFunctions
+            %FreeFunctions
+
             // ForwardBase Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -286,8 +293,12 @@
                 // Meta VertexBase
                 %VertexBase
 
+                // Meta PostVertex Chain
+                %PostVertexFunctions
+
                 return o;
             }
+            #endif
 
             // Meta Fragment
             half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
@@ -296,7 +307,7 @@
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 // Meta pass only takes Albedo, Alpha and Emission
                 half4 FinalColor = 1;
 
@@ -358,9 +369,7 @@
             // GlobalVariables
             %GlobalVariables
 
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
+        
 
             // Variables
             %Variables
@@ -371,7 +380,11 @@
             // Functions
             %Functions
 
+            // FreeFunctions
+            %FreeFunctions
+
             // ShadowCaster Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -386,10 +399,14 @@
                 // ShadowCaster VertexBase
                 %VertexBase
 
+                // ShadowCaster PostVertex Chain
+                %PostVertexFunctions
+
                 TRANSFER_SHADOW_CASTER_NORMALOFFSET(o);
 
                 return o;
             }
+            #endif
 
             // ShadowCaster Fragment
             half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
@@ -399,7 +416,7 @@
 
                 #if defined(NEED_FRAGMENT_IN_SHADOW)
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 half4 FinalColor = 1;
 
                 // ShadowCaster Fragment Chain
@@ -419,6 +436,9 @@
             ENDCG
             // ShadowCaster Pass End
         }
+
+        // ExtraPasses
+        %ExtraPasses
 
         // PostPasses
         %PostPasses

@@ -12,6 +12,18 @@
         o.uv1 = v.uv1;
         o.uv2 = v.uv2;
         o.uv3 = v.uv3;
+        #if defined(NEED_UV4)
+        o.uv4 = v.uv4;
+        #endif
+        #if defined(NEED_UV5)
+        o.uv5 = v.uv5;
+        #endif
+        #if defined(NEED_UV6)
+        o.uv6 = v.uv6;
+        #endif
+        #if defined(NEED_UV7)
+        o.uv7 = v.uv7;
+        #endif
         o.worldPos = mul(unity_ObjectToWorld, float4(v.vertex.xyz, 1));
         o.worldNormal = UnityObjectToWorldNormal(v.normal);
         o.worldTangent.xyz = UnityObjectToWorldDir(v.tangent.xyz);

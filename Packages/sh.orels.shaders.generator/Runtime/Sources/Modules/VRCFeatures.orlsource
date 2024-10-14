@@ -17,7 +17,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local VRC_FEATURES
+    #pragma shader_feature_local_vertex VRC_FEATURES
 }
 
 %Variables()

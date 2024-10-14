@@ -156,7 +156,7 @@
             half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer1UV - 2)), saturate(_LPLayer1UV - 1)), saturate(_LPLayer1UV));
             _LPLayer1Direction = _LPLayer1Direction / 10.0;
             layerUv = layerUv * _LPLayer1_ST.xy + _LPLayer1_ST.zw;
-            half2 offset = ParallaxOffset(-1, _LPLayer1Depth, d.tangentSpaceViewDir);
+            half2 offset = ParallaxOffset1Step(-1, _LPLayer1Depth, d.tangentSpaceViewDir);
             half uvFactor = 1;
             switch(_LPLayer1Mode)
             {
@@ -196,7 +196,7 @@
             half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer2UV - 2)), saturate(_LPLayer2UV - 1)), saturate(_LPLayer2UV));
             _LPLayer2Direction = _LPLayer2Direction / 10.0;
             layerUv = layerUv * _LPLayer2_ST.xy + _LPLayer2_ST.zw;
-            half2 offset = ParallaxOffset(-1, _LPLayer2Depth, d.tangentSpaceViewDir);
+            half2 offset = ParallaxOffset1Step(-1, _LPLayer2Depth, d.tangentSpaceViewDir);
             half uvFactor = 1;
             switch(_LPLayer2Mode)
             {
@@ -236,7 +236,7 @@
             half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer3UV - 2)), saturate(_LPLayer3UV - 1)), saturate(_LPLayer3UV));
             _LPLayer3Direction = _LPLayer3Direction / 10.0;
             layerUv = layerUv * _LPLayer3_ST.xy + _LPLayer3_ST.zw;
-            half2 offset = ParallaxOffset(-1, _LPLayer3Depth, d.tangentSpaceViewDir);
+            half2 offset = ParallaxOffset1Step(-1, _LPLayer3Depth, d.tangentSpaceViewDir);
             half uvFactor = 1;
             switch(_LPLayer3Mode)
             {
@@ -276,7 +276,7 @@
             half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer4UV - 2)), saturate(_LPLayer4UV - 1)), saturate(_LPLayer4UV));
             _LPLayer4Direction = _LPLayer4Direction / 10.0;
             layerUv = layerUv * _LPLayer4_ST.xy + _LPLayer4_ST.zw;
-            half2 offset = ParallaxOffset(-1, _LPLayer4Depth, d.tangentSpaceViewDir);
+            half2 offset = ParallaxOffset1Step(-1, _LPLayer4Depth, d.tangentSpaceViewDir);
             half uvFactor = 1;
             switch(_LPLayer4Mode)
             {
@@ -316,7 +316,7 @@
             half2 layerUv = lerp(d.uv0.xy, lerp(d.uv1.xy, lerp(d.uv2.xy, d.uv3.xy, saturate(_LPLayer5UV - 2)), saturate(_LPLayer5UV - 1)), saturate(_LPLayer5UV));
             _LPLayer5Direction = _LPLayer5Direction / 10.0;
             layerUv = layerUv * _LPLayer5_ST.xy + _LPLayer5_ST.zw;
-            half2 offset = ParallaxOffset(-1, _LPLayer5Depth, d.tangentSpaceViewDir);
+            half2 offset = ParallaxOffset1Step(-1, _LPLayer5Depth, d.tangentSpaceViewDir);
             half uvFactor = 1;
             switch(_LPLayer5Mode)
             {

@@ -10,7 +10,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local _EMISSION
+    #pragma shader_feature_local_fragment _EMISSION
 }
 
 %Variables()

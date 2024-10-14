@@ -4,25 +4,79 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using ORL.Serialization.OdinSerializer;
 using UnityEditor;
 #if UNITY_2022_3_OR_NEWER
 using UnityEditor.AssetImporters;
+
 #else
 using UnityEditor.Experimental.AssetImporters;
 #endif
 using UnityEngine;
+using UnityShaderParser.Common;
+using UnityShaderParser.HLSL;
+using UnityShaderParser.ShaderLab;
+using Debug = UnityEngine.Debug;
+using BlockType = ORL.ShaderGenerator.ShaderBlock.BlockType;
 
 namespace ORL.ShaderGenerator
 {
     [ScriptedImporter(1, "orlshader")]
-    public class ShaderDefinitionImporter : ScriptedImporter
+    public class ShaderDefinitionImporter : ScriptedImporter, ISerializationCallbackReceiver
     {
+        [SerializeField, HideInInspector]
+        private SerializationData serializationData;
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            UnitySerializationUtility.DeserializeUnityObject(this, ref this.serializationData);
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            UnitySerializationUtility.SerializeUnityObject(this, ref this.serializationData);
+        }
+
         public bool debugBuild;
-        
+        public int samplerCount;
+        public int textureCount;
+        public int featureCount;
+
+        public Dictionary<FunctionDefinitionNode, string> FunctionErrors =
+            new Dictionary<FunctionDefinitionNode, string>();
+
+        [NonSerialized, OdinSerialize]
+        public List<ShaderError> Errors = new List<ShaderError>();
+
+        [Serializable]
+        public struct ShaderError
+        {
+            [NonSerialized, OdinSerialize]
+            public ShaderBlock Block;
+            public int Line;
+            public string File;
+            public string Message;
+            public int StartIndex;
+            public int EndIndex;
+            public string PrettyCode;
+
+            public ShaderError(ShaderBlock block, int line, string file, string message, string prettyCode = "", int startIndex = -1, int endIndex = -1)
+            {
+                Block = block;
+                Line = line;
+                File = file;
+                Message = message;
+                PrettyCode = prettyCode;
+                StartIndex = startIndex;
+                EndIndex = endIndex;
+            }
+        }
+
         private readonly HashSet<string> _paramsOnlyBlock = new HashSet<string>
         {
             "%ShaderName",
-            "%CustomEditor"
+            "%CustomEditor",
+            "%PassName"
         };
 
         private List<ShaderBlock> _builtInBlocks;
@@ -31,7 +85,7 @@ namespace ORL.ShaderGenerator
             "@/Structs/VertexData",
             "@/Structs/FragmentData"
         };
-        
+
         private List<ShaderBlock> BuiltInBlocks
         {
             get
@@ -57,9 +111,9 @@ namespace ORL.ShaderGenerator
                 return _builtInBlocks;
             }
         }
-        
+
         private List<ShaderBlock> _builtInFunctions;
-        
+
         private readonly string[] _functions = {
         };
 
@@ -83,13 +137,14 @@ namespace ORL.ShaderGenerator
         }
 
         private readonly string[] _libraries = {
-            "@/Libraries/Utilities"
+            "@/Libraries/Utilities",
+            "@/Libraries/CoreRPShaderLibrary/BiRPtoURP"
         };
 
         private const string SamplingLib = "@/Libraries/SamplingLibrary";
 
         private List<ShaderBlock> _builtInLibraries;
-        
+
         private List<ShaderBlock> BuiltInLibraries
         {
             get
@@ -121,7 +176,7 @@ namespace ORL.ShaderGenerator
 
         // Matches %BlockName without nuking %FunctionName()
         private readonly Regex _replacerRegex = new Regex(@"(?<!\/\/\s*)(%[a-zA-Z]+[\w\d]+)(?:$|[""\;\s])");
-        
+
         // Matches %TemplateFeature(<FeatureName>)
         private readonly Regex _templateFeatureRegex = new Regex(@"%TemplateFeature\((?<identifier>""\w+"")\)");
 
@@ -150,6 +205,8 @@ namespace ORL.ShaderGenerator
         /// <param name="ctx"></param>
         public override void OnImportAsset(AssetImportContext ctx)
         {
+            FunctionErrors.Clear();
+            Errors.Clear();
             var textContent = File.ReadAllLines(ctx.assetPath);
             var workingFolder = ctx.assetPath.Substring(0, ctx.assetPath.LastIndexOf("/", StringComparison.InvariantCulture));
 
@@ -170,11 +227,23 @@ namespace ORL.ShaderGenerator
             blocks.AddRange(BuiltInFunctions);
             blocks.AddRange(BuiltInLibraries);
 
-            string shaderName;
+            // Load all the direct blocks from the source
             try
             {
                 blocks.AddRange(parser.Parse(textContent));
-                var shaderNameBlockIndex = blocks.FindIndex(b => b.Name == "%ShaderName");
+            }
+            catch (Exception ex)
+            {
+                ctx.LogImportError(ex.ToString());
+                ctx.LogImportError($"Failed to process the shader definition file {ctx.assetPath}");
+                return;
+            }
+
+            // Get the shader name
+            string shaderName;
+            try
+            {
+                var shaderNameBlockIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.ShaderName);
                 if (shaderNameBlockIndex == -1)
                 {
                     throw new MissingBlockException("%ShaderName", "");
@@ -184,8 +253,8 @@ namespace ORL.ShaderGenerator
                 {
                     throw new MissingParameterException("name", "%ShaderName", "");
                 }
-                var includesIndex = blocks.FindIndex(b => b.Name == "%Includes");
-                // Shaders can have direct includes (not via LightingModel or anything else
+                var includesIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.Includes);
+                // Shaders can have direct includes (not via LightingModel or anything else)
                 // Here we deep-resolve them and inject them back into the blocks in the respective order
                 if (includesIndex != -1)
                 {
@@ -196,20 +265,20 @@ namespace ORL.ShaderGenerator
                         // We inject the already parsed blocks in place of "self"
                         if (stripped == "self")
                         {
-                            resolvedBlocks.AddRange(blocks.Where(b => b.Name != "%Includes"));
+                            resolvedBlocks.AddRange(blocks.Where(b => b.CoreBlockType != BlockType.Includes));
                             continue;
                         }
-                        
+
                         var blockParser = new Parser();
                         var deepDeps = new List<string>();
                         // We recursively collect everything that the lighting model depends on into a flattened list
-                        Utils.RecursivelyCollectDependencies(new [] {stripped}.ToList(), ref deepDeps, workingFolder);
+                        Utils.RecursivelyCollectDependencies(new[] { stripped }.ToList(), ref deepDeps, workingFolder);
                         deepDeps.ForEach(dep => ctx.DependsOnSourceAsset(Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), workingFolder)));
                         var deepBlocks = new List<ShaderBlock>();
                         foreach (var deepDep in deepDeps)
                         {
                             // since we already have the deps flattened, we can safely strip all the dependencies here
-                            deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, workingFolder)).Where(b => b.Name != "%Includes"));
+                            deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, workingFolder)).Where(b => b.CoreBlockType != BlockType.Includes));
                         }
                         resolvedBlocks.AddRange(deepBlocks);
                     }
@@ -226,11 +295,12 @@ namespace ORL.ShaderGenerator
 
             // Find and load the lighting model
             List<ShaderBlock> lightingModel;
+            var lightingModelName = DefaultLightingModel;
             try
             {
-                var lightingModelIndex = blocks.FindIndex(b => b.Name == "%LightingModel");
+                var lightingModelIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.LightingModel);
                 // If we don't have a lighting model, use the default (PBR)
-                var lightingModelName = lightingModelIndex == -1
+                lightingModelName = lightingModelIndex == -1
                     ? DefaultLightingModel
                     : blocks[lightingModelIndex].Params[0].Replace("\"", "");
                 var lightingModelPath =
@@ -244,7 +314,7 @@ namespace ORL.ShaderGenerator
 
                 // Lighting model defines some basic functions and dictates where the source shader gets plugged in
                 var updatedBlocks = new List<ShaderBlock>();
-                foreach (var lmInclude in lightingModel.Find(b => b.Name == "%Includes").Contents)
+                foreach (var lmInclude in lightingModel.Find(b => b.CoreBlockType == BlockType.Includes).Contents)
                 {
                     var stripped = lmInclude.Replace("\"", "").Replace(",", "");
                     if (stripped == "target")
@@ -258,7 +328,7 @@ namespace ORL.ShaderGenerator
                     var lmWorkingFolder = lightingModelPath.Substring(0,
                         lightingModelPath.LastIndexOf("/", StringComparison.InvariantCulture));
                     // We recursively collect everything that the lighting model depends on into a flattened list
-                    Utils.RecursivelyCollectDependencies(new[] {stripped}.ToList(), ref deepDeps, lmWorkingFolder);
+                    Utils.RecursivelyCollectDependencies(new[] { stripped }.ToList(), ref deepDeps, lmWorkingFolder);
                     deepDeps.ForEach(dep =>
                         ctx.DependsOnSourceAsset(Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), lmWorkingFolder)));
                     var deepBlocks = new List<ShaderBlock>();
@@ -266,7 +336,7 @@ namespace ORL.ShaderGenerator
                     {
                         // since we already have the deps flattened, we can safely strip all the dependencies here
                         deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, lmWorkingFolder))
-                            .Where(b => b.Name != "%Includes"));
+                            .Where(b => b.CoreBlockType != BlockType.Includes));
                     }
 
                     updatedBlocks.AddRange(deepBlocks);
@@ -283,18 +353,18 @@ namespace ORL.ShaderGenerator
 
             // Find and load the template file
             string[] template;
+            var templateName = "@/Templates/PBR";
             try
             {
-                var templateBlockIndex = blocks.FindIndex(b => b.Name == "%Template");
+                var templateBlockIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.Template);
                 // if no template is found - use the Lighting Model supplied one
-                string templateName;
                 if (templateBlockIndex > -1)
                 {
                     templateName = blocks[templateBlockIndex].Params[0].Replace("\"", "");
                 }
                 else
                 {
-                    templateBlockIndex = lightingModel.FindIndex(b => b.Name == "%Template");
+                    templateBlockIndex = lightingModel.FindIndex(b => b.CoreBlockType == BlockType.Template);
                     if (templateBlockIndex == -1)
                     {
                         throw new MissingBlockException("%Template",
@@ -322,12 +392,12 @@ namespace ORL.ShaderGenerator
                 ctx.LogImportError($"Failed to load Template in {ctx.assetPath}", this);
                 throw;
             }
-            
+
             // Find and toggle template features
             try
             {
                 var templateFeatures = new List<string>();
-                var templateFeaturesIndex = blocks.FindIndex(b => b.Name == "%TemplateFeatures");
+                var templateFeaturesIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.TemplateFeatures);
                 if (templateFeaturesIndex > -1)
                 {
                     templateFeatures = blocks[templateFeaturesIndex].Params.Select(p => p.Replace("\"", "")).ToList();
@@ -361,7 +431,7 @@ namespace ORL.ShaderGenerator
                         // feature exited, skip this line for the closing `}`
                         continue;
                     }
-                    
+
                     var match = _templateFeatureRegex.Match(trimmedLine);
                     // add all normal lines
                     if (!match.Success)
@@ -379,9 +449,9 @@ namespace ORL.ShaderGenerator
                         ctx.LogImportError($"Found nested Template Features in {ctx.assetPath}. {match.Groups["identifier"].Value} was inside {currentFeatureName}", this);
                         throw new Exception("Nested Template Features are not supported");
                     }
-                    
+
                     currentFeatureName = match.Groups["identifier"].Value.Replace("\"", string.Empty);
-                    
+
                     // if this isn't a feature we want - skip it altogether
                     if (!templateFeatures.Contains(currentFeatureName))
                     {
@@ -392,13 +462,13 @@ namespace ORL.ShaderGenerator
                         index++;
                         continue;
                     }
-                    
+
                     enteredFeature = true;
                     // we skip 1 line for the opening `{`
                     nestLevel++;
                     index++;
                 }
-                template = newTemplate.ToString().Split(new[] { Environment.NewLine, "\n"}, StringSplitOptions.None);
+                template = newTemplate.ToString().Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
             }
             catch (Exception ex)
             {
@@ -409,12 +479,63 @@ namespace ORL.ShaderGenerator
 
             // Collapse non-function blocks together and de-dupe things where makes sense
             blocks = OptimizeBlocks(blocks);
-            
+
+            // Load all the extra passes
+            var extraPasses = blocks.FindAll(b => b.CoreBlockType == BlockType.ExtraPass);
+            var generatedExtraPasses = new List<(List<string> content, int count)>();
+            var extraPassBlocks = new Dictionary<string, List<ShaderBlock>>();
+            foreach (var extraPass in extraPasses)
+            {
+                try
+                {
+                    var extraPassName = extraPass.Params[0].Replace("\"", "");
+                    var extraPassParser = new Parser();
+                    var extraPassBlocksList = extraPassParser.Parse(extraPass.Contents.ToArray());
+                    extraPassBlocksList.Add(new ShaderBlock
+                    {
+                        Name = "%PassName",
+                        Params = new List<string>() { $"\"{extraPassName}\"" }
+                    });
+
+                    // don't want to include main pass functions in extra pass blocks with an exception for the base functions
+                    var combinedList = extraPassBlocksList.Concat(blocks.Where(b => !b.IsFunction || (b.IsFunction && b.Name.EndsWith("Base")) || (!b.IsFunction && !b.Name.StartsWith("%Pass")))).ToList();
+
+                    extraPassBlocksList = OptimizeBlocks(combinedList);
+                    extraPassBlocks.Add(extraPassName, extraPassBlocksList);
+                    var extraPassFunctions = extraPassBlocksList.Where(b => b.IsFunction).ToList();
+
+                    var extraPassTemplateName = templateName + "ExtraPass";
+                    var extraPassTemplatePath = Utils.ResolveORLAsset(extraPassTemplateName);
+                    var extrapassTemplate = Utils.GetORLTemplate(extraPassTemplateName);
+                    if (string.IsNullOrEmpty(extraPassTemplatePath)) continue;
+
+                    ctx.DependsOnSourceAsset(extraPassTemplatePath);
+                    // Hydrate loaded template
+                    var hydratedExtraPass = new StringBuilder();
+                    var hydratedExtraPassString = HydrateTemplate(hydratedExtraPass, extrapassTemplate, combinedList, extraPassFunctions, ctx).ToString();
+                    generatedExtraPasses.Add((hydratedExtraPassString.Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None).ToList(), hydratedExtraPassString.Length));
+                }
+                catch (Exception ex)
+                {
+                    ctx.LogImportError(ex.ToString());
+                    ctx.LogImportError($"Failed to process the extra pass {extraPass.Name} in {ctx.assetPath}", this);
+                    throw;
+                }
+            }
+
             // Override shader name to be the one from the source shader
-            blocks[blocks.FindIndex(b => b.Name == "%ShaderName")].Params[0] = shaderName;
-            
+            blocks[blocks.FindIndex(b => b.CoreBlockType == BlockType.ShaderName)].Params[0] = shaderName;
+
             // save function blocks to a separate list as they need special handling
             var functionBlocks = blocks.Where(b => b.IsFunction).Reverse().ToList();
+
+            // Re-hydrate function blocks, we allow nesting of up to 1 level deep
+            functionBlocks = functionBlocks.Select(b =>
+            {
+                var filtered = functionBlocks.Where(i => !i.Equals(b)).ToList();
+                b.Contents = HydrateTemplate(new StringBuilder(), b.Contents, filtered, filtered, ctx).ToString().Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None).ToList();
+                return b;
+            }).ToList();
 
             var finalShader = new StringBuilder();
             foreach (var line in template)
@@ -430,65 +551,51 @@ namespace ORL.ShaderGenerator
 
                     // Functions are a special case, they insert their code into the %Functions block
                     // And then insert a call to the function in the respective stage
-                    switch (matchVal)
+
+                    // Here we save all the function source code into the shader %Functions space
+                    if (matchVal == "%Functions")
                     {
-                        // Here we save all the function source code into the shader %Functions space
-                        case "%Functions":
+                        InsertContentsAtPosition(ref newLine, functionBlocks, match.Index, matchLen);
+                        continue;
+                    }
+
+                    // Here we insert actual function calls if they follow a couple rules
+                    // - The function block name is the same as the block name, but without the % prefix
+                    // - The functio block has a parameter which matches some HLSL function within the block
+                    if (matchVal.Contains("Functions") && matchVal != "%LibraryFunctions" && matchVal != "%FreeFunctions")
+                    {
+                        var fnName = "";
+                        try
                         {
-                            InsertContentsAtPosition(ref newLine, functionBlocks, match.Index, matchLen);
+                            fnName = matchVal.Substring(1).Replace("Functions", "");
+                        }
+                        catch (Exception e)
+                        {
+                            ctx.LogImportError($"Failed to extract function name from {matchVal} in {ctx.assetPath}. {e.Message}");
                             continue;
                         }
-                        // Here we insert function calls into the pre-pass fragment stage
-                        case "%PrePassColorFunctions":
+
+                        var fnBlocks = functionBlocks.FindAll(b => b.Name == "%" + fnName);
+                        fnBlocks.Reverse();
+                        fnBlocks.Sort((a, b) => a.Order.CompareTo(b.Order));
+                        fnBlocks.Reverse();
+                        InsertFnCallAtPosition(ref newLine, fnBlocks, match.Index, matchLen);
+                        continue;
+                    }
+
+                    // Checked includes are special and just get inserted into ShaderDefines section
+                    if (matchVal == "%ShaderDefines")
+                    {
+                        var checkedIncludes = blocks.FindAll(b => b.CoreBlockType == BlockType.CheckedInclude);
+                        foreach (var checkedInclude in checkedIncludes)
                         {
-                            var fragmentFns = functionBlocks.FindAll(b => b.Name == "%PrePassColor");
-                            fragmentFns.Reverse();
-                            fragmentFns.Sort((a,b) => a.Order.CompareTo(b.Order));
-                            // the calls are inserted in reverse order to maintain offsets, so we reverse them back
-                            fragmentFns.Reverse();
-                            InsertFnCallAtPosition(ref newLine, fragmentFns, match.Index, matchLen);
-                            continue;
-                        }
-                        // Here we insert function calls into the fragment stage
-                        case "%FragmentFunctions":
-                        {
-                            var fragmentFns = functionBlocks.FindAll(b => b.Name == "%Fragment");
-                            fragmentFns.Reverse();
-                            fragmentFns.Sort((a,b) => a.Order.CompareTo(b.Order));
-                            // the calls are inserted in reverse order to maintain offsets, so we reverse them back
-                            fragmentFns.Reverse();
-                            InsertFnCallAtPosition(ref newLine, fragmentFns, match.Index, matchLen);
-                            continue;
-                        }
-                        // Here we insert function calls into the vertex stage
-                        case "%VertexFunctions":
-                        {
-                            var vertexFns = functionBlocks.FindAll(b => b.Name == "%Vertex");
-                            vertexFns.Reverse();
-                            vertexFns.Sort((a,b) => a.Order.CompareTo(b.Order));
-                            vertexFns.Reverse();
-                            InsertFnCallAtPosition(ref newLine, vertexFns, match.Index, matchLen);
-                            continue;
-                        }
-                        // Here we insert function calls into the vertex stage
-                        case "%ColorFunctions":
-                        {
-                            var colorFns = functionBlocks.FindAll(b => b.Name == "%Color");
-                            colorFns.Reverse();
-                            colorFns.Sort((a,b) => a.Order.CompareTo(b.Order));
-                            colorFns.Reverse();
-                            InsertFnCallAtPosition(ref newLine, colorFns, match.Index, matchLen);
-                            continue;
-                        }
-                        // Here we insert function calls into the fragment stage of shadowcaster
-                        case "%ShadowFunctions":
-                        {
-                            var shadowFns = functionBlocks.FindAll(b => b.Name == "%Shadow");
-                            shadowFns.Reverse();
-                            shadowFns.Sort((a,b) => a.Order.CompareTo(b.Order));
-                            shadowFns.Reverse();
-                            InsertFnCallAtPosition(ref newLine, shadowFns, match.Index, matchLen);
-                            continue;
+                            if (File.Exists(checkedInclude.Params[0].Replace("\"", "")))
+                            {
+                                newLine.AppendLine();
+                                newLine.Append(new string(' ', match.Index));
+                                newLine.Append("#include ");
+                                newLine.AppendLine(checkedInclude.Params[0]);
+                            }
                         }
                     }
 
@@ -497,7 +604,7 @@ namespace ORL.ShaderGenerator
                     if (foundBlockIndex != -1)
                     {
                         var block = blocks[foundBlockIndex];
-                        
+
                         // These are special single-line blocks that only insert their params value
                         if (_paramsOnlyBlock.Contains(block.Name))
                         {
@@ -530,7 +637,23 @@ namespace ORL.ShaderGenerator
                         newLine.Insert(match.Index, IndentContents(block.Contents, match.Index));
                         continue;
                     }
-                    
+
+                    // Inject pre-hydrated extra passes
+                    if (matchVal == "%ExtraPasses")
+                    {
+                        var insertionIndex = match.Index;
+                        newLine.Remove(match.Index, matchLen);
+
+                        foreach (var extraPass in generatedExtraPasses)
+                        {
+                            newLine.Insert(insertionIndex, IndentContents(extraPass.content, insertionIndex));
+                            insertionIndex += extraPass.count;
+                            newLine.Insert(insertionIndex, Environment.NewLine);
+                            insertionIndex += Environment.NewLine.Length;
+                        }
+                        continue;
+                    }
+
                     // if nothing matched - clear out the current template hook and move on
                     {
                         newLine.Remove(match.Index, matchLen);
@@ -545,7 +668,7 @@ namespace ORL.ShaderGenerator
                     finalShader.AppendLine(stringLine);
                 }
             }
-            
+
             var shaderString = finalShader.ToString();
             var shader = ShaderUtil.CreateShaderAsset(ctx, shaderString, true);
 
@@ -568,9 +691,134 @@ namespace ORL.ShaderGenerator
                 hideFlags = HideFlags.HideInHierarchy
             };
 
+            ValidateBasicFunctions(blocks, ref ctx);
+
+            // This is currently too slow
+            // We should do this on the parser step
+            // UpdateStats(blocks, ref finalShader, ref ctx);
+
             ctx.AddObjectToAsset("Shader", shader);
             ctx.SetMainObject(shader);
             ctx.AddObjectToAsset("Shader Source", textAsset);
+        }
+
+        private StringBuilder HydrateTemplate(StringBuilder finalShader, IEnumerable<string> template, List<ShaderBlock> blocks, List<ShaderBlock> functionBlocks, AssetImportContext ctx)
+        {
+            foreach (var line in template)
+            {
+                var newLine = new StringBuilder(line);
+                var hadMatch = false;
+                while (_replacerRegex.IsMatch(newLine.ToString()))
+                {
+                    hadMatch = true;
+                    var match = _replacerRegex.Match(newLine.ToString());
+                    var matchVal = match.Groups[1].Value;
+                    var matchLen = matchVal.Length;
+
+                    // Functions are a special case, they insert their code into the %Functions block
+                    // And then insert a call to the function in the respective stage
+
+                    // Here we save all the function source code into the shader %Functions space
+                    if (matchVal == "%Functions")
+                    {
+                        InsertContentsAtPosition(ref newLine, functionBlocks, match.Index, matchLen);
+                        continue;
+                    }
+
+                    // Here we insert actual function calls if they follow a couple rules
+                    // - The function block name is the same as the block name, but without the % prefix
+                    // - The functio block has a parameter which matches some HLSL function within the block
+                    if (matchVal.Contains("Functions") && matchVal != "%LibraryFunctions" && matchVal != "%FreeFunctions")
+                    {
+                        var fnName = "";
+                        try
+                        {
+                            fnName = matchVal.Substring(1).Replace("Functions", "");
+                        }
+                        catch (Exception e)
+                        {
+                            ctx.LogImportError($"Failed to extract function name from {matchVal} in {ctx.assetPath}. {e.Message}");
+                            continue;
+                        }
+
+                        var fnBlocks = functionBlocks.FindAll(b => b.Name == "%" + fnName);
+                        fnBlocks.Reverse();
+                        fnBlocks.Sort((a, b) => a.Order.CompareTo(b.Order));
+                        fnBlocks.Reverse();
+                        InsertFnCallAtPosition(ref newLine, fnBlocks, match.Index, matchLen);
+                        continue;
+                    }
+
+                    // Checked includes are special and just get inserted into ShaderDefines section
+                    if (matchVal == "%ShaderDefines")
+                    {
+                        var checkedIncludes = blocks.FindAll(b => b.CoreBlockType == BlockType.CheckedInclude);
+                        foreach (var checkedInclude in checkedIncludes)
+                        {
+                            if (File.Exists(checkedInclude.Params[0].Replace("\"", "")))
+                            {
+                                newLine.AppendLine();
+                                newLine.Append(new string(' ', match.Index));
+                                newLine.Append("#include ");
+                                newLine.AppendLine(checkedInclude.Params[0]);
+                            }
+                        }
+                    }
+
+                    // For non-function blocks - we simply replace the block name with the block contents
+                    var foundBlockIndex = blocks.FindIndex(b => b.Name == matchVal);
+                    if (foundBlockIndex != -1)
+                    {
+                        var block = blocks[foundBlockIndex];
+
+                        // These are special single-line blocks that only insert their params value
+                        if (_paramsOnlyBlock.Contains(block.Name))
+                        {
+                            newLine.Remove(match.Index, matchLen);
+                            // To appease unity gods - we define CustomEditor "" as the template, so then if nothing is passed
+                            // It doesnt outright fail
+                            // We should probably just insert a fallback block instead and remove this weird condition
+                            if (block.Name == "%CustomEditor")
+                            {
+                                newLine.Insert(match.Index, block.Params[0].Replace("\"", ""));
+                            }
+                            else
+                            {
+                                newLine.Insert(match.Index, string.Join("", block.Params));
+                            }
+                            continue;
+                        }
+
+                        // This is a case for special functions that are unique per shader
+                        // like Vert/Fragment base
+                        if (block.IsFunction)
+                        {
+                            newLine.Remove(match.Index, matchLen);
+                            newLine.Insert(match.Index, block.CallSign);
+                            continue;
+                        }
+
+                        // Simply insert the block lines if no special cases are met
+                        newLine.Remove(match.Index, matchLen);
+                        newLine.Insert(match.Index, IndentContents(block.Contents, match.Index));
+                        continue;
+                    }
+
+                    // if nothing matched - clear out the current template hook and move on
+                    {
+                        newLine.Remove(match.Index, matchLen);
+                    }
+                }
+
+                var stringLine = newLine.ToString();
+                // if there was no match - just add the line as-is
+                // otherwise only add if the result wasn't whitespace
+                if (!string.IsNullOrWhiteSpace(stringLine) || !hadMatch)
+                {
+                    finalShader.AppendLine(stringLine);
+                }
+            }
+            return finalShader;
         }
 
         private void RegisterDependencies(List<string> dependencyPaths, AssetImportContext ctx)
@@ -579,9 +827,12 @@ namespace ORL.ShaderGenerator
             foreach (var s in dependencyPaths)
             {
                 string path;
-                if (s.StartsWith("@/")) {
+                if (s.StartsWith("@/"))
+                {
                     path = Utils.ResolveORLAsset(s);
-                } else {
+                }
+                else
+                {
                     path = Utils.ResolveORLAsset(s, false, workingFolder);
                 }
                 if (!string.IsNullOrEmpty(path))
@@ -592,7 +843,7 @@ namespace ORL.ShaderGenerator
                 ctx.LogImportWarning("Failed to resolve dependency: " + s);
             }
         }
-        
+
         /// <summary>
         /// Collapses all the same blocks together and deduplicates entries of blocks like Properties or Variables.
         /// Special blocks, like functions, are left untouched
@@ -619,7 +870,7 @@ namespace ORL.ShaderGenerator
                     collapsedBlocks.Add(block);
                     continue;
                 }
-            
+
                 var index = keySet[block.Name];
                 collapsedBlocks[index].Contents.Add("");
                 collapsedBlocks[index].Contents.AddRange(block.Contents);
@@ -628,15 +879,22 @@ namespace ORL.ShaderGenerator
             for (var i = 0; i < collapsedBlocks.Count; i++)
             {
                 var block = collapsedBlocks[i];
-                switch (block.Name)
+                switch (block.CoreBlockType)
                 {
-                    case "%Properties":
-                        collapsedBlocks[i].Contents = DeDuplicateByRegex(block.Contents, _propertyRegex);
+                    case BlockType.ShaderTags:
+                        block.Contents = DeDuplicateByParser(block.Contents, DeDupeType.Tags);
                         continue;
-                    case "%Variables":
+                    case BlockType.Properties:
+                        collapsedBlocks[i].Contents = DeDuplicateByParser(block.Contents, DeDupeType.Properties);
+                        continue;
+                    case BlockType.ShaderModifiers:
+                    case BlockType.PassModifiers:
+                        collapsedBlocks[i].Contents = DeDuplicateByParser(block.Contents, DeDupeType.Modifiers);
+                        continue;
+                    case BlockType.Variables:
                         collapsedBlocks[i].Contents = DeDuplicateByRegex(block.Contents, _varRegex);
                         continue;
-                    case "%Textures":
+                    case BlockType.Textures:
                         collapsedBlocks[i].Contents = DeDuplicateByRegex(block.Contents, _texSamplerCombinedRegex);
                         continue;
                 }
@@ -645,8 +903,6 @@ namespace ORL.ShaderGenerator
             return collapsedBlocks;
         }
 
-        // Matches _VarNames
-        private Regex _propertyRegex = new Regex(@"(?:\[.*\])*\s*(?<identifier>[\w]+)(?:\s?\(\"".*\""\,[\w\s\(\,\.\-\)]+\)\s*=)");
         // Matches floatX halfX and intX variables
         private Regex _varRegex = new Regex(@"(?:uniform)?(?:\s*)(?:half|float|int|real|fixed|bool|float2x2|float3x3|float4x4|half2x2|half3x3|half4x4|fixed2x2|fixed3x3|fixed4x4|real2x2|real3x3|real4x4){1}(?:\d)?\s+(?<identifier>\w+)");
         // Matches either TEXTUREXXX() or SAMPLER()
@@ -656,7 +912,105 @@ namespace ORL.ShaderGenerator
         private Regex _texRegex = new Regex(@"(?:RW_)?(?:TEXTURE[23DCUBE]+[_A-Z]*)\((?<identifier>[\w]+)\)");
         // Matches SAMPLER()
         private Regex _samplerRegex = new Regex(@"(?:SAMPLER)(?:_CMP)?\((?<identifier>[\w]+)\)");
-        
+
+        private enum DeDupeType
+        {
+            Properties,
+            Tags,
+            Modifiers,
+        }
+
+        private List<string> DeDuplicateByParser(List<string> source, DeDupeType type)
+        {
+            var keySet = new HashSet<string>();
+            var deduped = new List<string>();
+            var combined = string.Join(Environment.NewLine, source);
+            switch (type)
+            {
+                case DeDupeType.Properties:
+                    {
+                        var tokens = ShaderLabLexer.Lex(combined, null, null, false, out _);
+                        var nodes = ShaderLabParser.ParseShaderProperties(tokens, ShaderAnalyzers.SLConfig, out _);
+                        foreach (var node in nodes)
+                        {
+                            if (keySet.Contains(node.Uniform))
+                            {
+                                if (debugBuild)
+                                {
+                                    Debug.LogWarning("Found duplicate item, skipping: " + node.Uniform);
+                                }
+                                continue;
+                            }
+                            keySet.Add(node.Uniform);
+                            deduped.Add(node.GetCodeInSourceText(combined));
+
+                        }
+                        break;
+                    }
+                case DeDupeType.Tags:
+                    {
+                        var dedupedTags = new Dictionary<string, string>();
+                        var dedupedTagsString = new StringBuilder();
+                        combined = $"Tags {{{combined}}}";
+                        var tokens = ShaderLabLexer.Lex(combined, null, null, false, out _);
+                        var nodes = ShaderLabParser.ParseShaderLabCommands(tokens, ShaderAnalyzers.SLConfig, out _);
+                        foreach (var node in nodes)
+                        {
+                            if (node is ShaderLabCommandTagsNode tags)
+                            {
+                                foreach (var tag in tags.Tags)
+                                {
+                                    var tagKey = tag.Key;
+                                    var tagValue = tag.Value;
+                                    if (keySet.Contains(tagKey))
+                                    {
+                                        if (debugBuild)
+                                        {
+                                            Debug.LogWarning("Found duplicate tag, updating: " + tagKey + " to " + tagValue);
+                                        }
+                                        dedupedTags[tagKey] = tagValue;
+                                        continue;
+                                    }
+                                    keySet.Add(tagKey);
+                                    dedupedTags.Add(tagKey, tagValue);
+                                }
+                            }
+                        }
+
+                        foreach (var dedupedTag in dedupedTags)
+                        {
+                            dedupedTagsString.Append($"\"{dedupedTag.Key}\" = \"{dedupedTag.Value}\" ");
+                        }
+                        deduped.Add(dedupedTagsString.ToString());
+                        break;
+                    }
+                case DeDupeType.Modifiers:
+                    {
+                        var tokens = ShaderLabLexer.Lex(combined, null, null, false, out _);
+                        var nodes = ShaderLabParser.ParseShaderLabCommands(tokens, ShaderAnalyzers.SLConfig, out _);
+                        var dedupedModifiers = new Dictionary<Type, ShaderLabCommandNode>();
+                        foreach (var node in nodes)
+                        {
+                            if (dedupedModifiers.ContainsKey(node.GetType()))
+                            {
+                                if (debugBuild)
+                                {
+                                    Debug.LogWarning($"Found duplicate shader/pass modifier, skipping: {node.GetCodeInSourceText(combined)}");
+                                }
+                                continue;
+                            }
+                            dedupedModifiers.Add(node.GetType(), node);
+                        }
+                        foreach (var dedupedModifier in dedupedModifiers)
+                        {
+                            deduped.Add(dedupedModifier.Value.GetCodeInSourceText(combined));
+                        }
+                        break;
+                    }
+            }
+            return deduped;
+        }
+
         private List<string> DeDuplicateByRegex(List<String> source, Regex matcher)
         {
             var keySet = new HashSet<string>();
@@ -696,7 +1050,7 @@ namespace ORL.ShaderGenerator
 
             return deduped;
         }
-        
+
         private void InsertContentsAtPosition(ref StringBuilder line, List<ShaderBlock> blocks, int position, int cleanLen)
         {
             line.Remove(position, cleanLen);
@@ -712,7 +1066,7 @@ namespace ORL.ShaderGenerator
                 i++;
             }
         }
-        
+
         private void InsertFnCallAtPosition(ref StringBuilder line, List<ShaderBlock> blocks, int position, int cleanLen)
         {
             line.Remove(position, cleanLen);
@@ -728,7 +1082,6 @@ namespace ORL.ShaderGenerator
                 i++;
             }
         }
-        
 
         private string IndentContents(List<string> contents, int indentLevel)
         {
@@ -757,13 +1110,93 @@ namespace ORL.ShaderGenerator
             return sb.ToString();
         }
 
+        private class StatsUpdater : HLSLSyntaxVisitor
+        {
+            public struct FunctionParamerror
+            {
+                public string Name;
+                public string Type;
+                public int StartIndex;
+                public int EndIndex;
+                public int Line;
+            }
+
+            public Dictionary<FunctionParamerror, string> Errors = new Dictionary<FunctionParamerror, string>();
+
+            public override void VisitFunctionDefinitionNode(FunctionDefinitionNode node)
+            {
+                var allowedParams = new List<string> { "v", "d", "o", "FinalColor" };
+                foreach (var parameter in node.Parameters)
+                {
+                    if (!allowedParams.Contains(parameter.Declarator.Name))
+                    {
+                        var paramType = "";
+                        switch (parameter.ParamType)
+                        {
+                            case ScalarTypeNode s:
+                                paramType = PrintingUtil.GetEnumName(s.Kind);
+                                break;
+                            case VectorTypeNode v:
+                                paramType = PrintingUtil.GetEnumName(v.Kind) + v.Dimension;
+                                break;
+                        }
+
+                        Errors.Add(new FunctionParamerror
+                        {
+                            Line = parameter.Span.Start.Line,
+                            StartIndex = parameter.Span.Start.Index,
+                            EndIndex = parameter.Span.End.Index,
+                            Name = parameter.Declarator.Name,
+                            Type = paramType,
+                        }, $"Invalid {paramType} parameter {parameter.Declarator.Name} in function {node.Name.GetName()}, only {string.Join(", ", allowedParams)} are supported");
+                        // if (!Errors.ContainsKey(node))
+                        // {
+                        // }
+                        // Debug.LogError($"Invalid {paramType} parameter {parameter.Declarator.Name} in function {node.Name.GetName()}, only {string.Join(", ", allowedParams)} are supported");
+                    }
+                }
+                // Debug.Log($"Function declaration {node.Name.GetName()}");
+            }
+        }
+
+        private void ValidateBasicFunctions(List<ShaderBlock> blocks, ref AssetImportContext ctx)
+        {
+            try
+            {
+                var vertBlock = blocks.Find(b => b.Name == "%Vertex");
+                ShaderBlockValidations.ValidateVertexFunction(vertBlock, ref ctx, this);
+                var fragBlock = blocks.Find(b => b.Name == "%Fragment");
+                ShaderBlockValidations.ValidateFragmentFunction(fragBlock, ref ctx, this);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
+
+        private void UpdateStats(List<ShaderBlock> blocks, ref StringBuilder shaderContent, ref AssetImportContext ctx)
+        {
+            try
+            {
+                Undo.RecordObject(this, "Update Stats");
+                textureCount = ShaderAnalyzers.CountTextureObjects(blocks, ref ctx, this);
+                samplerCount = ShaderAnalyzers.CountSamplers(blocks, ref ctx, this);
+                featureCount = ShaderAnalyzers.CountShaderFeatures(shaderContent.ToString());
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
+
         /// <summary>
         /// Saves the generated shader source to the path provided
         /// </summary>
         /// <param name="assetPath">Path to the source shader</param>
         /// <param name="outputPath">Save path</param>
         /// <param name="stripSamplingMacros">Strips the sampling macros from the final shader</param>
-        public static void GenerateShader(string assetPath, string outputPath, bool stripSamplingMacros = false) {
+        public static void GenerateShader(string assetPath, string outputPath, bool stripSamplingMacros = false)
+        {
             var importer = GetAtPath(assetPath) as ShaderDefinitionImporter;
             if (importer == null)
             {
@@ -776,11 +1209,11 @@ namespace ORL.ShaderGenerator
             {
                 return;
             }
-            
+
             File.WriteAllText(outputPath, textSource);
             AssetDatabase.Refresh();
         }
-        
+
         /// <summary>
         /// Gets the generated shader code from the asset
         /// </summary>
@@ -816,16 +1249,16 @@ namespace ORL.ShaderGenerator
                     textSource = text;
                 }
             }
-            
+
             if (string.IsNullOrWhiteSpace(textSource))
             {
                 Debug.LogWarning($"Shader source for {assetPath} is empty! Generation likely failed");
                 return null;
             }
-            
+
             if (stripSamplingMacros)
             {
-                var source = textSource.Split(new[] {Environment.NewLine, "\n"}, StringSplitOptions.None);
+                var source = textSource.Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
                 var processedSource = new StringBuilder();
 
                 var skippingSampling = false;
@@ -843,7 +1276,7 @@ namespace ORL.ShaderGenerator
                         continue;
                     }
                     if (skippingSampling) continue;
-                    
+
                     var texMatch = _texRegex.Match(line);
                     if (texMatch.Success)
                     {
@@ -851,11 +1284,49 @@ namespace ORL.ShaderGenerator
                         processedSource.AppendLine(newLine);
                         continue;
                     }
-                    
+
                     var samplerMatch = _samplerRegex.Match(line);
                     if (samplerMatch.Success)
                     {
                         var newLine = line.Replace(samplerMatch.Value, $"SamplerState {samplerMatch.Groups["identifier"].Value}");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+
+                    if (line.Contains("SAMPLE_TEXTURE2D_GRAD"))
+                    {
+                        // search and parse parameters to rewrite into a `tex.SampleGrad` call
+                        var substring = line.Substring(line.IndexOf("SAMPLE_TEXTURE2D_GRAD") + 21);
+                        substring = substring.Substring(substring.IndexOf("(") + 1);
+                        var levelsIn = 1;
+                        var iterations = 0;
+                        while (true)
+                        {
+                            if (substring[iterations] == '(') levelsIn++;
+                            if (substring[iterations] == ')') levelsIn--;
+                            if (levelsIn == 0) break;
+                            iterations++;
+                            if (iterations > 10000) break;
+                        }
+
+                        if (iterations > 10000)
+                        {
+                            Debug.LogWarning("Could find the end of macro in 10000 iterations\n" +
+                                             $"Line was {substring}");
+                            continue;
+                        }
+
+                        var parametersString = substring.Substring(0, iterations);
+                        var parameterList = Regex.Split(parametersString, @",(?=(?:[^()]*\([^()]*\))*[^()]*$)");
+                        var newLine = line.Replace($"SAMPLE_TEXTURE2D_GRAD({parametersString})", $"{parameterList[0].Trim()}.SampleGrad({parameterList[1].Trim()}, {parameterList[2].Trim()}, {parameterList[3].Trim()}, {parameterList[4].Trim()})");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+
+
+                    if (line.Contains("SAMPLE_TEXTURE2D_LOD"))
+                    {
+                        var newLine = line.Replace("SAMPLE_TEXTURE2D_LOD", "UNITY_SAMPLE_TEX2D_LOD_SAMPLER").Replace("sampler_", "_");
                         processedSource.AppendLine(newLine);
                         continue;
                     }
@@ -866,28 +1337,21 @@ namespace ORL.ShaderGenerator
                         processedSource.AppendLine(newLine);
                         continue;
                     }
-                    
-                    if (line.Contains("SAMPLE_TEXTURE2D_LOD"))
-                    {
-                        var newLine = line.Replace("SAMPLE_TEXTURE2D_LOD", "UNITY_SAMPLE_TEX2D_LOD_SAMPLER").Replace("sampler_", "_");
-                        processedSource.AppendLine(newLine);
-                        continue;
-                    }
-                    
-                    if (line.Contains("SAMPLE_TEXTURECUBE"))
-                    {
-                        var newLine = line.Replace("SAMPLE_TEXTURECUBE", "UNITY_SAMPLE_TEXCUBE_SAMPLER").Replace("sampler_", "_");
-                        processedSource.AppendLine(newLine);
-                        continue;
-                    }
-                    
+
                     if (line.Contains("SAMPLE_TEXTURECUBE_LOD"))
                     {
                         var newLine = line.Replace("SAMPLE_TEXTURECUBE_LOD", "UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD").Replace("sampler_", "_");
                         processedSource.AppendLine(newLine);
                         continue;
                     }
-                    
+
+                    if (line.Contains("SAMPLE_TEXTURECUBE"))
+                    {
+                        var newLine = line.Replace("SAMPLE_TEXTURECUBE", "UNITY_SAMPLE_TEXCUBE_SAMPLER").Replace("sampler_", "_");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+
                     processedSource.AppendLine(line);
                 }
 
@@ -898,3 +1362,4 @@ namespace ORL.ShaderGenerator
         }
     }
 }
+

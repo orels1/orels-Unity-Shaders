@@ -1,0 +1,9 @@
+%ShaderName("orels1/Standard VRSL GI")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "@/Modules/VRSLGI",
+    "self"
+}

@@ -36,12 +36,15 @@
 
 %ShaderTags()
 {
-    "Queue" = "Transparent" "RenderType" = "Transparent"
+    "Queue" = "Transparent" "RenderType" = "Transparent" "ORL_RenderType" = "Fade"
 }
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local HOLOGRAPHIC_PARALLAX_LAYERS_TEN HOLOGRAPHIC_PARALLAX_LAYERS_SIX HOLOGRAPHIC_PARALLAX_LAYERS_FOUR HOLOGRAPHIC_PARALLAX_LAYERS_TWO
+    #pragma shader_feature_local_fragment HOLOGRAPHIC_PARALLAX_LAYERS_TEN HOLOGRAPHIC_PARALLAX_LAYERS_SIX HOLOGRAPHIC_PARALLAX_LAYERS_FOUR HOLOGRAPHIC_PARALLAX_LAYERS_TWO
+    #if !defined(HOLOGRAPHIC_PARALLAX_LAYERS_TEN) && !defined(HOLOGRAPHIC_PARALLAX_LAYERS_SIX) && !defined(HOLOGRAPHIC_PARALLAX_LAYERS_FOUR) && !defined(HOLOGRAPHIC_PARALLAX_LAYERS_TWO)
+        #define HOLOGRAPHIC_PARALLAX_LAYERS_TEN
+    #endif
 }
 
 %ShaderDefines()
@@ -105,22 +108,21 @@
     void SPFragment(MeshData d, inout SurfaceData o) {
         o.Albedo = 0;
         o.Alpha = 0;
-        d.worldNormal = -d.worldNormal;
 
         // angle falloff
-        half NoV = 1 - saturate(dot(d.worldNormal, normalize(_WorldSpaceCameraPos.xyz - mul(unity_ObjectToWorld, half4(0,0,0,1)))));
+        half NoV = 1 - saturate(dot(d.worldNormal, normalize(_WorldSpaceCameraPos.xyz - TransformObjectToWorld(0..xxx))));
         NoV = saturate(pow(NoV, 3));
         NoV = saturate(remap(NoV, 0, 1, 0.3, 2));
         NoV = lerp(1, NoV, _HPGlancingFalloff);
 
-        half2 baseUv = d.uv0 * _HPStackedTexture_ST.xy + _HPStackedTexture_ST.zw;
+        float2 baseUv = d.uv0 * _HPStackedTexture_ST.xy + _HPStackedTexture_ST.zw;
         half4 stacked = 0;
-        half2 layerOffset = ParallaxOffset(1, _HPBarsLayerStep / 100.0, d.tangentSpaceViewDir);
+        float2 layerOffset = ParallaxOffset1Step(1, _HPBarsLayerStep / 100.0, d.tangentSpaceViewDir);
 
         [unroll(SP_LAYERS_COUNT)]
         for (int i = SP_LAYERS_COUNT; i > 0; i--)
         {
-            half2 localUv = baseUv + layerOffset * i;
+            float2 localUv = baseUv + layerOffset * i;
             if (_HPUVClamp)
             {
                 localUv = saturate(localUv);

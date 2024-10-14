@@ -1,0 +1,10 @@
+%ShaderName("orels1/Standard Tessellated Displacement")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "@/Modules/Tessellation",
+    "@/Modules/Displacement",
+    "self",
+}

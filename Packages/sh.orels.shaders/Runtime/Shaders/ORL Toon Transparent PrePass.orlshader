@@ -4,8 +4,8 @@
 
 %Includes()
 {
-    "@/Shaders/ORL Toon Transparent",
     "self",
+    "@/Shaders/ORL Toon Transparent",
 }
 
 %ShaderModifiers()
