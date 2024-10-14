@@ -5,7 +5,11 @@ using UnityEditorInternal;
 using UnityEngine;
 using System;
 using System.Reflection;
+#if UNITY_2022_3_OR_NEWER
 using UnityEditor.AssetImporters;
+#else
+using UnityEditor.Experimental.AssetImporters;
+#endif
 
 namespace ORL.ShaderGenerator
 {
@@ -378,11 +382,13 @@ namespace ORL.ShaderGenerator
                             }
                             else
                             {
-                                using var c = new EditorGUI.ChangeCheckScope();
-                                var newObject = EditorGUI.ObjectField(rect, sourceObject, typeof(TextAsset), false);
-                                if (c.changed)
+                                using (var c = new EditorGUI.ChangeCheckScope())
                                 {
-                                    prop.GetArrayElementAtIndex(index).stringValue = "/" + AssetDatabase.GetAssetPath(newObject).Replace("\\", "/");
+                                    var newObject = EditorGUI.ObjectField(rect, sourceObject, typeof(TextAsset), false);
+                                    if (c.changed)
+                                    {
+                                        prop.GetArrayElementAtIndex(index).stringValue = "/" + AssetDatabase.GetAssetPath(newObject).Replace("\\", "/");
+                                    }
                                 }
                             }
                         }

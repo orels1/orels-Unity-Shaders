@@ -111,13 +111,18 @@ namespace ORL.Drawers
                         savePath += GUID.Generate().ToString();
                     }
 
+                    var isRedSRGB = redTex != null && AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(redTex)) is TextureImporter importer && importer.sRGBTexture;
+                    var isGreenSRGB = greenTex != null && AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(greenTex)) is TextureImporter importer2 && importer2.sRGBTexture;
+                    var isBlueSRGB = blueTex != null && AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(blueTex)) is TextureImporter importer3 && importer3.sRGBTexture;
+                    var isAlphaSRGB = alphaTex != null && AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(alphaTex)) is TextureImporter importer4 && importer4.sRGBTexture;
+
                     savePath += ".png";
                     var result = PackTexture(
                         new[] { redTex, greenTex, blueTex, alphaTex },
                         new[] { redChannel, greenChannel, blueChannel, alphaChannel },
                         new[] { redVal, greenVal, blueVal, alphaVal },
                         new[] { redInvert, greenInvert, blueInvert, alphaInvert },
-                        new[] { !redTex?.isDataSRGB ?? false, !greenTex?.isDataSRGB ?? false, !blueTex?.isDataSRGB ?? false, !alphaTex?.isDataSRGB ?? false },
+                        new[] { !isRedSRGB, !isGreenSRGB, !isBlueSRGB, !isAlphaSRGB },
                         isLinear,
                         size,
                         savePath
@@ -199,7 +204,11 @@ namespace ORL.Drawers
             SetPackerPropsForChannel("Alpha", ref mat, textures[3], channels[3], values[3], inverts[3]);
             mat.SetInt("_IsLinear", isLinear ? 1 : 0);
             var source = new Texture2D(size, size);
+#if UNITY_2022_1_OR_NEWER
             var buffer = new RenderTexture(size, size, GraphicsFormat.R16G16B16A16_UNorm, GraphicsFormat.D24_UNorm_S8_UInt);
+#else
+            var buffer = new RenderTexture(size, size, 24, RenderTextureFormat.ARGB64);
+#endif
             var target = new Texture2D(size, size, TextureFormat.RGBA64, true);
             Graphics.Blit(source, buffer, mat);
             RenderTexture.active = buffer;

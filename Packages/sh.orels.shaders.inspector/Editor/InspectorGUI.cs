@@ -356,7 +356,11 @@ namespace ORL.ShaderInspector
 
             if (_searchClearStyle == null)
             {
+#if UNITY_2022_1_OR_NEWER
                 _searchClearStyle = new GUIStyle(EditorStyles.iconButton)
+#else
+                _searchClearStyle = new GUIStyle(EditorStyles.miniButton)
+#endif
                 {
                     alignment = TextAnchor.MiddleCenter,
                     margin = new RectOffset(0, 0, 3, 0),

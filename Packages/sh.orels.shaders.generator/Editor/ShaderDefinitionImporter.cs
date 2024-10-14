@@ -991,10 +991,15 @@ namespace ORL.ShaderGenerator
                         var dedupedModifiers = new Dictionary<Type, ShaderLabCommandNode>();
                         foreach (var node in nodes)
                         {
-                            if (!dedupedModifiers.TryAdd(node.GetType(), node) && debugBuild)
+                            if (dedupedModifiers.ContainsKey(node.GetType()))
                             {
-                                Debug.LogWarning($"Found duplicate shader/pass modifier, skipping: {node.GetCodeInSourceText(combined)}");
+                                if (debugBuild)
+                                {
+                                    Debug.LogWarning($"Found duplicate shader/pass modifier, skipping: {node.GetCodeInSourceText(combined)}");
+                                }
+                                continue;
                             }
+                            dedupedModifiers.Add(node.GetType(), node);
                         }
                         foreach (var dedupedModifier in dedupedModifiers)
                         {

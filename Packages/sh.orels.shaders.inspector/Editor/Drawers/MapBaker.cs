@@ -64,7 +64,11 @@ namespace ORL.Drawers
                 }
                 if (_openFolderIconStyle == null)
                 {
+#if UNITY_2022_1_OR_NEWER
                     _openFolderIconStyle = new GUIStyle(EditorStyles.iconButton)
+#else
+                    _openFolderIconStyle = new GUIStyle(EditorStyles.miniButton)
+#endif
                     {
                         alignment = TextAnchor.MiddleCenter,
                         margin = new RectOffset(0, 0, 2, 0)
@@ -215,7 +219,9 @@ namespace ORL.Drawers
 
                     var clonedMaterial = new Material(material)
                     {
+#if UNITY_2022_1_OR_NEWER
                         parent = null
+#endif
                     };
 
                     AssetDatabase.CreateAsset(clonedMaterial, "Assets/orels1_TempAssets/Baker_mat_temp.mat");
@@ -234,7 +240,11 @@ namespace ORL.Drawers
                     RenderTexture buffer;
                     if (channel == BakerChannel.Normal)
                     {
+#if UNITY_2022_1_OR_NEWER
                         buffer = new RenderTexture(4096, 4096, GraphicsFormat.R16G16B16A16_UNorm, GraphicsFormat.D24_UNorm_S8_UInt);
+#else
+                        buffer = new RenderTexture(4096, 4096, 24, RenderTextureFormat.ARGB64);
+#endif
                     }
                     else
                     {
@@ -280,4 +290,4 @@ namespace ORL.Drawers
     }
 #endif
 
-}
+    }
