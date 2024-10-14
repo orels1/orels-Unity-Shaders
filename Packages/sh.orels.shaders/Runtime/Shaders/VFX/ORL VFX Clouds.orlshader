@@ -8,7 +8,8 @@
     UI_CloudsDocs("[This shader has documentation](https://shaders.orels.sh/docs/vfx/clouds)", Int) = 0
 
     UI_ShadingHeader("# Shading", Int) = 1
-    _DepthTransp("Depth Transparency", Float) = 36
+    [ToggleUI]_EnableDepthBlending("Enable Depth Blending", Int) = 1
+    _DepthTransp("Depth Transparency %ShowIf(_EnableDepthBlending)", Float) = 36
     [Toggle(APPLY_SHADING)]_ApplyShading("Apply Shading", Int) = 0
     _ShadeRamp("Shade Ramp %ShowIf(APPLY_SHADING) %Gradient()", 2D) = "grayscaleRamp" {}
     _Tint("Tint %ShowIf(APPLY_SHADING)", Color) = (1,1,1,1)
@@ -62,7 +63,7 @@
 
 %ShaderTags()
 {
-    "Queue" = "Transparent" "RenderType" = "Transparent" "IgnoreProjector" = "True" "ORL_RenderType" = "Transparent"
+    "Queue" = "Transparent" "RenderType" = "Transparent" "IgnoreProjector" = "True" "ORL_RenderType" = "Fade"
 }
 
 %PassModifiers()
@@ -94,6 +95,7 @@
     half _L3NoiseStrength;
     half4 _L3NoiseDirection;
 
+    int _EnableDepthBlending;
     half _DepthTransp;
     half4 _ColorBottom;
     half4 _ColorTop;
@@ -243,6 +245,7 @@
         float sceneZ = LinearEyeDepth(SampleSceneDepth(d.extraV2F0.xy / d.extraV2F0.w));
         float depth = sceneZ - d.extraV2F0.z;   
         depth = saturate(invLerp(0, _DepthTransp, depth));
+        depth = lerp(1, depth, _EnableDepthBlending);
         half heightAlpha = saturate(invLerp(_HeightBottom, _HeightTop, d.localSpacePosition.y));
         o.Alpha = depth;
 
@@ -261,11 +264,13 @@
             o.Alpha *= _Tint.a;
             if (_HeightGradient) {
                 o.Albedo *= lerp(_ColorBottom, _ColorTop, heightAlpha);
+                o.Alpha *= lerp(_ColorBottom.a, _ColorTop.a, heightAlpha);
             }
         }
         #else
         {
             o.Albedo = lerp(_ColorBottom, _ColorTop, heightAlpha);
+            o.Alpha *= lerp(_ColorBottom.a, _ColorTop.a, heightAlpha);
         }
         #endif
 
