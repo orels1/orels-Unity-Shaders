@@ -468,7 +468,7 @@
         ndc.xy = float2(ndc.x, ndc.y * _ProjectionParams.x) + ndc.w;
         ndc.zw = positionCS.zw;
 
-        ndc.xy = UnityStereoTransformScreenSpaceTex(ndc.xy);
+        ndc.xy = TransformStereoScreenSpaceTex(ndc.xy, ndc.w);
         return ndc;
     }
 
