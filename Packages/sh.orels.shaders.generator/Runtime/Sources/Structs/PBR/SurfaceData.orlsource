@@ -7,7 +7,7 @@
         half Metallic;
         half Smoothness;
         half Occlusion;
-        half3 Normal;
+        float3 Normal;
         half Alpha;
     };
 
@@ -16,7 +16,7 @@
         SurfaceData o = (SurfaceData) 0;
         o.Albedo = 1;
         o.Occlusion = 1;
-        o.Normal = half3(0, 0, 1);
+        o.Normal = float3(0, 0, 1);
         o.Smoothness = 0.5;
         o.Alpha = 1;
         return o;

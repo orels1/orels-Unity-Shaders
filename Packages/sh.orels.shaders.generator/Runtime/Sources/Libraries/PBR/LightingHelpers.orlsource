@@ -4,10 +4,10 @@
     // [Xiexe-Unity-Shaders](https://github.com/Xiexe/Xiexes-Unity-Shaders) (c) Xiexe (MIT)
     // [z3y shaders](https://github.com/z3y/shaders) (c) z3y (MIT)
 
-    half D_GGX(half NoH, half roughness)
+    float D_GGX(float NoH, float roughness)
     {
-        half a = NoH * roughness;
-        half k = roughness / (1.0 - NoH * NoH + a * a);
+        float a = NoH * roughness;
+        float k = roughness / (1.0 - NoH * NoH + a * a);
         return k * k * (1.0 / UNITY_PI);
     }
 
@@ -205,16 +205,16 @@
         #endif
     }
 
-    half3 GetSpecularHighlights(half3 worldNormal, half3 lightColor, half3 lightDirection, half3 f0, half3 viewDir, half clampedRoughness, half NoV, half3 energyCompensation)
+    half3 GetSpecularHighlights(float3 worldNormal, half3 lightColor, float3 lightDirection, half3 f0, float3 viewDir, half clampedRoughness, half NoV, half3 energyCompensation)
     {
-        half3 halfVector = Unity_SafeNormalize(lightDirection + viewDir);
+        float3 halfVector = Unity_SafeNormalize(lightDirection + viewDir);
 
         half NoH = saturate(dot(worldNormal, halfVector));
         half NoL = saturate(dot(worldNormal, lightDirection));
         half LoH = saturate(dot(lightDirection, halfVector));
 
         half3 F = F_Schlick(LoH, f0);
-        half D = D_GGX(NoH, clampedRoughness);
+        float D = D_GGX(NoH, clampedRoughness);
         half V = V_SmithGGXCorrelated(NoV, NoL, clampedRoughness);
 
         #ifndef UNITY_PBS_USE_BRDF2

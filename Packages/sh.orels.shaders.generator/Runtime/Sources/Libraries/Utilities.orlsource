@@ -96,7 +96,7 @@
         return 1.0f + w3(a) / (w2(a) + w3(a)) + 0.5f;
     }
 
-    half4 tex2DFastBicubicSample(Texture2D tex, SamplerState texSampler, half2 uv)
+    half4 tex2DFastBicubicSample(Texture2D tex, SamplerState texSampler, float2 uv)
     {
         #if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
         half width;
@@ -132,7 +132,39 @@
         #endif
     }
 
-    half4 tex2DFastBicubicSampleLevel(Texture2D tex, SamplerState texSampler, half2 uv, int level)
+    float4 tex2DFastBicubicSampleNoChecks(Texture2D tex, SamplerState texSampler, float2 uv)
+    {
+        half width;
+        half height;
+        tex.GetDimensions(width, height);
+        half x = uv.x * width;
+        half y = uv.y * height;
+
+
+
+        x -= 0.5f;
+        y -= 0.5f;
+        half px = floor(x);
+        half py = floor(y);
+        half fx = x - px;
+        half fy = y - py;
+
+        // note: we could store these functions in a lookup table texture, but maths is cheap
+        half g0x = g0(fx);
+        half g1x = g1(fx);
+        half h0x = h0(fx);
+        half h1x = h1(fx);
+        half h0y = h0(fy);
+        half h1y = h1(fy);
+
+        half4 r = g0(fy) * (g0x * tex.Sample(texSampler, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+        g1x * tex.Sample(texSampler, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+        g1(fy) * (g0x * tex.Sample(texSampler, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+        g1x * tex.Sample(texSampler, (half2(px + h1x, py + h1y) * 1.0f / width)));
+        return r;
+    }
+
+    half4 tex2DFastBicubicSampleLevel(Texture2D tex, SamplerState texSampler, float2 uv, int level)
     {
         #if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
         half width;

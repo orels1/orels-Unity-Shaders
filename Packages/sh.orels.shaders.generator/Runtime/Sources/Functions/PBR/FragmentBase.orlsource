@@ -59,7 +59,9 @@
     [Toggle(BAKERY_VOLUME)]_BakeryVolume("Support Volumes %ShowIf(BAKERY_ENABLED)", Int) = 0
     UI_BakeryVolumeAssigner("Volume Assigner %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME) %BakeryVolumeAssigner()", Int) = 0
     [Toggle(BAKERY_COMPRESSED_VOLUME)]_BakeryCompressedVolume("Support Compressed Volumes %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME)", Int) = 0
-    [Toggle(BAKERY_VOLROTATIONY)]_BakeryVolumeRotationY("Support Baked Volume Rotation %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME && BAKERY_VOLROTATIONY)", Int) = 0
+    [Toggle(BAKERY_VOLROTATIONY)]_BakeryVolumeRotationY("Support Baked Volume Rotation %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME)", Int) = 0
+    [Toggle(BAKERY_VOLROTATION)]_BakeryVolumeRotation("Support Runtime Volume Rotation %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME)", Int) = 0
+    UI_BakeryVolumeRotationNote("> Volume rotation support requires extra scripting in VRChat  %ShowIf(BAKERY_VOLROTATION || BAKERY_VOLROTATIONY)", Int) = 0
 
     UI_AdvancedSettingsStancilHeader("# Stencils", Int) = 0
     [IntRange]_StencilRef("Reference", Range(0, 255)) = 0
@@ -194,13 +196,13 @@
         half3 directSpecular = 0;
         half occlusion = o.Occlusion;
         half perceptualRoughness = 1 - o.Smoothness;
-        half3 tangentNormal = o.Normal;
+        float3 tangentNormal = o.Normal;
         o.Normal = Unity_SafeNormalize(mul(o.Normal, d.TBNMatrix));
 
         #ifndef USING_DIRECTIONAL_LIGHT
-        fixed3 lightDir = normalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
+        float3 lightDir = Unity_SafeNormalize(UnityWorldSpaceLightDir(d.worldSpacePosition));
         #else
-        fixed3 lightDir = _WorldSpaceLightPos0.xyz;
+        float3 lightDir = Unity_SafeNormalize(_WorldSpaceLightPos0.xyz);
         #endif
 
         #if defined(GSAA)
@@ -210,7 +212,7 @@
         UNITY_LIGHT_ATTENUATION(lightAttenuation, i, d.worldSpacePosition);
         half3 lightColor = lightAttenuation * _LightColor0.rgb;
 
-        half3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
+        float3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
         half lightNoL = saturate(dot(o.Normal, lightDir));
         half lightLoH = saturate(dot(lightDir, lightHalfVector));
 
@@ -277,11 +279,11 @@
                 lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
             #endif
 
-            // BAKERY RNM MODE (why do we even support it??)
+            // BAKERY RNM MODE
             #if defined(BAKERY_RNM) && defined(BAKERY_ENABLED)
-                half3 rnm0 = DecodeLightmap(BakeryTex2D(_RNM0, sampler_RNM0, lightmapUV, _RNM0_TexelSize));
-                half3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, sampler_RNM0, lightmapUV, _RNM0_TexelSize));
-                half3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, sampler_RNM0, lightmapUV, _RNM0_TexelSize));
+                float3 rnm0 = DecodeLightmap(BakeryTex2D(_RNM0, sampler_RNM0, lightmapUV, _RNM0_TexelSize));
+                float3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, sampler_RNM0, lightmapUV, _RNM0_TexelSize));
+                float3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, sampler_RNM0, lightmapUV, _RNM0_TexelSize));
                 
                 lightMap = saturate(dot(rnmBasis0, tangentNormal)) * rnm0 +
                 saturate(dot(rnmBasis1, tangentNormal)) * rnm1 +
@@ -383,7 +385,7 @@
             indirectDiffuse = lightMap;
 
         // Bakery Volume Sampling (replaces probes and LPPVs)
-        #elif defined(BAKERY_ENABLED) && defined(BAKERY_VOLUME)
+        #elif defined(BAKERY_ENABLED) && defined(BAKERY_VOLUME) && defined(UNITY_PASS_FORWARDBASE)
             #ifdef BAKERY_COMPRESSED_VOLUME
                 float4 tex0, tex1, tex2, tex3;
                 float3 L0, L1x, L1y, L1z;
@@ -457,11 +459,11 @@
 
 
         half3 dfguv = half3(NoV, perceptualRoughness, 0);
-        half2 dfg = SAMPLE_TEXTURE2D(_DFG, sampler_DFG, dfguv).xy;
+        float2 dfg = SAMPLE_TEXTURE2D(_DFG, sampler_DFG, dfguv).xy;
         half3 energyCompensation = 1.0 + f0 * (1.0 / dfg.y - 1.0);
 
         half rough = perceptualRoughness * perceptualRoughness;
-        half clampedRoughness = max(rough, 0.002);
+        float clampedRoughness = max(rough, 0.002);
 
         // DIRECT REALTIME SPECULAR
         #if !defined(SPECULAR_HIGHLIGHTS_OFF) && defined(USING_LIGHT_MULTI_COMPILE)
@@ -470,7 +472,7 @@
             {
                 half NoH = saturate(dot(o.Normal, lightHalfVector));
                 half3 F = F_Schlick(lightLoH, f0);
-                half D = D_GGX(NoH, clampedRoughness);
+                float D = D_GGX(NoH, clampedRoughness);
                 half V = V_SmithGGXCorrelated(NoV, lightNoL, clampedRoughness);
 
                 F *= energyCompensation;
@@ -486,7 +488,7 @@
                 {
                     half NoH = saturate(dot(o.Normal, vLightHalfVectors[i]));
                     half3 F = F_Schlick(vLightLoHs[i], f0);
-                    half D = D_GGX(NoH, clampedRoughness);
+                    float D = D_GGX(NoH, clampedRoughness);
                     half V = V_SmithGGXCorrelated(NoV, vLightNoLs[i], clampedRoughness);
 
                     F *= energyCompensation;
@@ -507,7 +509,7 @@
 
         // BAKED SPECULAR
         half3 bakedDirectSpecular = 0;
-        #if defined(BAKED_SPECULAR) && !defined(BAKERYLM_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
+        #if defined(BAKED_SPECULAR) && !defined(BAKERYLM_ENABLED) && defined(UNITY_PASS_FORWARDBASE)
         {
             half3 bakedDominantDirection = 1;
             half3 bakedSpecularColor = 0;
@@ -534,20 +536,20 @@
         half3 fresnel = F_Schlick(NoV, f0);
 
         // BAKERY DIRECT SPECULAR
-        #if defined(LIGHTMAP_ON) && defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
+        #if defined(LIGHTMAP_ON) && defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && defined(UNITY_PASS_FORWARDBASE)
             #if defined(BAKERY_RNM)
             {
-                half3 viewDirTangent = -normalize(d.tangentSpaceViewDir);
-                half3 dominantDirTangent = rnmBasis0 * dot(rnm0, lumaConv) +
+                float3 viewDirTangent = -Unity_SafeNormalize(d.tangentSpaceViewDir);
+                float3 dominantDirTangent = rnmBasis0 * dot(rnm0, lumaConv) +
                 rnmBasis1 * dot(rnm1, lumaConv) +
                 rnmBasis2 * dot(rnm2, lumaConv);
 
-                half3 dominantDirTangentNormalized = normalize(dominantDirTangent);
+                float3 dominantDirTangentNormalized = Unity_SafeNormalize(dominantDirTangent);
                 half3 specColor = saturate(dot(rnmBasis0, dominantDirTangentNormalized)) * rnm0 +
                 saturate(dot(rnmBasis1, dominantDirTangentNormalized)) * rnm1 +
                 saturate(dot(rnmBasis2, dominantDirTangentNormalized)) * rnm2;
-                half3 halfDir = Unity_SafeNormalize(dominantDirTangentNormalized - viewDirTangent);
-                half NoH = saturate(dot(tangentNormal, halfDir));
+                float3 halfDir = Unity_SafeNormalize(dominantDirTangentNormalized - viewDirTangent);
+                float NoH = saturate(dot(tangentNormal, halfDir));
                 half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
                 bakedDirectSpecular += spec * specColor * fresnel;
             }
@@ -573,7 +575,7 @@
         #endif // End of #if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
 
         // BAKERY VOLUME SPECULAR
-        #if defined(BAKERY_ENABLED) && defined(BAKERY_VOLUME) && defined(BAKERY_LMSPEC)
+        #if defined(BAKERY_ENABLED) && defined(BAKERY_VOLUME) && defined(BAKERY_LMSPEC) && defined(UNITY_PASS_FORWARDBASE)
             float3 nL1x = L1x / L0;
             float3 nL1y = L1y / L0;
             float3 nL1z = L1z / L0;
@@ -619,7 +621,7 @@
         
         #if defined(BAKED_SPECULAR)
         {
-            bakedDirectSpecular *= lerp(1, finalSpecOcclusion, _BakedSpecularOcclusion);
+            bakedDirectSpecular *= saturate(lerp(1, finalSpecOcclusion, _BakedSpecularOcclusion));
         }
         #endif
 
@@ -633,7 +635,6 @@
         #if defined (_INTEGRATE_CUSTOMGI_FLEX) && !defined(UNITY_PASS_FORWARDADD)
         %CustomGIFunctions
         #endif
-
 
         directSpecular += bakedDirectSpecular;
 
@@ -657,12 +658,11 @@
             }
         }
         #endif
-
         // FINAL COLOR
         FinalColor.rgb = o.Albedo.rgb * (oneMinusReflectivity) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular;
         FinalColor.a = o.Alpha;
         
-        #if !defined(UNITY_PASS_FORWARDADD)
+        #if defined(UNITY_PASS_FORWARDBASE)
         FinalColor.rgb += o.Emission;
         #endif
         #endif

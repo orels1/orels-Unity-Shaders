@@ -144,7 +144,7 @@
 
         o.Smoothness = lerp(o.Smoothness, 1, mask);
         o.Metallic = lerp(o.Metallic, 0, mask);
-        o.Normal = normalize(lerp(o.Normal, UnpackScaleNormal(half4(0.5, 0.5, 0.5, 1.0), 0), mask));
+        o.Normal = Unity_SafeNormalize(lerp(o.Normal, float4(0, 0, 1, 0), mask));
         o.Albedo = lerp(o.Albedo, o.Albedo * _PuddlesColor.rgb, mask * _PuddlesColor.a);
 
         #if defined(RAINDROPS_ENABLE)

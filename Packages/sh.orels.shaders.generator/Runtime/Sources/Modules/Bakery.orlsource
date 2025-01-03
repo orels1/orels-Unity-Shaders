@@ -37,6 +37,7 @@
       #endif
     #endif
 }
+
 %Variables()
 {
     #if defined(BAKERY_ENABLED)
@@ -51,16 +52,19 @@
     half3 _GlobalVolumeMin;
     half3 _GlobalVolumeInvSize;
 
-        #if defined(BAKERY_VOLROTATION)
+    #if defined(BAKERY_VOLROTATION)
     float4x4 _GlobalVolumeMatrix;
     float4x4 _VolumeMatrix;
-        #endif
-        #if defined(BAKERY_VOLROTATIONY)
+    #endif
+    
+    #if defined(BAKERY_VOLROTATIONY)
     float2 _GlobalVolumeRY;
     float2 _VolumeRY;
-        #endif
+    #endif
+    
     #endif
 }
+
 %Textures()
 {
     #if defined(BAKERY_ENABLED)
