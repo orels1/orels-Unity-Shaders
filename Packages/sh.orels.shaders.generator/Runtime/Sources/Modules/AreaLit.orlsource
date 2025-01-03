@@ -63,7 +63,7 @@
 
         #if defined(LIGHTMAP_ON)
         if (_AreaLitOcclusionUVSet == 9) {
-            uv = uv * unity_LightmapST.xy + unity_LIGHTmapST.zw;
+            uv = uv * unity_LightmapST.xy + unity_LightmapST.zw;
         }
         #endif
 
