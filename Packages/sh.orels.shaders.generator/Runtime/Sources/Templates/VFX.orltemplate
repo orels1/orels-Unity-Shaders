@@ -25,6 +25,9 @@
         // PrePasses
         %PrePasses
 
+        // Exra PrePasses
+        %ExtraPrePasses
+
         %TemplateFeature("PrePass")
         {
             Pass
@@ -343,6 +346,9 @@
                 // ShadowCaster Pass End
             }
         }
+
+        // Exra Passes
+        %ExtraPasses
 
         // PostPasses
         %PostPasses

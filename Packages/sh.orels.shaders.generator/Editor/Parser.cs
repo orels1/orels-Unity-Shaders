@@ -38,6 +38,12 @@ namespace ORL.ShaderGenerator
             Custom
         }
 
+        public enum ExtraPassType
+        {
+            PrePass,
+            PostPass
+        }
+
         public static BlockType GetBlockType(string name)
         {
             switch (name)
@@ -99,6 +105,7 @@ namespace ORL.ShaderGenerator
         public string Name;
         public BlockType CoreBlockType;
         public List<string> Params;
+        public List<object> TypedParams;
         public List<string> Contents;
         public bool IsFunction;
         public string CallSign;
@@ -245,6 +252,16 @@ namespace ORL.ShaderGenerator
                                     Line = blockStartLine,
                                     Indentation = blockIndentation,
                                 };
+
+                                // ExtraPasses can have a type
+                                if (newBlock.CoreBlockType == ShaderBlock.BlockType.ExtraPass)
+                                {
+                                    if (newBlock.Params.Count > 1)
+                                    {
+                                        newBlock.TypedParams = newBlock.Params.ConvertAll(p => (object)p);
+                                        newBlock.TypedParams[1] = newBlock.Params[1] == "ExtraPassType.PrePass" ? ShaderBlock.ExtraPassType.PrePass : ShaderBlock.ExtraPassType.PostPass;
+                                    }
+                                }
 
                                 newBlock.IsFunction = newBlock.FunctionNode != null;
                                 if (newBlock.IsFunction)

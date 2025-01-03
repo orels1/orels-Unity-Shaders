@@ -27,6 +27,9 @@ Shader %ShaderName
         // PrePasses
         %PrePasses
 
+        // Exra PrePasses
+        %ExtraPrePasses
+
         %TemplateFeature("PrePass")
         {
             Pass

@@ -482,13 +482,14 @@ namespace ORL.ShaderGenerator
 
             // Load all the extra passes
             var extraPasses = blocks.FindAll(b => b.CoreBlockType == BlockType.ExtraPass);
-            var generatedExtraPasses = new List<(List<string> content, int count)>();
+            var generatedExtraPasses = new List<(List<string> content, int count, ShaderBlock.ExtraPassType passType)>();
             var extraPassBlocks = new Dictionary<string, List<ShaderBlock>>();
             foreach (var extraPass in extraPasses)
             {
                 try
                 {
                     var extraPassName = extraPass.Params[0].Replace("\"", "");
+                    var extraPassType = extraPass.TypedParams?[1] as ShaderBlock.ExtraPassType? ?? ShaderBlock.ExtraPassType.PostPass;
                     var extraPassParser = new Parser();
                     var extraPassBlocksList = extraPassParser.Parse(extraPass.Contents.ToArray());
                     extraPassBlocksList.Add(new ShaderBlock
@@ -498,7 +499,7 @@ namespace ORL.ShaderGenerator
                     });
 
                     // don't want to include main pass functions in extra pass blocks with an exception for the base functions
-                    var combinedList = extraPassBlocksList.Concat(blocks.Where(b => !b.IsFunction || (b.IsFunction && b.Name.EndsWith("Base")) || (!b.IsFunction && !b.Name.StartsWith("%Pass")))).ToList();
+                    var combinedList = extraPassBlocksList.Concat(blocks.Where(b => (b.IsFunction && b.Name.EndsWith("Base")) || (!b.IsFunction && !b.Name.StartsWith("%Pass")))).ToList();
 
                     extraPassBlocksList = OptimizeBlocks(combinedList);
                     extraPassBlocks.Add(extraPassName, extraPassBlocksList);
@@ -513,7 +514,7 @@ namespace ORL.ShaderGenerator
                     // Hydrate loaded template
                     var hydratedExtraPass = new StringBuilder();
                     var hydratedExtraPassString = HydrateTemplate(hydratedExtraPass, extrapassTemplate, combinedList, extraPassFunctions, ctx).ToString();
-                    generatedExtraPasses.Add((hydratedExtraPassString.Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None).ToList(), hydratedExtraPassString.Length));
+                    generatedExtraPasses.Add((hydratedExtraPassString.Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None).ToList(), hydratedExtraPassString.Length, extraPassType));
                 }
                 catch (Exception ex)
                 {
@@ -638,16 +639,38 @@ namespace ORL.ShaderGenerator
                         continue;
                     }
 
+                    // Inject pre-hydrated extra pre-passes
+                    if (matchVal == "%ExtraPrePasses")
+                    {
+                        var insertionIndex = match.Index;
+                        newLine.Remove(match.Index, matchLen);
+
+                        var onlyPrePasses = generatedExtraPasses.Where(b => b.passType == ShaderBlock.ExtraPassType.PrePass);
+
+                        foreach (var extraPass in onlyPrePasses)
+                        {
+                            var indented = IndentContents(extraPass.content, insertionIndex);
+                            newLine.Insert(insertionIndex, indented);
+                            insertionIndex += indented.Length;
+                            newLine.Insert(insertionIndex, Environment.NewLine);
+                            insertionIndex += Environment.NewLine.Length;
+                        }
+                        continue;
+                    }
+
                     // Inject pre-hydrated extra passes
                     if (matchVal == "%ExtraPasses")
                     {
                         var insertionIndex = match.Index;
                         newLine.Remove(match.Index, matchLen);
 
-                        foreach (var extraPass in generatedExtraPasses)
+                        var onlyPostPasses = generatedExtraPasses.Where(b => b.passType == ShaderBlock.ExtraPassType.PostPass);
+
+                        foreach (var extraPass in onlyPostPasses)
                         {
-                            newLine.Insert(insertionIndex, IndentContents(extraPass.content, insertionIndex));
-                            insertionIndex += extraPass.count;
+                            var indented = IndentContents(extraPass.content, insertionIndex);
+                            newLine.Insert(insertionIndex, indented);
+                            insertionIndex += indented.Length;
                             newLine.Insert(insertionIndex, Environment.NewLine);
                             insertionIndex += Environment.NewLine.Length;
                         }
@@ -859,6 +882,13 @@ namespace ORL.ShaderGenerator
             {
                 // We do not merge function blocks because they have unique call signs
                 if (block.IsFunction)
+                {
+                    collapsedBlocks.Add(block);
+                    continue;
+                }
+
+                // We do not merge extra passes
+                if (block.CoreBlockType == BlockType.ExtraPass)
                 {
                     collapsedBlocks.Add(block);
                     continue;

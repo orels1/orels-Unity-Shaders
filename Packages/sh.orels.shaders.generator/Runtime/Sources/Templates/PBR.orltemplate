@@ -26,6 +26,9 @@
         // PrePasses
         %PrePasses
 
+        // Exra PrePasses
+        %ExtraPrePasses
+
         Pass
         {
             Tags { "LightMode" = "ForwardBase" %PassTags }
