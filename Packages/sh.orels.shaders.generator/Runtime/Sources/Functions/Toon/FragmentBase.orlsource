@@ -7,6 +7,8 @@
     [ToggleUI]_IgnoreLightprobeNormal("Uniform Lightprobe Color", Int) = 0
     [ToggleUI]_MinLight("Raise Minimum Light", Int) = 0
     UI_MinLightNote("?> This will raise the minimum light level and make you glow in dark environments. While not accurate to any world lighting, this can be nice to have to take pictures", Int) = 0
+    _MonochromeLighting("Monochrome Lighting", Range(0,1)) = 0
+    UI_MonochromeLightingNote("?> This will make the environment lighting only control the intensity without affecting the color of your object. This is now physically accurate.", Int) = 0
 }
 
 %Includes()
@@ -17,7 +19,7 @@
 
 %ShaderFeatures()
 {
-    #pragma multi_compile_fragment _ VERTEXLIGHT_ON
+    #pragma multi_compile _ VERTEXLIGHT_ON
 }
 
 %ShaderModifiers()
@@ -46,6 +48,7 @@
 {
     int _IgnoreLightprobeNormal;
     int _MinLight;
+    half _MonochromeLighting;
 }
 
 %Textures()
@@ -353,6 +356,11 @@
             lightAttenuation = smoothstep(sharp, 1 - sharp, saturate(length(lightMap)));
         #endif
         indirectDiffuse *= lerp(occlusion, 1, o.OcclusionMode);
+
+        if (_MonochromeLighting > 0)
+        {
+            indirectDiffuse = lerp(indirectDiffuse, dot(indirectDiffuse, float3(0.299, 0.587, 0.114)), _MonochromeLighting);
+        }
 
         bool lightEnv = any(lightDir.xyz);
         // if there is no realtime light - we rely solely on probes
