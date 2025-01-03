@@ -8,6 +8,7 @@
     UI_BumpMapTilingIndependentNote("> Will scale UVs on its own %ShowIf(_BumpMapTilingMode == 1 && _BumpMap)", Int) = 0
     _BumpScale("Normal Map Scale %ShowIf(_BumpMap)", Range(-2, 2)) = 1
     [ToggleUI]_FlipBumpY ("Flip Y (UE Mode) %ShowIf(_BumpMap)", Int) = 0
+    [ToggleUI]_NormalBicubicSampling("Use Bicubic Sampling %ShowIf(_BumpMap)", Int) = 0
 
     _DetailNormalMap("Detail Normal > %SetKeyword(_DetailNormalMap, DETAIL_NORMALS_SET)", 2D) = "bump" {}
     [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_DetailNormalsUVSet("UV Set %ShowIf(_DetailNormalMap)", Int) = 0
@@ -37,6 +38,7 @@
     half _BumpScale;
 
     int _FlipBumpY;
+    int _NormalBicubicSampling;
     half4 _DetailNormalMap_ST;
     int _DetailNormalsUVSet;
     half _DetailNormalTiling;
@@ -71,7 +73,12 @@
         #endif
 
         #if defined(NORMALS_SET)
-        half4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, lerp(globalUv, d.uv0.xy, _BumpMapTilingMode) * _BumpMapTiling);
+        float4 normalTex = 0;
+        if (_NormalBicubicSampling) {
+            normalTex = tex2DFastBicubicSampleNoChecks(_BumpMap, sampler_BumpMap, lerp(globalUv, d.uv0.xy, _BumpMapTilingMode) * _BumpMapTiling);
+        } else {
+            normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, lerp(globalUv, d.uv0.xy, _BumpMapTilingMode) * _BumpMapTiling);
+        }
         if (_FlipBumpY)
         {
             normalTex.y = 1 - normalTex.y;
