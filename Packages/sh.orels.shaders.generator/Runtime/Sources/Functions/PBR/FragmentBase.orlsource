@@ -61,7 +61,7 @@
     [Toggle(BAKERY_COMPRESSED_VOLUME)]_BakeryCompressedVolume("Support Compressed Volumes %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME)", Int) = 0
     [Toggle(BAKERY_VOLROTATIONY)]_BakeryVolumeRotationY("Support Baked Volume Rotation %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME)", Int) = 0
     [Toggle(BAKERY_VOLROTATION)]_BakeryVolumeRotation("Support Runtime Volume Rotation %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME)", Int) = 0
-    UI_BakeryVolumeRotationNote("> Volume rotation support requires extra scripting in VRChat  %ShowIf(BAKERY_VOLROTATION || BAKERY_VOLROTATIONY)", Int) = 0
+    UI_BakeryVolumeRotationNote("> Volume rotation support requires extra scripting in VRChat %ShowIf(BAKERY_ENABLED && BAKERY_VOLUME && (BAKERY_VOLROTATION || BAKERY_VOLROTATIONY))", Int) = 0
 
     UI_AdvancedSettingsStancilHeader("# Stencils", Int) = 0
     [IntRange]_StencilRef("Reference", Range(0, 255)) = 0
