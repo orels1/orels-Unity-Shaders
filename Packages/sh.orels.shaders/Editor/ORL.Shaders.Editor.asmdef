@@ -1,6 +1,9 @@
 {
     "name": "ORL.Shaders.Editor",
-    "references": [],
+    "rootNamespace": "",
+    "references": [
+        "GUID:7c60e0ff79a88d0408296a2af802cc74"
+    ],
     "includePlatforms": [
         "Editor"
     ],
@@ -10,6 +13,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "sh.orels.shaders.inspector",
+            "expression": "0.0.0",
+            "define": "ORL_SHADER_INSPECTOR"
+        }
+    ],
     "noEngineReferences": false
 }
