@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using ORL.Serialization.OdinSerializer;
 using UnityEditor;
 #if UNITY_2022_3_OR_NEWER
 using UnityEditor.AssetImporters;
@@ -22,21 +21,8 @@ using BlockType = ORL.ShaderGenerator.ShaderBlock.BlockType;
 namespace ORL.ShaderGenerator
 {
     [ScriptedImporter(1, "orlshader")]
-    public class ShaderDefinitionImporter : ScriptedImporter, ISerializationCallbackReceiver
+    public class ShaderDefinitionImporter : ScriptedImporter
     {
-        [SerializeField, HideInInspector]
-        private SerializationData serializationData;
-
-        void ISerializationCallbackReceiver.OnAfterDeserialize()
-        {
-            UnitySerializationUtility.DeserializeUnityObject(this, ref this.serializationData);
-        }
-
-        void ISerializationCallbackReceiver.OnBeforeSerialize()
-        {
-            UnitySerializationUtility.SerializeUnityObject(this, ref this.serializationData);
-        }
-
         public bool debugBuild;
         public int samplerCount;
         public int textureCount;
@@ -45,13 +31,11 @@ namespace ORL.ShaderGenerator
         public Dictionary<FunctionDefinitionNode, string> FunctionErrors =
             new Dictionary<FunctionDefinitionNode, string>();
 
-        [NonSerialized, OdinSerialize]
         public List<ShaderError> Errors = new List<ShaderError>();
 
         [Serializable]
         public struct ShaderError
         {
-            [NonSerialized, OdinSerialize]
             public ShaderBlock Block;
             public int Line;
             public string File;
