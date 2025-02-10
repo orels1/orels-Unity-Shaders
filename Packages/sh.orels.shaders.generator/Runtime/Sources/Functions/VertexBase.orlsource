@@ -2,7 +2,7 @@
 {
     void VertexBase(inout VertexData v, inout FragmentData o)
     {
-        #if defined(UNITY_PASS_META)
+        #if defined(UNITY_PASS_META) && !defined(UNITY_PASS_BAKERY_META)
         o.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
         #else
         o.pos = UnityObjectToClipPos(v.vertex);
