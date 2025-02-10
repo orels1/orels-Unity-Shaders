@@ -24,7 +24,7 @@
         half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, d.uv0 * _MainTex_ST.xy + _MainTex_ST.zw);
         o.Albedo = albedo.rgb * _Color.rgb;
 
-        #if (NEED_ALBEDO_ALPHA)
+        #if defined(NEED_ALBEDO_ALPHA)
         o.Alpha = albedo.a * _Color.a;
         #endif
     }
