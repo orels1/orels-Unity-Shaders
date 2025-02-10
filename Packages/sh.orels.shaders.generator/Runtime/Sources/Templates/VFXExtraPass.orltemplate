@@ -37,6 +37,9 @@ Pass
     // Textures
     %Textures
 
+    // PassFunctions
+    %PassFunctions
+
     // Functions
     %Functions
 

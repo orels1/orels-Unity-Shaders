@@ -76,6 +76,9 @@ Shader %ShaderName
                 // Textures
                 %Textures
 
+                // PassFunctions
+                %PassFunctions
+
                 // Functions
                 %Functions
 
@@ -187,6 +190,9 @@ Shader %ShaderName
             // Textures
             %Textures
 
+            // PassFunctions
+            %PassFunctions
+
             // Functions
             %Functions
 
@@ -288,6 +294,9 @@ Shader %ShaderName
 
             // Textures
             %Textures
+
+            // PassFunctions
+            %PassFunctions
 
             // Functions
             %Functions
@@ -394,6 +403,9 @@ Shader %ShaderName
             // Textures
             %Textures
 
+            // PassFunctions
+            %PassFunctions
+
             // Functions
             %Functions
 
@@ -498,6 +510,9 @@ Shader %ShaderName
             // Textures
             %Textures
 
+            // PassFunctions
+            %PassFunctions
+
             // Functions
             %Functions
 
@@ -601,6 +616,9 @@ Shader %ShaderName
 
             // Textures
             %Textures
+
+            // PassFunctions
+            %PassFunctions
 
             // Functions
             %Functions

@@ -65,6 +65,9 @@
             // Textures
             %Textures
 
+            // PassFunctions
+            %PassFunctions
+            
             // Functions
             %Functions
 
@@ -167,6 +170,9 @@
             // Textures
             %Textures
 
+            // PassFunctions
+            %PassFunctions
+            
             // Functions
             %Functions
 
@@ -274,6 +280,9 @@
             // Textures
             %Textures
 
+            // PassFunctions
+            %PassFunctions
+            
             // Functions
             %Functions
 
@@ -380,6 +389,9 @@
             // Textures
             %Textures
 
+            // PassFunctions
+            %PassFunctions
+            
             // Functions
             %Functions
 
