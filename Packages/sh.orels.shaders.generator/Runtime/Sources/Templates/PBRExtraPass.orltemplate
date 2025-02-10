@@ -57,6 +57,9 @@ Pass
         // ExtraPass VertexBase
         %VertexBase
 
+        // ExtraPass PostVertex Chain
+        %PostVertexFunctions
+
         return o;
     }
     #endif
