@@ -23,7 +23,7 @@
     UI_FloatHeader("## Float", Int) = 0
     [KeywordEnum(None, Local, World)]FLOATING("Floating", Int) = 0
     _FloatAxis("Float Axis %ShowIf(!FLOATING_NONE)", Vector) = (0, 1, 0, 0)
-    [ToggleUI]_NormalizeFloatAxis("Normalize Axis %ShowIf(!SPIN_NONE)", Int) = 1
+    [ToggleUI]_NormalizeFloatAxis("Normalize Axis %ShowIf(!FLOATING_NONE)", Int) = 1
     _FloatSpeed("Float Speed %ShowIf(!FLOATING_NONE)", Float) = 1
     _FloatPhaseOffset("Phase Offset %ShowIf(!FLOATING_NONE)", Float) = 0
     [ToggleUI]_FloatPositionOffset("Position Offset %ShowIf(!FLOATING_NONE)", Int) = 0
@@ -158,7 +158,7 @@
             v.normal.xyz = RotateAroundAxis(origin, v.normal.xyz, _SpinAxis.xyz, factor);
             #elif defined(SPIN_WORLD)
             float3 scale = GetObjectScale();
-            half3 lsAxis = normalize(TransformWorldToObject(_SpinAxis.xyz));
+            half3 lsAxis = normalize(TransformWorldToObjectDir(_SpinAxis.xyz));
             half3 vertRot = RotateAroundAxis(origin, v.vertex.xyz, lsAxis, factor);
             half3 normalRot = RotateAroundAxis(origin, v.normal.xyz, lsAxis, factor);
             v.vertex.xyz = vertRot;
@@ -186,7 +186,7 @@
                 axis = normalize(axis);
             }
             #elif defined(FLOATING_WORLD)
-            half3 axis = normalize(TransformWorldToObject(_FloatAxis.xyz)).xyz;
+            half3 axis = normalize(TransformWorldToObjectDir(_FloatAxis.xyz)).xyz;
             #endif
 
             v.vertex.xyz += factor * axis * _FloatAmount;
