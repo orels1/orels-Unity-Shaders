@@ -166,7 +166,7 @@
 
         o.Alpha *= albedo.a * _Color.a;
         #if defined(_EMISSION)
-            o.Emission = emission * _EmissionColor;
+            o.Emission = emission * pow(_EmissionColor,2.2);
         #endif
     }
 }
