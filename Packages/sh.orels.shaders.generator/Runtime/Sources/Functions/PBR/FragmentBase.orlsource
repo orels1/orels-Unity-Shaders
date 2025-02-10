@@ -72,6 +72,7 @@
     
     UI_InternalHeader("# Internal", Int) = 0
     [HideInInspector]INTERNAL_ShaderVersion("Shader Version", Int) = 700
+    [HideInInspector]INTERNAL_MaterialShaderVersion("Material Shader Version", Int) = 0
     [NonModifiableTextureData]_DFG("DFG > %RequiredTexture(@/dfg-multiscatter.exr)", 2D) = "white" {}
 
     UI_BakerySHHeader("## Bakery SH", Int) = 0
