@@ -1,4 +1,4 @@
-﻿%Properties()
+%Properties()
 {
     UI_AdvancedSettingsHeader("# Advanced Settings", Int) = 1
     [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
@@ -119,6 +119,8 @@
 
 %ShaderDefines()
 {
+    #define ORL_LIGHTING_MODEL_PBR
+    
     #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
         #define PLAT_QUEST
     #else
@@ -127,7 +129,19 @@
         #endif
     #endif
 
+    #define ORL_MIN_ROUGHNESS 0.002025
+    #if defined(PLAT_QUEST)
+        #define ORL_MIN_ROUGHNESS 0.007921
+    #endif
+
+    #if !defined(SHADING_MODE_DEFAULT) && !defined(SHADING_MODE_CLOTH)
+        #define SHADING_MODE_DEFAULT
+    #endif
+
     #define NEED_SCREEN_POS
+    #if !defined(NEED_FRAGMENT_IN_SHADOW)
+        #define NEED_FRAGMENT_IN_SHADOW
+    #endif
 }
 
 %ShaderModifiers()
