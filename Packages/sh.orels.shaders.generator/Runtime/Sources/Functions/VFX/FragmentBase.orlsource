@@ -14,8 +14,10 @@
     _Cutoff("Cutoff %ShowIf(_RenderType == 1)", Range(0, 1)) = 0.5
 }
 
-%ShadeDefines()
+%ShaderDefines()
 {
+    #define ORL_LIGHTING_MODEL_VFX
+
     #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
       #define PLAT_QUEST
     #else

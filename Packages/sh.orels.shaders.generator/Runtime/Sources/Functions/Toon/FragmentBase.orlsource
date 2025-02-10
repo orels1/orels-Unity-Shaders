@@ -31,6 +31,8 @@
 
 %ShaderDefines()
 {
+    #define ORL_LIGHTING_MODEL_TOON
+
     #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
         #define PLAT_QUEST
     #else
@@ -369,13 +371,9 @@
             indirectDiffuse = indirectDiffuse * 0.4;
         }
 
-        if (_MinLight)
-        {
-            if (max(lightColor.r, max(lightColor.g, lightColor.b)) < 0.05)
-            {
-                indirectDiffuse = lerp(indirectDiffuse, 0.05, saturate(max(indirectDiffuse.r, max(indirectDiffuse.g, indirectDiffuse.b)) < 0.05));
-            }
-        }
+        #if defined(UNITY_PASS_FORWARDBASE)
+        indirectDiffuse = lerp(indirectDiffuse, max(indirectDiffuse, 0.05), _MinLight);
+        #endif
 
         half lightAvg = (dot(indirectDiffuse.rgb, grayscaleVec) + dot(lightColor.rgb, grayscaleVec)) / 2;
 
