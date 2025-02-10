@@ -65,7 +65,7 @@
 %Shadow("CutoutShadow")
 {
     void CutoutShadow(FragmentData i) {
-        half alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv0.xy).a;
+        half alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw).a;
         if (alpha < _Cutoff)  {
             clip(-1);
         }
