@@ -37,6 +37,10 @@
         float4 extraV2F2;
         float4 extraV2F3;
         float4 screenPos;
+
+        // Additional Mesh Data
+        %AdditionalMeshData
+        // Additional Mesh Data End
     };
 
     MeshData CreateMeshData(FragmentData i, bool facing)
@@ -99,6 +103,10 @@
         #if defined(NEED_SCREEN_POS)
         d.screenPos = i.screenPos;
         #endif
+
+        // Additional Mesh Data Creator
+        %AdditionalMeshDataCreator
+        // Additional Mesh Data Creator End
 
         return d;
     }

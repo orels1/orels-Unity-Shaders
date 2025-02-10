@@ -38,6 +38,10 @@
         
         half3 OutlineColor;
         int OutlineLightingMode;
+
+        // Additional Surface Data
+        %AdditionalSurfaceData
+        // Additional Surface Data End
     };
 
     SurfaceData CreateSurfaceData()

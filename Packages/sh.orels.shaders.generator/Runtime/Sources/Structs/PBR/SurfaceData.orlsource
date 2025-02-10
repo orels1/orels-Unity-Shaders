@@ -9,6 +9,10 @@
         half Occlusion;
         float3 Normal;
         half Alpha;
+
+        // Additional Surface Data
+        %AdditionalSurfaceData
+        // Additional Surface Data End
     };
 
     SurfaceData CreateSurfaceData()

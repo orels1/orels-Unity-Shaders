@@ -524,6 +524,27 @@ namespace ORL.ShaderGenerator
                 }
             }
 
+            // Insert blocks at hook points
+            var hookPointBlocks = blocks.FindAll(b => (b.HookPoints?.Count ?? 0) > 0).ToList();
+            for (var i = 0; i < hookPointBlocks.Count; i++)
+            {
+                for (var j = 0; j < hookPointBlocks[i].HookPoints.Count; j++)
+                {
+                    Debug.Log("Inserting block at hook point: " + hookPointBlocks[i].HookPoints[j].Name);
+                    var blocksToInsert = blocks.FindAll(b => b.Name == hookPointBlocks[i].HookPoints[j].Name);
+                    // these blocks are transient and we dont want to keep them around
+                    blocksToInsert.ForEach(b => blocks.Remove(b));
+                    var insertionIndex = hookPointBlocks[i].Contents.IndexOf(hookPointBlocks[i].HookPoints[j].Name);
+                    Debug.Log("Insertion index: " + insertionIndex);
+                    foreach (var block in blocksToInsert)
+                    {
+                        hookPointBlocks[i].Contents.InsertRange(insertionIndex, IndentContentsList(block.Contents, hookPointBlocks[i].HookPoints[j].Indentation));
+                    }
+                    hookPointBlocks[i].Contents.RemoveAt(insertionIndex);
+                    Debug.Log("Removed hook point: " + hookPointBlocks[i].HookPoints[j].Name + " after inserting " + blocksToInsert.Count + " blocks");
+                }
+            }
+
             // Override shader name to be the one from the source shader
             blocks[blocks.FindIndex(b => b.CoreBlockType == BlockType.ShaderName)].Params[0] = shaderName;
 
@@ -563,7 +584,7 @@ namespace ORL.ShaderGenerator
                     // Here we insert actual function calls if they follow a couple rules
                     // - The function block name is the same as the block name, but without the % prefix
                     // - The functio block has a parameter which matches some HLSL function within the block
-                    if (matchVal.Contains("Functions") && matchVal != "%LibraryFunctions" && matchVal != "%FreeFunctions")
+                    if (matchVal.Contains("Functions") && matchVal != "%LibraryFunctions" && matchVal != "%FreeFunctions" && matchVal != "%PassFunctions")
                     {
                         var fnName = "";
                         try
@@ -751,7 +772,7 @@ namespace ORL.ShaderGenerator
                     // Here we insert actual function calls if they follow a couple rules
                     // - The function block name is the same as the block name, but without the % prefix
                     // - The functio block has a parameter which matches some HLSL function within the block
-                    if (matchVal.Contains("Functions") && matchVal != "%LibraryFunctions" && matchVal != "%FreeFunctions")
+                    if (matchVal.Contains("Functions") && matchVal != "%LibraryFunctions" && matchVal != "%FreeFunctions" && matchVal != "%PassFunctions")
                     {
                         var fnName = "";
                         try
@@ -1138,6 +1159,33 @@ namespace ORL.ShaderGenerator
             }
 
             return sb.ToString();
+        }
+
+        private List<string> IndentContentsList(List<string> contents, int indentLevel)
+        {
+            var result = new List<string>();
+            var i = 0;
+            foreach (var contentLine in contents)
+            {
+                if (i == 0)
+                {
+                    result.Add(contentLine + (contents.Count == 1 ? "" : "\n"));
+                    i++;
+                    continue;
+                }
+
+                if (i == contents.Count - 1)
+                {
+                    result.Add(new string(' ', indentLevel) + contentLine);
+                }
+                else
+                {
+                    result.Add(new string(' ', indentLevel) + contentLine + '\n');
+                }
+                i++;
+            }
+
+            return result;
         }
 
         private class StatsUpdater : HLSLSyntaxVisitor

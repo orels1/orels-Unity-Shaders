@@ -101,6 +101,12 @@ namespace ORL.ShaderGenerator
             }
         }
 
+        public struct HookPoint
+        {
+            public string Name;
+            public int Line;
+            public int Indentation;
+        }
 
         public string Name;
         public BlockType CoreBlockType;
@@ -113,6 +119,8 @@ namespace ORL.ShaderGenerator
         public string Path;
         public int Line;
         public int Indentation;
+
+        public List<HookPoint> HookPoints;
 
         private List<HLSLSyntaxNode> _nodes;
         public List<HLSLSyntaxNode> Nodes
@@ -222,6 +230,7 @@ namespace ORL.ShaderGenerator
                                 var contentOffset = BlockHasContent();
                                 var blockContent = new List<string>();
                                 var blockStartLine = _lineNumber;
+                                var hookPoints = new List<ShaderBlock.HookPoint>();
                                 if (contentOffset > 0)
                                 {
                                     _lineNumber += contentOffset;
@@ -230,7 +239,7 @@ namespace ORL.ShaderGenerator
                                     {
                                         Debug.Log($"{blockName} Has block content");
                                     }
-                                    var contents = ConsumeBlockContent();
+                                    var contents = ConsumeBlockContent(ref hookPoints);
                                     if (contents != null)
                                     {
                                         blockContent = contents;
@@ -323,7 +332,7 @@ namespace ORL.ShaderGenerator
             return 0;
         }
 
-        private List<string> ConsumeBlockContent()
+        private List<string> ConsumeBlockContent(ref List<ShaderBlock.HookPoint> hookPoints)
         {
             var result = new List<string>();
             if (_lineNumber + 1 >= _lines.Length) return null;
@@ -359,6 +368,15 @@ namespace ORL.ShaderGenerator
                 if (linesSkipped == 1)
                 {
                     offset = line.Length - line.TrimStart().Length;
+                }
+                if (line.TrimStart().StartsWith("%"))
+                {
+                    hookPoints.Add(new ShaderBlock.HookPoint
+                    {
+                        Name = line.Trim().Substring(1),
+                        Line = _lineNumber,
+                        Indentation = offset
+                    });
                 }
                 result.Add(line.Substring(string.IsNullOrWhiteSpace(line) ? 0 : offset));
             }

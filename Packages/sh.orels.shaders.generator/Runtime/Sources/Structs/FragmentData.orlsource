@@ -61,6 +61,10 @@
         float4 extraV2F3 : EXTRA_V2F_BLOCK3;
         #endif
 
+        // Additional Fragment Data
+        %AdditionalFragmentData
+        // Additional Fragment Data End
+
         UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
     };
