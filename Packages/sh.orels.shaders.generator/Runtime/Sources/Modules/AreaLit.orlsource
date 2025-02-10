@@ -9,6 +9,8 @@
     [ToggleUI]_AreaLitClampBrightness("Clamp Brightness", Int) = 0
     _AreaLitMaxBrightness("Max Brightness %ShowIf(_AreaLitClampBrightness)", Range(0,1)) = 1
     [ToggleOff]_OpaqueLights("Opaque Lights %ShowIf(INTEGRATE_AREALIT)", Float) = 1.0
+    _AreaLitRoughnessModifier("Roughness Modifier %ShowIf(INTEGRATE_AREALIT)", Range(-1,1)) = 0
+    [TpggleUI]_AreaLitAlphaPremultiply("Alpha Premultiply %ShowIf(INTEGRATE_AREALIT)", Float) = 0
 
     UI_AreaLitInternalHeader("## AreaLit Inputs %ShowIf(INTEGRATE_AREALIT)", Int) = 0
     _LightMesh("Light Mesh  > %ShowIf(INTEGRATE_AREALIT)", 2D) = "black" {}
@@ -31,15 +33,21 @@
     #if defined(INTEGRATE_AREALIT)
         #define _INTEGRATE_CUSTOMGI_FLEX
     #endif
-}
 
-%CheckedInclude("Assets/AreaLit/Shader/Lighting.hlsl")
+    #define INCLUDE_AREALIT defined(INTEGRATE_AREALIT)
+
+    #if INCLUDE_AREALIT
+        #include "Assets/AreaLit/Shader/Lighting.hlsl"
+    #endif
+}
 
 %Variables()
 {
     int _AreaLitEnableOnMobile;
     int _AreaLitClampBrightness;
     half _AreaLitMaxBrightness;
+    half _AreaLitRoughnessModifier;
+    int _AreaLitAlphaPremultiply;
     int _AreaLitOcclusionUVSet;
     float4 _AreaLitOcclusionMap_TexelSize;
     float4 _AreaLitOcclusionMap_ST;
@@ -72,32 +80,85 @@
 
     void AreaLitCustomGI(MeshData d, SurfaceData o, half3 tangentNormal, FragmentData i,  half clampedRoughness,  inout half3 indirectSpecular, inout half3 indirectDiffuse)
     {
-        #if defined(PLAT_QUEST)
-        if (!_AreaLitEnableOnMobile) return;
+        // VFX lighting model does not support customgi functions
+        #if !defined(ORL_LIGHTING_MODEL_VFX)
+        {
+            #if defined(PLAT_QUEST)
+            if (!_AreaLitEnableOnMobile) return;
+            #endif
+            
+            #if defined(INTEGRATE_AREALIT)
+                half4 diffuse = 0;
+                half4 specular = 0;
+                
+                AreaLightFragInput input;
+                input.pos = d.worldSpacePosition;
+                input.view = d.worldSpaceViewDir;
+                input.normal = o.Normal;
+                input.occlusion = GetAraLitOcclusion(o.Occlusion, d);
+                input.roughness = max(saturate(clampedRoughness + _AreaLitRoughnessModifier), 0.007921);
+                input.screenPos = i.pos.xy;
+
+                ShadeAreaLights(input, diffuse, specular, true, true, isStereoView());
+
+                if (_AreaLitClampBrightness) {
+                    half3 hsv = RGB2HSV(specular);
+                    hsv.z = tanh(hsv.z) * max(0, _AreaLitMaxBrightness);
+                    indirectSpecular += HSV2RGB(hsv);
+                } else {
+                    indirectSpecular += specular.rgb;
+                }
+                indirectDiffuse += diffuse.rgb;
+            #endif
+        }
         #endif
         
-        #if defined(INTEGRATE_AREALIT)
-            half4 diffuse = 0;
-            half4 specular = 0;
-            
-            AreaLightFragInput input;
-            input.pos = d.worldSpacePosition;
-            input.normal = o.Normal;
-            input.view = d.worldSpaceViewDir;
-            input.roughness = clampedRoughness;
-            input.occlusion = GetAraLitOcclusion(o.Occlusion, d);
-            input.screenPos = i.pos.xy;
+    }
+}
 
-            ShadeAreaLights(input, diffuse, specular, true, true, isStereoView());
+%Color("AreaLitColor")
+{
+    void AreaLitColor(MeshData d, FragmentData i, inout half4 FinalColor, bool facing)
+    {
+        #if defined(ORL_LIGHTING_MODEL_VFX)
+        {
+            #if defined(PLAT_QUEST)
+            if (!_AreaLitEnableOnMobile) return;
+            #endif
 
-            if (_AreaLitClampBrightness) {
-                half3 hsv = RGB2HSV(specular);
-                hsv.z = tanh(hsv.z) * max(0, _AreaLitMaxBrightness);
-                indirectSpecular = HSV2RGB(hsv);
-            } else {
-                indirectSpecular += specular.rgb;
-                indirectDiffuse += diffuse.rgb;
-            }
+            #if defined(INTEGRATE_AREALIT)
+                half4 diffuse = 0;
+                half4 specular = 0;
+                
+                AreaLightFragInput input;
+                input.pos = d.worldSpacePosition;
+                input.view = d.worldSpaceViewDir;
+                input.normal = d.worldNormal;
+                if (!facing)
+                {
+                    input.view = -d.worldSpaceViewDir;
+                }
+                input.occlusion = GetAraLitOcclusion(1, d);
+                input.roughness = saturate(0.5 + _AreaLitRoughnessModifier);
+                input.screenPos = i.pos.xy;
+
+                ShadeAreaLights(input, diffuse, specular, true, true, isStereoView());
+
+                if (_AreaLitClampBrightness) {
+                    half3 hsv = RGB2HSV(specular);
+                    hsv.z = tanh(hsv.z) * max(0, _AreaLitMaxBrightness);
+                    FinalColor.rgb += HSV2RGB(hsv);
+                } else {
+                    
+                    FinalColor.rgb += specular.rgb;
+                }
+                FinalColor.rgb += diffuse.rgb;
+                if (_AreaLitAlphaPremultiply)
+                {
+                    FinalColor.rgb *= FinalColor.a;
+                }
+            #endif
+        }
         #endif
     }
 }
