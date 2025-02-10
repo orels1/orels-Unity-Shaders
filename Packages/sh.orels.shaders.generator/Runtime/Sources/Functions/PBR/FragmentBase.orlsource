@@ -1,5 +1,15 @@
-%Properties()
+﻿%Properties()
 {
+    UI_ShadingModeHeader("# Shading Mode", Int) = 0
+    [KeywordEnum(Default, Cloth)]SHADING_MODE("Shading Mode", Int) = 0
+    [Toggle(CLEARCOAT)]_ClearCoat("Add Clear Coat %ShowIf(SHADING_MODE_DEFAULT)", Int) = 0
+    _ClearCoatStrength("Clear Coat Strength %ShowIf(SHADING_MODE_DEFAULT && CLEARCOAT)", Range(0,1)) = 1
+    _ClearCoatSmoothness("Clear Coat Smoothness %ShowIf(SHADING_MODE_DEFAULT && CLEARCOAT)", Range(0, 1)) = 0.999
+    [ToggleUI]_ClothHasCustomSheen("Custom Sheen Color %ShowIf(SHADING_MODE_CLOTH)", Int) = 0
+    _ClothSheenColor("Sheen Color %ShowIf(SHADING_MODE_CLOTH && _ClothHasCustomSheen)", Color) = (0.04,0.04,0.04,1)
+    [ToggleUI]_ClothHasSubsurface("Add Subsurface Color %ShowIf(SHADING_MODE_CLOTH)", Int) = 0
+    _ClothSubsurfaceColor("Subsurface Color %ShowIf(SHADING_MODE_CLOTH && _ClothHasSubsurface)", Color) = (1,1,1,1)
+    
     UI_AdvancedSettingsHeader("# Advanced Settings", Int) = 1
     [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
     _RenderType("Render Type %RenderType(_BlendOp, _SrcBlend, _DstBlend, _BlendOpAlpha, _SrcBlendAlpha, _DstBlendAlpha, _ZWrite)", Float) = -1
@@ -22,7 +32,7 @@
     UI_GSAANote("> GSAA dramatically reduces specular aliasing", Int) = 0
     _GSAAVariance("GSAA Variance %ShowIf(GSAA)", Range(0, 1)) = 0.05
     _GSAAThreshold("GSAA Threshold %ShowIf(GSAA)", Range(0, 1)) = 0.1
-    [ToggleUI]_GSAAIncludeNormalMaps("Include Normal Maps %ShowIf(GSAA)", Int) = 1
+    [ToggleUI]_GSAAIncludeNormalMaps("Include Normal Maps %ShowIf(GSAA)", Int) = 0
     UI_GSAAIncludeNormalMapsNote("?> GSAA calculation can include per-pixel normal maps. This can sometimes lead to a 'pixelated' look when used with sharp angle or heavily tiled normal maps. You can disable this option to only use mesh normals.", Int) = 0
 
     UI_MobileTweaks("## Mobile Tweaks", Int) = 1
@@ -48,6 +58,9 @@
     UI_BakedSpecularOcclusionNote("?> If the object is lightmapped: this will adjust the intensity of the lightmap specular derived from the Directional lightmap.\nIf the object is not lightmapped: this will adjust the intensity of the specular derived from lightprobes %ShowIf(BAKED_SPECULAR)", Int) = 0
     
     UI_GITweaksHeader("## Global Illumination Tweaks", Int) = 0
+    [ToggleUI]_BoxProjectionContactHardening("Box Projection Contact Hardening", Int) = 0
+    _BoxProjectionContactHardeningStrength("Hardening Strength %ShowIf(_BoxProjectionContactHardening)", Range(0, 1)) = 1
+    UI_BoxProjectionContactHardeningNote("?> This will make the box projected reflections more visible closer to the surface. This creates more accurate looking reflections, especially on rougher materials", Int) = 0
     _GIEmissiveBoost("GI Emissive Boost", Float) = 1
     [ToggleUI]_IgnoreRealtimeGI("Ignore Relatime GI", Int) = 0
     UI_IgnoreRealtimeGINote("?> This will make the material ignore Unity Realtime GI system. It does not affect custom RTGI systems like LTCGI", Int) = 0
@@ -96,6 +109,8 @@
     #pragma shader_feature_local_fragment GSAA
     #pragma shader_feature_local_fragment NONLINEAR_SH
     #pragma shader_feature_local_fragment SHADE_VERTEXLIGHTS
+    #pragma shader_feature_local_fragment SHADING_MODE_DEFAULT SHADING_MODE_CLOTH
+    #pragma shader_feature_local_fragment CLEARCOAT
     
     // PC Only Features
     #if !defined(UNITY_PBS_USE_BRDF2) && !defined(SHADER_API_MOBILE)
@@ -172,10 +187,20 @@
     half _ColorCorrGamma;
     half _ColorCorrGain;
 
+    half _ClearCoatStrength;
+    float _ClearCoatSmoothness;
+    int _ClothHasCustomSheen;
+    half4 _ClothSheenColor;
+    int _ClothHasSubsurface;
+    half4 _ClothSubsurfaceColor;
+
     half _SpecOcclusion;
     half _RealtimeShadowSpecOcclusion;
     float _BakedSpecularOcclusion;
     half _SpecularRoughnessMod;
+
+    int _BoxProjectionContactHardening;
+    half _BoxProjectionContactHardeningStrength;
     half _GIEmissiveBoost;
     int _IgnoreRealtimeGI;
 
@@ -203,15 +228,25 @@
         #if defined(UNITY_PASS_SHADOWCASTER)
             return;
         #else
+
         half reflectance = 0.5;
-        half3 f0 = 0.16 * reflectance * reflectance * (1 - o.Metallic) + o.Albedo * o.Metallic;
-        half3 pixelLight = 0;
+        float oneMinusReflectivity = 1.0 - 0.04 - o.Metallic * (1.0 - 0.04);
+        half3 f0 = 0.16 * reflectance * reflectance * oneMinusReflectivity + o.Albedo * o.Metallic;
+
         half3 indirectDiffuse = 1;
         half3 indirectSpecular = 0;
         half3 directSpecular = 0;
+        
         half occlusion = o.Occlusion;
+
         half perceptualRoughness = 1 - o.Smoothness;
+
         float3 tangentNormal = o.Normal;
+
+        #if defined(SHADING_MODE_CLOTH)
+        half3 albedoSqrt = sqrt(o.Albedo);
+        #endif
+        
         o.Normal = Unity_SafeNormalize(mul(o.Normal, d.TBNMatrix));
 
         #ifndef USING_DIRECTIONAL_LIGHT
@@ -232,7 +267,27 @@
         half lightLoH = saturate(dot(lightDir, lightHalfVector));
 
         half NoV = abs(dot(o.Normal, d.worldSpaceViewDir)) + 1e-5;
-        pixelLight = lightNoL * lightColor * Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
+
+        half3 mainLightDiffuse = 0;
+        half3 mainLightSpecular = 0;
+
+        mainLightDiffuse = Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
+
+        #if defined(SHADING_MODE_CLOTH)
+        {
+            if (_ClothHasSubsurface)
+            {
+                mainLightDiffuse *= Fd_Wrap(dot(o.Normal, lightDir), 0.5);
+                mainLightDiffuse *= saturate(_ClothSubsurfaceColor.rgb + lightNoL);
+            } else {
+                mainLightDiffuse *= lightNoL;
+            }
+            mainLightDiffuse *= lightColor;
+        }
+        #else
+        mainLightDiffuse *= lightColor * lightNoL;
+        #endif
+
 
         // Collect Vertex Light Data and calculate direct diffuse
         #if defined(SHADE_VERTEXLIGHTS) &&defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
@@ -242,41 +297,95 @@
         float4 vLightNoLs = 0;
         float4 vLightLoHs = 0;
 
+        half3 vertexLightDiffuse = 0;
+        half3 vertexLightSpecular = 0;
+        half3 clearCoatVertexLightSpecular = 0;
+
         [unroll(4)]
         for (int i = 0; i < 4; i++)
         {
             vLightHalfVectors[i].rgb = Unity_SafeNormalize(vLightDirections[i] + d.worldSpaceViewDir);
             vLightLoHs[i] = saturate(dot(vLightDirections[i], vLightHalfVectors[i]));
             vLightNoLs[i] = saturate(dot(o.Normal, vLightDirections[i]));
-            vLightColors[i] = vLightNoLs[i] * vLightColors[i] * Fd_Burley(perceptualRoughness, NoV, vLightNoLs[i], vLightLoHs[i]);
+
+            half3 vLightDiffuse = Fd_Burley(perceptualRoughness, NoV, vLightNoLs[i], vLightLoHs[i]);
+
+            #if defined(SHADING_MODE_CLOTH)
+            {
+                if (_ClothHasSubsurface)
+                {
+                    vLightColors[i].rgb *= Fd_Wrap(dot(o.Normal, vLightDirections[i]), 0.5);
+                    vLightColors[i].rgb *= saturate(_ClothSubsurfaceColor.rgb + vLightNoLs[i]);
+                } else {
+                    vLightDiffuse *= vLightNoLs[i];
+                }
+                vLightDiffuse *= vLightColors[i];
+            }
+            #else
+            vLightDiffuse *= vLightColors[i] * vLightNoLs[i];
+            #endif
+
+            vertexLightDiffuse += vLightDiffuse;
         }
         #endif
 
         // https://assetstore.unity.com/packages/tools/level-design/bakery-gpu-lightmapper-122218
         #if defined(BAKERY_ENABLED) && defined(BAKERY_VOLUME)
+            BakeryVolumeData volumeData = (BakeryVolumeData) 0;
+
+            if (_Udon_GlobalVolumeAdapterEnabled == 1)
+            {
+                _GlobalVolumeMin = _Udon_GlobalVolumeMin;
+                _GlobalVolumeInvSize = _Udon_GlobalVolumeInvSize;
+
+                // Arbitrary rotation (runtime only)
+                #if defined(BAKERY_VOLROTATION)
+                _GlobalVolumeMatrix = _Udon_GlobalVolumeMatrix;
+                #endif
+
+                // Y Rotation (baked)
+                #if defined(BAKERY_VOLROTATIONY)
+                _GlobalVolumeRY = _Udon_GlobalVolumeRY;
+                #endif
+            }
+            
             bool isGlobalVolume = _VolumeInvSize.x > 1000000; // ~inf
-            float3 volViewDir = d.worldSpaceViewDir;
+            volumeData.viewDir = Unity_SafeNormalize(d.worldSpaceViewDir);
+            
             // Runtime volume rotation
-            // Not currently supported
+            // Requires a special adapter to work in VRChat
             #if defined(BAKERY_VOLROTATION)
                 float4x4 volMatrix = (isGlobalVolume ? _GlobalVolumeMatrix : _VolumeMatrix);
                 float3 volInvSize = (isGlobalVolume ? _GlobalVolumeInvSize : _VolumeInvSize);
-                float3 lpUV = mul(volMatrix, float4(d.worldSpacePosition,1)).xyz * volInvSize + 0.5f;
-                float3 volNormal = mul((float3x3)volMatrix, o.Normal);
+                volumeData.uv = mul(volMatrix, float4(d.worldSpacePosition,1)).xyz * volInvSize + 0.5f;
+
+                volumeData.normal = mul((float3x3)volMatrix, o.Normal);
+                volumeData.normal = Unity_SafeNormalize(volumeData.normal);
+                
                 #if defined(BAKED_SPECULAR)
-                    volViewDir = mul((float3x3)volMatrix, volViewDir);
+                    volumeData.viewDir = mul((float3x3)volMatrix, volumeData.viewDir);
                 #endif
             #else
-                float3 lpUV = d.worldSpacePosition - (isGlobalVolume ? _GlobalVolumeMin : _VolumeMin);
+                volumeData.uv = d.worldSpacePosition - (isGlobalVolume ? _GlobalVolumeMin : _VolumeMin);
                 #if defined(BAKERY_VOLROTATIONY)
                     float2 sc = (isGlobalVolume ? _GlobalVolumeRY : _VolumeRY);
-                    lpUV.xz = mul(float2x2(sc.y, -sc.x, sc.x, sc.y), lpUV.xz);
+                    volumeData.uv.xz = mul(float2x2(sc.y, -sc.x, sc.x, sc.y), volumeData.uv.xz);
                 #endif
-                lpUV *= (isGlobalVolume ? _GlobalVolumeInvSize : _VolumeInvSize);
-                float3 volNormal = o.Normal;
+                volumeData.uv *= (isGlobalVolume ? _GlobalVolumeInvSize : _VolumeInvSize);
+                volumeData.normal = o.Normal;
             #endif
 
-            lightColor *= saturate(dot(_VolumeMask.Sample(sampler_Volume0, lpUV), unity_OcclusionMaskSelector));
+            volumeData.occlusion = saturate(dot(_VolumeMask.Sample(sampler_VolumeMask, volumeData.uv), unity_OcclusionMaskSelector));
+
+            lightColor *= volumeData.occlusion;
+            mainLightDiffuse *= volumeData.occlusion;
+
+            #if defined(SHADE_VERTEXLIGHTS) &&defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+            {
+                vertexLightDiffuse *= volumeData.occlusion;
+            }
+            #endif
+
         #endif    
 
         // READ THE LIGHTMAP
@@ -332,6 +441,7 @@
                 #endif
             #endif
 
+            // Load directional lightmap
             #if defined(DIRLIGHTMAP_COMBINED)
                 half4 lightMapDirection = tex2DFastBicubicSample(unity_LightmapInd, samplerunity_Lightmap, lightmapUV);
                 #if !defined(BAKERY_MONOSH)
@@ -383,7 +493,6 @@
                         half3 realtimeLightMap = getRealtimeLightmap(d.lightmapUv.zw, o.Normal);
                         lightMap += realtimeLightMap;
                     }
-                    // o.Emission = realtimeLightMap;
                 }
                 #else
                 {
@@ -394,40 +503,26 @@
             #endif
 
             #if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
-                pixelLight = 0;
+                mainLightDiffuse = 0;
                 lightMap = SubtractMainLightWithRealtimeAttenuationFromLightmapMultiply(lightMap, lightAttenuation, bakedColorTex, o.Normal);
             #endif
+
             indirectDiffuse = lightMap;
+
+        // Lightmapping end
 
         // Bakery Volume Sampling (replaces probes and LPPVs)
         #elif defined(BAKERY_ENABLED) && defined(BAKERY_VOLUME) && defined(UNITY_PASS_FORWARDBASE)
-            #ifdef BAKERY_COMPRESSED_VOLUME
-                float4 tex0, tex1, tex2, tex3;
-                float3 L0, L1x, L1y, L1z;
-                tex0 = _Volume0.Sample(sampler_Volume0, lpUV);
-                tex1 = _Volume1.Sample(sampler_Volume0, lpUV) * 2 - 1;
-                tex2 = _Volume2.Sample(sampler_Volume0, lpUV) * 2 - 1;
-                tex3 = _Volume3.Sample(sampler_Volume0, lpUV) * 2 - 1;
-                L0 = tex0.xyz;
-                L1x = tex1.xyz * L0 * 2;
-                L1y = tex2.xyz * L0 * 2;
-                L1z = tex3.xyz * L0 * 2;
-            #else
-                float4 tex0, tex1, tex2;
-                float3 L0, L1x, L1y, L1z;
-                tex0 = _Volume0.Sample(sampler_Volume0, lpUV);
-                tex1 = _Volume1.Sample(sampler_Volume0, lpUV);
-                tex2 = _Volume2.Sample(sampler_Volume0, lpUV);
-                L0 = tex0.xyz;
-                L1x = tex1.xyz;
-                L1y = tex2.xyz;
-                L1z = float3(tex0.w, tex1.w, tex2.w);
-            #endif
+            // Sample the volume textures
+            volumeData = GetBakeryVolumeTextureData(volumeData);
             // Sample using Geomerics approach, similar to lightprobes and LPPVs
-            indirectDiffuse.r = shEvaluateDiffuseL1Geomerics(L0.r, float3(L1x.r, L1y.r, L1z.r), volNormal);
-            indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, float3(L1x.g, L1y.g, L1z.g), volNormal);
-            indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, float3(L1x.b, L1y.b, L1z.b), volNormal);
-            indirectDiffuse = max(0, indirectDiffuse);
+            indirectDiffuse = max(0, GetNonLinearSH(
+                volumeData.L0, 
+                float3(volumeData.L1x.r, volumeData.L1y.r, volumeData.L1z.r),
+                float3(volumeData.L1x.g, volumeData.L1y.g, volumeData.L1z.g),
+                float3(volumeData.L1x.b, volumeData.L1y.b, volumeData.L1z.b),
+                volumeData.normal)
+            );
 
         // Lightprobes Sampling
         #else
@@ -442,10 +537,7 @@
             {
                 #if defined(NONLINEAR_SH)
                 half3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-                indirectDiffuse.r = shEvaluateDiffuseL1Geomerics(L0.r, unity_SHAr.xyz, o.Normal);
-                indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, unity_SHAg.xyz, o.Normal);
-                indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, unity_SHAb.xyz, o.Normal);
-                indirectDiffuse = max(0, indirectDiffuse);
+                indirectDiffuse = max(0, GetNonLinearSH(L0, unity_SHAr, unity_SHAg, unity_SHAb, o.Normal));
                 #else
                 indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
                 #endif
@@ -454,10 +546,8 @@
 
             #if defined(NONLINEAR_SH)
             half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-            indirectDiffuse.r = shEvaluateDiffuseL1Geomerics(L0.r, unity_SHAr.xyz, o.Normal);
-            indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, unity_SHAg.xyz, o.Normal);
-            indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, unity_SHAb.xyz, o.Normal);
-            indirectDiffuse = max(0, indirectDiffuse);
+
+            indirectDiffuse = max(0, GetNonLinearSH(L0, unity_SHAr, unity_SHAg, unity_SHAb, o.Normal));
             #else
             indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
             #endif
@@ -468,31 +558,59 @@
         #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
         {
             float3 forwardShadows = UnityComputeForwardShadows(d.lightmapUv.xy, d.worldSpacePosition, d.screenPos);
-            pixelLight *= forwardShadows;
+            mainLightDiffuse *= forwardShadows;
         }
         #endif
 
 
+        // Standard BRDF
         half3 dfguv = half3(NoV, perceptualRoughness, 0);
         float2 dfg = SAMPLE_TEXTURE2D(_DFG, sampler_DFG, dfguv).xy;
         half3 energyCompensation = 1.0 + f0 * (1.0 / dfg.y - 1.0);
 
-        half rough = perceptualRoughness * perceptualRoughness;
-        float clampedRoughness = max(rough, 0.002);
+        float rough = perceptualRoughness * perceptualRoughness;
+        half clampedRoughness = max(rough, ORL_MIN_ROUGHNESS);
+
+        // Clear Coat BRDF
+        #if defined(CLEARCOAT)
+        half3 clearcoatdfguv = 0;
+        float2 clearcoatdfg = 0;
+
+        float clearCoatAttenuation = 1.0;
+        float clearCoatRoughness = 1.0 - _ClearCoatSmoothness;
+        half clampedClearCoatRoughness = max(clearCoatRoughness * clearCoatRoughness, ORL_MIN_ROUGHNESS);
+        half3 clearCoatMainLightSpecular = 0;
+        half3 clearCoatIndirectSpecular = 0;
+        #endif
+
+        #if defined(CLEARCOAT) && defined(SHADING_MODE_DEFAULT)
+        clearcoatdfguv = half3(NoV, clearCoatRoughness, 0);
+        clearcoatdfg = SAMPLE_TEXTURE2D(_DFG, sampler_DFG, clearcoatdfguv).xy;
+        #endif
 
         // DIRECT REALTIME SPECULAR
         #if !defined(SPECULAR_HIGHLIGHTS_OFF) && defined(USING_LIGHT_MULTI_COMPILE)
         {
             // Main Light
             {
-                half NoH = saturate(dot(o.Normal, lightHalfVector));
-                half3 F = F_Schlick(lightLoH, f0);
-                float D = D_GGX(NoH, clampedRoughness);
-                half V = V_SmithGGXCorrelated(NoV, lightNoL, clampedRoughness);
+                #if defined(SHADING_MODE_DEFAULT)
+                {
+                    mainLightSpecular = GetSpecularHighlights(lightColor, f0, o.Normal, lightHalfVector, lightLoH, lightNoL, NoV, clampedRoughness, energyCompensation);
+                }
+                #elif defined(SHADING_MODE_CLOTH)
+                {
+                    mainLightSpecular = GetSpecularHighlightsCloth(lightColor, o.Normal, lightHalfVector, lightNoL, NoV, clampedRoughness, energyCompensation, albedoSqrt, _ClothHasCustomSheen, _ClothSheenColor);
+                }
+                #endif
 
-                F *= energyCompensation;
+                mainLightSpecular *= lightNoL;
 
-                directSpecular = max(0, D * V * F) * pixelLight * UNITY_PI;
+                #if defined(CLEARCOAT) && defined(SHADING_MODE_DEFAULT)
+                {
+                    clearCoatMainLightSpecular = GetSpecularHighlightsClearCoat(lightColor, f0, d.worldNormal, lightHalfVector, lightLoH, clampedClearCoatRoughness, _ClearCoatStrength, clearCoatAttenuation);
+                    clearCoatMainLightSpecular *= saturate(dot(d.worldNormal, lightDir));
+                }
+                #endif
             }
 
             // Vertex Lights
@@ -501,24 +619,25 @@
                 [unroll(4)]
                 for (int i = 0; i < 4; i++)
                 {
-                    half NoH = saturate(dot(o.Normal, vLightHalfVectors[i]));
-                    half3 F = F_Schlick(vLightLoHs[i], f0);
-                    float D = D_GGX(NoH, clampedRoughness);
-                    half V = V_SmithGGXCorrelated(NoV, vLightNoLs[i], clampedRoughness);
+                    #if defined(SHADING_MODE_DEFAULT)
+                    {
+                        vertexLightSpecular += vLightNoLs[i] * GetSpecularHighlights(vLightColors[i], f0, o.Normal, vLightHalfVectors[i], vLightLoHs[i], vLightNoLs[i], NoV, clampedRoughness, energyCompensation);
+                    }
+                    #elif defined(SHADING_MODE_CLOTH)
+                    {
+                        vertexLightSpecular += vLightNoLs[i] * GetSpecularHighlightsCloth(vLightColors[i], o.Normal, vLightHalfVectors[i], vLightNoLs[i], NoV, clampedRoughness, energyCompensation, albedoSqrt, _ClothHasCustomSheen, _ClothSheenColor);
+                    }
+                    #endif
 
-                    F *= energyCompensation;
-
-                    directSpecular += max(0, D * V * F) * vLightColors[i] * UNITY_PI;
+                    // Clear Coat
+                    #if defined(CLEARCOAT) && defined(SHADING_MODE_DEFAULT)
+                    {
+                        clearCoatVertexLightSpecular += GetSpecularHighlightsClearCoat(vLightColors[i], f0, d.worldNormal, vLightHalfVectors[i], vLightLoHs[i], clampedClearCoatRoughness, _ClearCoatStrength, clearCoatAttenuation) * saturate(dot(d.worldNormal, vLightDirections[i]));
+                    }
+                    #endif
                 }
             }
             #endif
-        }
-        #endif
-
-        // Composite Vertex Lights with Main Light for final diffuse mixing
-        #if defined(SHADE_VERTEXLIGHTS) && defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
-        {
-            pixelLight += vLightColors[0] + vLightColors[1] + vLightColors[2] + vLightColors[3];
         }
         #endif
 
@@ -544,11 +663,18 @@
             #endif
 
             bakedDominantDirection = normalize(bakedDominantDirection);
-            bakedDirectSpecular = GetSpecularHighlights(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+            #if defined(SHADING_MODE_DEFAULT)
+            {
+                bakedDirectSpecular = GetSpecularHighlights(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+            }
+            #elif defined(SHADING_MODE_CLOTH)
+            {
+                bakedDirectSpecular = GetSpecularHighlightsCloth(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, albedoSqrt, _ClothHasCustomSheen, _ClothSheenColor);
+            }
+            #endif
         }
         #endif
 
-        half3 fresnel = F_Schlick(NoV, f0);
 
         // BAKERY DIRECT SPECULAR
         #if defined(LIGHTMAP_ON) && defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && defined(UNITY_PASS_FORWARDBASE)
@@ -560,13 +686,27 @@
                 rnmBasis2 * dot(rnm2, lumaConv);
 
                 float3 dominantDirTangentNormalized = Unity_SafeNormalize(dominantDirTangent);
+
                 half3 specColor = saturate(dot(rnmBasis0, dominantDirTangentNormalized)) * rnm0 +
                 saturate(dot(rnmBasis1, dominantDirTangentNormalized)) * rnm1 +
                 saturate(dot(rnmBasis2, dominantDirTangentNormalized)) * rnm2;
-                float3 halfDir = Unity_SafeNormalize(dominantDirTangentNormalized - viewDirTangent);
-                float NoH = saturate(dot(tangentNormal, halfDir));
-                half spec = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod));
-                bakedDirectSpecular += spec * specColor * fresnel;
+
+                float3 halfVector = Unity_SafeNormalize(dominantDirTangentNormalized - viewDirTangent);
+                float NoH = saturate(dot(tangentNormal, halfVector));
+                half3 F = 0
+                float D = 0;
+                #if defined(SHADING_MODE_DEFAULT)
+                {
+                    F =  F_Schlick(NoV, f0);
+                    D = D_GGX(NoH, lerp(1, clampedRoughness, _SpecularRoughnessMod)) * energyCompensation;
+                }
+                #elif defined(SHADING_MODE_CLOTH)
+                {
+                    F = _ClothHasCustomSheen ? _ClothSheenColor : albedoSqrt;
+                    D = D_Charlie(lerp(1, clampedRoughness, _SpecularRoughnessMod), NoH);
+                }
+                #endif
+                bakedDirectSpecular += D * specColor * F;
             }
             #endif
 
@@ -575,7 +715,15 @@
                 half3 dominantDir = half3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(L1z, lumaConv));
                 half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
                 dominantDir = normalize(dominantDir);
-                bakedDirectSpecular += GetSpecularHighlights(o.Normal, sh, dominantDir, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+                #if defined(SHADING_MODE_DEFAULT)
+                {
+                    bakedDirectSpecular += GetSpecularHighlights(o.Normal, sh, dominantDir, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+                }
+                #elif defined(SHADING_MODE_CLOTH)
+                {
+                    bakedDirectSpecular += GetSpecularHighlightsCloth(o.Normal, sh, dominantDir, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, albedoSqrt, _ClothHasCustomSheen, _ClothSheenColor);
+                }
+                #endif
             }
             #endif
 
@@ -584,55 +732,98 @@
                 half3 dominantDir = nL1;
                 half3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
                 dominantDir = normalize(dominantDir);
-                bakedDirectSpecular += GetSpecularHighlights(o.Normal, sh, dominantDir, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+                #if defined(SHADING_MODE_DEFAULT)
+                {
+                    bakedDirectSpecular += GetSpecularHighlights(o.Normal, sh, dominantDir, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+                }
+                #elif defined(SHADING_MODE_CLOTH)
+                {
+                    bakedDirectSpecular += GetSpecularHighlightsCloth(o.Normal, sh, dominantDir, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, albedoSqrt, _ClothHasCustomSheen, _ClothSheenColor);
+                }
+                #endif
             }
             #endif
         #endif // End of #if defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && !defined(UNITY_PASS_FORWARDADD)
 
         // BAKERY VOLUME SPECULAR
         #if defined(BAKERY_ENABLED) && defined(BAKERY_VOLUME) && defined(BAKERY_LMSPEC) && defined(UNITY_PASS_FORWARDBASE)
-            float3 nL1x = L1x / L0;
-            float3 nL1y = L1y / L0;
-            float3 nL1z = L1z / L0;
-            float3 dominantDir = float3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(nL1z, lumaConv));
-            float3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
-            float3 volumeNoV = dot(volNormal, volViewDir);
-            bakedDirectSpecular += GetSpecularHighlights(volNormal, sh, dominantDir, f0, volViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), volumeNoV, energyCompensation);
+            BakeryVolumeSpecularData volumeSpecularData = GetBakeryVolumeSpecularData(volumeData);
+            #if defined(SHADING_MODE_DEFAULT)
+            {
+                bakedDirectSpecular += GetSpecularHighlights(volumeData.normal, volumeSpecularData.color, volumeSpecularData.direction, f0, volumeData.viewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), volumeSpecularData.NoV, energyCompensation);
+            }
+            #elif defined(SHADING_MODE_CLOTH)
+            {
+                bakedDirectSpecular += GetSpecularHighlightsCloth(volumeData.normal, volumeSpecularData.color, volumeSpecularData.direction, f0, volumeData.viewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), volumeSpecularData.NoV, albedoSqrt, _ClothHasCustomSheen, _ClothSheenColor);
+            }
+            #endif
         #endif
 
         // REFLECTIONS
         #if !defined(UNITY_PASS_FORWARDADD)
-        half3 reflDir = reflect(-d.worldSpaceViewDir, o.Normal);
-        reflDir = lerp(reflDir, o.Normal, clampedRoughness);
-
+        float3 reflDir = reflect(-d.worldSpaceViewDir, o.Normal);
         Unity_GlossyEnvironmentData envData;
-        envData.roughness = perceptualRoughness;
-        envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
 
-        half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
-        indirectSpecular = probe0;
-
-        #if defined(UNITY_SPECCUBE_BLENDING) || defined(FORCE_BOX_PROJECTION)
-        UNITY_BRANCH
-        if (unity_SpecCube0_BoxMin.w < 0.99999)
+        // Box projection contact hardening is only available on PC
+        #if !defined(PLAT_QUEST)
         {
-            envData.reflUVW = getBoxProjection(reflDir, d.worldSpacePosition.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
-            half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
-            indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
+            // This is based on David M's improved box projection code https://github.com/frostbone25/Unity-Improved-Box-Projected-Reflections
+            // Licensed under MIT license, see https://github.com/frostbone25/Unity-Improved-Box-Projected-Reflections/blob/master/LICENSE for details
+            // Only used if probe is set to be box projected
+            if (_BoxProjectionContactHardening && unity_SpecCube0_ProbePosition.w > 0)
+            {
+                indirectSpecular = getEnvReflectionHardened(reflDir, d.worldSpacePosition, perceptualRoughness, _BoxProjectionContactHardeningStrength);
+            } else {
+                indirectSpecular = getEnvReflectionDirect(reflDir, d.worldSpacePosition, o.Normal, perceptualRoughness, -1);
+            }
+        }
+        #else
+        {
+            indirectSpecular = getEnvReflectionDirect(reflDir, d.worldSpacePosition, o.Normal, perceptualRoughness, -1);
         }
         #endif
 
         half horizon = min(1 + dot(reflDir, o.Normal), 1);
         indirectSpecular *= horizon * horizon;
 
+        #if defined(CLEARCOAT) && defined(SHADING_MODE_DEFAULT)
+        {
+            // Clear Coat uses a different roughness and a mesh normal instead of the normal map
+            reflDir = reflect(-d.worldSpaceViewDir, d.worldNormal);
+
+            // Box projection contact hardening is only available on PC
+            #if !defined(PLAT_QUEST)
+            {
+                // This is based on David M's improved box projection code https://github.com/frostbone25/Unity-Improved-Box-Projected-Reflections
+                // Licensed under MIT license, see https://github.com/frostbone25/Unity-Improved-Box-Projected-Reflections/blob/master/LICENSE for details
+                // Only used if probe is set to be box projected
+                if (_BoxProjectionContactHardening && unity_SpecCube0_ProbePosition.w > 0)
+                {
+                    clearCoatIndirectSpecular = getEnvReflectionHardened(reflDir, d.worldSpacePosition, clearCoatRoughness, _BoxProjectionContactHardeningStrength);
+                } else {
+                    clearCoatIndirectSpecular = getEnvReflectionDirect(reflDir, d.worldSpacePosition, d.worldNormal, clearCoatRoughness, -1);
+                }
+            }
+            #else
+            {
+                clearCoatIndirectSpecular = getEnvReflectionDirect(reflDir, d.worldSpacePosition, d.worldNormal, clearCoatRoughness, -1);
+            }
+            #endif
+
+            half clearCoatHorizon = min(1 + dot(reflDir, d.worldNormal), 1);
+            clearCoatIndirectSpecular *= clearCoatHorizon * clearCoatHorizon;
+            clearCoatIndirectSpecular *= _ClearCoatStrength;
+        }
+        #endif
+
         half specularOcclusion = saturate(length(indirectDiffuse) * (1.0 / _SpecOcclusion));
         specularOcclusion *= lerp(1, lightAttenuation, _RealtimeShadowSpecOcclusion);
 
         dfg.x *= specularOcclusion;
-        specularOcclusion = computeSpecularAO(NoV, o.Occlusion * specularOcclusion, clampedRoughness);
+        half computedSpecularOcclusion = computeSpecularAO(NoV, o.Occlusion * specularOcclusion, clampedRoughness);
 
         half3 envBRDF = EnvBRDFMultiscatter(dfg, f0);
-        half3 finalSpecOcclusion = specularOcclusion * envBRDF;
+        half3 finalSpecOcclusion = computedSpecularOcclusion * envBRDF;
         
         #if defined(BAKED_SPECULAR)
         {
@@ -641,27 +832,27 @@
         #endif
 
         indirectSpecular *= finalSpecOcclusion;
+
+        #if defined(CLEARCOAT) && defined(SHADING_MODE_DEFAULT)
+        {
+            clearcoatdfg.x *= specularOcclusion;
+            specularOcclusion = computeSpecularAO(NoV, o.Occlusion * specularOcclusion, clampedRoughness);
+
+            half3 envBRDF = EnvBRDFMultiscatter(clearcoatdfg, f0);
+            half3 finalSpecOcclusion = specularOcclusion * envBRDF;
+            clearCoatIndirectSpecular *= finalSpecOcclusion;
+        }
         #endif
 
-        #if defined(_INTEGRATE_CUSTOMGI) && !defined(UNITY_PASS_FORWARDADD)
-        IntegrateCustomGI(d, o, indirectSpecular, indirectDiffuse);
-        #endif
-
-        #if defined (_INTEGRATE_CUSTOMGI_FLEX) && !defined(UNITY_PASS_FORWARDADD)
-        %CustomGIFunctions
         #endif
 
         directSpecular += bakedDirectSpecular;
-
-        float oneMinusReflectivity = 1.0 - 0.04 - o.Metallic * (1.0 - 0.04);
 
         // Standard-Like transparent (premult alpha)
         if (_RenderType == 2)
         {
             o.Albedo.rgb *= o.Alpha;
             o.Alpha = 1 - (oneMinusReflectivity) + o.Alpha * (oneMinusReflectivity);
-        } else {
-            FinalColor.a = o.Alpha;
         }
 
         #if !defined(_NATIVE_A2C)
@@ -673,14 +864,84 @@
             }
         }
         #endif
-        // FINAL COLOR
-        FinalColor.rgb = o.Albedo.rgb * (oneMinusReflectivity) * (indirectDiffuse * occlusion + (pixelLight)) + indirectSpecular + directSpecular;
+
+        // Standard-Like cutout
+        if (_RenderType == 1)
+        {
+            clip(o.Alpha - _Cutoff);
+        }
+
+        FinalColor.rgb = o.Albedo.rgb * (oneMinusReflectivity);
+
+        // Custom GI
+        {
+            #if defined(_INTEGRATE_CUSTOMGI) && !defined(UNITY_PASS_FORWARDADD)
+            IntegrateCustomGI(d, o, indirectSpecular, indirectDiffuse);
+            #endif
+
+            #if defined (_INTEGRATE_CUSTOMGI_FLEX) && !defined(UNITY_PASS_FORWARDADD)
+            %CustomGIFunctions
+            #endif
+        }
+
+        // Diffuse Contributions
+        half3 diffuseContributions = 0;
+        diffuseContributions += mainLightDiffuse;
+        diffuseContributions += indirectDiffuse * occlusion;
+
+        // Add vertex Lights
+        #if defined(SHADE_VERTEXLIGHTS) && defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+        {
+            diffuseContributions += vertexLightDiffuse;
+        }
+        #endif
+
+        // Specular Contributions
+        half3 specularContributions = 0;
+        specularContributions += mainLightSpecular;
+        specularContributions += bakedDirectSpecular;
+        specularContributions += indirectSpecular;
+
+        // Add vertex Lights
+        #if defined(SHADE_VERTEXLIGHTS) && defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+        {
+            specularContributions += vertexLightSpecular;
+        }
+        #endif
+
+        // Add clear coat layer
+        #if defined(CLEARCOAT) && defined(SHADING_MODE_DEFAULT)
+        {
+            specularContributions += clearCoatMainLightSpecular;
+            specularContributions += clearCoatIndirectSpecular;
+
+            // Add vertex Lights
+            #if defined(SHADE_VERTEXLIGHTS) && defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+            {
+                specularContributions += clearCoatVertexLightSpecular;
+            }
+        #endif
+        }
+        #endif
+
+        // Compositing
+        FinalColor.rgb *= diffuseContributions;
+        FinalColor.rgb += specularContributions;
         FinalColor.a = o.Alpha;
         
         #if defined(UNITY_PASS_FORWARDBASE)
         FinalColor.rgb += o.Emission;
         #endif
+
+        // Premulty output by alpha for correct `Fade` mode
+        #if defined(UNITY_PASS_FORWARDADD)
+        if (_RenderType == 3)
+        {
+            FinalColor.rgb *= o.Alpha;
+        }
         #endif
+
+        #endif // shadowcaster check
     }
 }
 
@@ -710,5 +971,15 @@
 
         FinalColor.rgb = applyLiftGammaGainEffect(FinalColor.rgb, _ColorCorrLift, _ColorCorrGamma, _ColorCorrGain);
         #endif
+    }
+}
+
+%Shadow("PBRBaseShadow")
+{
+    void PBRBaseShadow(SurfaceData o) {
+        if (_RenderType == 1)
+        {
+            clip(o.Alpha - _Cutoff);
+        }
     }
 }
