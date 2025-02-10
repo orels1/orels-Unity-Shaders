@@ -50,15 +50,20 @@
     half3 _VolumeMin;
     half3 _VolumeInvSize;
     half3 _GlobalVolumeMin;
+    int _Udon_GlobalVolumeAdapterEnabled;
+    half3 _Udon_GlobalVolumeMin;
     half3 _GlobalVolumeInvSize;
+    half3 _Udon_GlobalVolumeInvSize;
 
     #if defined(BAKERY_VOLROTATION)
     float4x4 _GlobalVolumeMatrix;
+    float4x4 _Udon_GlobalVolumeMatrix;
     float4x4 _VolumeMatrix;
     #endif
     
     #if defined(BAKERY_VOLROTATIONY)
     float2 _GlobalVolumeRY;
+    float2 _Udon_GlobalVolumeRY;
     float2 _VolumeRY;
     #endif
     
@@ -87,6 +92,7 @@
         #endif
 
     SAMPLER(sampler_Volume0);
+    SAMPLER(sampler_VolumeMask);
     #endif
 }
 
@@ -153,6 +159,31 @@
     #endif
 
     #define lumaConv float3(0.2125f, 0.7154f, 0.0721f)
+
+    struct BakeryVolumeData
+    {
+        float3 L0;
+        float3 L1x;
+        float3 L1y;
+        float3 L1z;
+        
+        float4 tex0;
+        float4 tex1;
+        float4 tex2;
+        float4 tex3;
+
+        float3 viewDir;
+        float3 normal;
+        float3 uv;
+        float occlusion;
+    };
+
+    struct BakeryVolumeSpecularData
+    {
+        float3 direction;
+        float3 color;
+        float NoV;
+    };
 
     #ifdef BAKERY_BICUBIC
     float BakeryBicubic_w0(float a)
@@ -266,4 +297,52 @@
 
     #endif
     //BAKERY_ENABLED
+}
+
+// These are defined separately so that they can reference Tesxture variables from inside the pass
+%PassFunctions()
+{
+    // Bakery volume helpers
+    #if defined(BAKERY_ENABLED)
+    #if defined(BAKERY_VOLUME)
+    BakeryVolumeData GetBakeryVolumeTextureData(BakeryVolumeData data)
+    {
+        #ifdef BAKERY_COMPRESSED_VOLUME
+            data.tex0 = _Volume0.Sample(sampler_Volume0, data.uv);
+            data.tex1 = _Volume1.Sample(sampler_Volume0, data.uv) * 2 - 1;
+            data.tex2 = _Volume2.Sample(sampler_Volume0, data.uv) * 2 - 1;
+            data.tex3 = _Volume3.Sample(sampler_Volume0, data.uv) * 2 - 1;
+            data.L0 = data.tex0.xyz;
+            data.L1x = data.tex1.xyz * data.L0 * 2;
+            data.L1y = data.tex2.xyz * data.L0 * 2;
+            data.L1z = data.tex3.xyz * data.L0 * 2;
+        #else
+            data.tex0 = _Volume0.Sample(sampler_Volume0, data.uv);
+            data.tex1 = _Volume1.Sample(sampler_Volume0, data.uv);
+            data.tex2 = _Volume2.Sample(sampler_Volume0, data.uv);
+            data.L0 = data.tex0.xyz;
+            data.L1x = data.tex1.xyz;
+            data.L1y = data.tex2.xyz;
+            data.L1z = float3(data.tex0.w, data.tex1.w, data.tex2.w);
+        #endif
+        return data;
+    }
+
+    BakeryVolumeSpecularData GetBakeryVolumeSpecularData(BakeryVolumeData data)
+    {
+        BakeryVolumeSpecularData ret = (BakeryVolumeSpecularData) 0;
+
+        float3 nL1x = data.L1x / data.L0;
+        float3 nL1y = data.L1y / data.L0;
+        float3 nL1z = data.L1z / data.L0;
+        ret.direction = float3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(nL1z, lumaConv));
+        ret.color = data.L0 + ret.direction.x * data.L1x + ret.direction.y * data.L1y + ret.direction.z * data.L1z;
+        ret.NoV = dot(data.normal, data.viewDir);
+        ret.NoV = max(ret.NoV, 0.0001);
+        return ret;
+    }
+
+    #endif
+
+    #endif
 }
