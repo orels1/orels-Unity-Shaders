@@ -408,13 +408,22 @@
 
     half computeSpecularAO(half NoV, half ao, half roughness)
     {
-        return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
+        return saturate(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao);
+    }
+
+    half3 gtaoMultiBounce(half visibility, half3 albedo) {
+        // Jimenez et al. 2016, "Practical Realtime Strategies for Accurate Indirect Occlusion"
+        half3 a =  2.0404 * albedo - 0.3324;
+        half3 b = -4.7951 * albedo + 0.6417;
+        half3 c =  2.7552 * albedo + 0.6903;
+
+        return max((visibility), ((visibility * a + b) * visibility + c) * visibility);
     }
 
     half shEvaluateDiffuseL1Geomerics(half L0, half3 L1, float3 n)
     {
         // average energy
-        half R0 = L0;
+        half R0 = max(0,L0);
 
         // avg direction of incoming light
         half3 R1 = 0.5f * L1;

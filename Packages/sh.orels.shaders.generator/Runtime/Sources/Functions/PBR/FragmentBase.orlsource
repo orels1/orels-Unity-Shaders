@@ -235,7 +235,6 @@
 
         half3 indirectDiffuse = 1;
         half3 indirectSpecular = 0;
-        half3 directSpecular = 0;
         
         half occlusion = o.Occlusion;
 
@@ -267,6 +266,26 @@
         half lightLoH = saturate(dot(lightDir, lightHalfVector));
 
         half NoV = abs(dot(o.Normal, d.worldSpaceViewDir)) + 1e-5;
+
+        // Standard BRDF Setup
+        half3 dfguv = half3(NoV, perceptualRoughness, 0);
+        float2 dfg = SAMPLE_TEXTURE2D(_DFG, sampler_DFG, dfguv).xy;
+        half3 energyCompensation = 1.0 + f0 * (1.0 / dfg.y - 1.0);
+
+        float rough = perceptualRoughness * perceptualRoughness;
+        half clampedRoughness = max(rough, ORL_MIN_ROUGHNESS);
+
+        // Clear Coat BRDF Setup
+        #if defined(CLEARCOAT)
+        half3 clearcoatdfguv = 0;
+        float2 clearcoatdfg = 0;
+
+        float clearCoatAttenuation = 1.0;
+        float clearCoatRoughness = 1.0 - _ClearCoatSmoothness;
+        half clampedClearCoatRoughness = max(clearCoatRoughness * clearCoatRoughness, ORL_MIN_ROUGHNESS);
+        half3 clearCoatMainLightSpecular = 0;
+        half3 clearCoatIndirectSpecular = 0;
+        #endif
 
         half3 mainLightDiffuse = 0;
         half3 mainLightSpecular = 0;
@@ -528,30 +547,45 @@
         #else
             // LPPV support
             #if UNITY_LIGHT_PROBE_PROXY_VOLUME
-            UNITY_BRANCH
-            if (unity_ProbeVolumeParams.x == 1)
             {
-                indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), d.worldSpacePosition);
-            }
-            else // Mesh has BlendProbes instead of LPPV
-            {
-                #if defined(NONLINEAR_SH)
-                half3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-                indirectDiffuse = max(0, GetNonLinearSH(L0, unity_SHAr, unity_SHAg, unity_SHAb, o.Normal));
-                #else
-                indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
-                #endif
+                UNITY_BRANCH
+                if (unity_ProbeVolumeParams.x == 1)
+                {
+                    indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(half4(o.Normal, 1), d.worldSpacePosition);
+                }
+                else // Mesh has BlendProbes instead of LPPV
+                {
+                    #if defined(NONLINEAR_SH)
+                    {
+                        half3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+                        half3 L0L2 = half3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
+                        L0 = L0+L0L2;
+                        indirectDiffuse = max(0, GetNonLinearSH(L0, unity_SHAr, unity_SHAg, unity_SHAb, o.Normal));
+                        indirectDiffuse += SHEvalLinearL2(float4(o.Normal, 1));
+                    }
+                    #else
+                    {
+                        indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
+                    }
+                    #endif
+                }
             }
             #else // No LPPVs enabled project-wide
-
-            #if defined(NONLINEAR_SH)
-            half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-
-            indirectDiffuse = max(0, GetNonLinearSH(L0, unity_SHAr, unity_SHAg, unity_SHAb, o.Normal));
-            #else
-            indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
-            #endif
-
+            {
+                #if defined(NONLINEAR_SH)
+                {
+                    half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+                    half3 L0L2 = half3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
+                    L0 = L0+L0L2;
+                    indirectDiffuse = max(0, GetNonLinearSH(L0, unity_SHAr, unity_SHAg, unity_SHAb, o.Normal));
+                    indirectDiffuse += SHEvalLinearL2(float4(o.Normal, 1));
+                }
+                #else
+                {
+                    indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
+                }
+                #endif
+            }
             #endif
         #endif // end of #if defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
 
@@ -560,27 +594,6 @@
             float3 forwardShadows = UnityComputeForwardShadows(d.lightmapUv.xy, d.worldSpacePosition, d.screenPos);
             mainLightDiffuse *= forwardShadows;
         }
-        #endif
-
-
-        // Standard BRDF
-        half3 dfguv = half3(NoV, perceptualRoughness, 0);
-        float2 dfg = SAMPLE_TEXTURE2D(_DFG, sampler_DFG, dfguv).xy;
-        half3 energyCompensation = 1.0 + f0 * (1.0 / dfg.y - 1.0);
-
-        float rough = perceptualRoughness * perceptualRoughness;
-        half clampedRoughness = max(rough, ORL_MIN_ROUGHNESS);
-
-        // Clear Coat BRDF
-        #if defined(CLEARCOAT)
-        half3 clearcoatdfguv = 0;
-        float2 clearcoatdfg = 0;
-
-        float clearCoatAttenuation = 1.0;
-        float clearCoatRoughness = 1.0 - _ClearCoatSmoothness;
-        half clampedClearCoatRoughness = max(clearCoatRoughness * clearCoatRoughness, ORL_MIN_ROUGHNESS);
-        half3 clearCoatMainLightSpecular = 0;
-        half3 clearCoatIndirectSpecular = 0;
         #endif
 
         #if defined(CLEARCOAT) && defined(SHADING_MODE_DEFAULT)
@@ -674,7 +687,6 @@
             #endif
         }
         #endif
-
 
         // BAKERY DIRECT SPECULAR
         #if defined(LIGHTMAP_ON) && defined(BAKERY_LMSPEC) && defined(BAKERY_ENABLED) && defined(UNITY_PASS_FORWARDBASE)
@@ -816,37 +828,39 @@
         }
         #endif
 
-        half specularOcclusion = saturate(length(indirectDiffuse) * (1.0 / _SpecOcclusion));
-        specularOcclusion *= lerp(1, lightAttenuation, _RealtimeShadowSpecOcclusion);
+        half indirectSpecularOcclusion = saturate(length(indirectDiffuse) * (1.0 / _SpecOcclusion));
 
-        dfg.x *= specularOcclusion;
-        half computedSpecularOcclusion = computeSpecularAO(NoV, o.Occlusion * specularOcclusion, clampedRoughness);
-
+        // We should only add dfg _after_ we calculated spec occlusion factors
         half3 envBRDF = EnvBRDFMultiscatter(dfg, f0);
-        half3 finalSpecOcclusion = computedSpecularOcclusion * envBRDF;
+        indirectDiffuse *= 1.0 - envBRDF;
+        indirectSpecular *= envBRDF;
+
+        indirectSpecularOcclusion *= lerp(1, lightAttenuation, _RealtimeShadowSpecOcclusion);
+
+        half computedSpecularOcclusion = computeSpecularAO(NoV, o.Occlusion * indirectSpecularOcclusion, clampedRoughness);
+        computedSpecularOcclusion *= energyCompensation;
         
         #if defined(BAKED_SPECULAR)
         {
-            bakedDirectSpecular *= saturate(lerp(1, finalSpecOcclusion, _BakedSpecularOcclusion));
+            bakedDirectSpecular *= saturate(lerp(1, computedSpecularOcclusion, _BakedSpecularOcclusion));
         }
         #endif
 
-        indirectSpecular *= finalSpecOcclusion;
+        indirectSpecular *= gtaoMultiBounce(computedSpecularOcclusion, f0);
 
         #if defined(CLEARCOAT) && defined(SHADING_MODE_DEFAULT)
         {
-            clearcoatdfg.x *= specularOcclusion;
-            specularOcclusion = computeSpecularAO(NoV, o.Occlusion * specularOcclusion, clampedRoughness);
+            half clearcoatNoV = abs(dot(d.worldNormal, d.worldSpaceViewDir)) + 1e-5;
+            computedSpecularOcclusion = computeSpecularAO(clearcoatNoV, o.Occlusion * indirectSpecularOcclusion, clampedRoughness);
+            computedSpecularOcclusion *= energyCompensation;
 
             half3 envBRDF = EnvBRDFMultiscatter(clearcoatdfg, f0);
-            half3 finalSpecOcclusion = specularOcclusion * envBRDF;
-            clearCoatIndirectSpecular *= finalSpecOcclusion;
+            clearCoatIndirectSpecular *= envBRDF
+            clearCoatIndirectSpecular *= gtaoMultiBounce(computedSpecularOcclusion, f0);
         }
         #endif
 
-        #endif
-
-        directSpecular += bakedDirectSpecular;
+        #endif // !defined(UNITY_PASS_FORWARDADD)
 
         // Standard-Like transparent (premult alpha)
         if (_RenderType == 2)
@@ -864,12 +878,6 @@
             }
         }
         #endif
-
-        // Standard-Like cutout
-        if (_RenderType == 1)
-        {
-            clip(o.Alpha - _Cutoff);
-        }
 
         FinalColor.rgb = o.Albedo.rgb * (oneMinusReflectivity);
 
