@@ -1,6 +1,7 @@
 %Properties()
 {
     UI_VertexColorsHeader("# Vertex Colors", Int) = 1
+    UI_VertexColorsDocs("[This module has documentation](https://shaders.orels.sh/docs/configurable-shaders/modules/vertex-colors)", Int) = 0
     UI_VertexColorsNote("> Select which material parameters will be affected by vertex colors", Int) = 0
     [ToggleUI]_VCAlbedo("Albedo", Int) = 0
     _VCAlbedoStrength("Albedo Strength %ShowIf(_VCAlbedo)", Range(0, 1)) = 1
@@ -53,7 +54,7 @@
     {
         if (_VCAlbedo) o.Albedo = lerp(o.Albedo, o.Albedo * d.vertexColor.rgb, _VCAlbedoStrength);
         if (_VCAlpha) o.Alpha = lerp(o.Alpha, o.Alpha * d.vertexColor[_VCAlphaChannel], _VCAlphaStrength);
-        if (_VCAlphaPremultiply) o.Albedo *= o.Alpha;
+        if (_VCAlphaPremultiply) o.Albedo *= lerp(1, d.vertexColor[_VCAlphaChannel], _VCAlphaStrength);
         if (_VCEmission) o.Emission = lerp(o.Emission, o.Emission * d.vertexColor.rgb, _VCEmissionStrength);
 
         #if !defined(ORL_LIGHTING_MODEL_VFX)
