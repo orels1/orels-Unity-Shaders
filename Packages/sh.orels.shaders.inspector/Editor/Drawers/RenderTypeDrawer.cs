@@ -16,13 +16,26 @@ namespace ORL.Drawers
     {
         public string FunctionName => "RenderType";
 
-        private enum RenderType
+        internal enum RenderType
         {
             Opaque,
             Cutout,
             Transparent,
             Fade,
             Custom,
+        }
+
+        internal static RenderType GetRenderType(string type)
+        {
+            switch (type.ToLower())
+            {
+                case "opaque": return RenderType.Opaque;
+                case "cutout": return RenderType.Cutout;
+                case "transparent": return RenderType.Transparent;
+                case "fade": return RenderType.Fade;
+                case "custom": return RenderType.Custom;
+                default: return RenderType.Opaque;
+            }
         }
 
         private struct MaterialPropertyData
