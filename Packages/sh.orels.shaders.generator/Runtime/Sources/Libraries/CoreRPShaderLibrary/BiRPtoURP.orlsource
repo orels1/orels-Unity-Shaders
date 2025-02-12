@@ -481,6 +481,12 @@
         return SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uv).r;
     }
 
+    float2 SampleSceneDepthRGDecoded(float2 uv)
+    {
+        float2 depthRG = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uv).rg;
+        return dot(depthRG, float2(1.0, 1/255.0));
+    }
+
     // We need this so that we can replace `UNITY_LIGHT_ATTENUATION`
     struct Light
     {
