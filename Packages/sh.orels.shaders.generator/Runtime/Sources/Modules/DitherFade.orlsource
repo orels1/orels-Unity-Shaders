@@ -1,7 +1,7 @@
 %Properties()
 {
     UI_DFHeadeR("# Fade Settings", Int) = 1
-    UI_DFDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/dither-fade)", Int) = 0
+    UI_DFDocs("[This module has documentation](https://shaders.orels.sh/docs/configurable-shaders/modules/dither-fade)", Int) = 0
     [Toggle(DITHER_FADE)]_EnableDitherFade("Enable", Int) = 0
     _DitherTex("Dither Texture > %RequiredTexture(@/BayerDither4x4.png)", 2D) = "unity_DitherMask" {}
     _DFStart("Fade Start", Float) = 4
