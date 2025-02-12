@@ -197,6 +197,8 @@ namespace ORL.ShaderGenerator
             foreach (var file in allLMs)
             {
                 if (file.EndsWith(".meta")) continue;
+                // MapBaker LM is excluded
+                if (file.Contains("MapBaker.orlsource")) continue;
                 _builtInLMs.Add(file.Replace(LMS_PATH, string.Empty).Substring(1)
                     .Replace(".orlsource", string.Empty).Replace('\\', '/'));
             }
