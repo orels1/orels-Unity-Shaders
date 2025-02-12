@@ -1,6 +1,7 @@
 %Properties()
 {
     UI_DepthFadeHeader("# Depth Fade", Int) = 1
+    UI_DepthFadeDocs("[This module has documentation](https://shaders.orels.sh/docs/configurable-shaders/modules/depth-fade)", Int) = 0
     [Toggle(DEPTH_FADE)]_DepthFade("Enable Depth Fade", Int) = 0
     _DepthParticlesNearFadeDistance("Near Distance %ShowIf(DEPTH_FADE)", Float) = 0.0
     _DepthParticlesFarFadeDistance("Far Distance %ShowIf(DEPTH_FADE)", Float) = 1.0
