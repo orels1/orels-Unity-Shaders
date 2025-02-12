@@ -5,7 +5,7 @@
         #if defined(UNITY_PASS_META) && !defined(UNITY_PASS_BAKERY_META)
         o.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
         #else
-        o.pos = UnityObjectToClipPos(v.vertex);
+        o.pos = TransformObjectToHClip(v.vertex);
         #endif
         o.normal = v.normal;
         o.uv0 = v.uv0;
@@ -45,7 +45,8 @@
         #endif
 
         #if defined(NEED_SCREEN_POS)
-        o.screenPos = ComputeScreenPos(o.pos);
+        o.screenPos = GetScreenPosition(o.pos);
+        o.screenPos.z = -TransformWorldToView(TransformObjectToWorld(v.vertex)).z;
         #endif
 
         #if !defined(UNITY_PASS_META)
