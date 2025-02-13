@@ -315,7 +315,7 @@ namespace ORL.ShaderGenerator
             // Find and toggle template features
             try
             {
-                template = ToggleTemplateFeatures(ctx, blocks, template).ToString().Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
+                template = ToggleTemplateFeatures(ctx, blocks, template).ToArray();
             }
             catch (Exception ex)
             {
@@ -335,7 +335,7 @@ namespace ORL.ShaderGenerator
             {
                 try
                 {
-                    GetExtraPass(ctx, blocks, templateName, generatedExtraPasses, extraPassBlocks, extraPass);
+                    GetExtraPass(ctx, blocks, templateName, ref generatedExtraPasses, ref extraPassBlocks, extraPass);
                 }
                 catch (Exception ex)
                 {
@@ -566,7 +566,7 @@ namespace ORL.ShaderGenerator
             return Utils.GetORLTemplate(templateName);
         }
 
-        private StringBuilder ToggleTemplateFeatures(AssetImportContext ctx, List<ShaderBlock> blocks, string[] template)
+        private List<string> ToggleTemplateFeatures(AssetImportContext ctx, List<ShaderBlock> blocks, string[] template)
         {
             var templateFeatures = new List<string>();
             var templateFeaturesIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.TemplateFeatures);
@@ -576,7 +576,7 @@ namespace ORL.ShaderGenerator
             }
 
             // run through the template and mutate it based on the features
-            var newTemplate = new StringBuilder();
+            var newTemplate = new List<string>();
             var enteredFeature = false;
             string currentFeatureName = null;
             var skippingFeature = false;
@@ -586,7 +586,7 @@ namespace ORL.ShaderGenerator
                 var trimmedLine = template[index].Trim();
                 if (trimmedLine.StartsWith("//", StringComparison.InvariantCulture))
                 {
-                    newTemplate.AppendLine(template[index]);
+                    newTemplate.Add(template[index]);
                     continue;
                 }
 
@@ -610,7 +610,7 @@ namespace ORL.ShaderGenerator
                 {
                     if (!skippingFeature)
                     {
-                        newTemplate.AppendLine(template[index]);
+                        newTemplate.Add(template[index]);
                     }
                     continue;
                 }
@@ -644,7 +644,7 @@ namespace ORL.ShaderGenerator
             return newTemplate;
         }
 
-        private void GetExtraPass(AssetImportContext ctx, List<ShaderBlock> blocks, string templateName, List<GeneratedExtraPass> generatedExtraPasses, Dictionary<string, List<ShaderBlock>> extraPassBlocks, ShaderBlock extraPass)
+        private void GetExtraPass(AssetImportContext ctx, List<ShaderBlock> blocks, string templateName, ref List<GeneratedExtraPass> generatedExtraPasses, ref Dictionary<string, List<ShaderBlock>> extraPassBlocks, ShaderBlock extraPass)
         {
             var extraPassName = extraPass.Params[0].Replace("\"", "");
             var extraPassType = extraPass.TypedParams?[1] as ShaderBlock.ExtraPassType? ?? ShaderBlock.ExtraPassType.PostPass;
