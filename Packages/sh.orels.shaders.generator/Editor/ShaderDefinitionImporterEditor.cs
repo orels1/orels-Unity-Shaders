@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Threading;
 using UnityEditor;
 #if UNITY_2022_3_OR_NEWER
 using UnityEditor.AssetImporters;
@@ -15,6 +18,7 @@ namespace ORL.ShaderGenerator
     [CustomEditor(typeof(ShaderDefinitionImporter))]
     public class ShaderDefinitionImporterEditor : ScriptedImporterEditor
     {
+        private bool _includedModulesFoldout;
         private bool _sourceCodeFoldout;
         private bool _shaderCompilationIssuesFoldout;
         private bool _shaderGenerationIssuesFoldout;
@@ -218,6 +222,24 @@ namespace ORL.ShaderGenerator
             // EditorGUIUtility.labelWidth = oldWidth;
             // EditorGUILayout.Space();
 
+            EditorGUILayout.LabelField("Shader Info", EditorStyles.miniBoldLabel);
+            EditorGUILayout.LabelField("Lighting Model", importer.LightingModel);
+
+
+            _includedModulesFoldout = EditorGUILayout.Foldout(_includedModulesFoldout, "Included Modules");
+            if (_includedModulesFoldout)
+            {
+                using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    foreach (var module in importer.IncludedModules)
+                    {
+                        var sourceAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(module);
+                        var sourceShader = AssetDatabase.LoadAssetAtPath<Shader>(module);
+                        EditorGUILayout.ObjectField(sourceAsset != null ? sourceAsset : sourceShader, typeof(UnityEngine.Object), false);
+                    }
+                }
+            }
+
             _sourceCodeFoldout = EditorGUILayout.Foldout(_sourceCodeFoldout, "Compiled Source");
             if (_sourceCodeFoldout && !string.IsNullOrWhiteSpace(textSource))
             {
@@ -285,9 +307,26 @@ namespace ORL.ShaderGenerator
                     EditorGUILayout.TextArea(string.Join("\n", _linedText), _monoStyle);
                     _sourceScrollPos = sv.scrollPosition;
                 }
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("Copy Generated Code"))
+                    {
+                        GUIUtility.systemCopyBuffer = textSource;
+                    }
+                    if (GUILayout.Button("Open in Text Editor"))
+                    {
+                        var path = Application.dataPath.Replace("/Assets", "/Library/TempArtifacts/Extra/");
+                        var filename = Path.GetFileNameWithoutExtension(importer.assetPath);
+                        path += filename + ".shader";
+                        File.WriteAllText(path, textSource);
+                        EditorUtility.OpenWithDefaultApp(path);
+                    }
+                }
             }
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("debugBuild"));
+
+            EditorGUILayout.LabelField("Conversions", EditorStyles.miniBoldLabel);
 
             if (GUILayout.Button("Generate Static .shader File"))
             {

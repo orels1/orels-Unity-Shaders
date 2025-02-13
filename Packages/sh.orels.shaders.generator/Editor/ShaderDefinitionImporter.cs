@@ -23,6 +23,8 @@ namespace ORL.ShaderGenerator
     [ScriptedImporter(1, "orlshader")]
     public class ShaderDefinitionImporter : ScriptedImporter
     {
+        #region Serialized Fields
+
         public bool debugBuild;
         public int samplerCount;
         public int textureCount;
@@ -55,6 +57,14 @@ namespace ORL.ShaderGenerator
                 EndIndex = endIndex;
             }
         }
+
+        public string ShaderName;
+        public string LightingModel;
+        public List<string> IncludedModules = new List<string>();
+
+        #endregion
+
+        #region Internal Block Config
 
         private readonly HashSet<string> _paramsOnlyBlock = new HashSet<string>
         {
@@ -158,11 +168,20 @@ namespace ORL.ShaderGenerator
 
         private const string DefaultLightingModel = "@/LightingModels/PBR";
 
+        #endregion
+
         // Matches %BlockName without nuking %FunctionName()
         private readonly Regex _replacerRegex = new Regex(@"(?<!\/\/\s*)(%[a-zA-Z]+[\w\d]+)(?:$|[""\;\s])");
 
         // Matches %TemplateFeature(<FeatureName>)
         private readonly Regex _templateFeatureRegex = new Regex(@"%TemplateFeature\((?<identifier>""\w+"")\)");
+
+        private struct GeneratedExtraPass
+        {
+            public List<string> content;
+            public int count;
+            public ShaderBlock.ExtraPassType passType;
+        }
 
         /// <summary>
         /// Here's the import flow:
@@ -223,52 +242,26 @@ namespace ORL.ShaderGenerator
                 return;
             }
 
+            IncludedModules.Clear();
+
             // Get the shader name
             string shaderName;
             try
             {
-                var shaderNameBlockIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.ShaderName);
-                if (shaderNameBlockIndex == -1)
-                {
-                    throw new MissingBlockException("%ShaderName", "");
-                }
-                shaderName = blocks[shaderNameBlockIndex].Params[0];
-                if (string.IsNullOrWhiteSpace(shaderName?.Replace("\"", "")))
-                {
-                    throw new MissingParameterException("name", "%ShaderName", "");
-                }
-                var includesIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.Includes);
-                // Shaders can have direct includes (not via LightingModel or anything else)
-                // Here we deep-resolve them and inject them back into the blocks in the respective order
-                if (includesIndex != -1)
-                {
-                    var resolvedBlocks = new List<ShaderBlock>();
-                    foreach (var include in blocks[includesIndex].Contents)
-                    {
-                        var stripped = include.Replace("\"", "").Replace(",", "");
-                        // We inject the already parsed blocks in place of "self"
-                        if (stripped == "self")
-                        {
-                            resolvedBlocks.AddRange(blocks.Where(b => b.CoreBlockType != BlockType.Includes));
-                            continue;
-                        }
+                shaderName = GetShaderName(blocks);
+                ShaderName = shaderName;
+            }
+            catch (Exception ex)
+            {
+                ctx.LogImportError(ex.ToString());
+                ctx.LogImportError($"Failed to get the shader name from {ctx.assetPath}");
+                return;
+            }
 
-                        var blockParser = new Parser();
-                        var deepDeps = new List<string>();
-                        // We recursively collect everything that the lighting model depends on into a flattened list
-                        Utils.RecursivelyCollectDependencies(new[] { stripped }.ToList(), ref deepDeps, workingFolder);
-                        deepDeps.ForEach(dep => ctx.DependsOnSourceAsset(Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), workingFolder)));
-                        var deepBlocks = new List<ShaderBlock>();
-                        foreach (var deepDep in deepDeps)
-                        {
-                            // since we already have the deps flattened, we can safely strip all the dependencies here
-                            deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, workingFolder)).Where(b => b.CoreBlockType != BlockType.Includes));
-                        }
-                        resolvedBlocks.AddRange(deepBlocks);
-                    }
-
-                    blocks = resolvedBlocks;
-                }
+            // Recursively get all the blocks
+            try
+            {
+                blocks = RecursivelyGetDirectDependencies(ctx, workingFolder, blocks);
             }
             catch (Exception ex)
             {
@@ -280,53 +273,23 @@ namespace ORL.ShaderGenerator
             // Find and load the lighting model
             List<ShaderBlock> lightingModel;
             var lightingModelName = DefaultLightingModel;
+            string lightingModelPath;
             try
             {
-                var lightingModelIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.LightingModel);
-                // If we don't have a lighting model, use the default (PBR)
-                lightingModelName = lightingModelIndex == -1
-                    ? DefaultLightingModel
-                    : blocks[lightingModelIndex].Params[0].Replace("\"", "");
-                var lightingModelPath =
-                    Utils.ResolveORLAsset(lightingModelName, lightingModelName.StartsWith("@/"), workingFolder);
-                var lmParser = new Parser();
-                lightingModel = lmParser.Parse(Utils.GetAssetSource(lightingModelName, workingFolder));
-                if (!string.IsNullOrEmpty(lightingModelPath))
-                {
-                    ctx.DependsOnSourceAsset(lightingModelPath);
-                }
+                GetLightingModel(ctx, workingFolder, blocks, out lightingModel, out lightingModelName, out lightingModelPath);
+            }
+            catch (Exception ex)
+            {
+                ctx.LogImportError(ex.ToString());
+                ctx.LogImportError($"Failed to load Lighting Model in {ctx.assetPath}", this);
+                throw;
+            }
+            LightingModel = lightingModelName;
 
-                // Lighting model defines some basic functions and dictates where the source shader gets plugged in
-                var updatedBlocks = new List<ShaderBlock>();
-                foreach (var lmInclude in lightingModel.Find(b => b.CoreBlockType == BlockType.Includes).Contents)
-                {
-                    var stripped = lmInclude.Replace("\"", "").Replace(",", "");
-                    if (stripped == "target")
-                    {
-                        updatedBlocks.AddRange(blocks);
-                        continue;
-                    }
-
-                    var blockParser = new Parser();
-                    var deepDeps = new List<string>();
-                    var lmWorkingFolder = lightingModelPath.Substring(0,
-                        lightingModelPath.LastIndexOf("/", StringComparison.InvariantCulture));
-                    // We recursively collect everything that the lighting model depends on into a flattened list
-                    Utils.RecursivelyCollectDependencies(new[] { stripped }.ToList(), ref deepDeps, lmWorkingFolder);
-                    deepDeps.ForEach(dep =>
-                        ctx.DependsOnSourceAsset(Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), lmWorkingFolder)));
-                    var deepBlocks = new List<ShaderBlock>();
-                    foreach (var deepDep in deepDeps)
-                    {
-                        // since we already have the deps flattened, we can safely strip all the dependencies here
-                        deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, lmWorkingFolder))
-                            .Where(b => b.CoreBlockType != BlockType.Includes));
-                    }
-
-                    updatedBlocks.AddRange(deepBlocks);
-                }
-
-                blocks = updatedBlocks;
+            // Recursively get all the lighting model blocks
+            try
+            {
+                blocks = RecursivelyGetLightingModelDependencies(ctx, blocks, lightingModel, lightingModelPath);
             }
             catch (Exception ex)
             {
@@ -340,35 +303,7 @@ namespace ORL.ShaderGenerator
             var templateName = "@/Templates/PBR";
             try
             {
-                var templateBlockIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.Template);
-                // if no template is found - use the Lighting Model supplied one
-                if (templateBlockIndex > -1)
-                {
-                    templateName = blocks[templateBlockIndex].Params[0].Replace("\"", "");
-                }
-                else
-                {
-                    templateBlockIndex = lightingModel.FindIndex(b => b.CoreBlockType == BlockType.Template);
-                    if (templateBlockIndex == -1)
-                    {
-                        throw new MissingBlockException("%Template",
-                            "The lighting model is missing the %Template block");
-                    }
-
-                    templateName = lightingModel[templateBlockIndex].Params[0]?.Replace("\"", "");
-                    ;
-                    if (string.IsNullOrWhiteSpace(templateName))
-                    {
-                        throw new MissingParameterException("name", "%Template", "");
-                    }
-                }
-
-                var templatePath = Utils.ResolveORLAsset(templateName);
-                template = Utils.GetORLTemplate(templateName);
-                if (!string.IsNullOrEmpty(templatePath))
-                {
-                    ctx.DependsOnSourceAsset(templatePath);
-                }
+                template = GetTemplate(ctx, blocks, lightingModel, out templateName);
             }
             catch (Exception ex)
             {
@@ -380,79 +315,7 @@ namespace ORL.ShaderGenerator
             // Find and toggle template features
             try
             {
-                var templateFeatures = new List<string>();
-                var templateFeaturesIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.TemplateFeatures);
-                if (templateFeaturesIndex > -1)
-                {
-                    templateFeatures = blocks[templateFeaturesIndex].Params.Select(p => p.Replace("\"", "")).ToList();
-                }
-
-                // run through the template and mutate it based on the features
-                var newTemplate = new StringBuilder();
-                var enteredFeature = false;
-                string currentFeatureName = null;
-                var skippingFeature = false;
-                var nestLevel = 0;
-                for (var index = 0; index < template.Length; index++)
-                {
-                    var trimmedLine = template[index].Trim();
-                    if (trimmedLine.StartsWith("//", StringComparison.InvariantCulture))
-                    {
-                        newTemplate.AppendLine(template[index]);
-                        continue;
-                    }
-
-                    if (enteredFeature)
-                    {
-                        if (trimmedLine.StartsWith("{")) nestLevel++;
-                        if (trimmedLine.StartsWith("}")) nestLevel--;
-                    }
-
-                    if (enteredFeature && nestLevel == 0)
-                    {
-                        enteredFeature = false;
-                        skippingFeature = false;
-                        // feature exited, skip this line for the closing `}`
-                        continue;
-                    }
-
-                    var match = _templateFeatureRegex.Match(trimmedLine);
-                    // add all normal lines
-                    if (!match.Success)
-                    {
-                        if (!skippingFeature)
-                        {
-                            newTemplate.AppendLine(template[index]);
-                        }
-                        continue;
-                    }
-
-                    // if encountered nested feature - abort
-                    if (enteredFeature)
-                    {
-                        ctx.LogImportError($"Found nested Template Features in {ctx.assetPath}. {match.Groups["identifier"].Value} was inside {currentFeatureName}", this);
-                        throw new Exception("Nested Template Features are not supported");
-                    }
-
-                    currentFeatureName = match.Groups["identifier"].Value.Replace("\"", string.Empty);
-
-                    // if this isn't a feature we want - skip it altogether
-                    if (!templateFeatures.Contains(currentFeatureName))
-                    {
-                        skippingFeature = true;
-                        enteredFeature = true;
-                        // we skip 1 line for the opening `{`
-                        nestLevel++;
-                        index++;
-                        continue;
-                    }
-
-                    enteredFeature = true;
-                    // we skip 1 line for the opening `{`
-                    nestLevel++;
-                    index++;
-                }
-                template = newTemplate.ToString().Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
+                template = ToggleTemplateFeatures(ctx, blocks, template).ToString().Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
             }
             catch (Exception ex)
             {
@@ -466,39 +329,13 @@ namespace ORL.ShaderGenerator
 
             // Load all the extra passes
             var extraPasses = blocks.FindAll(b => b.CoreBlockType == BlockType.ExtraPass);
-            var generatedExtraPasses = new List<(List<string> content, int count, ShaderBlock.ExtraPassType passType)>();
+            var generatedExtraPasses = new List<GeneratedExtraPass>();
             var extraPassBlocks = new Dictionary<string, List<ShaderBlock>>();
             foreach (var extraPass in extraPasses)
             {
                 try
                 {
-                    var extraPassName = extraPass.Params[0].Replace("\"", "");
-                    var extraPassType = extraPass.TypedParams?[1] as ShaderBlock.ExtraPassType? ?? ShaderBlock.ExtraPassType.PostPass;
-                    var extraPassParser = new Parser();
-                    var extraPassBlocksList = extraPassParser.Parse(extraPass.Contents.ToArray());
-                    extraPassBlocksList.Add(new ShaderBlock
-                    {
-                        Name = "%PassName",
-                        Params = new List<string>() { $"\"{extraPassName}\"" }
-                    });
-
-                    // don't want to include main pass functions in extra pass blocks with an exception for the base functions
-                    var combinedList = extraPassBlocksList.Concat(blocks.Where(b => (b.IsFunction && b.Name.EndsWith("Base")) || (!b.IsFunction && !b.Name.StartsWith("%Pass")))).ToList();
-
-                    extraPassBlocksList = OptimizeBlocks(combinedList);
-                    extraPassBlocks.Add(extraPassName, extraPassBlocksList);
-                    var extraPassFunctions = extraPassBlocksList.Where(b => b.IsFunction).ToList();
-
-                    var extraPassTemplateName = templateName + "ExtraPass";
-                    var extraPassTemplatePath = Utils.ResolveORLAsset(extraPassTemplateName);
-                    var extrapassTemplate = Utils.GetORLTemplate(extraPassTemplateName);
-                    if (string.IsNullOrEmpty(extraPassTemplatePath)) continue;
-
-                    ctx.DependsOnSourceAsset(extraPassTemplatePath);
-                    // Hydrate loaded template
-                    var hydratedExtraPass = new StringBuilder();
-                    var hydratedExtraPassString = HydrateTemplate(hydratedExtraPass, extrapassTemplate, combinedList, extraPassFunctions, ctx).ToString();
-                    generatedExtraPasses.Add((hydratedExtraPassString.Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None).ToList(), hydratedExtraPassString.Length, extraPassType));
+                    GetExtraPass(ctx, blocks, templateName, generatedExtraPasses, extraPassBlocks, extraPass);
                 }
                 catch (Exception ex)
                 {
@@ -510,23 +347,15 @@ namespace ORL.ShaderGenerator
 
             // Insert blocks at hook points
             var hookPointBlocks = blocks.FindAll(b => (b.HookPoints?.Count ?? 0) > 0).ToList();
-            for (var i = 0; i < hookPointBlocks.Count; i++)
+            try
             {
-                for (var j = 0; j < hookPointBlocks[i].HookPoints.Count; j++)
-                {
-                    Debug.Log("Inserting block at hook point: " + hookPointBlocks[i].HookPoints[j].Name);
-                    var blocksToInsert = blocks.FindAll(b => b.Name == hookPointBlocks[i].HookPoints[j].Name);
-                    // these blocks are transient and we dont want to keep them around
-                    blocksToInsert.ForEach(b => blocks.Remove(b));
-                    var insertionIndex = hookPointBlocks[i].Contents.IndexOf(hookPointBlocks[i].HookPoints[j].Name);
-                    Debug.Log("Insertion index: " + insertionIndex);
-                    foreach (var block in blocksToInsert)
-                    {
-                        hookPointBlocks[i].Contents.InsertRange(insertionIndex, IndentContentsList(block.Contents, hookPointBlocks[i].HookPoints[j].Indentation));
-                    }
-                    hookPointBlocks[i].Contents.RemoveAt(insertionIndex);
-                    Debug.Log("Removed hook point: " + hookPointBlocks[i].HookPoints[j].Name + " after inserting " + blocksToInsert.Count + " blocks");
-                }
+                InjectBlocksIntoHookPoints(blocks, hookPointBlocks);
+            }
+            catch (Exception ex)
+            {
+                ctx.LogImportError(ex.ToString());
+                ctx.LogImportError($"Failed to inject blocks into hook points in {ctx.assetPath}", this);
+                throw;
             }
 
             // Override shader name to be the one from the source shader
@@ -543,159 +372,9 @@ namespace ORL.ShaderGenerator
                 return b;
             }).ToList();
 
+            // Assemble the final shader with all the source and pre-hydrated blocks
             var finalShader = new StringBuilder();
-            foreach (var line in template)
-            {
-                var newLine = new StringBuilder(line);
-                var hadMatch = false;
-                while (_replacerRegex.IsMatch(newLine.ToString()))
-                {
-                    hadMatch = true;
-                    var match = _replacerRegex.Match(newLine.ToString());
-                    var matchVal = match.Groups[1].Value;
-                    var matchLen = matchVal.Length;
-
-                    // Functions are a special case, they insert their code into the %Functions block
-                    // And then insert a call to the function in the respective stage
-
-                    // Here we save all the function source code into the shader %Functions space
-                    if (matchVal == "%Functions")
-                    {
-                        InsertContentsAtPosition(ref newLine, functionBlocks, match.Index, matchLen);
-                        continue;
-                    }
-
-                    // Here we insert actual function calls if they follow a couple rules
-                    // - The function block name is the same as the block name, but without the % prefix
-                    // - The functio block has a parameter which matches some HLSL function within the block
-                    if (matchVal.Contains("Functions") && matchVal != "%LibraryFunctions" && matchVal != "%FreeFunctions" && matchVal != "%PassFunctions")
-                    {
-                        var fnName = "";
-                        try
-                        {
-                            fnName = matchVal.Substring(1).Replace("Functions", "");
-                        }
-                        catch (Exception e)
-                        {
-                            ctx.LogImportError($"Failed to extract function name from {matchVal} in {ctx.assetPath}. {e.Message}");
-                            continue;
-                        }
-
-                        var fnBlocks = functionBlocks.FindAll(b => b.Name == "%" + fnName);
-                        fnBlocks.Reverse();
-                        fnBlocks.Sort((a, b) => a.Order.CompareTo(b.Order));
-                        fnBlocks.Reverse();
-                        InsertFnCallAtPosition(ref newLine, fnBlocks, match.Index, matchLen);
-                        continue;
-                    }
-
-                    // Checked includes are special and just get inserted into ShaderDefines section
-                    if (matchVal == "%ShaderDefines")
-                    {
-                        var checkedIncludes = blocks.FindAll(b => b.CoreBlockType == BlockType.CheckedInclude);
-                        foreach (var checkedInclude in checkedIncludes)
-                        {
-                            if (File.Exists(checkedInclude.Params[0].Replace("\"", "")))
-                            {
-                                newLine.AppendLine();
-                                newLine.Append(new string(' ', match.Index));
-                                newLine.Append("#include ");
-                                newLine.AppendLine(checkedInclude.Params[0]);
-                            }
-                        }
-                    }
-
-                    // For non-function blocks - we simply replace the block name with the block contents
-                    var foundBlockIndex = blocks.FindIndex(b => b.Name == matchVal);
-                    if (foundBlockIndex != -1)
-                    {
-                        var block = blocks[foundBlockIndex];
-
-                        // These are special single-line blocks that only insert their params value
-                        if (_paramsOnlyBlock.Contains(block.Name))
-                        {
-                            newLine.Remove(match.Index, matchLen);
-                            // To appease unity gods - we define CustomEditor "" as the template, so then if nothing is passed
-                            // It doesnt outright fail
-                            // We should probably just insert a fallback block instead and remove this weird condition
-                            if (block.Name == "%CustomEditor")
-                            {
-                                newLine.Insert(match.Index, block.Params[0].Replace("\"", ""));
-                            }
-                            else
-                            {
-                                newLine.Insert(match.Index, string.Join("", block.Params));
-                            }
-                            continue;
-                        }
-
-                        // This is a case for special functions that are unique per shader
-                        // like Vert/Fragment base
-                        if (block.IsFunction)
-                        {
-                            newLine.Remove(match.Index, matchLen);
-                            newLine.Insert(match.Index, block.CallSign);
-                            continue;
-                        }
-
-                        // Simply insert the block lines if no special cases are met
-                        newLine.Remove(match.Index, matchLen);
-                        newLine.Insert(match.Index, IndentContents(block.Contents, match.Index));
-                        continue;
-                    }
-
-                    // Inject pre-hydrated extra pre-passes
-                    if (matchVal == "%ExtraPrePasses")
-                    {
-                        var insertionIndex = match.Index;
-                        newLine.Remove(match.Index, matchLen);
-
-                        var onlyPrePasses = generatedExtraPasses.Where(b => b.passType == ShaderBlock.ExtraPassType.PrePass);
-
-                        foreach (var extraPass in onlyPrePasses)
-                        {
-                            var indented = IndentContents(extraPass.content, insertionIndex);
-                            newLine.Insert(insertionIndex, indented);
-                            insertionIndex += indented.Length;
-                            newLine.Insert(insertionIndex, Environment.NewLine);
-                            insertionIndex += Environment.NewLine.Length;
-                        }
-                        continue;
-                    }
-
-                    // Inject pre-hydrated extra passes
-                    if (matchVal == "%ExtraPasses")
-                    {
-                        var insertionIndex = match.Index;
-                        newLine.Remove(match.Index, matchLen);
-
-                        var onlyPostPasses = generatedExtraPasses.Where(b => b.passType == ShaderBlock.ExtraPassType.PostPass);
-
-                        foreach (var extraPass in onlyPostPasses)
-                        {
-                            var indented = IndentContents(extraPass.content, insertionIndex);
-                            newLine.Insert(insertionIndex, indented);
-                            insertionIndex += indented.Length;
-                            newLine.Insert(insertionIndex, Environment.NewLine);
-                            insertionIndex += Environment.NewLine.Length;
-                        }
-                        continue;
-                    }
-
-                    // if nothing matched - clear out the current template hook and move on
-                    {
-                        newLine.Remove(match.Index, matchLen);
-                    }
-                }
-
-                var stringLine = newLine.ToString();
-                // if there was no match - just add the line as-is
-                // otherwise only add if the result wasn't whitespace
-                if (!string.IsNullOrWhiteSpace(stringLine) || !hadMatch)
-                {
-                    finalShader.AppendLine(stringLine);
-                }
-            }
+            finalShader = HydrateTemplate(finalShader, template, blocks, functionBlocks, ctx, generatedExtraPasses);
 
             var shaderString = finalShader.ToString();
             var shader = ShaderUtil.CreateShaderAsset(ctx, shaderString, true);
@@ -713,12 +392,14 @@ namespace ORL.ShaderGenerator
                 ShaderUtil.ClearShaderMessages(shader);
             }
 
+            // Dump shader source as a hidden sub-asset
             var textAsset = new TextAsset(shaderString)
             {
                 name = "Shader Source",
                 hideFlags = HideFlags.HideInHierarchy
             };
 
+            // Dump errors for basic Vert/Frag parameters
             ValidateBasicFunctions(blocks, ref ctx);
 
             // This is currently too slow
@@ -730,7 +411,307 @@ namespace ORL.ShaderGenerator
             ctx.AddObjectToAsset("Shader Source", textAsset);
         }
 
-        private StringBuilder HydrateTemplate(StringBuilder finalShader, IEnumerable<string> template, List<ShaderBlock> blocks, List<ShaderBlock> functionBlocks, AssetImportContext ctx)
+        #region Generator Steps
+
+        private static string GetShaderName(List<ShaderBlock> blocks)
+        {
+            string shaderName;
+            var shaderNameBlockIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.ShaderName);
+            if (shaderNameBlockIndex == -1)
+            {
+                throw new MissingBlockException("%ShaderName", "");
+            }
+            shaderName = blocks[shaderNameBlockIndex].Params[0];
+            if (string.IsNullOrWhiteSpace(shaderName?.Replace("\"", "")))
+            {
+                throw new MissingParameterException("name", "%ShaderName", "");
+            }
+
+            return shaderName;
+        }
+
+        private List<ShaderBlock> RecursivelyGetDirectDependencies(AssetImportContext ctx, string workingFolder, List<ShaderBlock> blocks)
+        {
+            var includesIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.Includes);
+            // Shaders can have direct includes (not via LightingModel or anything else)
+            // Here we deep-resolve them and inject them back into the blocks in the respective order
+            if (includesIndex != -1)
+            {
+                var resolvedBlocks = new List<ShaderBlock>();
+                foreach (var include in blocks[includesIndex].Contents)
+                {
+                    var stripped = include.Replace("\"", "").Replace(",", "");
+                    // We inject the already parsed blocks in place of "self"
+                    if (stripped == "self")
+                    {
+                        resolvedBlocks.AddRange(blocks.Where(b => b.CoreBlockType != BlockType.Includes));
+                        continue;
+                    }
+
+                    var blockParser = new Parser();
+                    var deepDeps = new List<string>();
+
+                    // Save direct dependencies
+                    IncludedModules.Add(Utils.ResolveORLAsset(stripped, stripped.StartsWith("@/"), workingFolder));
+
+                    // We recursively collect everything that the shader depends on into a flattened list
+                    Utils.RecursivelyCollectDependencies(new[] { stripped }.ToList(), ref deepDeps, workingFolder);
+                    var resolvedDeepDeps = deepDeps.Select(dep => Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), workingFolder)).ToList();
+
+                    // Register all the dependencies
+                    resolvedDeepDeps.ForEach(ctx.DependsOnSourceAsset);
+
+                    // Load all the blocks
+                    var deepBlocks = new List<ShaderBlock>();
+                    foreach (var deepDep in deepDeps)
+                    {
+                        // since we already have the deps flattened, we can safely strip all the dependencies here
+                        deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, workingFolder)).Where(b => b.CoreBlockType != BlockType.Includes));
+                    }
+                    resolvedBlocks.AddRange(deepBlocks);
+                }
+
+                blocks = resolvedBlocks;
+            }
+            return blocks;
+        }
+
+        private void GetLightingModel(AssetImportContext ctx, string workingFolder, List<ShaderBlock> blocks, out List<ShaderBlock> lightingModel, out string lightingModelName, out string lightingModelPath)
+        {
+            var lightingModelIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.LightingModel);
+            // If we don't have a lighting model, use the default (PBR)
+            lightingModelName = lightingModelIndex == -1
+                ? DefaultLightingModel
+                : blocks[lightingModelIndex].Params[0].Replace("\"", "");
+            lightingModelPath = Utils.ResolveORLAsset(lightingModelName, lightingModelName.StartsWith("@/"), workingFolder);
+            var lmParser = new Parser();
+            lightingModel = lmParser.Parse(Utils.GetAssetSource(lightingModelName, workingFolder));
+            if (!string.IsNullOrEmpty(lightingModelPath))
+            {
+                ctx.DependsOnSourceAsset(lightingModelPath);
+            }
+        }
+
+        private static List<ShaderBlock> RecursivelyGetLightingModelDependencies(AssetImportContext ctx, List<ShaderBlock> blocks, List<ShaderBlock> lightingModel, string lightingModelPath)
+        {
+            // Lighting model defines some basic functions and dictates where the source shader gets plugged in
+            var updatedBlocks = new List<ShaderBlock>();
+            foreach (var lmInclude in lightingModel.Find(b => b.CoreBlockType == BlockType.Includes).Contents)
+            {
+                var stripped = lmInclude.Replace("\"", "").Replace(",", "");
+                if (stripped == "target")
+                {
+                    updatedBlocks.AddRange(blocks);
+                    continue;
+                }
+
+                var blockParser = new Parser();
+                var deepDeps = new List<string>();
+                var lmWorkingFolder = lightingModelPath.Substring(0,
+                    lightingModelPath.LastIndexOf("/", StringComparison.InvariantCulture));
+
+                // We recursively collect everything that the lighting model depends on into a flattened list
+                Utils.RecursivelyCollectDependencies(new[] { stripped }.ToList(), ref deepDeps, lmWorkingFolder);
+                var resolvedDeepDeps = deepDeps.Select(dep => Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), lmWorkingFolder)).ToList();
+
+                // Register all the dependencies
+                resolvedDeepDeps.ForEach(ctx.DependsOnSourceAsset);
+
+                // Load all the blocks
+                var deepBlocks = new List<ShaderBlock>();
+                foreach (var deepDep in deepDeps)
+                {
+                    // since we already have the deps flattened, we can safely strip all the dependencies here
+                    deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, lmWorkingFolder))
+                        .Where(b => b.CoreBlockType != BlockType.Includes));
+                }
+
+                updatedBlocks.AddRange(deepBlocks);
+            }
+
+            return updatedBlocks;
+        }
+
+        private string[] GetTemplate(AssetImportContext ctx, List<ShaderBlock> blocks, List<ShaderBlock> lightingModel, out string templateName)
+        {
+            var templateBlockIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.Template);
+            // if no template is found - use the Lighting Model supplied one
+            if (templateBlockIndex > -1)
+            {
+                templateName = blocks[templateBlockIndex].Params[0].Replace("\"", "");
+            }
+            else
+            {
+                templateBlockIndex = lightingModel.FindIndex(b => b.CoreBlockType == BlockType.Template);
+                if (templateBlockIndex == -1)
+                {
+                    throw new MissingBlockException("%Template",
+                        "The lighting model is missing the %Template block");
+                }
+
+                templateName = lightingModel[templateBlockIndex].Params[0]?.Replace("\"", "");
+                ;
+                if (string.IsNullOrWhiteSpace(templateName))
+                {
+                    throw new MissingParameterException("name", "%Template", "");
+                }
+            }
+
+            var templatePath = Utils.ResolveORLAsset(templateName);
+            if (!string.IsNullOrEmpty(templatePath))
+            {
+                ctx.DependsOnSourceAsset(templatePath);
+            }
+
+            return Utils.GetORLTemplate(templateName);
+        }
+
+        private StringBuilder ToggleTemplateFeatures(AssetImportContext ctx, List<ShaderBlock> blocks, string[] template)
+        {
+            var templateFeatures = new List<string>();
+            var templateFeaturesIndex = blocks.FindIndex(b => b.CoreBlockType == BlockType.TemplateFeatures);
+            if (templateFeaturesIndex > -1)
+            {
+                templateFeatures = blocks[templateFeaturesIndex].Params.Select(p => p.Replace("\"", "")).ToList();
+            }
+
+            // run through the template and mutate it based on the features
+            var newTemplate = new StringBuilder();
+            var enteredFeature = false;
+            string currentFeatureName = null;
+            var skippingFeature = false;
+            var nestLevel = 0;
+            for (var index = 0; index < template.Length; index++)
+            {
+                var trimmedLine = template[index].Trim();
+                if (trimmedLine.StartsWith("//", StringComparison.InvariantCulture))
+                {
+                    newTemplate.AppendLine(template[index]);
+                    continue;
+                }
+
+                if (enteredFeature)
+                {
+                    if (trimmedLine.StartsWith("{")) nestLevel++;
+                    if (trimmedLine.StartsWith("}")) nestLevel--;
+                }
+
+                if (enteredFeature && nestLevel == 0)
+                {
+                    enteredFeature = false;
+                    skippingFeature = false;
+                    // feature exited, skip this line for the closing `}`
+                    continue;
+                }
+
+                var match = _templateFeatureRegex.Match(trimmedLine);
+                // add all normal lines
+                if (!match.Success)
+                {
+                    if (!skippingFeature)
+                    {
+                        newTemplate.AppendLine(template[index]);
+                    }
+                    continue;
+                }
+
+                // if encountered nested feature - abort
+                if (enteredFeature)
+                {
+                    ctx.LogImportError($"Found nested Template Features in {ctx.assetPath}. {match.Groups["identifier"].Value} was inside {currentFeatureName}", this);
+                    throw new Exception("Nested Template Features are not supported");
+                }
+
+                currentFeatureName = match.Groups["identifier"].Value.Replace("\"", string.Empty);
+
+                // if this isn't a feature we want - skip it altogether
+                if (!templateFeatures.Contains(currentFeatureName))
+                {
+                    skippingFeature = true;
+                    enteredFeature = true;
+                    // we skip 1 line for the opening `{`
+                    nestLevel++;
+                    index++;
+                    continue;
+                }
+
+                enteredFeature = true;
+                // we skip 1 line for the opening `{`
+                nestLevel++;
+                index++;
+            }
+
+            return newTemplate;
+        }
+
+        private void GetExtraPass(AssetImportContext ctx, List<ShaderBlock> blocks, string templateName, List<GeneratedExtraPass> generatedExtraPasses, Dictionary<string, List<ShaderBlock>> extraPassBlocks, ShaderBlock extraPass)
+        {
+            var extraPassName = extraPass.Params[0].Replace("\"", "");
+            var extraPassType = extraPass.TypedParams?[1] as ShaderBlock.ExtraPassType? ?? ShaderBlock.ExtraPassType.PostPass;
+            var extraPassParser = new Parser();
+            var extraPassBlocksList = extraPassParser.Parse(extraPass.Contents.ToArray());
+            extraPassBlocksList.Add(new ShaderBlock
+            {
+                Name = "%PassName",
+                Params = new List<string>() { $"\"{extraPassName}\"" }
+            });
+
+            // don't want to include main pass functions in extra pass blocks with an exception for the base functions
+            var combinedList = extraPassBlocksList.Concat(blocks.Where(b => (b.IsFunction && b.Name.EndsWith("Base")) || (!b.IsFunction && !b.Name.StartsWith("%Pass")))).ToList();
+
+            extraPassBlocksList = OptimizeBlocks(combinedList);
+            extraPassBlocks.Add(extraPassName, extraPassBlocksList);
+            var extraPassFunctions = extraPassBlocksList.Where(b => b.IsFunction).ToList();
+
+            var extraPassTemplateName = templateName + "ExtraPass";
+            var extraPassTemplatePath = Utils.ResolveORLAsset(extraPassTemplateName);
+            var extrapassTemplate = Utils.GetORLTemplate(extraPassTemplateName);
+            if (string.IsNullOrEmpty(extraPassTemplatePath)) return;
+
+            ctx.DependsOnSourceAsset(extraPassTemplatePath);
+            // Hydrate loaded template
+            var hydratedExtraPass = new StringBuilder();
+            var hydratedExtraPassString = HydrateTemplate(hydratedExtraPass, extrapassTemplate, combinedList, extraPassFunctions, ctx).ToString();
+            generatedExtraPasses.Add(new GeneratedExtraPass
+            {
+                content = hydratedExtraPassString.Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None).ToList(),
+                count = hydratedExtraPassString.Length,
+                passType = extraPassType
+            });
+        }
+
+
+        private void InjectBlocksIntoHookPoints(List<ShaderBlock> blocks, List<ShaderBlock> hookPointBlocks)
+        {
+            for (var i = 0; i < hookPointBlocks.Count; i++)
+            {
+                for (var j = 0; j < hookPointBlocks[i].HookPoints.Count; j++)
+                {
+                    var blocksToInsert = blocks.FindAll(b => b.Name == hookPointBlocks[i].HookPoints[j].Name);
+                    // these blocks are transient and we dont want to keep them around
+                    blocksToInsert.ForEach(b => blocks.Remove(b));
+                    var insertionIndex = hookPointBlocks[i].Contents.IndexOf(hookPointBlocks[i].HookPoints[j].Name);
+                    foreach (var block in blocksToInsert)
+                    {
+                        hookPointBlocks[i].Contents.InsertRange(insertionIndex, IndentContentsList(block.Contents, hookPointBlocks[i].HookPoints[j].Indentation));
+                    }
+                    hookPointBlocks[i].Contents.RemoveAt(insertionIndex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Hydrates the template with provided shader blocks
+        /// Optionally injects extra passes (for use in final shader assembly)
+        /// </summary>
+        /// <param name="finalShader">Target shader</param>
+        /// <param name="template">Template to hydrate</param>
+        /// <param name="blocks">Shader blocks to insert into the template</param>
+        /// <param name="functionBlocks">Function blocks to insert into the template</param>
+        /// <param name="ctx">Asset import context for logging</param>
+        /// <param name="generatedExtraPasses">Extra passes list to inject into the template, should only be used for final shader assembly</param>
+        /// <returns>final shader after hydration</returns>
+        private StringBuilder HydrateTemplate(StringBuilder finalShader, IEnumerable<string> template, List<ShaderBlock> blocks, List<ShaderBlock> functionBlocks, AssetImportContext ctx, List<GeneratedExtraPass> generatedExtraPasses = null)
         {
             foreach (var line in template)
             {
@@ -832,6 +813,47 @@ namespace ORL.ShaderGenerator
                         continue;
                     }
 
+                    if (generatedExtraPasses != null)
+                    {
+                        // Inject pre-hydrated extra pre-passes
+                        if (matchVal == "%ExtraPrePasses")
+                        {
+                            var insertionIndex = match.Index;
+                            newLine.Remove(match.Index, matchLen);
+
+                            var onlyPrePasses = generatedExtraPasses.Where(b => b.passType == ShaderBlock.ExtraPassType.PrePass);
+
+                            foreach (var extraPass in onlyPrePasses)
+                            {
+                                var indented = IndentContents(extraPass.content, insertionIndex);
+                                newLine.Insert(insertionIndex, indented);
+                                insertionIndex += indented.Length;
+                                newLine.Insert(insertionIndex, Environment.NewLine);
+                                insertionIndex += Environment.NewLine.Length;
+                            }
+                            continue;
+                        }
+
+                        // Inject pre-hydrated extra passes
+                        if (matchVal == "%ExtraPasses")
+                        {
+                            var insertionIndex = match.Index;
+                            newLine.Remove(match.Index, matchLen);
+
+                            var onlyPostPasses = generatedExtraPasses.Where(b => b.passType == ShaderBlock.ExtraPassType.PostPass);
+
+                            foreach (var extraPass in onlyPostPasses)
+                            {
+                                var indented = IndentContents(extraPass.content, insertionIndex);
+                                newLine.Insert(insertionIndex, indented);
+                                insertionIndex += indented.Length;
+                                newLine.Insert(insertionIndex, Environment.NewLine);
+                                insertionIndex += Environment.NewLine.Length;
+                            }
+                            continue;
+                        }
+                    }
+
                     // if nothing matched - clear out the current template hook and move on
                     {
                         newLine.Remove(match.Index, matchLen);
@@ -848,6 +870,10 @@ namespace ORL.ShaderGenerator
             }
             return finalShader;
         }
+
+        #endregion
+
+        #region Helpers
 
         private void RegisterDependencies(List<string> dependencyPaths, AssetImportContext ctx)
         {
@@ -1172,6 +1198,10 @@ namespace ORL.ShaderGenerator
             return result;
         }
 
+        #endregion
+
+        #region Parser-Based Stats and Validation
+
         private class StatsUpdater : HLSLSyntaxVisitor
         {
             public struct FunctionParamerror
@@ -1250,6 +1280,10 @@ namespace ORL.ShaderGenerator
                 Debug.LogException(e);
             }
         }
+
+        #endregion
+
+        #region Public API
 
         /// <summary>
         /// Saves the generated shader source to the path provided
@@ -1423,5 +1457,6 @@ namespace ORL.ShaderGenerator
             return textSource;
         }
     }
+    #endregion
 }
 
