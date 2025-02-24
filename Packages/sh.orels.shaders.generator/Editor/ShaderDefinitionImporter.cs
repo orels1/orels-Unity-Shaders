@@ -17,6 +17,7 @@ using UnityShaderParser.HLSL;
 using UnityShaderParser.ShaderLab;
 using Debug = UnityEngine.Debug;
 using BlockType = ORL.ShaderGenerator.ShaderBlock.BlockType;
+using ORL.ShaderGenerator.Settings;
 
 namespace ORL.ShaderGenerator
 {
@@ -26,6 +27,10 @@ namespace ORL.ShaderGenerator
         #region Serialized Fields
 
         public bool debugBuild;
+        private bool DebugBuild => debugBuild || GeneratorProjectSettings.GetOrCreateSettings().forceDebugBuilds;
+        // Cached version of the debug flag to avoid constant asset pinging
+        private bool _isDebugBuild;
+
         public int samplerCount;
         public int textureCount;
         public int featureCount;
@@ -75,23 +80,25 @@ namespace ORL.ShaderGenerator
 
         private List<ShaderBlock> _builtInBlocks;
 
-        private readonly string[] _dataStructs = {
-            "@/Structs/VertexData",
-            "@/Structs/FragmentData"
-        };
+        private List<ModuleRemap> UserModuleRemaps => GeneratorProjectSettings.GetOrCreateSettings().userModuleRemaps;
+        // Cached version of the user module remaps to avoid constant asset pinging
+        private List<ModuleRemap> _userModuleRemaps;
 
-        private List<ShaderBlock> BuiltInBlocks
+        // Some blocks need to be included in all shaders
+        private List<string> AlwaysIncludedBlockSources => GeneratorProjectSettings.GetOrCreateSettings().alwaysIncludedBlocks;
+
+        private List<ShaderBlock> AlwaysIncludedBlocks
         {
             get
             {
                 if (_builtInBlocks != null) return _builtInBlocks;
                 var blocks = new List<ShaderBlock>();
-                foreach (var block in _dataStructs)
+                foreach (var block in AlwaysIncludedBlockSources)
                 {
                     try
                     {
                         var parser = new Parser();
-                        var sourceStrings = Utils.GetORLSource(block);
+                        var sourceStrings = Utils.GetORLSource(block, _userModuleRemaps);
                         var blockSource = parser.Parse(sourceStrings);
                         blocks.AddRange(blockSource);
                     }
@@ -106,67 +113,7 @@ namespace ORL.ShaderGenerator
             }
         }
 
-        private List<ShaderBlock> _builtInFunctions;
-
-        private readonly string[] _functions = {
-        };
-
-        private List<ShaderBlock> BuiltInFunctions
-        {
-            get
-            {
-                if (_builtInFunctions != null) return _builtInFunctions;
-                var blocks = new List<ShaderBlock>();
-                foreach (var function in _functions)
-                {
-                    var parser = new Parser();
-                    var sourceStrings = Utils.GetORLSource(function);
-                    var blockSource = parser.Parse(sourceStrings);
-                    blocks.AddRange(blockSource);
-                }
-
-                _builtInFunctions = blocks;
-                return _builtInFunctions;
-            }
-        }
-
-        private readonly string[] _libraries = {
-            "@/Libraries/Utilities",
-            "@/Libraries/CoreRPShaderLibrary/BiRPtoURP"
-        };
-
-        private const string SamplingLib = "@/Libraries/SamplingLibrary";
-
-        private List<ShaderBlock> _builtInLibraries;
-
-        private List<ShaderBlock> BuiltInLibraries
-        {
-            get
-            {
-                if (_builtInLibraries != null) return _builtInLibraries;
-                var blocks = new List<ShaderBlock>();
-                foreach (var library in _libraries)
-                {
-                    var parser = new Parser();
-                    var sourceStrings = Utils.GetORLSource(library);
-                    var blockSource = parser.Parse(sourceStrings);
-                    blocks.AddRange(blockSource);
-                }
-
-                // Add sampling lib directly as well, we want it everywhere
-                {
-                    var parser = new Parser();
-                    var sourceStrings = Utils.GetORLSource(SamplingLib);
-                    var blockSource = parser.Parse(sourceStrings);
-                    blocks.AddRange(blockSource);
-                }
-
-                _builtInLibraries = blocks;
-                return _builtInLibraries;
-            }
-        }
-
-        private const string DefaultLightingModel = "@/LightingModels/PBR";
+        private string DefaultLightingModel => GeneratorProjectSettings.GetOrCreateSettings().defaultLightingModel;
 
         #endregion
 
@@ -213,22 +160,22 @@ namespace ORL.ShaderGenerator
             var textContent = File.ReadAllLines(ctx.assetPath);
             var workingFolder = ctx.assetPath.Substring(0, ctx.assetPath.LastIndexOf("/", StringComparison.InvariantCulture));
 
+            // Cache debug build
+            _isDebugBuild = DebugBuild;
+            // Cache remaps
+            _userModuleRemaps = UserModuleRemaps;
+
             var parser = new Parser();
             List<ShaderBlock> blocks = new List<ShaderBlock>();
 
             // We built-in imports first, otherwise the order of imports will be incorrect
             // Collecting and registering all the dependency objects
             var depList = new List<string>();
-            depList.AddRange(_dataStructs);
-            depList.AddRange(_functions);
-            depList.AddRange(_libraries);
-            depList.Add(SamplingLib);
+            depList.AddRange(AlwaysIncludedBlockSources);
             RegisterDependencies(depList, ctx);
 
             // Adding all the dependencies to the list of blocks
-            blocks.AddRange(BuiltInBlocks);
-            blocks.AddRange(BuiltInFunctions);
-            blocks.AddRange(BuiltInLibraries);
+            blocks.AddRange(AlwaysIncludedBlocks);
 
             // Load all the direct blocks from the source
             try
@@ -452,11 +399,11 @@ namespace ORL.ShaderGenerator
                     var deepDeps = new List<string>();
 
                     // Save direct dependencies
-                    IncludedModules.Add(Utils.ResolveORLAsset(stripped, stripped.StartsWith("@/"), workingFolder));
+                    IncludedModules.Add(Utils.ResolveORLAsset(stripped, stripped.StartsWith("@/"), _userModuleRemaps, workingFolder));
 
                     // We recursively collect everything that the shader depends on into a flattened list
-                    Utils.RecursivelyCollectDependencies(new[] { stripped }.ToList(), ref deepDeps, workingFolder);
-                    var resolvedDeepDeps = deepDeps.Select(dep => Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), workingFolder)).ToList();
+                    Utils.RecursivelyCollectDependencies(new[] { stripped }.ToList(), ref deepDeps, workingFolder, _userModuleRemaps);
+                    var resolvedDeepDeps = deepDeps.Select(dep => Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), _userModuleRemaps, workingFolder)).ToList();
 
                     // Register all the dependencies
                     resolvedDeepDeps.ForEach(ctx.DependsOnSourceAsset);
@@ -466,7 +413,7 @@ namespace ORL.ShaderGenerator
                     foreach (var deepDep in deepDeps)
                     {
                         // since we already have the deps flattened, we can safely strip all the dependencies here
-                        deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, workingFolder)).Where(b => b.CoreBlockType != BlockType.Includes));
+                        deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, workingFolder, _userModuleRemaps)).Where(b => b.CoreBlockType != BlockType.Includes));
                     }
                     resolvedBlocks.AddRange(deepBlocks);
                 }
@@ -483,16 +430,16 @@ namespace ORL.ShaderGenerator
             lightingModelName = lightingModelIndex == -1
                 ? DefaultLightingModel
                 : blocks[lightingModelIndex].Params[0].Replace("\"", "");
-            lightingModelPath = Utils.ResolveORLAsset(lightingModelName, lightingModelName.StartsWith("@/"), workingFolder);
+            lightingModelPath = Utils.ResolveORLAsset(lightingModelName, lightingModelName.StartsWith("@/"), _userModuleRemaps, workingFolder);
             var lmParser = new Parser();
-            lightingModel = lmParser.Parse(Utils.GetAssetSource(lightingModelName, workingFolder));
+            lightingModel = lmParser.Parse(Utils.GetAssetSource(lightingModelName, workingFolder, _userModuleRemaps));
             if (!string.IsNullOrEmpty(lightingModelPath))
             {
                 ctx.DependsOnSourceAsset(lightingModelPath);
             }
         }
 
-        private static List<ShaderBlock> RecursivelyGetLightingModelDependencies(AssetImportContext ctx, List<ShaderBlock> blocks, List<ShaderBlock> lightingModel, string lightingModelPath)
+        private List<ShaderBlock> RecursivelyGetLightingModelDependencies(AssetImportContext ctx, List<ShaderBlock> blocks, List<ShaderBlock> lightingModel, string lightingModelPath)
         {
             // Lighting model defines some basic functions and dictates where the source shader gets plugged in
             var updatedBlocks = new List<ShaderBlock>();
@@ -511,8 +458,8 @@ namespace ORL.ShaderGenerator
                     lightingModelPath.LastIndexOf("/", StringComparison.InvariantCulture));
 
                 // We recursively collect everything that the lighting model depends on into a flattened list
-                Utils.RecursivelyCollectDependencies(new[] { stripped }.ToList(), ref deepDeps, lmWorkingFolder);
-                var resolvedDeepDeps = deepDeps.Select(dep => Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), lmWorkingFolder)).ToList();
+                Utils.RecursivelyCollectDependencies(new[] { stripped }.ToList(), ref deepDeps, lmWorkingFolder, _userModuleRemaps);
+                var resolvedDeepDeps = deepDeps.Select(dep => Utils.ResolveORLAsset(dep, dep.StartsWith("@/"), _userModuleRemaps, lmWorkingFolder)).ToList();
 
                 // Register all the dependencies
                 resolvedDeepDeps.ForEach(ctx.DependsOnSourceAsset);
@@ -522,7 +469,7 @@ namespace ORL.ShaderGenerator
                 foreach (var deepDep in deepDeps)
                 {
                     // since we already have the deps flattened, we can safely strip all the dependencies here
-                    deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, lmWorkingFolder))
+                    deepBlocks.AddRange(blockParser.Parse(Utils.GetAssetSource(deepDep, lmWorkingFolder, _userModuleRemaps))
                         .Where(b => b.CoreBlockType != BlockType.Includes));
                 }
 
@@ -563,7 +510,7 @@ namespace ORL.ShaderGenerator
                 ctx.DependsOnSourceAsset(templatePath);
             }
 
-            return Utils.GetORLTemplate(templateName);
+            return Utils.GetORLTemplate(templateName, _userModuleRemaps);
         }
 
         private List<string> ToggleTemplateFeatures(AssetImportContext ctx, List<ShaderBlock> blocks, string[] template)
@@ -664,8 +611,8 @@ namespace ORL.ShaderGenerator
             var extraPassFunctions = extraPassBlocksList.Where(b => b.IsFunction).ToList();
 
             var extraPassTemplateName = templateName + "ExtraPass";
-            var extraPassTemplatePath = Utils.ResolveORLAsset(extraPassTemplateName);
-            var extrapassTemplate = Utils.GetORLTemplate(extraPassTemplateName);
+            var extraPassTemplatePath = Utils.ResolveORLAsset(extraPassTemplateName, true, _userModuleRemaps);
+            var extrapassTemplate = Utils.GetORLTemplate(extraPassTemplateName, _userModuleRemaps);
             if (string.IsNullOrEmpty(extraPassTemplatePath)) return;
 
             ctx.DependsOnSourceAsset(extraPassTemplatePath);
@@ -883,11 +830,11 @@ namespace ORL.ShaderGenerator
                 string path;
                 if (s.StartsWith("@/"))
                 {
-                    path = Utils.ResolveORLAsset(s);
+                    path = Utils.ResolveORLAsset(s, true, _userModuleRemaps);
                 }
                 else
                 {
-                    path = Utils.ResolveORLAsset(s, false, workingFolder);
+                    path = Utils.ResolveORLAsset(s, false, _userModuleRemaps, workingFolder);
                 }
                 if (!string.IsNullOrEmpty(path))
                 {
@@ -996,7 +943,7 @@ namespace ORL.ShaderGenerator
                         {
                             if (keySet.Contains(node.Uniform))
                             {
-                                if (debugBuild)
+                                if (_isDebugBuild)
                                 {
                                     Debug.LogWarning("Found duplicate item, skipping: " + node.Uniform);
                                 }
@@ -1025,7 +972,7 @@ namespace ORL.ShaderGenerator
                                     var tagValue = tag.Value;
                                     if (keySet.Contains(tagKey))
                                     {
-                                        if (debugBuild)
+                                        if (_isDebugBuild)
                                         {
                                             Debug.LogWarning("Found duplicate tag, updating: " + tagKey + " to " + tagValue);
                                         }
@@ -1054,7 +1001,7 @@ namespace ORL.ShaderGenerator
                         {
                             if (dedupedModifiers.ContainsKey(node.GetType()))
                             {
-                                if (debugBuild)
+                                if (_isDebugBuild)
                                 {
                                     Debug.LogWarning($"Found duplicate shader/pass modifier, skipping: {node.GetCodeInSourceText(combined)}");
                                 }
@@ -1099,7 +1046,7 @@ namespace ORL.ShaderGenerator
                 var identifier = matcher.Match(item).Groups.Cast<Group>().Skip(1).ToList().Find(m => !string.IsNullOrEmpty(m.Value)).Value;
                 if (keySet.Contains(identifier))
                 {
-                    if (debugBuild)
+                    if (_isDebugBuild)
                     {
                         Debug.LogWarning("Found duplicate item, skipping: " + identifier);
                     }

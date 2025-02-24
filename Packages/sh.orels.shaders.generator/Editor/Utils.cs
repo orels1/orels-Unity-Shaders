@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ORL.ShaderGenerator.Settings;
 using UnityEditor;
 using UnityEngine;
 
@@ -26,6 +28,41 @@ namespace ORL.ShaderGenerator
 
         public static string ResolveORLAsset(string path, bool bundled, string basePath = null)
         {
+            if (bundled)
+            {
+                return ResolveBundledAsset(path);
+            }
+
+            var freeAsset = ResolveFreeAsset(path, basePath);
+            if (freeAsset == null)
+            {
+                throw new SourceAssetNotFoundException(path, new[] { basePath });
+            }
+
+            return freeAsset;
+        }
+
+        public static string ResolveORLAsset(string path, bool bundled, List<ModuleRemap> remaps, string basePath = null)
+        {
+            if (remaps != null)
+            {
+                foreach (var remap in remaps)
+                {
+                    // Ignore empty entries
+                    if (string.IsNullOrWhiteSpace(remap.Source) || string.IsNullOrWhiteSpace(remap.Destination)) continue;
+
+                    if (path.Equals(remap.Source, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        path = remap.Destination;
+                    }
+                    // If the remap is not bundled, resolve as free asset
+                    if (!path.StartsWith("@/"))
+                    {
+                        bundled = false;
+                    }
+                }
+            }
+
             if (bundled)
             {
                 return ResolveBundledAsset(path);
@@ -132,19 +169,34 @@ namespace ORL.ShaderGenerator
 
         public static string[] GetORLTemplate(string path)
         {
-            var fullPath = ResolveORLAsset(path, true);
+            return GetORLTemplate(path, null);
+        }
+
+        public static string[] GetORLTemplate(string path, List<ModuleRemap> remaps)
+        {
+            var fullPath = ResolveORLAsset(path, true, remaps);
             return File.ReadAllLines(fullPath);
         }
 
         public static string[] GetORLSource(string path)
         {
-            var fullPath = ResolveORLAsset(path, true);
+            return GetORLSource(path, null);
+        }
+
+        public static string[] GetORLSource(string path, List<ModuleRemap> remaps)
+        {
+            var fullPath = ResolveORLAsset(path, true, remaps);
             return File.ReadAllLines(fullPath);
         }
 
         public static string[] GetAssetSource(string path, string basePath)
         {
             return File.ReadAllLines(ResolveORLAsset(path, path.StartsWith("@/"), basePath));
+        }
+
+        public static string[] GetAssetSource(string path, string basePath, List<ModuleRemap> remaps)
+        {
+            return File.ReadAllLines(ResolveORLAsset(path, path.StartsWith("@/"), remaps, basePath));
         }
 
         public static Texture2D GetNonModifiableTexture(Shader shader, string name)
@@ -165,12 +217,18 @@ namespace ORL.ShaderGenerator
             return null;
         }
 
+
         public static void RecursivelyCollectDependencies(List<string> sourceList, ref List<string> dependencies, string basePath)
+        {
+            RecursivelyCollectDependencies(sourceList, ref dependencies, basePath, null);
+        }
+
+        public static void RecursivelyCollectDependencies(List<string> sourceList, ref List<string> dependencies, string basePath, List<ModuleRemap> remaps)
         {
             var parser = new Parser();
             foreach (var source in sourceList)
             {
-                var blocks = parser.Parse(GetAssetSource(source, basePath));
+                var blocks = parser.Parse(GetAssetSource(source, basePath, remaps));
                 var includesBlockIndex = blocks.FindIndex(b => b.CoreBlockType == ShaderBlock.BlockType.Includes);
                 if (includesBlockIndex == -1)
                 {
@@ -192,7 +250,7 @@ namespace ORL.ShaderGenerator
                     if (!dependencies.Contains(depPath))
                     {
                         var deepDeps = new List<string>();
-                        RecursivelyCollectDependencies(new List<string> { depPath }, ref deepDeps, basePath);
+                        RecursivelyCollectDependencies(new List<string> { depPath }, ref deepDeps, basePath, remaps);
                         dependencies.AddRange(deepDeps);
                     }
                 }
