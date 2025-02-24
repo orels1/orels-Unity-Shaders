@@ -406,6 +406,49 @@
     }
     #endif
 
+    #ifdef DYNAMICLIGHTMAP_ON
+    half3 getRealtimeLightmap(half2 uv, half3 worldNormal, int disableBicubic)
+    {
+        half2 realtimeUV = uv;
+        half4 bakedCol;
+
+        // Sample main lightmap
+        #if defined(BICUBIC_LIGHTMAP)
+        [branch]
+        if (disableBicubic)
+        {
+            bakedCol = SAMPLE_TEXTURE2D(unity_DynamicLightmap, samplerunity_DynamicLightmap, realtimeUV);
+        } else {
+            bakedCol = tex2DFastBicubicSample(unity_DynamicLightmap, samplerunity_DynamicLightmap, realtimeUV);
+        }
+        #else
+        bakedCol = SAMPLE_TEXTURE2D(unity_DynamicLightmap, samplerunity_DynamicLightmap, realtimeUV);
+        #endif 
+        half3 realtimeLightmap = DecodeRealtimeLightmap(bakedCol);
+
+        // Sample directional lightmap
+        #ifdef DIRLIGHTMAP_COMBINED
+        {
+            half4 realtimeDirTex;
+            #if defined(BICUBIC_LIGHTMAP)
+            [branch]
+            if (disableBicubic)
+            {
+                realtimeDirTex = SAMPLE_TEXTURE2D(unity_DynamicDirectionality, samplerunity_DynamicLightmap, realtimeUV);
+            } else {
+                realtimeDirTex = tex2DFastBicubicSample(unity_DynamicDirectionality, samplerunity_DynamicLightmap, realtimeUV);
+            }
+            #else
+            realtimeDirTex = SAMPLE_TEXTURE2D(unity_DynamicDirectionality, samplerunity_DynamicLightmap, realtimeUV);
+            #endif 
+            realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
+        }
+        #endif
+
+        return realtimeLightmap;
+    }
+    #endif
+
     half computeSpecularAO(half NoV, half ao, half roughness)
     {
         return saturate(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao);
