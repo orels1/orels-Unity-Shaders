@@ -214,16 +214,18 @@
 
     half3 calcReflectionBlending(SurfaceData o, half reflectivity, half3 col, half3 indirectSpecular)
     {
-        if (o.ReflectionBlendMode == 0) { // Additive
-            col += indirectSpecular.xyzz * reflectivity;
-            return col;
-        } else if (o.ReflectionBlendMode == 1) { //Multiplicitive
-            col = lerp(col, col * indirectSpecular.xyz, reflectivity);
-            return col;
-        } else if(o.ReflectionBlendMode == 2) { //Subtractive
-            col -= indirectSpecular.xyz * reflectivity;
-            return col;
-        }
+        half3 reflection = indirectSpecular.xyzz * reflectivity;
+
+        // Doing a Lerp allows shaders to smoothly transition between blend modes
+        col = lerp(
+            col + reflection, // Additive
+            lerp(
+                lerp(col, col * indirectSpecular.xyz, reflectivity), // Multiplicitive
+                col - reflection, // Subtractive
+                saturate(o.ReflectionBlendMode - 1)
+            ),
+            saturate(o.ReflectionBlendMode)
+        );
         return col;
     }
 
