@@ -34,7 +34,7 @@
         
         half Reflectivity;
         half3 BakedReflection;
-        int ReflectionBlendMode;
+        half ReflectionBlendMode;
         
         half3 OutlineColor;
         int OutlineLightingMode;

@@ -2,7 +2,7 @@
 {
     UI_ReflectionsHeader("# Reflections", Int) = 0
     [KeywordEnum(Off, PBR, Baked Cubemap, Matcap)]REFLECTION_MODE("Reflection Mode", Int) = 0
-    [Enum(Additive,0,Multiply,1,Subtract,2)] _ReflectionBlendMode("Reflection Blend Mode %ShowIf(!REFLECTION_MODE_OFF)", Int) = 0
+    [Enum(Additive,0,Multiply,1,Subtract,2)] _ReflectionBlendMode("Reflection Blend Mode %ShowIf(!REFLECTION_MODE_OFF)", Float) = 0
     _BakedCubemap("BakedCubemap > %ShowIf(REFLECTION_MODE_PBR || REFLECTION_MODE_BAKED_CUBEMAP)", CUBE) = "black" {}
     UI_FallbackNote("> Will be used if world has no reflections %ShowIf(REFLECTION_MODE_PBR)", Int) = 0
     _MetallicGlossMap("Metallic Smoothness > %ShowIf(REFLECTION_MODE_PBR || REFLECTION_MODE_BAKED_CUBEMAP)", 2D) = "white" {}
@@ -39,7 +39,7 @@
 %Variables()
 {
     int _ReflectionMode;
-    int _ReflectionBlendMode;
+    half _ReflectionBlendMode;
     half _Smoothness;
     half _Metallic;
     int _RoughnessMode;
