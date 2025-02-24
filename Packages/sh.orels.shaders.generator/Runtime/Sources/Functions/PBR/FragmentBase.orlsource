@@ -64,6 +64,7 @@
     _GIEmissiveBoost("GI Emissive Boost", Float) = 1
     [ToggleUI]_IgnoreRealtimeGI("Ignore Relatime GI", Int) = 0
     UI_IgnoreRealtimeGINote("?> This will make the material ignore Unity Realtime GI system. It does not affect custom RTGI systems like LTCGI", Int) = 0
+    [ToggleUI]_RealtimeGIDisableBicubic("Disable Bicubic for RTGI %ShowIf(BICUBIC_LIGHTMAP)", Int) = 0
     
     UI_BakeryHeader("## Bakery Features", Int) = 0
     [Toggle(BAKERY_ENABLED)]_BakeryEnabled("Enable Bakery Features", Int) = 0
@@ -203,6 +204,7 @@
     half _BoxProjectionContactHardeningStrength;
     half _GIEmissiveBoost;
     int _IgnoreRealtimeGI;
+    int _RealtimeGIDisableBicubic;
 
     int _RenderType;
     half _Cutoff;
@@ -509,7 +511,7 @@
                 {
                     [branch]
                     if (!_IgnoreRealtimeGI) {
-                        half3 realtimeLightMap = getRealtimeLightmap(d.lightmapUv.zw, o.Normal);
+                        half3 realtimeLightMap = getRealtimeLightmap(d.lightmapUv.zw, o.Normal, _RealtimeGIDisableBicubic);
                         lightMap += realtimeLightMap;
                     }
                 }
@@ -855,7 +857,7 @@
             computedSpecularOcclusion *= energyCompensation;
 
             half3 envBRDF = EnvBRDFMultiscatter(clearcoatdfg, f0);
-            clearCoatIndirectSpecular *= envBRDF
+            clearCoatIndirectSpecular *= envBRDF;
             clearCoatIndirectSpecular *= gtaoMultiBounce(computedSpecularOcclusion, f0);
         }
         #endif
