@@ -45,10 +45,20 @@ namespace ORL.Shaders
         private List<Shader> FindShaders()
         {
             var shaders = new List<Shader>();
-            var assetShaders = Directory.EnumerateFiles("Assets", "*.orlshader", SearchOption.AllDirectories).Select(p => AssetDatabase.LoadAssetAtPath<Shader>(p)).ToList();
-            assetShaders.AddRange(Directory.EnumerateFiles("Assets", "*.orlconfshader", SearchOption.AllDirectories).Select(p => AssetDatabase.LoadAssetAtPath<Shader>(p)).ToList());
-            assetShaders.AddRange(Directory.EnumerateFiles("Packages", "*.orlshader", SearchOption.AllDirectories).Select(p => AssetDatabase.LoadAssetAtPath<Shader>(p)).ToList());
-            return assetShaders;
+            var results = AssetDatabase.FindAssets("t:Shader", new string[] { "Assets", "Packages" });
+            foreach (var guid in results)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                if (path.EndsWith(".orlshader") || path.EndsWith(".orlconfshader"))
+                {
+                    var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+                    if (shader != null)
+                    {
+                        shaders.Add(shader);
+                    }
+                }
+            }
+            return shaders;
         }
 
         private List<Material> FindMaterials()
