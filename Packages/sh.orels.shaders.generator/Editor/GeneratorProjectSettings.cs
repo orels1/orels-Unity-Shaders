@@ -112,7 +112,8 @@ namespace ORL.ShaderGenerator.Settings
             EditorGUILayout.HelpBox(new GUIContent("This list of remaps allows you to arbitrarily swap out modules by import path. E.g. you can replace all inclusions of a particular module with your custom one"));
 
             var remapsProp = _settings.FindProperty("userModuleRemaps");
-            if (EditorGUILayout.Foldout(remapsProp.isExpanded, new GUIContent("Remaps List")))
+            remapsProp.isExpanded = EditorGUILayout.Foldout(remapsProp.isExpanded, new GUIContent("Remaps List"));
+            if (remapsProp.isExpanded)
             {
                 using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
                 {
