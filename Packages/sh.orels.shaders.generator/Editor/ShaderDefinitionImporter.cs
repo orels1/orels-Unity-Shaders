@@ -27,7 +27,7 @@ namespace ORL.ShaderGenerator
         #region Serialized Fields
 
         public bool debugBuild;
-        private bool DebugBuild => debugBuild || GeneratorProjectSettings.GetOrCreateSettings().forceDebugBuilds;
+        private bool DebugBuild => debugBuild || GeneratorProjectSettings.GetSettings().forceDebugBuilds;
         // Cached version of the debug flag to avoid constant asset pinging
         private bool _isDebugBuild;
 
@@ -80,12 +80,12 @@ namespace ORL.ShaderGenerator
 
         private List<ShaderBlock> _builtInBlocks;
 
-        private List<ModuleRemap> UserModuleRemaps => GeneratorProjectSettings.GetOrCreateSettings().userModuleRemaps;
+        private List<ModuleRemap> UserModuleRemaps => GeneratorProjectSettings.GetSettings().userModuleRemaps;
         // Cached version of the user module remaps to avoid constant asset pinging
         private List<ModuleRemap> _userModuleRemaps;
 
         // Some blocks need to be included in all shaders
-        private List<string> AlwaysIncludedBlockSources => GeneratorProjectSettings.GetOrCreateSettings().alwaysIncludedBlocks;
+        private List<string> AlwaysIncludedBlockSources => GeneratorProjectSettings.GetSettings().alwaysIncludedBlocks;
 
         private List<ShaderBlock> AlwaysIncludedBlocks
         {
@@ -113,7 +113,7 @@ namespace ORL.ShaderGenerator
             }
         }
 
-        private string DefaultLightingModel => GeneratorProjectSettings.GetOrCreateSettings().defaultLightingModel;
+        private string DefaultLightingModel => GeneratorProjectSettings.GetSettings().defaultLightingModel;
 
         #endregion
 

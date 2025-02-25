@@ -46,6 +46,20 @@ namespace ORL.ShaderGenerator.Settings
             return settings;
         }
 
+        /// <summary>
+        /// This version of Get Settings does not create a physical asset if none exists.
+        /// This is needed for scripted importers, as creating an asset during import will cause a unity error
+        /// </summary>
+        /// <returns></returns>
+        public static GeneratorProjectSettings GetSettings()
+        {
+            var settings = AssetDatabase.LoadAssetAtPath<GeneratorProjectSettings>(SETTINGS_PATH);
+            if (settings != null) return settings;
+
+            settings = ScriptableObject.CreateInstance<GeneratorProjectSettings>();
+            return settings;
+        }
+
         public static SerializedObject GetSerializedSettings()
         {
             return new SerializedObject(GetOrCreateSettings());
