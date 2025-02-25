@@ -32,6 +32,7 @@ namespace ORL.ShaderGenerator.Settings
 
         public List<ModuleRemap> userModuleRemaps = new();
 
+        internal const string SETTINGS_FOLDER = "Assets/Settings";
         internal const string SETTINGS_PATH = "Assets/Settings/ORLShaderGeneratorSettings.asset";
 
         public static GeneratorProjectSettings GetOrCreateSettings()
@@ -40,6 +41,10 @@ namespace ORL.ShaderGenerator.Settings
             if (settings != null) return settings;
 
             settings = ScriptableObject.CreateInstance<GeneratorProjectSettings>();
+            if (!Directory.Exists(SETTINGS_FOLDER))
+            {
+                Directory.CreateDirectory(SETTINGS_FOLDER);
+            }
             AssetDatabase.CreateAsset(settings, SETTINGS_PATH);
             AssetDatabase.SaveAssets();
 
