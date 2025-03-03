@@ -16,7 +16,9 @@
     _LTCGIDiffuseIntensity("Diffuse Intensity", Float) = 1
     _LTCGISpecularIntensity("Specular Intensity", Float) = 1
     _LTCGIRoughnessModifier("Roughness Modifier", Range(-1,1)) = 0
-    [TpggleUI]_LTCGIAlphaPremultiply("Alpha Premultiply %ShowIf(INTEGRATE_AREALIT)", Float) = 0
+    [ToggleUI]_LTCGIAlphaPremultiply("Alpha Premultiply %ShowIf(INTEGRATE_AREALIT)", Float) = 0
+    [ToggleUI]_LTCGIPosterize("Posterize Diffuse", Int) = 0
+    [IntRange]_LTCGIPosterizeSteps("Posterize Steps", Range(3, 10)) = 10
 }
 
 %ShaderFeatures()
@@ -77,6 +79,8 @@
     half _LTCGISpecularIntensity;
     half _LTCGIRoughnessModifier;
     int _LTCGIAlphaPremultiply;
+    int _LTCGIPosterize;
+    int _LTCGIPosterizeSteps;
 }
 
 %CustomGI("LTCGICustomGI")
@@ -150,7 +154,15 @@
                 } else {
                     FinalColor.rgb += ltcgiData.specular * _LTCGISpecularIntensity;
                 }
-                FinalColor.rgb += ltcgiData.diffuse * _LTCGIDiffuseIntensity;
+                if (_LTCGIPosterize)
+                {
+                    float3 posterize = RGB2HSV(ltcgiData.diffuse);
+                    posterize.z = tanh(posterize.z);
+                    posterize.z = floor(pow(posterize.z, 0.75) * _LTCGIPosterizeSteps) / _LTCGIPosterizeSteps;
+                    FinalColor.rgb += HSV2RGB(posterize) * _LTCGIDiffuseIntensity;
+                } else {
+                    FinalColor.rgb += ltcgiData.diffuse * _LTCGIDiffuseIntensity;
+                }
                 if (_LTCGIAlphaPremultiply)
                 {
                     FinalColor.rgb *= FinalColor.a;
