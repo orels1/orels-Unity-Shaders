@@ -17,6 +17,7 @@
     _LTCGISpecularIntensity("Specular Intensity", Float) = 1
     _LTCGIRoughnessModifier("Roughness Modifier", Range(-1,1)) = 0
     [ToggleUI]_LTCGIAlphaPremultiply("Alpha Premultiply %ShowIf(INTEGRATE_AREALIT)", Float) = 0
+    _LTCGIRamp("LTCGI Ramp %Gradient()", 2D) = "grayscaleRamp" {}
 }
 
 %ShaderFeatures()
@@ -79,11 +80,17 @@
     int _LTCGIAlphaPremultiply;
 }
 
+%Textures()
+{
+    TEXTURE2D(_LTCGIRamp);
+    SAMPLER(sampler_LTCGIRamp);
+}
+
 %CustomGI("LTCGICustomGI")
 {
     void LTCGICustomGI(MeshData d, SurfaceData o, inout half3 indirectSpecular, inout half3 indirectDiffuse)
     {
-        #if !defined(ORL_LIGHTING_MODEL_VFX)
+        #if !defined(ORL_LIGHTING_MODEL_TOON)
         {
             #if defined(PLAT_QUEST)
             if (!_LTCGIEnableOnMobile) return;
@@ -119,7 +126,7 @@
 {
     void LTCGIColor(MeshData d, FragmentData i, inout half4 FinalColor, bool facing)
     {
-        #if defined(ORL_LIGHTING_MODEL_VFX)
+        #if defined(ORL_LIGHTING_MODEL_TOON)
         {
             #if defined(PLAT_QUEST)
             if (!_LTCGIEnableOnMobile) return;
@@ -150,7 +157,10 @@
                 } else {
                     FinalColor.rgb += ltcgiData.specular * _LTCGISpecularIntensity;
                 }
-                FinalColor.rgb += ltcgiData.diffuse * _LTCGIDiffuseIntensity;
+                half3 rampHSV = RGB2HSV(ltcgiData.diffuse);
+                rampHSV.z = tanh(rampHSV.z);
+                rampHSV.z = SAMPLE_TEXTURE2D(_LTCGIRamp, sampler_LTCGIRamp, half2(rampHSV.z, 0)).r;
+                FinalColor.rgb += HSV2RGB(rampHSV) * _LTCGIDiffuseIntensity;
                 if (_LTCGIAlphaPremultiply)
                 {
                     FinalColor.rgb *= FinalColor.a;
