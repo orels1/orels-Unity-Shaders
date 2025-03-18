@@ -5,31 +5,31 @@
 %Properties()
 {
     UI_MainHeader("# Main Settings", Int) = 1
-    _Color("Main Color", Color) =  (1, 1, 1, 1)
-    _MainTex("Albedo", 2D) =  "white" { }
-    [Enum(RGB, 0, R, 1, G, 2, B, 3)][_MainTex] _AlbedoChannel("Albedo Channel %ShowIf(_MainTex)", Int) =  0
-    [Enum(UV, 0, Local Space, 1, World Space, 2)] _MappingSpace("Mapping Space", Int) =  0
-    [Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisX("X Axis %ShowIf(_MappingSpace > 0) %CombineWith(_PlanarAxisY)", Int) =  0
-    [HideInInspector][Enum(X, 0, Y, 1, Z, 2)] _PlanarAxisY("Y Axis %ShowIf(_MappingSpace > 0)", Int) =  2
-    [NoScaleOffset] _MaskMap("Masks >", 2D) =  "white" { }
-    [Enum(R, 0, G, 1, B, 2, A, 3)] _MetalChannel("Metal %ShowIf(_MaskMap) %CombineWith(_AOChannel, _DetailMaskChannel, _SmoothChannel)", Int) =  0
-    [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)] _AOChannel("AO", Int) =  1
-    [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)] _DetailMaskChannel("Detail", Int) =  2
-    [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)] _SmoothChannel("Smooth", Int) =  3
-    _Smoothness("Smoothness %ShowIf(!_MaskMap)", Range(0, 1)) =  0.5
-    [ToggleUI][_MaskMap] _RoughnessMode("Roughness Mode %ShowIf(_MaskMap)", Int) =  0
-    _Metallic("Metallic %ShowIf(!_MaskMap)", Range(0, 1)) =  0
-    _MetallicRemap("Metallic Remap %ShowIf(_MaskMap) %RemapSlider(0,1)", Vector) =  (0, 1, 0, 1)
-    _SmoothnessRemap("Smoothness Remap %ShowIf(_MaskMap) %RemapSlider(0,1)", Vector) =  (0, 1, 0, 1)
-    _OcclusionStrength("AO Strength %ShowIf(_MaskMap)", Range(0, 1)) =  1
+    _Color("Main Color", Color) = (1, 1, 1, 1)
+    _MainTex("Albedo", 2D) = "white" { }
+    [Enum(RGB, 0, R, 1, G, 2, B, 3)][_MainTex]_AlbedoChannel("Albedo Channel %ShowIf(_MainTex)", Int) = 0
+    [Enum(UV, 0, Local Space, 1, World Space, 2, Triplanar, 3)]_MappingSpace("Mapping Space", Int) = 0
+    [Enum(X, 0, Y, 1, Z, 2)]_PlanarAxisX("X Axis %ShowIf(_MappingSpace > 0 && _MappingSpace < 3) %CombineWith(_PlanarAxisY)", Int) = 0
+    [HideInInspector][Enum(X, 0, Y, 1, Z, 2)]_PlanarAxisY("Y Axis %ShowIf(_MappingSpace > 0 && _MappingSpace < 3)", Int) = 2
+    [NoScaleOffset]_MaskMap("Masks >", 2D) = "white" { }
+    [Enum(R, 0, G, 1, B, 2, A, 3)]_MetalChannel("Metal %ShowIf(_MaskMap) %CombineWith(_AOChannel, _DetailMaskChannel, _SmoothChannel)", Int) = 0
+    [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)]_AOChannel("AO", Int) = 1
+    [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)]_DetailMaskChannel("Detail", Int) = 2
+    [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)]_SmoothChannel("Smooth", Int) = 3
+    _Smoothness("Smoothness %ShowIf(!_MaskMap)", Range(0, 1)) = 0.5
+    [ToggleUI][_MaskMap]_RoughnessMode("Roughness Mode %ShowIf(_MaskMap)", Int) = 0
+    _Metallic("Metallic %ShowIf(!_MaskMap)", Range(0, 1)) = 0
+    _MetallicRemap("Metallic Remap %ShowIf(_MaskMap) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
+    _SmoothnessRemap("Smoothness Remap %ShowIf(_MaskMap) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
+    _OcclusionStrength("AO Strength %ShowIf(_MaskMap)", Range(0, 1)) = 1
     [ToggleUI]_DetailAsTintMask("Detail as Tint Mask %ShowIf(_MaskMap)", Int) =  0
-    [NoScaleOffset] _BumpMap("Normal Map >", 2D) =  "bump" { }
-    _BumpScale("Normal Map Scale %ShowIf(_BumpMap)", Range(-1, 1)) =  1
-    [ToggleUI]_FlipBumpY("Flip Y (UE Mode) %ShowIf(_BumpMap)", Int) =  0
-    [Toggle(_EMISSION)] _EmissionEnabled("Emission", Int) =  0
-    _EmissionMap("Emission Map > %ShowIf(_EMISSION)", 2D) =  "white" { }
-    [HDR]_EmissionColor("Emission Color %ShowIf(_EMISSION)", Color) =  (0, 0, 0, 1)
-    [Enum(RGB, 0, R, 1, G, 2, B, 3)][_EmissionMap] _EmissionChannel("Emission Channel %ShowIf(_EmissionMap)", Int) =  0
+    [NoScaleOffset]_BumpMap("Normal Map >", 2D) = "bump" { }
+    _BumpScale("Normal Map Scale %ShowIf(_BumpMap)", Range(-1, 1)) = 1
+    [ToggleUI]_FlipBumpY("Flip Y (UE Mode) %ShowIf(_BumpMap)", Int) = 0
+    [Toggle(_EMISSION)]_EmissionEnabled("Emission", Int) = 0
+    _EmissionMap("Emission Map > %ShowIf(_EMISSION)", 2D) = "white" { }
+    [HDR]_EmissionColor("Emission Color %ShowIf(_EMISSION)", Color) = (0, 0, 0, 1)
+    [Enum(RGB, 0, R, 1, G, 2, B, 3)][_EmissionMap]_EmissionChannel("Emission Channel %ShowIf(_EmissionMap)", Int) = 0
 }
 
 %ShaderTags()
@@ -108,7 +108,23 @@
             GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
         #endif
         
-        if (_MappingSpace > 0)
+        // Do Triplanar
+        if (_MappingSpace == 3)
+        {
+            float3 axisProjection = mul(float3(0.0001, 0.0001, 1), d.TBNMatrix);
+            axisProjection = abs(axisProjection);
+            axisProjection = pow(axisProjection, 160);
+            axisProjection /= axisProjection.x + axisProjection.y + axisProjection.z;
+            axisProjection = saturate(invLerp(axisProjection, 0.5, 0.5001));
+            axisProjection.z += saturate(1 - length(axisProjection));
+
+            float3 pos = d.worldSpacePosition * _MainTex_ST.x;
+            GLOBAL_uv = pos.yx;
+            GLOBAL_uv *= axisProjection.x;
+            GLOBAL_uv += pos.y * axisProjection.y;
+            GLOBAL_uv += pos.z * axisProjection.z;
+        }
+        else if (_MappingSpace > 0)
         {
             GLOBAL_uv = (_MappingSpace - 1) ? half2(d.worldSpacePosition[_PlanarAxisX], d.worldSpacePosition[_PlanarAxisY]) : half2(d.localSpacePosition[_PlanarAxisX], d.localSpacePosition[_PlanarAxisY]);
             GLOBAL_uv *= _MainTex_ST.xy + _MainTex_ST.zw;
