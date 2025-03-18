@@ -1,0 +1,89 @@
+%Properties()
+{
+    UI_ShadingHeader("# Shading Settings", Int) = 1
+    _Ramp("Ramp %Gradient()", 2D) = "grayscaleRamp" {}
+    _ShadowSharpness("Shadow Sharpness", Range(0,1)) = 0
+    [ToggleUI]_OffsetRampByOcclusion("Offset Ramp by Occlusion", Int) = 0
+    [ToggleUI]_IgnoreLightprobeNormal("Uniform Probe Lighting", Int) = 1
+}
+
+%Variables()
+{
+    half _ShadowSharpness;
+    int _OffsetRampByOcclusion;
+    int _IgnoreLightprobeNormal;
+}
+
+%AdditionalSurfaceData()
+{
+    half3 Ramp;
+}
+
+%Textures()
+{
+    TEXTURE2D(_Ramp);
+    SAMPLER(sampler_Ramp);
+}
+
+%ModuleLighting("ToonShadingLightingRamp")
+{
+    void ToonShadingLightingRamp(half lightNoL, inout half lightAttenuation, inout SurfaceData o, MeshData d)
+    {
+        half rampPos = lightNoL * 0.5 + 0.5;
+
+        if (_OffsetRampByOcclusion)
+        {
+            rampPos *= o.Occlusion;
+        }
+
+        #if defined(USING_DIRECTIONAL_LIGHT)
+        {
+            half sharp = _ShadowSharpness * 0.5;
+            lightAttenuation = smoothstep(sharp, 1 - sharp, lightAttenuation);
+        }
+        #endif
+
+        #if defined(UNITY_PASS_FORWARDBASE)
+        rampPos *= lightAttenuation;
+        #endif
+
+        o.Ramp = SAMPLE_TEXTURE2D(_Ramp, sampler_Ramp, float2(rampPos, 0)).rgb;
+    }
+}
+
+%ModuleLighting("ToonShadingLightingIndirect")
+{
+    void ToonShadingLightingIndirect(SurfaceData o, MeshData d, inout half3 indirectDiffuse)
+    {
+        half3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+        half3 L0L2 = half3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
+        L0 = L0+L0L2;
+
+        float3 normal = _IgnoreLightprobeNormal ? float3(0, 0.5, 0) : o.WorldNormal;
+        
+        indirectDiffuse = max(0, GetNonLinearSH(L0, unity_SHAr, unity_SHAg, unity_SHAb, normal));
+        indirectDiffuse += SHEvalLinearL2(float4(normal, 1));
+        if (!_OffsetRampByOcclusion)
+        {
+            indirectDiffuse *= o.Occlusion;
+        }
+    }
+}
+
+%ModuleLighting("ToonShadingLightingDirect")
+{
+    void ToonShadingLightingDirect(SurfaceData o, MeshData d, half lightAttenuation, bool hasRealtimeLight, inout half3 lightColor, inout half3 indirectDiffuse, inout half3 mainLightDiffuse)
+    {
+        half grayscaleIndirect = dot(indirectDiffuse, float3(0.299, 0.587, 0.114));// float3(0.299, 0.587, 0.114)
+        half adjustedAttenuation = lerp(lightAttenuation, 1, smoothstep(0, 0.2, grayscaleIndirect));
+
+        // If no realtime light is present - we treat probes as the light source
+        if (!hasRealtimeLight)
+        {
+            lightColor = indirectDiffuse * 0.6;
+            indirectDiffuse = indirectDiffuse * 0.4;
+        }
+
+        mainLightDiffuse = lightColor * adjustedAttenuation * o.Ramp;
+    }
+}

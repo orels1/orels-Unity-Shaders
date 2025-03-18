@@ -1,0 +1,93 @@
+%Properties()
+{
+    UI_EmissionHeader("# Emission", Int) = 0
+    [NoScaleOffset]_EmissionMap("Emission Map > %SetKeyword(_EmissionMap, _EMISSION)", 2D) = "white" {}
+    [Enum(RGB, 0, R, 1, G, 2, B, 3, A, 4)]_EmissionMapChannel("Emission Map Channel", Int) = 0
+    [HDR]_EmissionColor("Color", Color) = (0,0,0,1)
+    _EmissionHue("Hue", Range(0,1)) = 0
+    _EmissionSaturation("Saturation", Range(-1,1)) = 0
+    _EmissionValue("Value", Range(-1,1)) = 0
+    _EmissionTintToDiffuse("Tint To Diffuse", Range(0,1)) = 0
+    [Enum(No,0,Yes,1)]_EmissionScaleWithLight("Scale w/ Light", Int) = 0
+    UI_EmissionScaleWithLightNote("> Hides emission unless light is weaker than Scaling Sensitivity", Int) = 0
+    _EmissionScaleWithLightSensitivity("Scaling Sensitivity %ShowIf(_EmissionScaleWithLight == 1)", Range(0,1)) = 1
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment _EMISSION
+}
+
+%Variables()
+{
+    int _EmissionMapChannel;
+    half4 _EmissionColor;
+    half _EmissionHue;
+    half _EmissionSaturation;
+    half _EmissionValue;
+    half _EmissionTintToDiffuse;
+    int _EmissionScaleWithLight;
+    half _EmissionScaleWithLightSensitivity;
+}
+
+%AdditionalSurfaceData()
+{
+    half EmissionHue;
+    half EmissionSaturation;
+    half EmissionValue;
+    half EmissionTintToDiffuse;
+    int EmissionScaleWithLight;
+    half EmissionScaleWithLightSensitivity;
+}
+
+%Textures()
+{
+    TEXTURE2D(_EmissionMap);
+}
+
+%Fragment("ToonEmissionFragment")
+{
+    void ToonEmissionFragment(inout SurfaceData o) {
+        #if defined(_EMISSION)
+        half4 emissionMap = SAMPLE_TEXTURE2D(_EmissionMap, sampler_MainTex, GLOBAL_uv);
+
+        half3 emission = emissionMap.rgb;
+        if (_EmissionMapChannel > 0) {
+            emission = emission[_EmissionMapChannel - 1].rrr;
+        }
+        emission *= _EmissionColor.rgb;
+        o.Emission.rgb += emission.rgb;
+        #endif
+
+        o.EmissionHue = _EmissionHue;
+        o.EmissionSaturation = _EmissionSaturation;
+        o.EmissionValue = _EmissionValue;
+        
+        o.EmissionTintToDiffuse = _EmissionTintToDiffuse;
+        o.EmissionScaleWithLight = _EmissionScaleWithLight;
+        o.EmissionScaleWithLightSensitivity = _EmissionScaleWithLightSensitivity;
+    }
+}
+
+%ModuleLighting("ToonEmissionLighting")
+{
+    void ToonEmissionLighting(SurfaceData o, MeshData d, half3 lightColor, half3 indirectDiffuse, inout half3 emission)
+    {
+        half lightAvg = (dot(indirectDiffuse.rgb, float3(0.299, 0.587, 0.114)) + dot(lightColor.rgb, float3(0.299, 0.587, 0.114))) / 2.0;
+
+        emission = o.Emission.rgb;
+        emission *= lerp(1, o.Albedo.rgb, o.EmissionTintToDiffuse);
+
+        half intensity = length(emission.rgb);
+
+        half3 emissionHSV = RGB2HSV(normalize(emission.rgb));
+        emissionHSV.x = fmod(emissionHSV.x + o.EmissionHue, 1);
+        emissionHSV.y = saturate(emissionHSV.y + o.EmissionSaturation);
+        emissionHSV.z = saturate(emissionHSV.z + o.EmissionValue);
+        emission.rgb = HSV2RGB(emissionHSV) * intensity;
+
+        half3 scaledEmission = emission * saturate(smoothstep(1 - o.EmissionScaleWithLightSensitivity, 1 + o.EmissionScaleWithLightSensitivity, 1 - lightAvg));
+        
+        emission = o.EmissionScaleWithLight ? scaledEmission : emission;
+    }
+}

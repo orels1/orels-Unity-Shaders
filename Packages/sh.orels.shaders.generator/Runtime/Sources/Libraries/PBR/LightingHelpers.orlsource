@@ -150,7 +150,7 @@
         return direction;
     }
 
-    half3 getEnvReflectionDirect(float3 reflDir, half3 worldSpacePosition, half3 normal, half roughness, int mip)
+    half3 getEnvReflectionDirect(float3 reflDir, half3 worldSpacePosition, half3 normal, half roughness, int mip, inout half4 rawProbe0)
     {
         half3 env = 0;
 
@@ -162,6 +162,7 @@
 
         half3 reflectionUV1 = getBoxProjection(reflDir, worldSpacePosition, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
         half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, mipLevel);
+        rawProbe0 = probe0;
         half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
 
         half3 indirectSpecular;
@@ -182,6 +183,12 @@
 
         env = indirectSpecular;
         return env;
+    }
+
+    half3 getEnvReflectionDirect(float3 reflDir, half3 worldSpacePosition, half3 normal, half roughness, int mip)
+    {
+        half4 rawProbe0;
+        return getEnvReflectionDirect(reflDir, worldSpacePosition, normal, roughness, mip, rawProbe0);
     }
 
     half3 getEnvReflectionHardened(float3 reflDir, half3 worldSpacePosition, half roughness, half hardenStrength)
@@ -328,6 +335,19 @@
         half NoH = saturate(dot(worldNormal, halfVector));
         half3 F = F_Schlick(LoH, f0);
         float D = D_GGX(NoH, roughness);
+        half V = V_SmithGGXCorrelated(NoV, NoL, roughness);
+        F *= energyCompensation;
+
+        return max(0, D * V * F) * lightColor * UNITY_PI;
+    }
+
+    half3 GetSpecularHighlightsAnisotropic(half3 lightColor, half3 f0, float3 worldNormal, float3 worldTangent, float3 bitangent, float3 halfVector, half LoH, half NoL, half NoV, half roughness, half3 energyCompensation, half anisotropy)
+    {
+        half NoH = saturate(dot(worldNormal, halfVector));
+        half3 F = F_Schlick(LoH, f0);
+        float at = max(roughness * (1.0 + anisotropy), 0.001);
+        float ab = max(roughness * (1.0 - anisotropy), 0.001);
+        float D = D_GGX_Anisotropic(NoH, halfVector, worldTangent, bitangent, at, ab);
         half V = V_SmithGGXCorrelated(NoV, NoL, roughness);
         F *= energyCompensation;
 

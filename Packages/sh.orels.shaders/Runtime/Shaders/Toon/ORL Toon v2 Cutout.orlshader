@@ -1,0 +1,73 @@
+%ShaderName("orels1/Toon/v2/Cutout")
+%LightingModel("@/LightingModels/Toon")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_CutoutHeader("# Cutout", Int) = 0
+    _Cutoff("Cutoff", Range(0, 1)) = 0.5
+    [Toggle(_NATIVE_A2C)]_AlphaToMask("Alpha To Coverage (A2C)", Int) = 0
+}
+
+
+%Includes()
+{
+    "@/Shaders/Toon/ORL Toon v2",
+    "self",
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment _NATIVE_A2C
+}
+
+%ShaderDefines()
+{
+    #define NEED_FRAGMENT_IN_SHADOW
+    #define NEED_ALBEDO_ALPHA
+}
+
+%ShaderTags()
+{
+    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout"
+}
+
+%PassModifiers()
+{
+    AlphaToMask [_AlphaToMask]
+}
+
+%Variables()
+{
+    half _Cutoff;
+}
+
+%Fragment("CutoutFragment")
+{
+    void CutoutFragment(inout SurfaceData o) {
+        #if defined(_NATIVE_A2C) && defined(UNITY_PASS_FORWARDBASE)
+        
+        half antiAliased = o.Alpha - 0.5;
+        antiAliased /= max(0.0001, fwidth(o.Alpha));
+        antiAliased += 0.5;
+        o.Alpha = saturate(antiAliased);
+
+        #endif
+        
+        #if !defined(_NATIVE_A2C) || !defined(UNITY_PASS_FORWARDBASE)
+        if (o.Alpha < _Cutoff)  {
+            clip(-1);
+        }
+        #endif
+    }
+}
+
+%Shadow("CutoutShadow")
+{
+    void CutoutShadow(FragmentData i) {
+        half alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv0.xy).a;
+        if (alpha < _Cutoff)  {
+            clip(-1);
+        }
+    }
+}

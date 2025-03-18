@@ -94,7 +94,7 @@
                 _VRSLSpecularShine = 1;
                 _VRSLSpecularMultiplier = 1;
 
-                #if defined(ORL_LIGHTING_MODEL_VFX)
+                #if defined(ORL_LIGHTING_MODEL_VFX) || defined(ORL_LIGHTING_MODEL_TOONV2)
                 float3 giOutput = VRSLGI(
                     d.worldSpacePosition,
                     d.worldNormal,

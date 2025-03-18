@@ -78,7 +78,7 @@
         return SAMPLE_TEXTURE2D(_AreaLitOcclusionMap, sampler_AreaLitOcclusionMap, uv);
     }
 
-    void AreaLitCustomGI(MeshData d, SurfaceData o, half3 tangentNormal, FragmentData i,  half clampedRoughness,  inout half3 indirectSpecular, inout half3 indirectDiffuse)
+    void AreaLitCustomGI(MeshData d, SurfaceData o, half3 tangentNormal, FragmentData i,  half clampedRoughness,  inout half3 customGISpecular, inout half3 customGIDiffuse)
     {
         // VFX lighting model does not support customgi functions
         #if !defined(ORL_LIGHTING_MODEL_VFX)
@@ -104,11 +104,11 @@
                 if (_AreaLitClampBrightness) {
                     half3 hsv = RGB2HSV(specular);
                     hsv.z = tanh(hsv.z) * max(0, _AreaLitMaxBrightness);
-                    indirectSpecular += HSV2RGB(hsv);
+                    customGISpecular += HSV2RGB(hsv);
                 } else {
-                    indirectSpecular += specular.rgb;
+                    customGISpecular += specular.rgb;
                 }
-                indirectDiffuse += diffuse.rgb;
+                customGIDiffuse += diffuse.rgb;
             #endif
         }
         #endif
