@@ -80,30 +80,31 @@ namespace ORL.Drawers
             var currentRenderType = savedRenderType == -1 ? RenderType.Opaque : (RenderType)savedRenderType;
 
             var presetTag = targetMaterial.GetTag("ORL_RenderType", false);
-            var forcedType = !string.IsNullOrWhiteSpace(presetTag);
+            var isForcedType = !string.IsNullOrWhiteSpace(presetTag);
+            RenderType forcedRenderType = RenderType.Custom;
 
             switch (presetTag.ToLower())
             {
                 case "opaque":
-                    currentRenderType = RenderType.Opaque;
+                    forcedRenderType = RenderType.Opaque;
                     break;
                 case "cutout":
-                    currentRenderType = RenderType.Cutout;
+                    forcedRenderType = RenderType.Cutout;
                     break;
                 case "transparent":
-                    currentRenderType = RenderType.Transparent;
+                    forcedRenderType = RenderType.Transparent;
                     break;
                 case "fade":
-                    currentRenderType = RenderType.Fade;
+                    forcedRenderType = RenderType.Fade;
                     break;
                 case "custom":
-                    currentRenderType = RenderType.Custom;
+                    forcedRenderType = RenderType.Custom;
                     break;
             }
 
             RenderType newRenderType;
 
-            using (new EditorGUI.DisabledScope(forcedType))
+            using (var c = new EditorGUI.ChangeCheckScope())
             {
                 newRenderType = (RenderType)EditorGUILayout.Popup("RenderType", (int)currentRenderType, new[] {
                     "Opaque",
@@ -112,27 +113,24 @@ namespace ORL.Drawers
                     "Fade",
                     "Custom"
                 });
+                if (c.changed)
+                {
+                    property.floatValue = (float)newRenderType;
+                    if (!IsMaterialSetUpForRenderType(targetMaterial, propertyData, newRenderType) || newRenderType != currentRenderType)
+                    {
+                        SetRenderType(targetMaterial, newRenderType, propertyData, property);
+                    }
+                }
             }
 
-            if (forcedType)
+            if (isForcedType)
             {
-                EditorGUILayout.LabelField("Render Type is locked by the current shader", Styles.NoteTextStyle);
-                property.floatValue = (float)currentRenderType;
-                if (!IsMaterialSetUpForRenderType(targetMaterial, propertyData, newRenderType) || savedRenderType == -1 || (RenderType)savedRenderType != currentRenderType)
+                EditorGUILayout.LabelField("Render type prefered by current shader: " + Enum.GetName(typeof(RenderType), forcedRenderType), Styles.NoteTextStyle);
+                if (!IsMaterialSetUpForRenderType(targetMaterial, propertyData, newRenderType) && savedRenderType == -1)
                 {
                     SetRenderType(targetMaterial, currentRenderType, propertyData, property);
                 }
                 return true;
-            }
-
-            if (newRenderType != currentRenderType)
-            {
-                property.floatValue = (float)newRenderType;
-            }
-
-            if (!IsMaterialSetUpForRenderType(targetMaterial, propertyData, newRenderType) || newRenderType != currentRenderType)
-            {
-                SetRenderType(targetMaterial, newRenderType, propertyData, property);
             }
 
             return true;
