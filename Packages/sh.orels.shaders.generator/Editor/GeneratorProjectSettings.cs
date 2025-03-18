@@ -21,8 +21,8 @@ namespace ORL.ShaderGenerator.Settings
         public List<string> alwaysIncludedBlocks = new() {
             "@/Structs/VertexData",
             "@/Structs/FragmentData",
-            "@/Libraries/Utilities",
             "@/Libraries/CoreRPShaderLibrary/BiRPtoURP",
+            "@/Libraries/Utilities",
             "@/Libraries/SamplingLibrary"
         };
 
