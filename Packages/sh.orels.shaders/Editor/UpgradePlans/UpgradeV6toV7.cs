@@ -104,6 +104,20 @@ namespace ORL.Shaders.UpgradePlans
                         }
                     }
 
+                    // Migrate old parallax offsets to new
+                    if (mat.HasProperty("_HeightRefPlane"))
+                    {
+                        var currValue = mat.GetFloat("_HeightRefPlane");
+                        if (dryRun)
+                        {
+                            Debug.Log("Would have migrated parallax offset for " + mat.name + " from " + currValue + " to " + Mathf.Clamp(currValue - 0.5f, -1, 1));
+                        }
+                        else
+                        {
+                            mat.SetFloat("_HeightRefPlane", Mathf.Clamp(currValue - 0.5f, -1, 1));
+                        }
+                    }
+
                     if (mat.HasProperty("INTERNAL_MaterialShaderVersion"))
                     {
                         if (dryRun)

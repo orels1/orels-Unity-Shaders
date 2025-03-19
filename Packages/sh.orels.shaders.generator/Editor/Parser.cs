@@ -129,7 +129,7 @@ namespace ORL.ShaderGenerator
             {
                 if (_nodes == null)
                 {
-                    _nodes = ShaderParser.ParseTopLevelDeclarations(string.Join(Environment.NewLine, Contents), ShaderAnalyzers.SLConfig);
+                    _nodes = ShaderParser.ParseTopLevelDeclarations(string.Join(Environment.NewLine, Contents.Where(l => !l.TrimStart().StartsWith("%"))), ShaderAnalyzers.SLConfig);
                 }
                 return _nodes;
             }
@@ -262,6 +262,11 @@ namespace ORL.ShaderGenerator
                                     Indentation = blockIndentation,
                                 };
 
+                                if (hookPoints.Count > 0)
+                                {
+                                    newBlock.HookPoints = hookPoints;
+                                }
+
                                 // ExtraPasses can have a type
                                 if (newBlock.CoreBlockType == ShaderBlock.BlockType.ExtraPass)
                                 {
@@ -374,7 +379,7 @@ namespace ORL.ShaderGenerator
                     hookPoints.Add(new ShaderBlock.HookPoint
                     {
                         Name = line.Trim().Substring(1),
-                        Line = _lineNumber,
+                        Line = linesSkipped - 1,
                         Indentation = offset
                     });
                 }

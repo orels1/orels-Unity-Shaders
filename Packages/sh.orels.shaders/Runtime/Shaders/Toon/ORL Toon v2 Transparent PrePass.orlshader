@@ -1,0 +1,24 @@
+%ShaderName("orels1/Toon/v2/Transparent PrePass")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+%TemplateFeatures("PrePass")
+
+%Includes()
+{
+    "self",
+    "@/Shaders/Toon/ORL Toon v2 Transparent",
+}
+
+%ShaderModifiers()
+{
+    ZWrite On
+}
+
+%PrePassModifiers()
+{
+    Cull Front
+}
+
+%ShaderDefines()
+{
+    #define NEED_FRAGMENT_IN_PREPASS
+}

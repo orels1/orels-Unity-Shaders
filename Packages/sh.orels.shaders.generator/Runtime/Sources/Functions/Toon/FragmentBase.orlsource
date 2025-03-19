@@ -99,7 +99,8 @@
         half grayIndirect = dot(indirectDiffuse, float3(1,1,1));
         half attenFactor = lerp(attenuation, 1, smoothstep(0, 0.2, grayIndirect));
 
-        diffuse = ramp * attenFactor * half4(lightCol, 1) + indirect;
+        diffuse = ramp * attenFactor * half4(lightCol, 1);
+        diffuse += indirect;
         diffuse = albedo.xyzz * diffuse;
         return diffuse;
     }
@@ -206,7 +207,8 @@
         float3 directSpecularAniso = max(0, (D * V) * F);
 
         specular = lerp(directSpecularNonAniso, directSpecularAniso, saturate(abs(anisotropy * 100)));
-        specular = lerp(specular, smoothstep(0.5, 0.51, specular), o.SpecularSharpness) * 3 * lightColor.xyz * specularIntensity; // Multiply by 3 to bring up to brightness of standard
+        specular = lerp(specular, smoothstep(0.5, 0.51, specular), o.SpecularSharpness);
+        specular *= 3 * lightColor.xyz * specularIntensity; // Multiply by 3 to bring up to brightness of standard
         specular *= lerp(1, o.Albedo, o.SpecularAlbedoTint);
         specular = clamp(specular, 0, specularIntensity);
         return specular;
@@ -425,7 +427,8 @@
         #endif
         
         #if defined(SPECULAR_ON)
-        directSpecular = calcDirectSpecular(d, o, lightNoL, NoH, NoV, lightLoH, lightColor, lightHalfVector, o.SpecularAnisotropy) * lightNoL * occlusion * lightAttenuation;
+        directSpecular = calcDirectSpecular(d, o, lightNoL, NoH, NoV, lightLoH, lightColor, lightHalfVector, o.SpecularAnisotropy);
+        directSpecular *= lightNoL * occlusion * lightAttenuation;
         #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
         {
             [unroll(4)]

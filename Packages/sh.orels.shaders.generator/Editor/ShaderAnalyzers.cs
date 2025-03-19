@@ -26,7 +26,11 @@ namespace ORL.ShaderGenerator
             PreProcessorMode = PreProcessorMode.ExpandAllExceptIncludes,
             Defines = new Dictionary<string, string>
             {
-                {"SHADER_API_D3D11", "1"}
+                {"SHADER_API_D3D11", "1"},
+                {"TEXTURE2D(textureName)", "Texture2D textureName"},
+                {"SAMPLER(samplerName)", "SamplerState samplerName"},
+                {"TEXTURE2D_PARAM(textureName, samplerName)", "TEXTURE2D(textureName), SAMPLER(samplerName)"},
+                {"TEXTURE2D_ARGS(textureName, samplerName)", "textureName, samplerName"},
             }
         };
 

@@ -634,15 +634,48 @@ namespace ORL.ShaderGenerator
             {
                 for (var j = 0; j < hookPointBlocks[i].HookPoints.Count; j++)
                 {
-                    var blocksToInsert = blocks.FindAll(b => b.Name == hookPointBlocks[i].HookPoints[j].Name);
-                    // these blocks are transient and we dont want to keep them around
-                    blocksToInsert.ForEach(b => blocks.Remove(b));
-                    var insertionIndex = hookPointBlocks[i].Contents.IndexOf(hookPointBlocks[i].HookPoints[j].Name);
+                    var blocksToInsert = blocks.FindAll(b =>
+                    {
+                        var hookPointName = hookPointBlocks[i].HookPoints[j].Name;
+                        if (b.Name == "%" + hookPointName) return true;
+                        if (b.Name == "%" + hookPointName + "Functions") return true;
+                        return false;
+                    });
+                    // No blocks for this hook point, we can skip it
+                    if (blocksToInsert.Count == 0) continue;
+                    // these blocks are transient and we dont want to keep them around, unless they're functions
+                    blocksToInsert.ForEach(b =>
+                    {
+                        if (b.IsFunction) return;
+                        blocks.Remove(b);
+                    });
                     foreach (var block in blocksToInsert)
                     {
-                        hookPointBlocks[i].Contents.InsertRange(insertionIndex, IndentContentsList(block.Contents, hookPointBlocks[i].HookPoints[j].Indentation));
+                        if (block.IsFunction)
+                        {
+                            if (hookPointBlocks[i].HookPoints[j].Name.EndsWith("Functions"))
+                            {
+                                var fnName = "";
+                                fnName = hookPointBlocks[i].HookPoints[j].Name.Replace("Functions", "");
+
+                                var fnBlocks = blocks.FindAll(b => b.IsFunction && b.Name == "%" + fnName);
+                                fnBlocks.Reverse();
+                                fnBlocks.Sort((a, b) => a.Order.CompareTo(b.Order));
+                                fnBlocks.Reverse();
+                                foreach (var fnBlock in fnBlocks)
+                                {
+                                    hookPointBlocks[i].Contents.InsertRange(hookPointBlocks[i].HookPoints[j].Line, IndentContentsList(new List<string> { fnBlock.CallSign }, hookPointBlocks[i].HookPoints[j].Indentation));
+                                }
+                                continue;
+                            }
+
+                            hookPointBlocks[i].Contents.InsertRange(hookPointBlocks[i].HookPoints[j].Line, IndentContentsList(new List<string> { block.CallSign }, hookPointBlocks[i].HookPoints[j].Indentation));
+                            continue;
+                        }
+
+                        hookPointBlocks[i].Contents.InsertRange(hookPointBlocks[i].HookPoints[j].Line, IndentContentsList(block.Contents, hookPointBlocks[i].HookPoints[j].Indentation));
                     }
-                    hookPointBlocks[i].Contents.RemoveAt(insertionIndex);
+                    hookPointBlocks[i].Contents.RemoveAt(hookPointBlocks[i].HookPoints[j].Line + 1);
                 }
             }
         }
@@ -772,11 +805,16 @@ namespace ORL.ShaderGenerator
 
                             foreach (var extraPass in onlyPrePasses)
                             {
-                                var indented = IndentContents(extraPass.content, insertionIndex);
-                                newLine.Insert(insertionIndex, indented);
-                                insertionIndex += indented.Length;
-                                newLine.Insert(insertionIndex, Environment.NewLine);
-                                insertionIndex += Environment.NewLine.Length;
+                                var indented = IndentContentsList(extraPass.content, insertionIndex);
+                                foreach (var indentedLine in indented)
+                                {
+                                    newLine.AppendLine(indentedLine.Replace(Environment.NewLine, string.Empty));
+                                    // insertionIndex += indentedLine.Length;
+                                }
+                                // newLine.Insert(insertionIndex, indented);
+                                // insertionIndex += indented.Count`;
+                                // newLine.Insert(insertionIndex, Environment.NewLine);
+                                // insertionIndex += Environment.NewLine.Length;
                             }
                             continue;
                         }
@@ -791,11 +829,17 @@ namespace ORL.ShaderGenerator
 
                             foreach (var extraPass in onlyPostPasses)
                             {
-                                var indented = IndentContents(extraPass.content, insertionIndex);
-                                newLine.Insert(insertionIndex, indented);
-                                insertionIndex += indented.Length;
-                                newLine.Insert(insertionIndex, Environment.NewLine);
-                                insertionIndex += Environment.NewLine.Length;
+                                var indented = IndentContentsList(extraPass.content, insertionIndex);
+                                foreach (var indentedLine in indented)
+                                {
+                                    newLine.AppendLine(indentedLine.Replace(Environment.NewLine, string.Empty));
+                                    // insertionIndex += indentedLine.Length;
+                                }
+                                // var indented = IndentContents(extraPass.content, insertionIndex);
+                                // newLine.Insert(insertionIndex, indented);
+                                // insertionIndex += indented.Length;
+                                // newLine.Insert(insertionIndex, Environment.NewLine);
+                                // insertionIndex += Environment.NewLine.Length;
                             }
                             continue;
                         }
@@ -881,6 +925,18 @@ namespace ORL.ShaderGenerator
 
                 var index = keySet[block.Name];
                 collapsedBlocks[index].Contents.Add("");
+                if (block.HookPoints != null)
+                {
+                    if (collapsedBlocks[index].HookPoints == null)
+                    {
+                        collapsedBlocks[index].HookPoints = new List<ShaderBlock.HookPoint>();
+                    }
+                    collapsedBlocks[index].HookPoints.AddRange(block.HookPoints.Select(h =>
+                    {
+                        h.Line += collapsedBlocks[index].Contents.Count;
+                        return h;
+                    }));
+                }
                 collapsedBlocks[index].Contents.AddRange(block.Contents);
             }
             // Second pass - deduplicate things where it makes sense
@@ -1126,7 +1182,7 @@ namespace ORL.ShaderGenerator
             {
                 if (i == 0)
                 {
-                    result.Add(contentLine + (contents.Count == 1 ? "" : "\n"));
+                    result.Add(contentLine + (contents.Count == 1 ? "" : Environment.NewLine));
                     i++;
                     continue;
                 }
@@ -1137,7 +1193,7 @@ namespace ORL.ShaderGenerator
                 }
                 else
                 {
-                    result.Add(new string(' ', indentLevel) + contentLine + '\n');
+                    result.Add(new string(' ', indentLevel) + contentLine + Environment.NewLine);
                 }
                 i++;
             }

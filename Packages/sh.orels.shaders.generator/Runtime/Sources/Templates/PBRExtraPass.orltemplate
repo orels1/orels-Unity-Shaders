@@ -68,8 +68,18 @@ Pass
     #endif
 
     // ExtraPass Fragment
-    half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
+    half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace
+        #if defined(NEED_SV_DEPTH)
+        , out float depth: SV_Depth
+        #endif
+        #if defined(NEED_SV_DEPTH_LEQUAL)
+        , out float depth: SV_Depth
+        #endif
+    ) : SV_TARGET
     {
+        #if !defined(NEED_SV_DEPTH) && !defined(NEED_SV_DEPTH_LEQUAL)
+        float depth = 0;
+        #endif
         UNITY_SETUP_INSTANCE_ID(i);
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
         #ifdef FOG_COMBINED_WITH_TSPACE

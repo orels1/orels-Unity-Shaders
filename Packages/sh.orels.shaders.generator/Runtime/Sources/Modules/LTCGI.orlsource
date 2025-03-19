@@ -81,7 +81,7 @@
 
 %CustomGI("LTCGICustomGI")
 {
-    void LTCGICustomGI(MeshData d, SurfaceData o, inout half3 indirectSpecular, inout half3 indirectDiffuse)
+    void LTCGICustomGI(MeshData d, SurfaceData o, inout half3 customGISpecular, inout half3 customGIDiffuse)
     {
         #if !defined(ORL_LIGHTING_MODEL_VFX)
         {
@@ -104,11 +104,11 @@
                 if (_LTCGIClampBrightness) {
                     half3 hsv = RGB2HSV(ltcgiData.specular);
                     hsv.z = tanh(hsv.z) * max(0, _LTCGIMaxBrightness);
-                    indirectSpecular += HSV2RGB(hsv) * _LTCGISpecularIntensity;
+                    customGISpecular += HSV2RGB(hsv) * _LTCGISpecularIntensity;
                 } else {
-                    indirectSpecular += ltcgiData.specular * _LTCGISpecularIntensity;
+                    customGISpecular += ltcgiData.specular * _LTCGISpecularIntensity;
                 }
-                indirectDiffuse += ltcgiData.diffuse * _LTCGIDiffuseIntensity;
+                customGIDiffuse += ltcgiData.diffuse * _LTCGIDiffuseIntensity;
             #endif
         }
         #endif

@@ -43,9 +43,9 @@ namespace ORL.Drawers
                 var rect = EditorGUILayout.GetControlRect();
                 rect.yMax += 1f * EditorGUIUtility.pixelsPerPoint;
                 rect.xMin -= 15f * EditorGUIUtility.pixelsPerPoint;
-                #if UNITY_2022_1_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
                 rect.xMin -= 15f * EditorGUIUtility.pixelsPerPoint;
-                #endif
+#endif
                 rect.xMax += 5f * EditorGUIUtility.pixelsPerPoint;
                 var dividerRect = rect;
                 dividerRect.y -= 1f;
@@ -72,27 +72,27 @@ namespace ORL.Drawers
                     switch (evt.type)
                     {
                         case EventType.Repaint:
-                        {
-                            if (expanded)
                             {
-                                Styles.FoldoutUnfolded.Draw(foldoutRect, "", false, false, true, false);
-                            }
-                            else
-                            {
-                                Styles.FoldoutFolded.Draw(foldoutRect, "", false, false, true, false);
-                            }
+                                if (expanded)
+                                {
+                                    Styles.FoldoutUnfolded.Draw(foldoutRect, "", false, false, true, false);
+                                }
+                                else
+                                {
+                                    Styles.FoldoutFolded.Draw(foldoutRect, "", false, false, true, false);
+                                }
 
-                            break;
-                        }
+                                break;
+                            }
                         case EventType.MouseDown:
-                        {
-                            if (rect.Contains(evt.mousePosition))
                             {
-                                property.floatValue = property.floatValue > 0 ? 0 : 1;
-                            }
+                                if (rect.Contains(evt.mousePosition))
+                                {
+                                    property.floatValue = property.floatValue > 0 ? 0 : 1;
+                                }
 
-                            break;
-                        }
+                                break;
+                            }
                     }
                 }
 
@@ -101,6 +101,13 @@ namespace ORL.Drawers
             else if (EditorGUI.indentLevel == -1)
             {
                 return true;
+            }
+            else if (matchLevel == 3)
+            {
+                EditorGUI.indentLevel = Mathf.Min(EditorGUI.indentLevel, 1);
+                var rect = EditorGUILayout.GetControlRect();
+                rect.xMin -= 3f * EditorGUIUtility.pixelsPerPoint;
+                EditorGUI.LabelField(rect, filteredName, EditorStyles.miniBoldLabel);
             }
             else
             {

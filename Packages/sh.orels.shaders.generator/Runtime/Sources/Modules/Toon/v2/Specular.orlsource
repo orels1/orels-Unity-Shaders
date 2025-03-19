@@ -1,0 +1,187 @@
+%Properties()
+{
+    UI_SpecularHeader("# Specular", Int) = 1
+    [Toggle(SPECULAR_ON)]_SpecularOn("Enable Specular", Int) = 0
+    _SpecularMap("Specular Map > %ShowIf(SPECULAR_ON)", 2D) = "white" {}
+    UI_SpecMapdNote("> Red - Intensity, Green - Albedo Tint, Blue - Roughness %ShowIf(SPECULAR_ON)", Int) = 0
+    [Enum(Synced With Albedo, 0, Independent, 1)]_SpecularTilingMode("Tiling Mode %ShowIf(_SpecularMap)", Int) = 0
+    _SpecularTiling("Tiling %ShowIf(_SpecularMap)", Float) = 1
+    UI_SpecularTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_SpecularTilingMode == 0 && _SpecularMap)", Int) = 0
+    UI_SpecularTilingIndependentNote("> Will scale UVs on its own %ShowIf(_SpecularTilingMode == 1 && _SpecularMap)", Int) = 0
+
+    _SpecularTint("Tint %ShowIf(SPECULAR_ON)", Color) = (1,1,1,1)
+    _SpecularIntensity("Intensity %ShowIf(SPECULAR_ON)", Float) = 0
+    _SpecularRoughness("Roughness %ShowIf(SPECULAR_ON)", Range(0, 1)) = 0.5
+    _SpecularSharpness("Sharpness %ShowIf(SPECULAR_ON)", Range(0, 1)) = 0
+    _SpecularAnisotropy("Anisotropy %ShowIf(SPECULAR_ON)", Range(-1.0, 1.0)) = 0
+    _SpecularAlbedoTint("Albedo Tint %ShowIf(SPECULAR_ON)", Range(0, 1)) = 1
+
+    UI_SpecularMasking("## Masking %ShowIf(SPECULAR_ON)", Int) = 0
+    _SpecularMask("Specular Mask > %ShowIf(SPECULAR_ON)", 2D) = "white" {}
+    [Enum(Synced With Albedo, 0, Independent, 1)]_SpecularMaskTilingMode("Tiling Mode %ShowIf(_SpecularMask)", Int) = 0
+    _SpecularMaskTiling("Tiling %ShowIf(_SpecularMask)", Float) = 1
+    UI_SpecularMaskTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_SpecularMaskTilingMode == 0 && _SpecularMask)", Int) = 0
+    UI_SpecularMaskTilingIndependentNote("> Will scale UVs on its own %ShowIf(_SpecularMaskTilingMode == 1 && _SpecularMask)", Int) = 0
+    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_SpecularMaskChannel("Mask Channel %ShowIf(SPECULAR_ON)", Int) = 0
+    _SpecularMaskStrength("Mask Strength %ShowIf(SPECULAR_ON)", Range(0, 1)) = 1
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment SPECULAR_ON
+}
+
+%Variables()
+{
+    #if defined(SPECULAR_ON)
+    int _SpecularTilingMode;
+    half _SpecularTiling;
+
+    half4 _SpecularTint;
+    half _SpecularIntensity;
+    half _SpecularRoughness;
+    half _SpecularSharpness;
+    half _SpecularAnisotropy;
+    half _SpecularAlbedoTint;
+
+    int _SpecularMaskTilingMode;
+    half _SpecularMaskTiling;
+    int _SpecularMaskChannel;
+    half _SpecularMaskStrength;
+    #endif
+
+    float2 GLOBAL_uv;
+}
+
+%Textures()
+{
+    #if defined(SPECULAR_ON)
+    TEXTURE2D(_SpecularMap);
+    TEXTURE2D(_SpecularMask);
+    #endif
+}
+
+%AdditionalSurfaceData()
+{
+    #if defined(SPECULAR_ON)
+    half3 SpecularTint;
+    half SpecularIntensity;
+    half SpecularRoughness;
+    half SpecularAnisotropy;
+    half SpecularSharpness;
+    half SpecularAlbedoTint;
+    #endif
+}
+
+%Fragment("ToonSpecularFragment")
+{
+    void ToonSpecularFragment(MeshData d, inout SurfaceData o) {
+        #if defined(SPECULAR_ON)
+        
+        float2 globalUv = 0;
+        
+        #if defined(GLOBAL_UV_SET)
+        globalUv = GLOBAL_uv;
+        #else
+        globalUv = d.uv0;
+        #endif
+
+        float2 specularUv = lerp(globalUv * _SpecularTiling, d.uv0 * _SpecularTiling, _SpecularTilingMode);
+        half3 specMap = SAMPLE_TEXTURE2D(_SpecularMap, sampler_MainTex, specularUv);
+        float2 specularMaskUv = lerp(globalUv * _SpecularMaskTiling, d.uv0 * _SpecularMaskTiling, _SpecularMaskTilingMode);
+        half specMask = SAMPLE_TEXTURE2D(_SpecularMask, sampler_MainTex, specularMaskUv)[_SpecularMaskChannel];
+
+        o.SpecularIntensity = max(0, _SpecularIntensity * specMap.r);
+        
+        o.SpecularRoughness = max(0.01, GSAA_Filament(d.worldNormal, _SpecularRoughness, 0.05, 0.1) * specMap.b);
+        o.SpecularRoughness = lerp(o.SpecularRoughness, o.SpecularRoughness * specMask, _SpecularMaskStrength);
+        
+        o.SpecularAnisotropy = _SpecularAnisotropy;
+        o.SpecularAlbedoTint = _SpecularAlbedoTint * specMap.g;
+        o.SpecularSharpness = _SpecularSharpness;
+        o.SpecularTint = _SpecularTint;
+
+        #endif
+    }
+}
+
+%ModuleLighting("ToonSpecularLighting")
+{
+    void ToonSpecularLighting(SurfaceData o, MeshData d, half3 lightColor, half lightAttenuation, float3 lightHalfVector, half lightLoH, half lightNoL, half NoV, half3 indirectDiffuse, inout half3 mainLightSpecular)
+    {
+        #if defined(SPECULAR_ON)
+        half perceptualRoughness = max(0.01, o.SpecularRoughness);
+        perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+
+        half anisotropy = o.SpecularAnisotropy * saturate(5.0 * perceptualRoughness);
+
+        perceptualRoughness *= perceptualRoughness;
+        perceptualRoughness = max(perceptualRoughness, 0.0045);
+
+        lightNoL = saturate(lightNoL);
+
+        half NoH = saturate(dot(o.WorldNormal, lightHalfVector));
+        // Calculate f0 in place with Metallic = 0
+        half3 F = F_Schlick(lightLoH, 0.16 * 0.5 * 0.5 + lerp(1, o.Albedo, o.SpecularAlbedoTint));
+
+        float D = D_GGX(NoH, perceptualRoughness);
+        half V = V_SmithGGXCorrelated(NoV, lightNoL, perceptualRoughness);
+        half3 isotropicSpecular = max(0, D * V * F);
+
+        float at = max(perceptualRoughness * (1.0 + anisotropy), 0.001);
+        float ab = max(perceptualRoughness * (1.0 - anisotropy), 0.001);
+        
+        // Recalculate tangent and bitangent for proper aniso specular
+        d.worldSpaceTangent.xyz = cross(d.bitangent.xyz, o.WorldNormal);
+        d.bitangent.xyz = cross(o.WorldNormal, d.worldSpaceTangent.xyz);
+        
+        D = D_GGX_Anisotropic(NoH, lightHalfVector, d.worldSpaceTangent, d.bitangent, at, ab);
+        half3 anisotropicSpecular = max(0, D * V * F);
+
+        half3 finalSpecular = lerp(isotropicSpecular, anisotropicSpecular, saturate(abs(anisotropy * 100)));
+        // Apply sharpness modifier by focusing in the center
+        finalSpecular = lerp(finalSpecular, smoothstep(0.5, 0.51, finalSpecular), o.SpecularSharpness);
+        finalSpecular *= UNITY_PI; // Multiply by PI to bring up to brightness of standard
+        finalSpecular *= lightColor;
+        finalSpecular *= o.SpecularIntensity;
+        finalSpecular *= o.SpecularTint;
+        finalSpecular = clamp(finalSpecular, 0, o.SpecularIntensity);        
+        
+        finalSpecular *= lightNoL * lightAttenuation;
+
+        #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+        [unroll(4)]
+        for (int i = 0; i < 4; i++)
+        {
+            o.VertexLightNoLs[i] = saturate(o.VertexLightNoLs[i]);
+            NoH = saturate(dot(o.WorldNormal, o.VertexLightHalfVectors[i]));
+            o.VertexLightLoHs[i] = saturate(dot(o.VertexLightDirections[i], o.VertexLightHalfVectors[i]));
+            F = F_Schlick(o.VertexLightLoHs[i], 0.16 * 0.5 * 0.5 + lerp(1, o.Albedo, o.SpecularAlbedoTint));
+
+            D = D_GGX(NoH, perceptualRoughness);
+            V = V_SmithGGXCorrelated(NoV, o.VertexLightNoLs[i], perceptualRoughness);
+            isotropicSpecular = max(0, D * V * F);
+
+            D = D_GGX_Anisotropic(NoH, o.VertexLightHalfVectors[i], d.worldSpaceTangent, d.bitangent, at, ab);
+            anisotropicSpecular = max(0, D * V * F);
+
+            half3 vertexLightSpecular = lerp(isotropicSpecular, anisotropicSpecular, saturate(abs(anisotropy * 100)));
+            // Apply sharpness modifier by focusing in the center
+            vertexLightSpecular = lerp(vertexLightSpecular, smoothstep(0.5, 0.51, vertexLightSpecular), o.SpecularSharpness);
+            vertexLightSpecular *= UNITY_PI; // Multiply by PI to bring up to brightness of standard
+            vertexLightSpecular *= o.VertexLightColors[i];
+            vertexLightSpecular *= o.SpecularIntensity;
+            vertexLightSpecular *= o.SpecularTint;
+            vertexLightSpecular = clamp(vertexLightSpecular, 0, o.SpecularIntensity);        
+            
+            vertexLightSpecular *= o.VertexLightNoLs[i] * o.VertexLightAttenuations[i];
+            finalSpecular += vertexLightSpecular;
+        }
+        #endif
+
+        finalSpecular *= o.Occlusion;
+
+        mainLightSpecular += finalSpecular;
+        #endif
+    }
+}

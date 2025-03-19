@@ -134,17 +134,26 @@
     {
         int index = floor(_Time.x * (_GlitchEffectCycleSpeed / 100.0) * 64.0 * 64.0) % (64*64);
         float2 offset = float2(floor(index % 64.0), floor(index / 64.0)) / 64.0;
-        half4 offsetMask = SAMPLE_TEXTURE2D(_GlitchShiftMask, sampler_GlitchShiftMask, offset);
+
+        float2 cleanUV = d.uv0;
+        float2 derivatives = float2(ddx(cleanUV.x), ddy(cleanUV.y));
+
+        half4 offsetMask = SAMPLE_TEXTURE2D_GRAD(_GlitchShiftMask, sampler_GlitchShiftMask, offset, derivatives.x, derivatives.y);
         float2 uv = d.uv0 * _GlitchShiftMask_ST.xy + _GlitchShiftMask_ST.zw;
         uv += (offsetMask.aa - 0.5) * (10 * offsetMask.a);
-        float4 shiftMask = SAMPLE_TEXTURE2D(_GlitchShiftMask, sampler_GlitchShiftMask, uv);
+
+        cleanUV = d.uv0.x * _GlitchShiftMask_ST.xy + _GlitchShiftMask_ST.zw;
+        derivatives = float2(ddx(cleanUV.x), ddy(cleanUV.y));
+        float4 shiftMask = SAMPLE_TEXTURE2D_GRAD(_GlitchShiftMask, sampler_GlitchShiftMask, uv, derivatives.x, derivatives.y);
 
         uv = d.uv0 * _GlitchTexture_ST.xy + _GlitchTexture_ST.zw;
         if (offsetMask.a >= (1 - _GlitchShiftChance)) {
             uv.y -= saturate((frac(_Time.y * 0.2 + shiftMask.g + offsetMask.a * 0.5) % (shiftMask.b + (offsetMask.a - 0.5) * _GlitchSiftRandomizationAmount))) * shiftMask.r;
         }
 
-        half4 glitchColor = SAMPLE_TEXTURE2D(_GlitchTexture, sampler_GlitchTexture, uv);
+        cleanUV = d.uv0 * _GlitchTexture_ST.xy + _GlitchTexture_ST.zw;
+        derivatives = float2(ddx(cleanUV.x), ddy(cleanUV.y));
+        half4 glitchColor = SAMPLE_TEXTURE2D_GRAD(_GlitchTexture, sampler_GlitchTexture, uv, derivatives.x, derivatives.y);
         o.Albedo = glitchColor.rgb;
 
         

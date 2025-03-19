@@ -776,7 +776,6 @@
         // REFLECTIONS
         #if !defined(UNITY_PASS_FORWARDADD)
         float3 reflDir = reflect(-d.worldSpaceViewDir, o.Normal);
-        Unity_GlossyEnvironmentData envData;
 
         // Box projection contact hardening is only available on PC
         #if !defined(PLAT_QUEST)
@@ -883,6 +882,8 @@
 
         FinalColor.rgb = o.Albedo.rgb * (oneMinusReflectivity);
 
+        half3 customGIDiffuse = 0;
+        half3 customGISpecular = 0;
         // Custom GI
         {
             #if defined(_INTEGRATE_CUSTOMGI) && !defined(UNITY_PASS_FORWARDADD)
@@ -898,6 +899,7 @@
         half3 diffuseContributions = 0;
         diffuseContributions += mainLightDiffuse;
         diffuseContributions += indirectDiffuse * occlusion;
+        diffuseContributions += customGIDiffuse * occlusion;
 
         // Add vertex Lights
         #if defined(SHADE_VERTEXLIGHTS) && defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
@@ -911,6 +913,7 @@
         specularContributions += mainLightSpecular;
         specularContributions += bakedDirectSpecular;
         specularContributions += indirectSpecular;
+        specularContributions += customGISpecular;
 
         // Add vertex Lights
         #if defined(SHADE_VERTEXLIGHTS) && defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)

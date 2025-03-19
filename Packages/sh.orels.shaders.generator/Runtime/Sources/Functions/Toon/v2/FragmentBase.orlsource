@@ -1,0 +1,163 @@
+%Properties()
+{
+    UI_AdvancedSettingsHeader("# Advanced Settings", Int) = 1
+    [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
+    [Enum(Off, 0, On, 1)]_ZWrite("Depth Write", Int) = 1
+    [Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("Depth Test", Int) = 4
+    [ToggleUI]_IgnoreLightprobeNormal("Uniform Lightprobe Color", Int) = 0
+    [ToggleUI]_MinLight("Raise Minimum Light", Int) = 0
+    UI_MinLightNote("?> This will raise the minimum light level and make you glow in dark environments. While not accurate to any world lighting, this can be nice to have to take pictures", Int) = 0
+    _MonochromeLighting("Monochrome Lighting", Range(0,1)) = 0
+    UI_MonochromeLightingNote("?> This will make the environment lighting only control the intensity without affecting the color of your object. This is now physically accurate.", Int) = 0
+}
+
+%Includes()
+{
+    "@/Libraries/PBR/LightingHelpers",
+    "self"
+}
+
+%ShaderFeatures()
+{
+    #pragma multi_compile _ VERTEXLIGHT_ON
+}
+
+%ShaderModifiers()
+{
+    ZTest [_ZTest]
+    ZWrite [_ZWrite]
+    Cull [_CullMode]
+}
+
+%ShaderDefines()
+{
+    #define ORL_LIGHTING_MODEL_TOON_V2
+
+    #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
+        #define PLAT_QUEST
+    #else
+        #ifdef PLAT_QUEST
+            #undef PLAT_QUEST
+        #endif
+    #endif
+
+    #define NEED_SCREEN_POS
+}
+
+%Variables()
+{
+    int _IgnoreLightprobeNormal;
+    int _MinLight;
+    half _MonochromeLighting;
+}
+
+%FragmentBase("ToonFragmentBaseV2")
+{
+    void ToonFragmentBaseV2(MeshData d, FragmentData i, SurfaceData o, inout half4 FinalColor)
+    {
+        o.WorldNormal = Unity_SafeNormalize(mul(o.Normal, d.TBNMatrix));
+        half3 f0 = 0.16 * 0.5 * 0.5 + o.Albedo;
+
+        #ifndef USING_DIRECTIONAL_LIGHT
+        float3 lightDir = UnityWorldSpaceLightDir(d.worldSpacePosition);
+        #else
+        float3 lightDir = _WorldSpaceLightPos0.xyz;
+        #endif
+        bool hasRealtimeLight = any(lightDir.xyz);
+        float3 probeLightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+        bool probesAreBlack = length(dot(probeLightDir, float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w))) < 0.01;
+        bool noLightDir = !hasRealtimeLight && probesAreBlack;
+
+        // If no realtime light is present - use direction from probes
+        if (!hasRealtimeLight)
+        {
+            lightDir = Unity_SafeNormalize(probeLightDir);
+        }
+
+        // If no light is present, we use a default direction
+        #if !defined(POINT) && !defined(SPOT)
+        if (noLightDir)
+        {
+            // normalize(float3(1,1,1));
+            lightDir = float3(0.577, 0.577, 0.577);
+        }
+        #endif
+        lightDir = Unity_SafeNormalize(lightDir);
+
+        UNITY_LIGHT_ATTENUATION(lightAttenuation, i, d.worldSpacePosition);
+        half3 lightColor = _LightColor0.rgb;
+        #if defined(UNITY_PASS_FORWARDBASE)
+        {
+            if(all(_LightColor0.rgb == 0.0))
+            {
+                lightAttenuation = 1.0;
+            }
+        }
+        #endif
+
+        float3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
+        half lightNoL = dot(o.WorldNormal, lightDir);
+        half lightLoH = dot(lightDir, lightHalfVector);
+        half NoV = abs(dot(o.WorldNormal, d.worldSpaceViewDir)) + 1e-5;
+
+        half3 mainLightDiffuse = 0;
+        half3 indirectDiffuse = 0;
+        half3 customGIDiffuse = 0;
+        // Diffuse modifier is mixed with the main diffuse via multiply
+        half3 diffuseModifier = 1;
+
+        half3 mainLightSpecular = 0;
+        half3 indirectSpecular = 0;
+        half3 customGISpecular = 0;
+        // Main light mixed specular is mixed with the main light specular via max
+        half3 mainLightMixedSpecular = 0;
+
+        half3 emission = 0;
+
+        // Inject module-base lighting functions
+        {
+            %ModuleLightingFunctions
+        }
+
+        // Inject Custom GI functions
+        {
+            #if defined (_INTEGRATE_CUSTOMGI_FLEX) && !defined(UNITY_PASS_FORWARDADD)
+            %CustomGIFunctions
+            #endif
+        }
+
+        FinalColor.rgb = o.Albedo.rgb;
+
+        half3 diffuseContributions = 0;
+        diffuseContributions += mainLightDiffuse;
+        diffuseContributions += indirectDiffuse;
+        diffuseContributions += customGIDiffuse;
+        diffuseContributions *= diffuseModifier;
+
+        #if defined(UNITY_PASS_FORWARDBASE)
+        diffuseContributions = lerp(diffuseContributions, max(diffuseContributions, 0.05), _MinLight);
+        #endif
+        diffuseContributions = lerp(diffuseContributions, dot(diffuseContributions, float3(0.299, 0.587, 0.114)), _MonochromeLighting);
+
+        half3 specularContributions = 0;
+        specularContributions += max(mainLightSpecular, mainLightMixedSpecular);
+        specularContributions += indirectSpecular;
+        specularContributions += customGISpecular;
+
+        specularContributions = lerp(specularContributions, dot(specularContributions, float3(0.299, 0.587, 0.114)), _MonochromeLighting);
+
+        // Composite final color
+        FinalColor.rgb *= diffuseContributions;
+        FinalColor.rgb += specularContributions;
+        FinalColor.a = o.Alpha;
+
+        // Sometimes we want to operate on the final color directly but before the fog is applied
+        {
+            %ModuleFinalColorFunctions
+        }
+
+        #if defined(UNITY_PASS_FORWARDBASE)
+        FinalColor.rgb += emission;
+        #endif
+    }
+}

@@ -169,6 +169,7 @@
 
         // Outlines skip the vertex shader if they are disabled
         #if !defined(PASS_OUTLINE) || defined(OUTLINE_ENABLED)
+        
         // ForwardBase Tess Domain Vertex Chain
         %VertexFunctions
 
