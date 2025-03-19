@@ -2,7 +2,7 @@
   "name": "sh.orels.shaders",
   "displayName": "ORL Shaders",
   "description": "PBR Unity shaders for the Built-In pipeline built with ORL Shader Generator",
-  "version": "7.0.0-dev.8",
+  "version": "7.0.0-dev.9",
   "unity": "2019.4",
   "author": {
     "name": "orels1",
@@ -18,7 +18,7 @@
   "license": "MIT",
   "type": "assets",
   "vpmDependencies": {
-    "sh.orels.shaders.generator": "^7.0.0-dev.8",
-    "sh.orels.shaders.inspector": "^7.0.0-dev.8"
+    "sh.orels.shaders.generator": "^7.0.0-dev.9",
+    "sh.orels.shaders.inspector": "^7.0.0-dev.9"
   }
 }
