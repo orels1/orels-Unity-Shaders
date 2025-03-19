@@ -148,6 +148,37 @@
         finalSpecular = clamp(finalSpecular, 0, o.SpecularIntensity);        
         
         finalSpecular *= lightNoL * lightAttenuation;
+
+        #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+        [unroll(4)]
+        for (int i = 0; i < 4; i++)
+        {
+            o.VertexLightNoLs[i] = saturate(o.VertexLightNoLs[i]);
+            NoH = saturate(dot(o.WorldNormal, o.VertexLightHalfVectors[i]));
+            o.VertexLightLoHs[i] = saturate(dot(o.VertexLightDirections[i], o.VertexLightHalfVectors[i]));
+            F = F_Schlick(o.VertexLightLoHs[i], 0.16 * 0.5 * 0.5 + lerp(1, o.Albedo, o.SpecularAlbedoTint));
+
+            D = D_GGX(NoH, perceptualRoughness);
+            V = V_SmithGGXCorrelated(NoV, o.VertexLightNoLs[i], perceptualRoughness);
+            isotropicSpecular = max(0, D * V * F);
+
+            D = D_GGX_Anisotropic(NoH, o.VertexLightHalfVectors[i], d.worldSpaceTangent, d.bitangent, at, ab);
+            anisotropicSpecular = max(0, D * V * F);
+
+            half3 vertexLightSpecular = lerp(isotropicSpecular, anisotropicSpecular, saturate(abs(anisotropy * 100)));
+            // Apply sharpness modifier by focusing in the center
+            vertexLightSpecular = lerp(vertexLightSpecular, smoothstep(0.5, 0.51, vertexLightSpecular), o.SpecularSharpness);
+            vertexLightSpecular *= UNITY_PI; // Multiply by PI to bring up to brightness of standard
+            vertexLightSpecular *= o.VertexLightColors[i];
+            vertexLightSpecular *= o.SpecularIntensity;
+            vertexLightSpecular *= o.SpecularTint;
+            vertexLightSpecular = clamp(vertexLightSpecular, 0, o.SpecularIntensity);        
+            
+            vertexLightSpecular *= o.VertexLightNoLs[i] * o.VertexLightAttenuations[i];
+            finalSpecular += vertexLightSpecular;
+        }
+        #endif
+
         finalSpecular *= o.Occlusion;
 
         mainLightSpecular += finalSpecular;

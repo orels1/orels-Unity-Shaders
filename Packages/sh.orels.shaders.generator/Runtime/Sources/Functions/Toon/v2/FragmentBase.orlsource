@@ -126,8 +126,6 @@
             #endif
         }
 
-        indirectDiffuse = lerp(indirectDiffuse, dot(indirectDiffuse, float3(0.299, 0.587, 0.114)), _MonochromeLighting);
-
         FinalColor.rgb = o.Albedo.rgb;
 
         half3 diffuseContributions = 0;
@@ -136,10 +134,17 @@
         diffuseContributions += customGIDiffuse;
         diffuseContributions *= diffuseModifier;
 
+        #if defined(UNITY_PASS_FORWARDBASE)
+        diffuseContributions = lerp(diffuseContributions, max(diffuseContributions, 0.05), _MinLight);
+        #endif
+        diffuseContributions = lerp(diffuseContributions, dot(diffuseContributions, float3(0.299, 0.587, 0.114)), _MonochromeLighting);
+
         half3 specularContributions = 0;
         specularContributions += max(mainLightSpecular, mainLightMixedSpecular);
         specularContributions += indirectSpecular;
         specularContributions += customGISpecular;
+
+        specularContributions = lerp(specularContributions, dot(specularContributions, float3(0.299, 0.587, 0.114)), _MonochromeLighting);
 
         // Composite final color
         FinalColor.rgb *= diffuseContributions;
