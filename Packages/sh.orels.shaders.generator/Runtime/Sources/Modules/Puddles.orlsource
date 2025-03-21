@@ -123,8 +123,8 @@
         half puddlesMask = 1;
 
         if (_PuddlesMaskMappingSpace == 3) {
-            half2 uvX, uvY, uvZ;
-            half weightX, weightY, weightZ;
+            float2 uvX, uvY, uvZ;
+            float weightX, weightY, weightZ;
             GetTriplanarUV(d.worldSpacePosition.xyz * _PuddlesMask_ST.x, uvX, uvY, uvZ);
             GetTriplanarWeights(d.worldNormal, weightX, weightY, weightZ);
             puddlesMask = SAMPLE_TEXTURE2D(_PuddlesMask, sampler_PuddlesMask, uvX).r * weightX;
@@ -149,7 +149,7 @@
 
         #if defined(RAINDROPS_ENABLE)
 
-        half2 uv = 0;
+        float2 uv = 0;
 
         switch (_RaindropsMappingSpace) {
             case 0: // World Space
@@ -203,7 +203,7 @@
         half angle = _RaindropsLayer2Rotation * 360.0;
         half sinAngle = sin(angle);
         half cosAngle = cos(angle);
-        half2x2 rotMat = {cosAngle, sinAngle, -sinAngle, cosAngle};
+        float2x2 rotMat = {cosAngle, sinAngle, -sinAngle, cosAngle};
         uv = mul(uv, rotMat);
         
         packed = SAMPLE_TEXTURE2D(_RaindropsMap, sampler_RaindropsMap, uv);

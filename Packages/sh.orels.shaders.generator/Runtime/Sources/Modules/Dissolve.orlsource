@@ -81,7 +81,7 @@
             case 0: gradSource = d.localSpacePosition[(_DissolveDirection % totalChannels)] * (_DissolveDirection > 2 ? -1 : 1); break;
             case 1: gradSource = d.uv0[(_DissolveDirection % totalChannels)] * (_DissolveDirection > 2 ? -1 : 1); break;
             case 2: {
-                half2 uv = d.uv0 * _DissolveTexture_ST.xy + _DissolveTexture_ST.zw;
+                float2 uv = d.uv0 * _DissolveTexture_ST.xy + _DissolveTexture_ST.zw;
                 gradSource = SAMPLE_TEXTURE2D(_DissolveTexture, sampler_DissolveTexture, uv)[(_DissolveDirection % totalChannels)] * (_DissolveDirection > 2 ? -1 : 1);
                 break;
             }
@@ -100,7 +100,7 @@
             noise = saturate(remap(noise, 0,1, 1 - _DissolveBakedNoiseStrength,1));
             grad = saturate(grad * noise);
         }
-        half2 overlayUv = d.uv0 * _DissolveOverlayTex_ST.xy + _DissolveOverlayTex_ST.zw;
+        float2 overlayUv = d.uv0 * _DissolveOverlayTex_ST.xy + _DissolveOverlayTex_ST.zw;
         half overlay = SAMPLE_TEXTURE2D(_DissolveOverlayTex, sampler_DissolveOverlayTex, overlayUv)[_DissolveOverlayChannel];
         grad = saturate(grad * saturate(remap(overlay, 0, 1, 1 - _DissolveOverlayStrength, 1)));
         if (grad < _DissolveCutoff)  {
