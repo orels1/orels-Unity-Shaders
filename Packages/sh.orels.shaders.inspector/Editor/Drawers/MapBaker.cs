@@ -250,6 +250,7 @@ namespace ORL.Drawers
                     {
                         buffer = new RenderTexture(4096, 4096, 24, DefaultFormat.LDR);
                     }
+                    clonedMaterial.SetVector("__MapBaker_MainTex_ST", material.GetVector("_MainTex_ST"));
                     Graphics.Blit(source, buffer, clonedMaterial);
                     RenderTexture.active = buffer;
                     target.ReadPixels(new Rect(0, 0, 4096, 4096), 0, 0);
@@ -290,4 +291,4 @@ namespace ORL.Drawers
     }
 #endif
 
-    }
+}
