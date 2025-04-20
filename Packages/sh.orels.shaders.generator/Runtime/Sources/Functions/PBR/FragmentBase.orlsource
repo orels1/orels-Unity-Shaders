@@ -557,9 +557,42 @@
                 }
                 else // Mesh has BlendProbes instead of LPPV
                 {
+                    // Enable Integration of Custom Lightprobe solutions
+                    #if defined(_INTEGRATE_CUSTOMPROBES)
+                    {
+                        %CustomProbesFunctions
+                    }
+                    #else
+                    {
+                        #if defined(NONLINEAR_SH)
+                        {
+                            half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+                            half3 L0L2 = half3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
+                            L0 = L0+L0L2;
+                            indirectDiffuse = max(0, GetNonLinearSH(L0, unity_SHAr, unity_SHAg, unity_SHAb, o.Normal));
+                            indirectDiffuse += SHEvalLinearL2(float4(o.Normal, 1));
+                        }
+                        #else
+                        {
+                            indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
+                        }
+                        #endif
+                    }
+                    #endif
+                }
+            }
+            #else // No LPPVs enabled project-wide
+            {
+                // Enable Integration of Custom Lightprobe solutions
+                #if defined(_INTEGRATE_CUSTOMPROBES)
+                {
+                    %CustomProbesFunctions
+                }
+                #else
+                {
                     #if defined(NONLINEAR_SH)
                     {
-                        half3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+                        half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
                         half3 L0L2 = half3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
                         L0 = L0+L0L2;
                         indirectDiffuse = max(0, GetNonLinearSH(L0, unity_SHAr, unity_SHAg, unity_SHAb, o.Normal));
@@ -570,21 +603,6 @@
                         indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
                     }
                     #endif
-                }
-            }
-            #else // No LPPVs enabled project-wide
-            {
-                #if defined(NONLINEAR_SH)
-                {
-                    half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-                    half3 L0L2 = half3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
-                    L0 = L0+L0L2;
-                    indirectDiffuse = max(0, GetNonLinearSH(L0, unity_SHAr, unity_SHAg, unity_SHAb, o.Normal));
-                    indirectDiffuse += SHEvalLinearL2(float4(o.Normal, 1));
-                }
-                #else
-                {
-                    indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
                 }
                 #endif
             }
@@ -675,6 +693,13 @@
             #if !defined(LIGHTMAP_ON)
             bakedSpecularColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
             bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+
+            // Enable Custom Lightprobes to write to baked specular
+            #if defined(_INTEGRATE_CUSTOMPROBES)
+            {
+                %CustomProbesBakedSpecularFunctions
+            }
+            #endif
             #endif
 
             bakedDominantDirection = normalize(bakedDominantDirection);
