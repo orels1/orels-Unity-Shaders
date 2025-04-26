@@ -104,7 +104,7 @@
         #if defined(REFLECTIONS_ON)
 
         float2 reflectionMaskUv = 0;
-        switch (_MatcapsMaskUVSet) {
+        switch (_ReflectionMaskUVSet) {
             case 0: reflectionMaskUv = d.uv0; break;
             case 1: reflectionMaskUv = d.uv1; break;
             case 2: reflectionMaskUv = d.uv2; break;

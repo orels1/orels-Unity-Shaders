@@ -649,6 +649,8 @@ namespace ORL.ShaderGenerator
                         if (b.IsFunction) return;
                         blocks.Remove(b);
                     });
+
+                    var insertedLines = 0;
                     foreach (var block in blocksToInsert)
                     {
                         if (block.IsFunction)
@@ -664,18 +666,28 @@ namespace ORL.ShaderGenerator
                                 fnBlocks.Reverse();
                                 foreach (var fnBlock in fnBlocks)
                                 {
-                                    hookPointBlocks[i].Contents.InsertRange(hookPointBlocks[i].HookPoints[j].Line, IndentContentsList(new List<string> { fnBlock.CallSign }, hookPointBlocks[i].HookPoints[j].Indentation));
+                                    var toInsert = IndentContentsList(new List<string> { fnBlock.CallSign }, hookPointBlocks[i].HookPoints[j].Indentation);
+                                    hookPointBlocks[i].Contents.InsertRange(hookPointBlocks[i].HookPoints[j].Line, toInsert);
+                                    insertedLines += toInsert.Count;
                                 }
                                 continue;
                             }
 
-                            hookPointBlocks[i].Contents.InsertRange(hookPointBlocks[i].HookPoints[j].Line, IndentContentsList(new List<string> { block.CallSign }, hookPointBlocks[i].HookPoints[j].Indentation));
+                            {
+                                var toInsert = IndentContentsList(new List<string> { block.CallSign }, hookPointBlocks[i].HookPoints[j].Indentation);
+                                hookPointBlocks[i].Contents.InsertRange(hookPointBlocks[i].HookPoints[j].Line, toInsert);
+                                insertedLines += toInsert.Count;
+                            }
                             continue;
                         }
 
-                        hookPointBlocks[i].Contents.InsertRange(hookPointBlocks[i].HookPoints[j].Line, IndentContentsList(block.Contents, hookPointBlocks[i].HookPoints[j].Indentation));
+                        {
+                            var toInsert = IndentContentsList(block.Contents, hookPointBlocks[i].HookPoints[j].Indentation);
+                            hookPointBlocks[i].Contents.InsertRange(hookPointBlocks[i].HookPoints[j].Line, toInsert);
+                            insertedLines += toInsert.Count;
+                        }
                     }
-                    hookPointBlocks[i].Contents.RemoveAt(hookPointBlocks[i].HookPoints[j].Line + 1);
+                    hookPointBlocks[i].Contents.RemoveAt(hookPointBlocks[i].HookPoints[j].Line + insertedLines);
                 }
             }
         }
@@ -1176,26 +1188,13 @@ namespace ORL.ShaderGenerator
 
         private List<string> IndentContentsList(List<string> contents, int indentLevel)
         {
-            var result = new List<string>();
-            var i = 0;
+            var result = new List<string>(contents.Count);
             foreach (var contentLine in contents)
             {
-                if (i == 0)
-                {
-                    result.Add(contentLine + (contents.Count == 1 ? "" : Environment.NewLine));
-                    i++;
-                    continue;
-                }
-
-                if (i == contents.Count - 1)
-                {
-                    result.Add(new string(' ', indentLevel) + contentLine);
-                }
-                else
-                {
-                    result.Add(new string(' ', indentLevel) + contentLine + Environment.NewLine);
-                }
-                i++;
+                // Replace both types of newlines for safety
+                var trimmedLine = contentLine.Replace("\r\n", string.Empty);
+                trimmedLine = trimmedLine.Replace("\n", string.Empty);
+                result.Add(new string(' ', indentLevel) + trimmedLine);
             }
 
             return result;

@@ -100,7 +100,7 @@
     }
 
 
-    half2 GetKaleidoscopeUV(half2 uv, half repeats, half rotation, half scale) 
+    float2 GetKaleidoscopeUV(float2 uv, half repeats, half rotation, half scale) 
     {
         half timeFactor = rotation;
         half cosR = cos(rotation) * scale;
@@ -108,22 +108,22 @@
         for (int i = 0; i < repeats; i++) {
             uv = abs(uv);
             uv -= 0.25;
-            uv = uv * cosR + sinR * uv.yx * half2(1, -1);
+            uv = uv * cosR + sinR * uv.yx * float2(1, -1);
         }
         return uv;
     }
 
-    half2 GetPolarUV(half2 uv, half angle)
+    float2 GetPolarUV(float2 uv, half angle)
     {
         angle = angle / 180 * UNITY_PI;
         half atanAng = atan2(uv.x, uv.y);
         half dist = length(uv);
         atanAng = GLSLMod(atanAng + angle / 2.0, angle) - angle / 2.0;
-        uv = half2(sin(atanAng), cos(atanAng)) * dist;
+        uv = float2(sin(atanAng), cos(atanAng)) * dist;
         return uv;
     }
 
-    half3 CirclesDist(half2 uv)
+    half3 CirclesDist(float2 uv)
     {
         uv = uv - 0.5;
         if (_CirclesKaleidoscopeUV)
@@ -151,7 +151,7 @@
 
     void PatternsFragment(MeshData d, inout SurfaceData o)
     {
-        half2 uv = d.uv0;
+        float2 uv = d.uv0;
         float2 dxuv = ddx(d.uv0);
         float2 dyuv = ddy(d.uv0);
         float goldenRatio = 1.61803398875;
@@ -183,11 +183,11 @@
         // Currently disabled
         // TODO: Add more options
         #if defined(PATTERN_LINES)
-        half2 uv = d.uv0;
+        float2 uv = d.uv0;
         uv = uv - 0.5;
         {
             // uv = Rotate2D(uv, _Time.y);
-            half2 kaleidocscope = GetKaleidoscopeUV(uv, 2, _Time.y * 0.5, .5);
+            float2 kaleidocscope = GetKaleidoscopeUV(uv, 2, _Time.y * 0.5, .5);
             // half rotatedUv = 
             // uv = Rotate2D(kaleidocscope, _Time.y);
             uv = kaleidocscope;

@@ -312,6 +312,10 @@ namespace ORL.ShaderGenerator
                 List.elementHeightCallback += idx => Mathf.Max(EditorGUIUtility.singleLineHeight,
                     EditorGUI.GetPropertyHeight(prop.GetArrayElementAtIndex(idx),
                         GUIContent.none, true)) + 4f;
+                List.onReorderCallbackWithDetails += (list, oldIndex, newIndex) =>
+                {
+                    otherProp.MoveArrayElement(oldIndex, newIndex);
+                };
             }
 
             private void DrawElement(Rect rect, int index, bool active, bool focused)

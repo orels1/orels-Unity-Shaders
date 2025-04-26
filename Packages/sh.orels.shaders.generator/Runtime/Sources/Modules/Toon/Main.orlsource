@@ -60,7 +60,7 @@
 {
     void ToonMainFragment(MeshData d, inout SurfaceData o, bool facing)
     {
-        half2 uv = 0;
+        float2 uv = 0;
         switch (_MainTexUVSet) {
             case 0: uv = d.uv0; break;
             case 1: uv = d.uv1; break;

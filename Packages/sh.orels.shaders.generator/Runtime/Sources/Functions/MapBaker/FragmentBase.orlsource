@@ -6,6 +6,16 @@
 %Variables()
 {
     int _BakerChannel;
+    float4 __MapBaker_MainTex_ST;
+}
+
+%Fragment("MapBakerBlitWorkaroundFragment", -9999)
+{
+    void MapBakerBlitWorkaroundFragment()
+    {
+        // workaround for tiling being broken in the map baker
+        _MainTex_ST = __MapBaker_MainTex_ST;
+    }
 }
 
 %FragmentBase("FragmentBase")

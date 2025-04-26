@@ -212,7 +212,7 @@
         {
             half offset = _ScalePhaseOffset;
             half factor = ((_Time.y * _ScaleSpeed + offset) % (1.1 + _ScaleFlowWidth * 2 + _ScaleFlowCyclePause)) - 0.1;
-            half2 uvChannel = v.uv0;
+            float2 uvChannel = v.uv0;
             switch (_ScaleFlowUVChannel)
             {
                 case 1: uvChannel = v.uv1; break;

@@ -216,7 +216,7 @@
     {
         half4 layerMask = _LMMaskingType == 0 ? d.vertexColor : SAMPLE_TEXTURE2D(_LMMaskTex, sampler_LMMaskTex, d.uv0.xy);
 
-        half2 uv = d.uv0.xy * _LMLayer1MainTex_ST.xy + _LMLayer1MainTex_ST.zw;
+        float2 uv = d.uv0.xy * _LMLayer1MainTex_ST.xy + _LMLayer1MainTex_ST.zw;
 
         half mask = _LMLayer1ColorMask == 0 ? all(layerMask.rgb < 0.00001) : _LMLayer1ColorMask == 4 ? all(layerMask.rgb > 0.99999) : layerMask[_LMLayer1ColorMask - 1];
         
@@ -224,33 +224,38 @@
         half4 albedo = SAMPLE_TEXTURE2D(_LMLayer1MainTex, sampler_LMLayer1MainTex, uv);
         if (_LMLayer1AlbedoChannel > 0)
         {
-        albedo.rgb = albedo[_LMLayer1AlbedoChannel].xxx;
+            albedo.rgb = albedo[_LMLayer1AlbedoChannel].xxx;
         }
+
         half4 masks = SAMPLE_TEXTURE2D(_LMLayer1MaskMap, sampler_LMLayer1MaskMap, uv);
+
         half4 normalTex = SAMPLE_TEXTURE2D(_LMLayer1BumpMap, sampler_LMLayer1BumpMap, uv);
         if (_LMLayer1FlipBumpY)
         {
-        normalTex.y = 1 - normalTex.y;
+            normalTex.y = 1 - normalTex.y;
         }
-        half3 normal = UnpackNormalScale(normalTex, _LMLayer1BumpScale);
+        half3 normal = UnpackNormalScale(normalTex, _LMLayer1BumpScale * mask);
+
         int hasMasks = _LMLayer1MaskMap_TexelSize.z > 8;
         half metal = masks[_LMLayer1MetalChannel];
+
         half smooth = masks[_LMLayer1SmoothChannel];
         if (_LMLayer1RoughnessMode)
         {
-        smooth = 1 - smooth;
+            smooth = 1 - smooth;
         }
+
         half detailMask = masks[_LMLayer1DetailMaskChannel];
         half occlusion = masks[_LMLayer1AOChannel];
         metal = remap(metal, 0, 1, _LMLayer1MetallicRemap.x, _LMLayer1MetallicRemap.y);
         smooth = remap(smooth, 0, 1, _LMLayer1SmoothnessRemap.x, _LMLayer1SmoothnessRemap.y);
         
-        o.Metallic = lerp(_LMLayer1Metallic, metal, hasMasks);
-        o.Smoothness = lerp(_LMLayer1Smoothness, smooth, hasMasks);
-        o.Occlusion = lerp(1, occlusion, _LMLayer1OcclusionStrength);
-        o.Normal = normal;
-        o.Albedo = albedo.rgb * _LMLayer1Color.rgb;
-        o.Alpha = albedo.a * _LMLayer1Color.a;
+        o.Metallic = lerp(o.Metallic, lerp(_LMLayer1Metallic, metal, hasMasks), mask);
+        o.Smoothness = lerp(o.Smoothness, lerp(_LMLayer1Smoothness, smooth, hasMasks), mask);
+        o.Occlusion = lerp(o.Occlusion, lerp(1, occlusion, _LMLayer1OcclusionStrength), mask);
+        o.Normal = BlendNormals(o.Normal, normal);
+        o.Albedo = lerp(o.Albedo, albedo.rgb * _LMLayer1Color.rgb, mask);
+        o.Alpha = lerp(o.Alpha, albedo.a * _LMLayer1Color.a, mask);
         
         UNITY_BRANCH
         if (_LayeredMatLayersCount < 2) return;
@@ -262,22 +267,27 @@
         albedo = SAMPLE_TEXTURE2D(_LMLayer2MainTex, sampler_LMLayer1MainTex, uv);
         if (_LMLayer2AlbedoChannel > 0)
         {
-        albedo.rgb = albedo[_LMLayer2AlbedoChannel].xxx;
+            albedo.rgb = albedo[_LMLayer2AlbedoChannel].xxx;
         }
+
         masks = SAMPLE_TEXTURE2D(_LMLayer2MaskMap, sampler_LMLayer1MaskMap, uv);
+
         normalTex = SAMPLE_TEXTURE2D(_LMLayer2BumpMap, sampler_LMLayer1BumpMap, uv);
         if (_LMLayer2FlipBumpY)
         {
-        normalTex.y = 1 - normalTex.y;
+            normalTex.y = 1 - normalTex.y;
         }
         normal = UnpackNormalScale(normalTex, _LMLayer2BumpScale * mask);
+
         hasMasks = _LMLayer2MaskMap_TexelSize.z > 8;
         metal = masks[_LMLayer2MetalChannel];
+
         smooth = masks[_LMLayer2SmoothChannel];
         if (_LMLayer2RoughnessMode)
         {
-        smooth = 1 - smooth;
+            smooth = 1 - smooth;
         }
+
         detailMask = masks[_LMLayer2DetailMaskChannel];
         occlusion = masks[_LMLayer2AOChannel];
         metal = remap(metal, 0, 1, _LMLayer2MetallicRemap.x, _LMLayer2MetallicRemap.y);
@@ -305,22 +315,27 @@
         albedo = SAMPLE_TEXTURE2D(_LMLayer3MainTex, sampler_LMLayer1MainTex, uv);
         if (_LMLayer3AlbedoChannel > 0)
         {
-        albedo.rgb = albedo[_LMLayer3AlbedoChannel].xxx;
+            albedo.rgb = albedo[_LMLayer3AlbedoChannel].xxx;
         }
+
         masks = SAMPLE_TEXTURE2D(_LMLayer3MaskMap, sampler_LMLayer1MaskMap, uv);
+
         normalTex = SAMPLE_TEXTURE2D(_LMLayer3BumpMap, sampler_LMLayer1BumpMap, uv);
         if (_LMLayer3FlipBumpY)
         {
-        normalTex.y = 1 - normalTex.y;
+            normalTex.y = 1 - normalTex.y;
         }
         normal = UnpackNormalScale(normalTex, _LMLayer3BumpScale * mask);
+
         hasMasks = _LMLayer3MaskMap_TexelSize.z > 8;
         metal = masks[_LMLayer3MetalChannel];
+
         smooth = masks[_LMLayer3SmoothChannel];
         if (_LMLayer3RoughnessMode)
         {
-        smooth = 1 - smooth;
+            smooth = 1 - smooth;
         }
+
         detailMask = masks[_LMLayer3DetailMaskChannel];
         occlusion = masks[_LMLayer3AOChannel];
         metal = remap(metal, 0, 1, _LMLayer3MetallicRemap.x, _LMLayer3MetallicRemap.y);
@@ -343,22 +358,27 @@
         albedo = SAMPLE_TEXTURE2D(_LMLayer4MainTex, sampler_LMLayer1MainTex, uv);
         if (_LMLayer4AlbedoChannel > 0)
         {
-        albedo.rgb = albedo[_LMLayer4AlbedoChannel].xxx;
+            albedo.rgb = albedo[_LMLayer4AlbedoChannel].xxx;
         }
+
         masks = SAMPLE_TEXTURE2D(_LMLayer4MaskMap, sampler_LMLayer1MaskMap, uv);
+
         normalTex = SAMPLE_TEXTURE2D(_LMLayer4BumpMap, sampler_LMLayer1BumpMap, uv);
         if (_LMLayer4FlipBumpY)
         {
-        normalTex.y = 1 - normalTex.y;
+            normalTex.y = 1 - normalTex.y;
         }
         normal = UnpackNormalScale(normalTex, _LMLayer4BumpScale * mask);
+
         hasMasks = _LMLayer4MaskMap_TexelSize.z > 8;
         metal = masks[_LMLayer4MetalChannel];
+
         smooth = masks[_LMLayer4SmoothChannel];
         if (_LMLayer4RoughnessMode)
         {
-        smooth = 1 - smooth;
+            smooth = 1 - smooth;
         }
+        
         detailMask = masks[_LMLayer4DetailMaskChannel];
         occlusion = masks[_LMLayer4AOChannel];
         metal = remap(metal, 0, 1, _LMLayer4MetallicRemap.x, _LMLayer4MetallicRemap.y);

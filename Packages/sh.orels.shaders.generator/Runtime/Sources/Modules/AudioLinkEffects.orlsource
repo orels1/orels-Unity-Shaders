@@ -136,7 +136,7 @@
 
         half3 finalEmission = 0;
         half finalAlpha = 1;
-        half2 uv = 0;
+        float2 uv = 0;
         switch(_ALUVChannel)
         {
             case 0: uv = d.uv0.xy; break;
@@ -150,13 +150,13 @@
 
         half uvSource = lerp(uv.x, lerp(uv.y, lerp(1 - uv.x, 1 - uv.y, saturate(_BandScrollAxis - 2)), saturate(_BandScrollAxis - 1)), saturate(_BandScrollAxis));
         half scaledUv = (uvSource * _BandHistoryRange) % 128.0;
-        half4 bandData = AudioLinkLerp(half2(scaledUv, clamp(_BandFrequency - 1, 0, 3)));
+        half4 bandData = AudioLinkLerp(float2(scaledUv, clamp(_BandFrequency - 1, 0, 3)));
         finalEmission = bandData.rgb * _ALTint;
         finalAlpha = bandData.r;
 
         #elif defined(AL_EFFECT_UV_BASED)
 
-        half2 scaledUv = half2(lerp(uv.x, uv.y, _UVFlipXY) * _UVHistoryRange % 128, floor(lerp(uv.y, uv.x, _UVFlipXY) * 4));
+        float2 scaledUv = float2(lerp(uv.x, uv.y, _UVFlipXY) * _UVHistoryRange % 128, floor(lerp(uv.y, uv.x, _UVFlipXY) * 4));
         half4 bandData = AudioLinkLerp(scaledUv).rrra;
         if (_UVUseThemeColors)
         {
@@ -233,7 +233,7 @@
 
         #elif defined(AL_EFFECT_BAR)
 
-        half uvSource = lerp(uv.x, lerp(uv.y, lerp(1 - uv.x, 1 - uv.y, saturate(_BarAxis - 2)), saturate(_BarAxis - 1)), saturate(_BarAxis));
+        float uvSource = lerp(uv.x, lerp(uv.y, lerp(1 - uv.x, 1 - uv.y, saturate(_BarAxis - 2)), saturate(_BarAxis - 1)), saturate(_BarAxis));
         half3 color = SAMPLE_TEXTURE2D(_BarColor, sampler_BarColor, half2(uvSource, 0)).rgb;
         half bandData = 0;
         UNITY_BRANCH
