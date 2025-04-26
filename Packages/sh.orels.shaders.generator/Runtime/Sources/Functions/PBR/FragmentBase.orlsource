@@ -940,7 +940,9 @@
         // Compositing
         FinalColor.rgb *= diffuseContributions;
         FinalColor.rgb += specularContributions;
-        FinalColor.a = o.Alpha;
+
+        if (_RenderType > 1)
+            FinalColor.a = o.Alpha;
         
         #if defined(UNITY_PASS_FORWARDBASE)
         FinalColor.rgb += o.Emission;
