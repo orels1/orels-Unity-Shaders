@@ -235,7 +235,7 @@
         float oneMinusReflectivity = 1.0 - 0.04 - o.Metallic * (1.0 - 0.04);
         half3 f0 = 0.16 * reflectance * reflectance * oneMinusReflectivity + o.Albedo * o.Metallic;
 
-        half3 indirectDiffuse = 1;
+        half3 indirectDiffuse = 0;
         half3 indirectSpecular = 0;
         
         half occlusion = o.Occlusion;
@@ -411,7 +411,7 @@
 
         // READ THE LIGHTMAP
         // Can be Baked, Realtime, both or either
-        #if (defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)) && !defined(UNITY_PASS_FORWARDADD)
+        #if (defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)) && defined(UNITY_PASS_FORWARDBASE)
             half3 lightMap = 0;
             half4 bakedColorTex = 0;
             half2 lightmapUV = d.lightmapUv.xy;
@@ -546,7 +546,12 @@
             );
 
         // Lightprobes Sampling
-        #else
+        #elif defined(UNITY_PASS_FORWARDBASE)
+            #if defined(_INTEGRATE_CUSTOMPROBES)
+            {
+                %CustomProbesSetupFunctions
+            }
+            #endif
             // LPPV support
             #if UNITY_LIGHT_PROBE_PROXY_VOLUME
             {

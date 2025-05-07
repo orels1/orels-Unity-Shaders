@@ -83,16 +83,25 @@
 
 %ModuleLighting("ToonShadingLightingIndirect")
 {
-    void ToonShadingLightingIndirect(SurfaceData o, MeshData d, inout half3 indirectDiffuse)
+    void ToonShadingLightingIndirect(SurfaceData o, MeshData d, inout half3 indirectDiffuse, float3 lightDir)
     {
-        half3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-        half3 L0L2 = half3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
-        L0 = L0+L0L2;
+        #if defined(_INTEGRATE_CUSTOMPROBES)
+        {
+            %CustomProbesFunctions
+        }
+        #else
+        {
+            half3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+            half3 L0L2 = half3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
+            L0 = L0+L0L2;
 
-        float3 normal = _IgnoreLightprobeNormal ? float3(0, 0.5, 0) : o.WorldNormal;
+            float3 normal = _IgnoreLightprobeNormal ? float3(0, 0.5, 0) : o.WorldNormal;
+
+            indirectDiffuse = max(0, GetNonLinearSH(L0, unity_SHAr, unity_SHAg, unity_SHAb, normal));
+            indirectDiffuse += SHEvalLinearL2(float4(normal, 1));
+        }
+        #endif
         
-        indirectDiffuse = max(0, GetNonLinearSH(L0, unity_SHAr, unity_SHAg, unity_SHAb, normal));
-        indirectDiffuse += SHEvalLinearL2(float4(normal, 1));
         if (!_OffsetRampByOcclusion)
         {
             indirectDiffuse *= o.Occlusion;
