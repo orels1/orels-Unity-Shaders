@@ -52,7 +52,8 @@
     "self",
     "@/Modules/Parallax",
     "@/Modules/Details",
-    "@/Modules/VRCFeatures"
+    "@/Modules/VRCFeatures",
+    "@/Modules/VRCLightVolumes"
 }
 
 %Variables()

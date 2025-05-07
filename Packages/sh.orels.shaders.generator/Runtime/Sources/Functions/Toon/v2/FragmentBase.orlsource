@@ -64,8 +64,19 @@
         float3 lightDir = _WorldSpaceLightPos0.xyz;
         #endif
         bool hasRealtimeLight = any(lightDir.xyz);
-        float3 probeLightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
-        bool probesAreBlack = length(dot(probeLightDir, float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w))) < 0.01;
+
+        float3 probeLightDir = 0;
+        bool probesAreBlack = false;
+        
+        // Custom probes might want to override the probe light direction
+        #if defined(_INTEGRATE_CUSTOMPROBES)
+        {
+            %CustomProbesSetupFunctions
+        }        
+        #endif
+        probeLightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+        probesAreBlack = length(dot(probeLightDir, float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w))) < 0.01;
+
         bool noLightDir = !hasRealtimeLight && probesAreBlack;
 
         // If no realtime light is present - use direction from probes

@@ -17,6 +17,7 @@
     "@/Modules/AudioLink",
     "self",
     "@/Modules/Toon/v2/Main"
+    "@/Modules/VRCLightVolumes"
     "@/Modules/Toon/v2/Shading",
     "@/Modules/Toon/v2/Occlusion",
     "@/Modules/Toon/v2/Normals",
@@ -29,5 +30,5 @@
     "@/Modules/Toon/AudioLink",
     "@/Modules/Toon/v2/Emission",
     "@/Modules/Toon/v2/Outline",
-    "@/Modules/Toon/UVDiscard"
+    "@/Modules/Toon/UVDiscard",
 }
