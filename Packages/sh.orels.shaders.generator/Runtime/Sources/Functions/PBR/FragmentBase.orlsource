@@ -900,7 +900,7 @@
             o.Alpha = 1 - (oneMinusReflectivity) + o.Alpha * (oneMinusReflectivity);
         }
 
-        #if !defined(_NATIVE_A2C)
+        #if !defined(_NATIVE_A2C) || (!defined(UNITY_PASS_FORWARDBASE) && !defined(UNITY_PASS_FORWARDADD))
         {
             // Standard-Like cutout
             if (_RenderType == 1)
@@ -972,7 +972,9 @@
         FinalColor.rgb += specularContributions;
 
         if (_RenderType > 1)
+        {
             FinalColor.a = o.Alpha;
+        }
         
         #if defined(UNITY_PASS_FORWARDBASE)
         FinalColor.rgb += o.Emission;
