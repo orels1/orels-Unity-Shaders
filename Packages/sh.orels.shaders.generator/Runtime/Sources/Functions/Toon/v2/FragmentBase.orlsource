@@ -75,14 +75,14 @@
         }        
         #endif
         probeLightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
-        probesAreBlack = length(dot(probeLightDir, float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w))) < 0.01;
+        probesAreBlack = length(unity_SHAr.w + unity_SHAg.w + unity_SHAb.w) < 0.01;
 
         bool noLightDir = !hasRealtimeLight && probesAreBlack;
 
         // If no realtime light is present - use direction from probes
         if (!hasRealtimeLight)
         {
-            lightDir = Unity_SafeNormalize(probeLightDir);
+            lightDir = probeLightDir;
         }
 
         // If no light is present, we use a default direction
