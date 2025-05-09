@@ -100,6 +100,7 @@
 {
     #if defined(VRCLIGHTVOLUMES)
         #define _INTEGRATE_CUSTOMPROBES
+        #define _INTEGRATE_CUSTOMGI_FLEX
     #endif
 }
 
@@ -115,6 +116,14 @@
             o.VRCLV_L1r = L1r;
             o.VRCLV_L1g = L1g;
             o.VRCLV_L1b = L1b;
+
+            // Since toon shaders can derive light directions from probes
+            // we need to directly modify these values
+            #if defined(ORL_LIGHTING_MODEL_TOON_V2)
+            unity_SHAr = float4(L1r, L0.r);
+            unity_SHAg = float4(L1g, L0.g);
+            unity_SHAb = float4(L1b, L0.b);
+            #endif
         }
         #endif
     }
@@ -145,6 +154,24 @@
         #if defined(VRCLIGHTVOLUMES)
         bakedSpecularColor = o.VRCLV_L0;
         bakedDominantDirection = o.VRCLV_L1r.xyz + o.VRCLV_L1g.xyz + o.VRCLV_L1b.xyz;
+        #endif
+    }
+}
+
+%CustomGI("VRCLightVolumesCustomGI")
+{
+    void VRCLightVolumesCustomGI(SurfaceData o, MeshData d, inout half3 indirectDiffuse)
+    {
+        #if defined(VRCLIGHTVOLUMES)
+        {
+            #if defined(LIGHTMAP_ON)
+            {
+                float3 L0, L1r, L1g, L1b;
+                LightVolumeAdditiveSH(d.worldSpacePosition, L0, L1r, L1g, L1b);
+                indirectDiffuse += LightVolumeEvaluate(o.Normal, L0, L1r, L1g, L1b);
+            }
+            #endif
+        }
         #endif
     }
 }
