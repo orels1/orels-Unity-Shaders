@@ -5,7 +5,7 @@
     _DissolveCutoff("Cutoff", Range(0,1)) = 0.04
     _DissolveCutoffRangeMin("Cutoff Range Min %CombineWith(_DissolveCutoffRangeMax)", Float) = -0.1
     [HideInInspector]_DissolveCutoffRangeMax("Max", Float) = 1.1
-    [Enum(Local Position, 0, UV, 1, Texture, 2)]_DissolveSource("Fade Based On", Int) = 0
+    [Enum(Local Position, 0, UV, 1, Texture, 2, Vertex Colors, 3)]_DissolveSource("Fade Based On", Int) = 0
     _DissolveTexture("Fade Texture %ShowIf(_DissolveSource == 2)", 2D) = "grayscaleRamp" {}
     UI_DissolveTextureNote("> This texture will be used as a base of fade progression. Generally expected to be some kind of gradient, sometimes multiplied by a pattern %ShowIf(_DissolveSource == 2)", Int) = 0
     [Enum(X, 0, Y, 1, Z, 2, Negative X, 3, Negative Y, 4, Negative Z, 5)]_DissolveDirection("Fade Direction", Int) = 1
@@ -83,6 +83,12 @@
             case 2: {
                 float2 uv = d.uv0 * _DissolveTexture_ST.xy + _DissolveTexture_ST.zw;
                 gradSource = SAMPLE_TEXTURE2D(_DissolveTexture, sampler_DissolveTexture, uv)[(_DissolveDirection % totalChannels)] * (_DissolveDirection > 2 ? -1 : 1);
+                break;
+            }
+            case 3: {
+                half isReverse = _DissolveDirection > 2 ? 0 : 1;
+                gradSource = d.vertexColor[(_DissolveDirection % totalChannels)]; 
+                gradSource = ((1 - gradSource) * (1 - isReverse)) + (gradSource * isReverse);
                 break;
             }
         }
