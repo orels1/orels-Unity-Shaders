@@ -2,7 +2,10 @@
     "name": "ORL.Shaders.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:7c60e0ff79a88d0408296a2af802cc74"
+        "GUID:7c60e0ff79a88d0408296a2af802cc74",
+        "GUID:a1653399f63795746b1857281d1e400d",
+        "GUID:7f2b18295eece7a49ab038d58f0c3037",
+        "GUID:a5857e7d50658ab468a75fe6fb42fda9"
     ],
     "includePlatforms": [
         "Editor"
