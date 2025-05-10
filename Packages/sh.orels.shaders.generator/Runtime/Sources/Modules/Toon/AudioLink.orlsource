@@ -9,7 +9,7 @@
     UI_ALEmissionDotMaskNote("> When enabled, the AudioLink-powered emission will be darkened by the rim settings", Int) = 1
     [ToggleUI]_ALEmissionDotMaskInvert("Invert Rim Mask %ShowIf(_ALEmissionDotMask)", Int) = 0
     _ALEmissionDotMaskSmoothing("Rim Mask Smoothing %ShowIf(_ALEmissionDotMask)", Float) = 2
-    [Enum(Bass,0,Low Mids,1,High Mids,3,Treble,4)]_ALBand("Frequency Band %ShowIf(AL_MODE_SINGLE_CHANNEL)", Int) = 0
+    [Enum(Bass,0,Low Mids,1,High Mids,2,Treble,3)]_ALBand("Frequency Band %ShowIf(AL_MODE_SINGLE_CHANNEL)", Int) = 0
     [IntRange]_ALSmoothingLevel("Smoothing Level %ShowIf(AL_MODE_PACKED_MAP || AL_MODE_SINGLE_CHANNEL)", Range(0, 16)) = 1
     UI_ALPackedRedHeader("## Red Channel %ShowIf(AL_MODE_PACKED_MAP)", Int) = 0
     [ToggleUI]_ALGradientOnRed("Gradient %ShowIf(AL_MODE_PACKED_MAP) %CombineWith(_ALPackedRedColor)", Int) = 0
@@ -94,9 +94,9 @@
             half sampledAL = 0;
             UNITY_BRANCH
             if (_ALSmoothingLevel == 0) {
-                sampledAL = AudioLinkData(int2(0, _ALBand)).x;
+                sampledAL = AudioLinkData(uint2(0, _ALBand)).x;
             } else {
-                sampledAL = AudioLinkData(ALPASS_FILTEREDAUDIOLINK + int2(16 - _ALSmoothingLevel, _ALBand)).x;
+                sampledAL = AudioLinkData(ALPASS_FILTEREDAUDIOLINK + uint2(16 - _ALSmoothingLevel, _ALBand)).x;
             }
             half3 em = alMask.rgb * _ALEmissionColor.rgb * sampledAL;
 
