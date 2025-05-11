@@ -115,7 +115,10 @@
                 } else {
                     indirectSpecular += ltcgiData.specular * _LTCGISpecularIntensity;
                 }
-                indirectDiffuse += ltcgiData.diffuse * _LTCGIDiffuseIntensity;
+                half3 rampHSV = RGB2HSV(ltcgiData.diffuse);
+                rampHSV.z = tanh(rampHSV.z);
+                rampHSV.z = SAMPLE_TEXTURE2D(_LTCGIRamp, sampler_LTCGIRamp, half2(rampHSV.z, 0)).r;
+                indirectDiffuse += HSV2RGB(rampHSV) * _LTCGIDiffuseIntensity;
             #endif
         }
         #endif
