@@ -37,6 +37,8 @@
     // All volumes count in scene
     float _UdonLightVolumeCount;
 
+    #if !SHADER_API_GLCORE
+
     // Additive volumes max overdraw count
     float _UdonLightVolumeAdditiveMaxOverdraw;
 
@@ -73,6 +75,8 @@
 
     // Color multiplier
     float4 _UdonLightVolumeColor[256];
+
+    #endif
 }
 
 %AdditionalSurfaceData()
@@ -108,7 +112,7 @@
 {
     void VRCLightVolumesCustomProbesSetup(MeshData d, inout SurfaceData o)
     {
-        #if defined(VRCLIGHTVOLUMES)
+        #if defined(VRCLIGHTVOLUMES) && !SHADER_API_GLCORE
         {
             float3 L0, L1r, L1g, L1b;
             LightVolumeSH(d.worldSpacePosition, L0, L1r, L1g, L1b);
@@ -134,7 +138,7 @@
     void VRCLightVolumesCustomProbes(SurfaceData o, MeshData d, inout half3 indirectDiffuse)
     {
         // Custom Probes
-        #if defined(VRCLIGHTVOLUMES)
+        #if defined(VRCLIGHTVOLUMES) && !SHADER_API_GLCORE
         {
             #if defined(ORL_LIGHTING_MODEL_TOON_V2)
             {
@@ -151,7 +155,7 @@
 {
     void VRCLightVolumesCustomProbesBakedSpecular(SurfaceData o, MeshData d, inout half3 indirectSpecular, inout half3 bakedSpecularColor, inout half3 bakedDominantDirection)
     {
-        #if defined(VRCLIGHTVOLUMES)
+        #if defined(VRCLIGHTVOLUMES) && !SHADER_API_GLCORE
         bakedSpecularColor = o.VRCLV_L0;
         bakedDominantDirection = o.VRCLV_L1r.xyz + o.VRCLV_L1g.xyz + o.VRCLV_L1b.xyz;
         #endif
@@ -162,7 +166,7 @@
 {
     void VRCLightVolumesCustomGI(SurfaceData o, MeshData d, inout half3 indirectDiffuse)
     {
-        #if defined(VRCLIGHTVOLUMES)
+        #if defined(VRCLIGHTVOLUMES) && !SHADER_API_GLCORE
         {
             #if defined(LIGHTMAP_ON)
             {
@@ -191,21 +195,26 @@
 
     // Calculates local UVW using volume ID
     float3 LV_LocalFromVolume(int volumeID, float3 worldPos) {
+        #if !SHADER_API_GLCORE
         return mul(_UdonLightVolumeInvWorldMatrix[volumeID], float4(worldPos, 1.0)).xyz;
+        #endif
     }
 
     // Calculates Island UVW from local UVW
     float3 LV_LocalToIsland(int volumeID, int texID, float3 localUVW){
+        #if !SHADER_API_GLCORE
         // UVW bounds
         int uvwID = volumeID * 3 + texID;
         float3 uvwMin = _UdonLightVolumeUvwMin[uvwID].xyz;
         float3 uvwMax = _UdonLightVolumeUvwMax[uvwID].xyz;
         // Ramapping world bounds to UVW bounds
         return clamp(lerp(uvwMin, uvwMax, localUVW + 0.5), uvwMin, uvwMax);
+        #endif
     }
 
     // Samples 3 SH textures and packing them into L1 channels
     void LV_SampleLightVolumeTex(float3 uvw0, float3 uvw1, float3 uvw2, out float3 L0, out float3 L1r, out float3 L1g, out float3 L1b) {
+        #if !SHADER_API_GLCORE
         // Sampling 3D Atlas
         float4 tex0 = SAMPLE_TEXTURE3D_LOD(_UdonLightVolume, sampler_UdonLightVolume, uvw0, 0);
         float4 tex1 = SAMPLE_TEXTURE3D_LOD(_UdonLightVolume, sampler_UdonLightVolume, uvw1, 0);
@@ -215,6 +224,7 @@
         L1r = float3(tex1.r, tex2.r, tex0.a);
         L1g = float3(tex1.g, tex2.g, tex1.a);
         L1b = float3(tex1.b, tex2.b, tex2.a);
+        #endif
     }
 
     // Bounds mask for a volume rotated in world space, using local UVW
@@ -240,6 +250,8 @@
 
     // Samples a Volume with ID and Local UVW
     void LV_SampleVolume(int id, float3 localUVW, out float3 L0, out float3 L1r, out float3 L1g, out float3 L1b) {
+
+        #if !SHADER_API_GLCORE
         
         // Additive UVW
         float3 uvw0 = LV_LocalToIsland(id, 0, localUVW);
@@ -261,6 +273,8 @@
             L1g = LV_MultiplyVectorByQuaternion(L1g, _UdonLightVolumeRotation[id]);
             L1b = LV_MultiplyVectorByQuaternion(L1b, _UdonLightVolumeRotation[id]);
         }
+
+        #endif
                     
     }
 
@@ -283,6 +297,8 @@
             LV_SampleLightProbe(L0, L1r, L1g, L1b);
             return;
         }
+
+        #if !SHADER_API_GLCORE
         
         int volumeID_A = -1; // Main, dominant volume ID
         int volumeID_B = -1; // Secondary volume ID to blend main with
@@ -397,9 +413,13 @@
         L1g += lerp(L1g_B, L1g_A, mask);
         L1b += lerp(L1b_B, L1b_A, mask);
 
+        #endif
+
     }
 
     void LightVolumeAdditiveSH(float3 worldPos, out float3 L0, out float3 L1r, out float3 L1g, out float3 L1b) {
+
+        #if !SHADER_API_GLCORE
 
         // Initializing output variables
         L0  = float3(0, 0, 0);
@@ -428,6 +448,8 @@
                 addVolumesCount++;
             }
         }
+
+        #endif
 
     }
 }
