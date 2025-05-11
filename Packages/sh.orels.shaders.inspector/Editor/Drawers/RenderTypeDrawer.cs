@@ -133,6 +133,11 @@ namespace ORL.Drawers
                 return true;
             }
 
+            if (!IsMaterialSetUpForRenderType(targetMaterial, propertyData, newRenderType))
+            {
+                SetRenderType(targetMaterial, currentRenderType, propertyData, property);
+            }
+
             return true;
         }
 
@@ -192,10 +197,12 @@ namespace ORL.Drawers
 
         private bool IsMaterialSetUpForRenderType(Material targetMaterial, MaterialPropertyData propData, RenderType renderType)
         {
+            var overrideTag = targetMaterial.GetTag("RenderType", false);
             switch (renderType)
             {
                 case RenderType.Opaque:
-                    return targetMaterial.GetInt(propData.SrcBlendProp) == (int)UnityEngine.Rendering.BlendMode.One &&
+                    return overrideTag == "Opaque" &&
+                           targetMaterial.GetInt(propData.SrcBlendProp) == (int)UnityEngine.Rendering.BlendMode.One &&
                            targetMaterial.GetInt(propData.DstBlendProp) == (int)UnityEngine.Rendering.BlendMode.Zero &&
                            targetMaterial.GetInt(propData.BlendOpProp) == (int)UnityEngine.Rendering.BlendOp.Add &&
                            targetMaterial.GetInt(propData.SrcBlendAlphaProp) == (int)UnityEngine.Rendering.BlendMode.One &&
@@ -204,7 +211,8 @@ namespace ORL.Drawers
                            targetMaterial.renderQueue > -1 && targetMaterial.renderQueue <= ((int)UnityEngine.Rendering.RenderQueue.AlphaTest) - 1;
                 //    targetMaterial.GetInt(propData.ZWriteProp) == 1;
                 case RenderType.Cutout:
-                    return targetMaterial.GetInt(propData.SrcBlendProp) == (int)UnityEngine.Rendering.BlendMode.One &&
+                    return overrideTag == "TransparentCutout" &&
+                           targetMaterial.GetInt(propData.SrcBlendProp) == (int)UnityEngine.Rendering.BlendMode.One &&
                            targetMaterial.GetInt(propData.DstBlendProp) == (int)UnityEngine.Rendering.BlendMode.Zero &&
                            targetMaterial.GetInt(propData.BlendOpProp) == (int)UnityEngine.Rendering.BlendOp.Add &&
                            targetMaterial.GetInt(propData.SrcBlendAlphaProp) == (int)UnityEngine.Rendering.BlendMode.One &&
@@ -213,7 +221,8 @@ namespace ORL.Drawers
                            targetMaterial.renderQueue >= (int)UnityEngine.Rendering.RenderQueue.AlphaTest && targetMaterial.renderQueue <= ((int)UnityEngine.Rendering.RenderQueue.GeometryLast);
                 //    targetMaterial.GetInt(propData.ZWriteProp) == 1;
                 case RenderType.Transparent:
-                    return targetMaterial.GetInt(propData.SrcBlendProp) == (int)UnityEngine.Rendering.BlendMode.One &&
+                    return overrideTag == "Transparent" &&
+                           targetMaterial.GetInt(propData.SrcBlendProp) == (int)UnityEngine.Rendering.BlendMode.One &&
                            targetMaterial.GetInt(propData.DstBlendProp) == (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha &&
                            targetMaterial.GetInt(propData.BlendOpProp) == (int)UnityEngine.Rendering.BlendOp.Add &&
                            targetMaterial.GetInt(propData.SrcBlendAlphaProp) == (int)UnityEngine.Rendering.BlendMode.One &&
@@ -222,7 +231,8 @@ namespace ORL.Drawers
                            targetMaterial.renderQueue > ((int)UnityEngine.Rendering.RenderQueue.GeometryLast) + 1 && targetMaterial.renderQueue <= ((int)UnityEngine.Rendering.RenderQueue.Overlay) - 1;
                 //    targetMaterial.GetInt(propData.ZWriteProp) == 0;
                 case RenderType.Fade:
-                    return targetMaterial.GetInt(propData.SrcBlendProp) == (int)UnityEngine.Rendering.BlendMode.SrcAlpha &&
+                    return overrideTag == "Transparent" &&
+                           targetMaterial.GetInt(propData.SrcBlendProp) == (int)UnityEngine.Rendering.BlendMode.SrcAlpha &&
                            targetMaterial.GetInt(propData.DstBlendProp) == (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha &&
                            targetMaterial.GetInt(propData.BlendOpProp) == (int)UnityEngine.Rendering.BlendOp.Add &&
                            targetMaterial.GetInt(propData.SrcBlendAlphaProp) == (int)UnityEngine.Rendering.BlendMode.One &&

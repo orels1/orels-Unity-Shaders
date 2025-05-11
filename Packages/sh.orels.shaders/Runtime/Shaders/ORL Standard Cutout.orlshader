@@ -45,7 +45,7 @@
 %Fragment("CutoutFragment")
 {
     void CutoutFragment(inout SurfaceData o) {
-        #if defined(_NATIVE_A2C) && defined(UNITY_PASS_FORWARDBASE)
+        #if defined(_NATIVE_A2C) && (defined(UNITY_PASS_FORWARDBASE))
         
         half antiAliased = o.Alpha - 0.5;
         antiAliased /= max(0.0001, fwidth(o.Alpha));
@@ -54,7 +54,7 @@
 
         #endif
         
-        #if !defined(_NATIVE_A2C) || !defined(UNITY_PASS_FORWARDBASE)
+        #if !defined(_NATIVE_A2C) || (!defined(UNITY_PASS_FORWARDBASE))
         if (o.Alpha < _Cutoff)  {
             clip(-1);
         }
@@ -69,5 +69,17 @@
         if (alpha < _Cutoff)  {
             clip(-1);
         }
+    }
+}
+
+%Color("CutoutColor")
+{
+    void CutoutColor(SurfaceData o, inout half4 FinalColor)
+    {
+        #if defined(_NATIVE_A2C)
+        {
+            FinalColor.a = o.Alpha;
+        }
+        #endif
     }
 }

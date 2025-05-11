@@ -3,7 +3,7 @@
     UI_MainHeader("# Main Settings", Int) = 1
     UI_ToonDocs("[This shader has documentation](https://shaders.orels.sh/docs/toon)", Int) = 0
     _Color("Main Color", Color) = (1, 1, 1, 1)
-    _BackfaceColor("Backface Color %ShowIf(_CullMode != 2)", Color) = (1, 1, 1, 1)
+    _BackfaceColor("Backface Color %ShowIf", Color) = (1, 1, 1, 1)
     _BackfaceAlbedoTint("Backface Albedo Tint", Range(0,1)) = 1
     [ToggleUI]_TintByVertexColor("Tint By Vertex Color", Int) = 0
     _MainTex("Albedo", 2D) = "white" {}
@@ -14,6 +14,9 @@
     _Hue("Hue", Range(0,1)) = 0
     _Saturation("Saturation", Range(-1,1)) = 0
     _Value("Value", Range(-1,1)) = 0
+
+    UI_VRCLightVolumesHeader("# VRC Light Volumes", Int) = 0
+    [Toggle(VRCLIGHTVOLUMES)]_VRCLightVolumesEnabled("Enable VRC Light Volumes", Int) = 1
 }
 
 %ShaderDefines()

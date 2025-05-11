@@ -65,11 +65,7 @@ Shader %ShaderName
                 %DataStructs
                 // GlobalVariables
                 %GlobalVariables
-
-                #if defined(NEED_DEPTH)
-                    UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-                #endif
-
+                
                 // Variables
                 %Variables
 
