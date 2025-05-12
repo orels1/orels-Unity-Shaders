@@ -121,19 +121,19 @@
     {
         // half3 wsVert = TransformObjectToWorld(v.vertex.xyz);
         // half3 wsNormal = TransformObjectToWorld(v.normal.xyz);
-        half3 wsObjectPosition = TransformObjectToWorld(0..xxx);
+        float3 wsObjectPosition = TransformObjectToWorld(0..xxx);
         half factor = 0;
         o.extraV2F0 = v.vertex;
         
         #if defined(SPIN_LOCAL) || defined(SPIN_WORLD)
         {
-            half3 origin = _SpinOrigin.xyz;
+            float3 origin = _SpinOrigin.xyz;
             if (_NormalizeSpinAxis) {
                 _SpinAxis.xyz = normalize(_SpinAxis.xyz);
             }
             
-            half offset = _SpinPhaseOffset;
-            half speedOffset = 0;
+            float offset = _SpinPhaseOffset;
+            float speedOffset = 0;
             if (_SpinPositionOffset) {
                 if (_SpinPositionOffsetAxis == 0) {
                     offset += length(wsObjectPosition.xyz);
@@ -144,7 +144,7 @@
                 speedOffset = pow(abs(_SpinPositionOffsetSpeed), offset) * sign(_SpinPositionOffsetSpeed);
             }
 
-            half factor = _Time.y * (_SpinSpeed + speedOffset) + offset;
+            float factor = _Time.y * (_SpinSpeed + speedOffset) + offset;
             factor %= 6.2831;
 
              if (_SpinStoppedChance) {
@@ -158,9 +158,9 @@
             v.normal.xyz = RotateAroundAxis(origin, v.normal.xyz, _SpinAxis.xyz, factor);
             #elif defined(SPIN_WORLD)
             float3 scale = GetObjectScale();
-            half3 lsAxis = normalize(TransformWorldToObjectDir(_SpinAxis.xyz));
-            half3 vertRot = RotateAroundAxis(origin, v.vertex.xyz, lsAxis, factor);
-            half3 normalRot = RotateAroundAxis(origin, v.normal.xyz, lsAxis, factor);
+            float3 lsAxis = normalize(TransformWorldToObjectDir(_SpinAxis.xyz));
+            float3 vertRot = RotateAroundAxis(origin, v.vertex.xyz, lsAxis, factor);
+            float3 normalRot = RotateAroundAxis(origin, v.normal.xyz, lsAxis, factor);
             v.vertex.xyz = vertRot;
             v.normal.xyz = normalRot;
             #endif
@@ -181,12 +181,12 @@
             factor = lerp((factor + 1) / 2, factor, _FloatTwoWay);
             
             #if defined(FLOATING_LOCAL)
-            half3 axis = _FloatAxis.xyz;
+            float3 axis = _FloatAxis.xyz;
             if (_NormalizeFloatAxis) {
                 axis = normalize(axis);
             }
             #elif defined(FLOATING_WORLD)
-            half3 axis = normalize(TransformWorldToObjectDir(_FloatAxis.xyz)).xyz;
+            float3 axis = normalize(TransformWorldToObjectDir(_FloatAxis.xyz)).xyz;
             #endif
 
             v.vertex.xyz += factor * axis * _FloatAmount;
