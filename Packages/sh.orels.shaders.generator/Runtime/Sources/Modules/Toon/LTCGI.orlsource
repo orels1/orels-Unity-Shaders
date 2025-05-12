@@ -86,45 +86,6 @@
     SAMPLER(sampler_LTCGIRamp);
 }
 
-%CustomGI("LTCGICustomGI")
-{
-    void LTCGICustomGI(MeshData d, SurfaceData o, inout half3 indirectSpecular, inout half3 indirectDiffuse)
-    {
-        #if !defined(ORL_LIGHTING_MODEL_TOON)
-        {
-            #if defined(PLAT_QUEST)
-            if (!_LTCGIEnableOnMobile) return;
-            #endif
-
-            #if defined(INTEGRATE_LTCGI)
-                LTCGIAccumulatorStruct ltcgiData = (LTCGIAccumulatorStruct) 0;
-
-                LTCGI_Contribution(
-                    ltcgiData,
-                    d.worldSpacePosition.xyz,
-                    o.Normal.xyz,
-                    d.worldSpaceViewDir,
-                    saturate((1 - o.Smoothness) + _LTCGIRoughnessModifier),
-                    d.uv1.xy
-                );
-
-                if (_LTCGIClampBrightness) {
-                    half3 hsv = RGB2HSV(ltcgiData.specular);
-                    hsv.z = tanh(hsv.z) * max(0, _LTCGIMaxBrightness);
-                    indirectSpecular += HSV2RGB(hsv) * _LTCGISpecularIntensity;
-                } else {
-                    indirectSpecular += ltcgiData.specular * _LTCGISpecularIntensity;
-                }
-                half3 rampHSV = RGB2HSV(ltcgiData.diffuse);
-                rampHSV.z = tanh(rampHSV.z);
-                rampHSV.z = SAMPLE_TEXTURE2D(_LTCGIRamp, sampler_LTCGIRamp, half2(rampHSV.z, 0)).r;
-                indirectDiffuse += HSV2RGB(rampHSV) * _LTCGIDiffuseIntensity;
-            #endif
-        }
-        #endif
-    }
-}
-
 %Color("LTCGIColor")
 {
     void LTCGIColor(MeshData d, FragmentData i, inout half4 FinalColor, bool facing)
