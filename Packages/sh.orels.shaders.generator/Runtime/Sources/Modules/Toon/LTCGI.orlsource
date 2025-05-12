@@ -88,7 +88,7 @@
 
 %Color("LTCGIColor")
 {
-    void LTCGIColor(MeshData d, FragmentData i, inout half4 FinalColor, bool facing)
+    void LTCGIColor(MeshData d, FragmentData i, inout SurfaceData o, inout half4 FinalColor, bool facing)
     {
         #if defined(PLAT_QUEST)
         if (!_LTCGIEnableOnMobile) return;
@@ -122,7 +122,7 @@
             half3 rampHSV = RGB2HSV(ltcgiData.diffuse);
             rampHSV.z = tanh(rampHSV.z);
             rampHSV.z = SAMPLE_TEXTURE2D(_LTCGIRamp, sampler_LTCGIRamp, half2(rampHSV.z, 0)).r;
-            FinalColor.rgb += HSV2RGB(rampHSV) * _LTCGIDiffuseIntensity;
+            FinalColor.rgb += HSV2RGB(rampHSV) * o.Albedo * _LTCGIDiffuseIntensity;
             if (_LTCGIAlphaPremultiply)
             {
                 FinalColor.rgb *= FinalColor.a;
