@@ -39,6 +39,7 @@
 
 %Variables()
 {
+    #if defined(DETAILS_OVERLAY)
     int _DIgnoreMask;
     half4 _DDetailsMap_ST;
     int _DMappingSpace;
@@ -50,14 +51,17 @@
     int _DNormalFlipY;
     half _DSmoothScale;
     int _DAlbedoMixingLegacy;
+    #endif
 }
 
 %Textures()
 {
+    #if defined(DETAILS_OVERLAY)
     TEXTURE2D(_DDetailsMap);
     SAMPLER(sampler_DDetailsMap);
     TEXTURE2D(_DDetailsNormal);
     SAMPLER(sampler_DDetailsNormal);
+    #endif
 }
 
 %LibraryFunctions()

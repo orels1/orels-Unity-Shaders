@@ -181,19 +181,30 @@
 
 %Variables()
 {
+    #if defined(GSAA)
     half _GSAAVariance;
     half _GSAAThreshold;
     int _GSAAIncludeNormalMaps;
+    #endif
+
+
+    #if defined(APPLY_COLOR_CORRECTION)
     half _ColorCorrLift;
     half _ColorCorrGamma;
     half _ColorCorrGain;
+    #endif
 
+    #if defined(CLEARCOAT)
     half _ClearCoatStrength;
     float _ClearCoatSmoothness;
+    #endif
+
+    #if defined(SHADING_MODE_CLOTH)
     int _ClothHasCustomSheen;
     half4 _ClothSheenColor;
     int _ClothHasSubsurface;
     half4 _ClothSubsurfaceColor;
+    #endif
 
     half _SpecOcclusion;
     half _RealtimeShadowSpecOcclusion;

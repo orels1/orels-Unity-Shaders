@@ -19,9 +19,11 @@
 
 %Variables()
 {
+    #if defined(PARALLAX)
     half _HeightScale;
     half _HeightRefPlane;
     int _ParallaxScaleBasedOnAngle;
+    #endif
     
     float2 GLOBAL_parallaxUv;
 
@@ -34,8 +36,10 @@
 
 %Textures()
 {
+    #if defined(PARALLAX)
     TEXTURE2D(_Height);
     SAMPLER(sampler_Height);
+    #endif
 }
 
 %Fragment("ParallaxFragment", -100)
