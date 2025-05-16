@@ -31,14 +31,13 @@
 
 %ShaderFeatures()
 {
-    #if !defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3) && !defined(SHADER_API_GLCORE)
-        #pragma shader_feature_local_fragment VRCLIGHTVOLUMES
-    #endif
+   
+    #pragma shader_feature_local_fragment VRCLIGHTVOLUMES
 }
 
 %ShaderDefines()
 {
-    #if defined(VRCLIGHTVOLUMES) && !defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3) && !defined(SHADER_API_GLCORE)
+    #if defined(VRCLIGHTVOLUMES)
         #define INTEGRATE_VRCLIGHTVOLUMES
 
         #define _INTEGRATE_CUSTOMPROBES
