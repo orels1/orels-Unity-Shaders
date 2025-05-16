@@ -33,11 +33,14 @@
 {
    
     #pragma shader_feature_local_fragment VRCLIGHTVOLUMES
+
+    // Global keyword to enable in the project
+    #pragma shader_feature_fragment DISABLE_VRCLIGHTVOLUMES
 }
 
 %ShaderDefines()
 {
-    #if defined(VRCLIGHTVOLUMES)
+    #if !defined(DISABLE_VRCLIGHTVOLUMES) && defined(VRCLIGHTVOLUMES)
         #define INTEGRATE_VRCLIGHTVOLUMES
 
         #define _INTEGRATE_CUSTOMPROBES
