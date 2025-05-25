@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 2d1e6b56513e3c5a3b1c968f0efd26ae
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 14030a0b230d45068f811d1ad116f246, type: 3}
+  debugBuild: 0
+  samplerCount: 0
+  textureCount: 0
+  featureCount: 0
+  Errors: []
+  ShaderName: '"orels1/Toon/v2/Cutout LTCGI"'
+  LightingModel: '@/LightingModels/Toon_v2'
+  IncludedModules:
+  - Packages/sh.orels.shaders/Runtime/Shaders/Toon/ORL Toon v2 LTCGI.orlshader
