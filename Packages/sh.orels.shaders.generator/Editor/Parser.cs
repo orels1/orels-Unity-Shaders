@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityShaderParser.Common;
 using UnityShaderParser.HLSL;
 using Debug = UnityEngine.Debug;
@@ -123,14 +122,18 @@ namespace ORL.ShaderGenerator
         public List<HookPoint> HookPoints;
 
         private List<HLSLSyntaxNode> _nodes;
+
         public List<HLSLSyntaxNode> Nodes
         {
             get
             {
                 if (_nodes == null)
                 {
-                    _nodes = ShaderParser.ParseTopLevelDeclarations(string.Join(Environment.NewLine, Contents.Where(l => !l.TrimStart().StartsWith("%"))), ShaderAnalyzers.SLConfig);
+                    _nodes = ShaderParser.ParseTopLevelDeclarations(
+                        string.Join(Environment.NewLine, Contents.Where(l => !l.TrimStart().StartsWith("%"))),
+                        ShaderAnalyzers.SLConfig);
                 }
+
                 return _nodes;
             }
         }
@@ -156,6 +159,7 @@ namespace ORL.ShaderGenerator
                         }
                     }
                 }
+
                 return _functionNode;
             }
         }
@@ -186,6 +190,16 @@ namespace ORL.ShaderGenerator
                 {
                     switch (_currentLine[_current])
                     {
+                        case '/':
+                            // Skip comment lines
+                            if (Peek() == '/')
+                            {
+                                ConsumeLine();
+                                break;
+                            }
+
+                            _current++;
+                            break;
                         case ' ':
                             _current++;
                             break;
@@ -198,6 +212,7 @@ namespace ORL.ShaderGenerator
                                 _current++;
                                 break;
                             }
+
                             _start = _current;
                             if (IsLetter(Peek()))
                             {
@@ -239,6 +254,7 @@ namespace ORL.ShaderGenerator
                                     {
                                         Debug.Log($"{blockName} Has block content");
                                     }
+
                                     var contents = ConsumeBlockContent(ref hookPoints);
                                     if (contents != null)
                                     {
@@ -273,7 +289,9 @@ namespace ORL.ShaderGenerator
                                     if (newBlock.Params.Count > 1)
                                     {
                                         newBlock.TypedParams = newBlock.Params.ConvertAll(p => (object)p);
-                                        newBlock.TypedParams[1] = newBlock.Params[1] == "ExtraPassType.PrePass" ? ShaderBlock.ExtraPassType.PrePass : ShaderBlock.ExtraPassType.PostPass;
+                                        newBlock.TypedParams[1] = newBlock.Params[1] == "ExtraPassType.PrePass"
+                                            ? ShaderBlock.ExtraPassType.PrePass
+                                            : ShaderBlock.ExtraPassType.PostPass;
                                     }
                                 }
 
@@ -283,10 +301,13 @@ namespace ORL.ShaderGenerator
                                     newBlock.Order = newBlock.Params.Count > 1
                                         ? int.Parse(newBlock.Params[1].Replace("\"", ""))
                                         : 0;
-                                    newBlock.CallSign = $"{newBlock.FunctionNode.Name.GetName()}({string.Join(", ", newBlock.FunctionNode.Parameters.Select(p => p.Declarator.Name))});";
+                                    newBlock.CallSign =
+                                        $"{newBlock.FunctionNode.Name.GetName()}({string.Join(", ", newBlock.FunctionNode.Parameters.Select(p => p.Declarator.Name))});";
                                 }
+
                                 blocks.Add(newBlock);
                             }
+
                             _current++;
                             break;
                         default:
@@ -310,6 +331,7 @@ namespace ORL.ShaderGenerator
             {
                 return '\0';
             }
+
             return _currentLine[_current + 1];
         }
 
@@ -320,6 +342,7 @@ namespace ORL.ShaderGenerator
             {
                 return 1;
             }
+
             if (_lineNumber + 1 >= _lines.Length)
             {
                 return 0;
@@ -329,6 +352,7 @@ namespace ORL.ShaderGenerator
             {
                 return 0;
             }
+
             if (_lines[_lineNumber + 1].Trim()[0] == '{')
             {
                 return 2;
@@ -374,6 +398,7 @@ namespace ORL.ShaderGenerator
                 {
                     offset = line.Length - line.TrimStart().Length;
                 }
+
                 if (line.TrimStart().StartsWith("%"))
                 {
                     hookPoints.Add(new ShaderBlock.HookPoint
@@ -383,8 +408,10 @@ namespace ORL.ShaderGenerator
                         Indentation = offset
                     });
                 }
+
                 result.Add(line.Substring(string.IsNullOrWhiteSpace(line) ? 0 : offset));
             }
+
             return null;
         }
 
@@ -396,16 +423,41 @@ namespace ORL.ShaderGenerator
                 {
                     return null;
                 }
+
                 if (_currentLine[_current + 1] == endMarker)
                 {
                     var result = _currentLine.Substring(_start, _current + 1 - _start);
                     _current++;
                     return result;
                 }
+
                 _current++;
             }
 
             return null;
+        }
+
+        private void ConsumeLine()
+        {
+            while (_current < _total)
+            {
+                if (_currentLine[_current] == Environment.NewLine[0])
+                {
+                    if (Environment.NewLine.Length == 1)
+                    {
+                        _current++;
+                        return;
+                    }
+
+                    if (Environment.NewLine.Length > 1 && Peek() == Environment.NewLine[1])
+                    {
+                        _current += 2;
+                        return;
+                    }
+                }
+
+                _current++;
+            }
         }
     }
 }
