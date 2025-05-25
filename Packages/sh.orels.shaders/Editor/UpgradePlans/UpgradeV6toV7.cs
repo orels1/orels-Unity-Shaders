@@ -30,12 +30,15 @@ namespace ORL.Shaders.UpgradePlans
                     {
                         materialShaderVersion = mat.GetInt("INTERNAL_MaterialShaderVersion");
                     }
-                    EditorUtility.DisplayProgressBar("Upgrading Materials", $"Upgrading {mat.name}", i / materials.Count);
+
+                    EditorUtility.DisplayProgressBar("Upgrading Materials", $"Upgrading {mat.name}",
+                        i / materials.Count);
                     // Upgrade emission
                     if (!dryRun)
                     {
                         Undo.RecordObject(mat, "Upgraded to " + NewVersion);
                     }
+
                     if (mat.HasProperty("_EmissionColor"))
                     {
                         var currentColor = mat.GetColor("_EmissionColor");
@@ -44,7 +47,8 @@ namespace ORL.Shaders.UpgradePlans
                         currentColor.b = Mathf.Pow(currentColor.b, 1.0f / 2.2f);
                         if (dryRun)
                         {
-                            Debug.Log("Would have upgraded emission color for " + mat.name + " from " + mat.GetColor("_EmissionColor") + " to " + currentColor);
+                            Debug.Log("Would have upgraded emission color for " + mat.name + " from " +
+                                      mat.GetColor("_EmissionColor") + " to " + currentColor);
                         }
                         else
                         {
@@ -62,7 +66,8 @@ namespace ORL.Shaders.UpgradePlans
                         {
                             if (dryRun)
                             {
-                                Debug.Log("Would have upgraded specular occlusion for " + mat.name + " from " + currValue + " to " + 0.25f);
+                                Debug.Log("Would have upgraded specular occlusion for " + mat.name + " from " +
+                                          currValue + " to " + 0.25f);
                             }
                             else
                             {
@@ -73,7 +78,8 @@ namespace ORL.Shaders.UpgradePlans
                         {
                             if (dryRun)
                             {
-                                Debug.Log("Would have upgraded specular occlusion for " + mat.name + " from " + currValue + " to " + 0.25f);
+                                Debug.Log("Would have upgraded specular occlusion for " + mat.name + " from " +
+                                          currValue + " to " + 0.25f);
                             }
                             else
                             {
@@ -110,7 +116,8 @@ namespace ORL.Shaders.UpgradePlans
                         var currValue = mat.GetFloat("_HeightRefPlane");
                         if (dryRun)
                         {
-                            Debug.Log("Would have migrated parallax offset for " + mat.name + " from " + currValue + " to " + Mathf.Clamp(currValue - 0.5f, -1, 1));
+                            Debug.Log("Would have migrated parallax offset for " + mat.name + " from " + currValue +
+                                      " to " + Mathf.Clamp(currValue - 0.5f, -1, 1));
                         }
                         else
                         {
@@ -122,11 +129,26 @@ namespace ORL.Shaders.UpgradePlans
                     {
                         if (dryRun)
                         {
-                            Debug.Log("Would have upgraded shader version for " + mat.name + " from " + mat.GetInt("INTERNAL_MaterialShaderVersion") + " to " + 700);
+                            Debug.Log("Would have upgraded shader version for " + mat.name + " from " +
+                                      mat.GetInt("INTERNAL_MaterialShaderVersion") + " to " + 700);
                         }
                         else
                         {
                             mat.SetInt("INTERNAL_MaterialShaderVersion", 700);
+                        }
+                    }
+
+                    if (mat.HasProperty("_DFG"))
+                    {
+                        if (dryRun)
+                        {
+                            Debug.Log("Would have assigned DFG texture for " + mat.name);
+                        }
+                        else
+                        {
+                            var dfgTex = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                                "Packages/sh.orels.shaders.generator/Runtime/Assets/dfg-multiscatter.exr");
+                            mat.SetTexture("_DFG", dfgTex);
                         }
                     }
 
@@ -142,6 +164,7 @@ namespace ORL.Shaders.UpgradePlans
             {
                 EditorUtility.ClearProgressBar();
             }
+
             Undo.CollapseUndoOperations(groupId);
             return success;
         }
