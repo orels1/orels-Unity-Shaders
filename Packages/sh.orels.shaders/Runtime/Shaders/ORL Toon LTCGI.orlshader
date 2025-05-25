@@ -1,0 +1,31 @@
+%ShaderName("orels1/Toon/LTCGI")
+%LightingModel("@/LightingModels/Toon")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_ToonDocs("[This shader has documentation](https://shaders.orels.sh/docs/toon)", Int) = 0
+}
+
+%ShaderTags()
+{
+    "RenderType" = "Opaque" "Queue" = "Geometry"
+}
+
+%Includes()
+{
+    "@/Modules/AudioLink",
+    "self",
+    "@/Modules/Toon/Main",
+    "@/Modules/Toon/Occlusion",
+    "@/Modules/Toon/Normals",
+    "@/Modules/Toon/Outline",
+    "@/Modules/Toon/Specular",
+    "@/Modules/Toon/Reflections",
+    "@/Modules/Toon/AudioLink",
+    "@/Modules/Toon/Emission",
+    "@/Modules/Toon/RimLight",
+    "@/Modules/Toon/ShadowRim",
+    "@/Modules/Toon/LTCGI",
+    "@/Modules/VRCFeatures"
+}

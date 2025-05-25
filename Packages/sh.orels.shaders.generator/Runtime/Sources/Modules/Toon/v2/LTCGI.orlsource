@@ -83,80 +83,30 @@
 {
     void LTCGICustomGI(MeshData d, SurfaceData o, inout half3 customGISpecular, inout half3 customGIDiffuse)
     {
-        #if !defined(ORL_LIGHTING_MODEL_VFX)
-        {
-            #if defined(PLAT_QUEST)
-            if (!_LTCGIEnableOnMobile) return;
-            #endif
-
-            #if defined(INTEGRATE_LTCGI)
-                LTCGIAccumulatorStruct ltcgiData = (LTCGIAccumulatorStruct) 0;
-
-                LTCGI_Contribution(
-                    ltcgiData,
-                    d.worldSpacePosition.xyz,
-                    o.Normal.xyz,
-                    d.worldSpaceViewDir,
-                    saturate((1 - o.Smoothness) + _LTCGIRoughnessModifier),
-                    d.uv1.xy
-                );
-
-                if (_LTCGIClampBrightness) {
-                    half3 hsv = RGB2HSV(ltcgiData.specular);
-                    hsv.z = tanh(hsv.z) * max(0, _LTCGIMaxBrightness);
-                    customGISpecular += HSV2RGB(hsv) * _LTCGISpecularIntensity;
-                } else {
-                    customGISpecular += ltcgiData.specular * _LTCGISpecularIntensity;
-                }
-                customGIDiffuse += ltcgiData.diffuse * _LTCGIDiffuseIntensity;
-            #endif
-        }
+        #if defined(PLAT_QUEST)
+        if (!_LTCGIEnableOnMobile) return;
         #endif
-    }
-}
 
-%Color("LTCGIColor")
-{
-    void LTCGIColor(MeshData d, FragmentData i, inout half4 FinalColor, bool facing)
-    {
-        #if defined(ORL_LIGHTING_MODEL_VFX)
-        {
-            #if defined(PLAT_QUEST)
-            if (!_LTCGIEnableOnMobile) return;
-            #endif
+        #if defined(INTEGRATE_LTCGI)
+            LTCGIAccumulatorStruct ltcgiData = (LTCGIAccumulatorStruct) 0;
 
-            #if defined(INTEGRATE_LTCGI)
-                LTCGIAccumulatorStruct ltcgiData = (LTCGIAccumulatorStruct) 0;
+            LTCGI_Contribution(
+                ltcgiData,
+                d.worldSpacePosition.xyz,
+                d.worldNormal.xyz, //o.Normal.xyz,
+                d.worldSpaceViewDir,
+                saturate(0.5 + _LTCGIRoughnessModifier), //saturate((1 - o.Smoothness) + _LTCGIRoughnessModifier),
+                d.uv1.xy
+            );
 
-                float3 viewDir = d.worldSpaceViewDir;
-                if (!facing)
-                {
-                    viewDir = -d.worldSpaceViewDir;
-                }
-
-                LTCGI_Contribution(
-                    ltcgiData,
-                    d.worldSpacePosition.xyz,
-                    d.worldNormal.xyz,
-                    viewDir,
-                    saturate(0.5 + _LTCGIRoughnessModifier),
-                    d.uv1.xy
-                );
-
-                if (_LTCGIClampBrightness) {
-                    half3 hsv = RGB2HSV(ltcgiData.specular);
-                    hsv.z = tanh(hsv.z) * max(0, _LTCGIMaxBrightness);
-                    FinalColor.rgb += HSV2RGB(hsv) * _LTCGISpecularIntensity;
-                } else {
-                    FinalColor.rgb += ltcgiData.specular * _LTCGISpecularIntensity;
-                }
-                FinalColor.rgb += ltcgiData.diffuse * _LTCGIDiffuseIntensity;
-                if (_LTCGIAlphaPremultiply)
-                {
-                    FinalColor.rgb *= FinalColor.a;
-                }
-            #endif
-        }
+            if (_LTCGIClampBrightness) {
+                half3 hsv = RGB2HSV(ltcgiData.specular);
+                hsv.z = tanh(hsv.z) * max(0, _LTCGIMaxBrightness);
+                customGISpecular += HSV2RGB(hsv) * _LTCGISpecularIntensity;
+            } else {
+                customGISpecular += ltcgiData.specular * _LTCGISpecularIntensity;
+            }
+            customGIDiffuse += ltcgiData.diffuse * _LTCGIDiffuseIntensity;
         #endif
     }
 }
