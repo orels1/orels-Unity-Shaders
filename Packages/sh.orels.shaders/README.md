@@ -24,7 +24,7 @@ A collection of Unity shaders built with ORL Shader Generator
   - Fake cubemap window with CRT effects
 
 
-[Full documentation is available here](https://shaders.orels.sh/docs/)
+[Full documentation is available here](https://shaders.orels.sh/)
 
 ## Installation
 

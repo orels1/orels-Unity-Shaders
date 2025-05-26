@@ -8,7 +8,7 @@
     "name": "orels1",
     "url": "https://github.com/orels1"
   },
-  "documentationUrl": "https://shaders.orels.sh/docs/development",
+  "documentationUrl": "https://shaders.orels.sh/docs/generator/development-basics",
   "changelogUrl": "https://shaders.orels.sh/docs/changelog",
   "keywords": [
     "shaders",

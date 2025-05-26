@@ -11,7 +11,7 @@
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "2.0.2"
   },
-  "documentationUrl": "https://shaders.orels.sh",
+  "documentationUrl": "https://shaders.orels.sh/docs/inspector/overview",
   "changelogUrl": "https://shaders.orels.sh/docs/changelog",
   "keywords": [
     "shaders",
