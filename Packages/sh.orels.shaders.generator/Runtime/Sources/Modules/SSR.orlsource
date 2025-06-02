@@ -165,7 +165,7 @@
             if (!any(finalPos.xyz))
                 return 0;
             
-            float4 uvs = GetScreenPosition(TransformWViewToHClip(finalPos));
+            float4 uvs = GetGrabScreenPosition(TransformWViewToHClip(finalPos));
             uvs.xy = uvs.xy / uvs.w;
 
             #if UNITY_SINGLE_PASS_STEREO || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)

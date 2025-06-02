@@ -472,6 +472,21 @@
         return ndc;
     }
 
+    float4 GetGrabScreenPosition(float4 positionCS)
+    {
+        #if UNITY_UV_STARTS_AT_TOP
+        float scale = -1.0;
+        #else
+        float scale = 1.0;
+        #endif
+        float4 ndc = positionCS * 0.5f;
+        ndc.xy = float2(ndc.x, ndc.y * scale) + ndc.w;
+        ndc.zw = positionCS.zw;
+
+        ndc.xy = TransformStereoScreenSpaceTex(ndc.xy, ndc.w);
+        return ndc;
+    }
+
     // Delcare things in-place so that the sampler/texture can be used in the function below
     TEXTURE2D_X_FLOAT(_CameraDepthTexture);
     SAMPLER(sampler_CameraDepthTexture);
