@@ -625,9 +625,11 @@
             #endif
         #endif // end of #if defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
 
+        // Attenuate main light diffuse by shadowmask
+        float3 forwardShadows = 1;
         #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
         {
-            float3 forwardShadows = UnityComputeForwardShadows(d.lightmapUv.xy, d.worldSpacePosition, d.screenPos);
+            forwardShadows = UnityComputeForwardShadows(d.lightmapUv.xy, d.worldSpacePosition, d.screenPos);
             mainLightDiffuse *= forwardShadows;
         }
         #endif
@@ -687,6 +689,13 @@
                 }
             }
             #endif
+        }
+        #endif
+
+        // Attenuate main light specular by shadowmask
+        #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
+        {
+            mainLightSpecular *= forwardShadows;
         }
         #endif
 
