@@ -1,4 +1,4 @@
-%DataStructs()
+%DataStructs(-200)
 {
     struct TessFactors
     {

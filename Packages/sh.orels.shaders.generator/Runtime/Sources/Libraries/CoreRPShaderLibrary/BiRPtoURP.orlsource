@@ -1,4 +1,4 @@
-%LibraryFunctions()
+%LibraryFunctions(-100)
 {
     //--------------------------------------------------------------
     // Macros to redefine built-in macros to those used by the URP

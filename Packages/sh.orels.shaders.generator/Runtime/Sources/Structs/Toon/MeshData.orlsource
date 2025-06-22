@@ -1,4 +1,4 @@
-%DataStructs()
+%DataStructs(-1)
 {
     struct MeshData
     {

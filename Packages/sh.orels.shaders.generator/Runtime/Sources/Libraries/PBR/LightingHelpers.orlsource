@@ -45,7 +45,7 @@
         half sin2h = max(1.0 - cos2h, 0.0078125); // 2^(-14/2), so sin2h^2 > 0 in fp16
         half sin4h = sin2h * sin2h;
         half cot2 = -cos2h / (a2 * sin2h);
-        return 1.0 / (PI * (4.0 * a2 + 1.0) * sin4h) * (4.0 * exp(cot2) + sin4h);
+        return 1.0 / (UNITY_PI * (4.0 * a2 + 1.0) * sin4h) * (4.0 * exp(cot2) + sin4h);
     }
 
     half D_Charlie(half roughness, half NoH) {
@@ -53,7 +53,7 @@
         half invAlpha  = 1.0 / roughness;
         half cos2h = NoH * NoH;
         half sin2h = max(1.0 - cos2h, 0.0078125); // 2^(-14/2), so sin2h^2 > 0 in fp16
-        return (2.0 + invAlpha) * pow(sin2h, invAlpha * 0.5) / (2.0 * PI);
+        return (2.0 + invAlpha) * pow(sin2h, invAlpha * 0.5) / (2.0 * UNITY_PI);
     }
 
     half V_Neubelt(half NoV, half NoL) {
