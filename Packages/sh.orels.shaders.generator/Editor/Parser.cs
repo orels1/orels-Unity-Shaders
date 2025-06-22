@@ -304,6 +304,14 @@ namespace ORL.ShaderGenerator
                                     newBlock.CallSign =
                                         $"{newBlock.FunctionNode.Name.GetName()}({string.Join(", ", newBlock.FunctionNode.Parameters.Select(p => p.Declarator.Name))});";
                                 }
+                                else
+                                {
+                                    if (newBlock.Params.Count > 0 && int.TryParse(newBlock.Params[0].Replace("\"", ""),
+                                            out var order))
+                                    {
+                                        newBlock.Order = order;
+                                    }
+                                }
 
                                 blocks.Add(newBlock);
                             }
