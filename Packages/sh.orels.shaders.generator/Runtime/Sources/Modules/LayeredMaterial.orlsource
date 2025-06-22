@@ -9,7 +9,7 @@
 
     // Layer 1
     UI_LMLayer1Header("# Layer 1", Int) = 0
-    [Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)]_LMLayer1ColorMask("Color Mask", Int) = 0
+    [Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4, Alpha, 5)]_LMLayer1ColorMask("Color Mask", Int) = 0
     _LMLayer1Color("Main Color", Color) = (1, 1, 1, 1)
     _LMLayer1MainTex("Albedo", 2D) = "white" { }
     [Enum(RGB, 0, R, 1, G, 2, B, 3)]_LMLayer1AlbedoChannel("Albedo Channel %ShowIf(_LMLayer1MainTex)", Int) = 0
@@ -30,7 +30,7 @@
 
     // Layer 2
     UI_LMLayer2Header("# Layer 2 %ShowIf(_LayeredMatLayersCount > 1)", Int) = 0
-    [Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)]_LMLayer2ColorMask("Color Mask %ShowIf(_LayeredMatLayersCount > 1)", Int) = 1
+    [Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4, Alpha, 5)]_LMLayer2ColorMask("Color Mask %ShowIf(_LayeredMatLayersCount > 1)", Int) = 1
     _LMLayer2Color("Main Color %ShowIf(_LayeredMatLayersCount > 1)", Color) = (1, 1, 1, 1)
     _LMLayer2MainTex("Albedo %ShowIf(_LayeredMatLayersCount > 1)", 2D) = "white" { }
     [Enum(RGB, 0, R, 1, G, 2, B, 3)]_LMLayer2AlbedoChannel("Albedo Channel %ShowIf(_LMLayer2MainTex && _LayeredMatLayersCount > 1)", Int) = 0
@@ -51,7 +51,7 @@
 
     // Layer 3
     UI_LMLayer3Header("# Layer 3 %ShowIf(_LayeredMatLayersCount > 2)", Int) = 0
-    [Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)]_LMLayer3ColorMask("Color Mask %ShowIf(_LayeredMatLayersCount > 2)", Int) = 2
+    [Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4. Alpha, 5)]_LMLayer3ColorMask("Color Mask %ShowIf(_LayeredMatLayersCount > 2)", Int) = 2
     _LMLayer3Color("Main Color %ShowIf(_LayeredMatLayersCount > 2)", Color) = (1, 1, 1, 1)
     _LMLayer3MainTex("Albedo %ShowIf(_LayeredMatLayersCount > 2)", 2D) = "white" { }
     [Enum(RGB, 0, R, 1, G, 2, B, 3)]_LMLayer3AlbedoChannel("Albedo Channel %ShowIf(_LMLayer3MainTex && _LayeredMatLayersCount > 2)", Int) = 0
@@ -72,7 +72,7 @@
 
     // Layer 4
     UI_LMLayer4Header("# Layer 4 %ShowIf(_LayeredMatLayersCount > 3)", Int) = 0
-    [Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4)]_LMLayer4ColorMask("Color Mask %ShowIf(_LayeredMatLayersCount > 3)", Int) = 3
+    [Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4, Alpha, 5)]_LMLayer4ColorMask("Color Mask %ShowIf(_LayeredMatLayersCount > 3)", Int) = 3
     _LMLayer4Color("Main Color %ShowIf(_LayeredMatLayersCount > 3)", Color) = (1, 1, 1, 1)
     _LMLayer4MainTex("Albedo %ShowIf(_LayeredMatLayersCount > 3)", 2D) = "white" { }
     [Enum(RGB, 0, R, 1, G, 2, B, 3)]_LMLayer4AlbedoChannel("Albedo Channel %ShowIf(_LMLayer4MainTex && _LayeredMatLayersCount > 3)", Int) = 0
@@ -218,7 +218,7 @@
 
         float2 uv = d.uv0.xy * _LMLayer1MainTex_ST.xy + _LMLayer1MainTex_ST.zw;
 
-        half mask = _LMLayer1ColorMask == 0 ? all(layerMask.rgb < 0.00001) : _LMLayer1ColorMask == 4 ? all(layerMask.rgb > 0.99999) : layerMask[_LMLayer1ColorMask - 1];
+        half mask = _LMLayer1ColorMask == 0 ? all(layerMask.rgb < 0.00001) : _LMLayer1ColorMask == 4 ? all(layerMask.rgb > 0.99999) : _LMLayer1ColorMask == 5 ? layerMask.a : layerMask[_LMLayer1ColorMask - 1];
         
         // Layer 1
         half4 albedo = SAMPLE_TEXTURE2D(_LMLayer1MainTex, sampler_LMLayer1MainTex, uv);
@@ -262,7 +262,7 @@
         
         // Layer 2
         uv = d.uv0.xy * _LMLayer2MainTex_ST.xy + _LMLayer2MainTex_ST.zw;
-        mask = mask = _LMLayer2ColorMask == 0 ? all(layerMask.rgb < 0.00001) : _LMLayer2ColorMask == 4 ? all(layerMask.rgb > 0.99999) : layerMask[_LMLayer2ColorMask - 1];
+        mask = mask = _LMLayer2ColorMask == 0 ? all(layerMask.rgb < 0.00001) : _LMLayer2ColorMask == 4 ? all(layerMask.rgb > 0.99999) : _LMLayer2ColorMask == 5 ? layerMask.a : layerMask[_LMLayer2ColorMask - 1];
         
         albedo = SAMPLE_TEXTURE2D(_LMLayer2MainTex, sampler_LMLayer1MainTex, uv);
         if (_LMLayer2AlbedoChannel > 0)
@@ -310,7 +310,7 @@
         
         // Layer 3
         uv = d.uv0.xy * _LMLayer3MainTex_ST.xy + _LMLayer3MainTex_ST.zw;
-        mask = mask = _LMLayer3ColorMask == 0 ? all(layerMask.rgb < 0.00001) : _LMLayer3ColorMask == 4 ? all(layerMask.rgb > 0.99999) : layerMask[_LMLayer3ColorMask - 1];
+        mask = mask = _LMLayer3ColorMask == 0 ? all(layerMask.rgb < 0.00001) : _LMLayer3ColorMask == 4 ? all(layerMask.rgb > 0.99999) : _LMLayer3ColorMask == 5 ? layerMask.a : layerMask[_LMLayer3ColorMask - 1];
         
         albedo = SAMPLE_TEXTURE2D(_LMLayer3MainTex, sampler_LMLayer1MainTex, uv);
         if (_LMLayer3AlbedoChannel > 0)
@@ -353,7 +353,7 @@
         
         // Layer 4
         uv = d.uv0.xy * _LMLayer4MainTex_ST.xy + _LMLayer4MainTex_ST.zw;
-        mask = mask = _LMLayer4ColorMask == 0 ? all(layerMask.rgb < 0.00001) : _LMLayer4ColorMask == 4 ? all(layerMask.rgb > 0.99999) : layerMask[_LMLayer4ColorMask - 1];
+        mask = mask = _LMLayer4ColorMask == 0 ? all(layerMask.rgb < 0.00001) : _LMLayer4ColorMask == 4 ? all(layerMask.rgb > 0.99999) : _LMLayer4ColorMask == 5 ? layerMask.a : layerMask[_LMLayer4ColorMask - 1];
         
         albedo = SAMPLE_TEXTURE2D(_LMLayer4MainTex, sampler_LMLayer1MainTex, uv);
         if (_LMLayer4AlbedoChannel > 0)
