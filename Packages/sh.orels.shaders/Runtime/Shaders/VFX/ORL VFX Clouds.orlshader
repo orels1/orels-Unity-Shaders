@@ -1,6 +1,7 @@
 %ShaderName("orels1/VFX/Clouds")
 %LightingModel("@/LightingModels/VFX")
 %CustomEditor("ORL.ShaderInspector.InspectorGUI")
+%TemplateFeatures("ShadowCaster")
 
 
 %Properties()
@@ -10,9 +11,11 @@
     UI_ShadingHeader("# Shading", Int) = 1
     [ToggleUI]_EnableDepthBlending("Enable Depth Blending", Int) = 1
     _DepthTransp("Depth Transparency %ShowIf(_EnableDepthBlending)", Float) = 36
+    [ToggleUI]_CastShadows("Cast Shadows", Int) = 0
     [Toggle(APPLY_SHADING)]_ApplyShading("Apply Shading", Int) = 0
     _ShadeRamp("Shade Ramp %ShowIf(APPLY_SHADING) %Gradient()", 2D) = "grayscaleRamp" {}
     _Tint("Tint %ShowIf(APPLY_SHADING)", Color) = (1,1,1,1)
+    _ShadowColor("Shadow Color %ShowIf(APPLY_SHADING)", Color) = (0,0,0,1)
     [Toggle(RECALCULATE_NORMALS)]_RecalculateNormals("Recalculate Normals %ShowIf(APPLY_SHADING)", Int) = 0
     _NormalPrecision("Normal Precision %ShowIf(APPLY_SHADING && RECALCULATE_NORMALS)", Float) = 0.1
     [ToggleUI]_HeightGradient("Add Height Gradient %ShowIf(APPLY_SHADING)", Int) = 0
@@ -21,9 +24,20 @@
     _HeightBottom("Height Bottom %ShowIf(!APPLY_SHADING || _HeightGradient)", Float) = 0.12
     _HeightTop("Height Top %ShowIf(!APPLY_SHADING || _HeightGradient)", Float) = 1
 
+    UI_DetailsHeader("# Details", Int) = 1
+    _DetailTexture("Detail Texture >", 2D) = "white" { }
+    [HDR]_DetailTextureTint("Tint", Color) = (1,1,1,1)
+    _DetailTextureStrength("Strength", Range(0,1)) = 1
+    [Enum(World Space, 0, Local Space, 1)]_DetailMappingSpace("Mapping Space", Int) = 0
+    _DetailTriplanarBlend("Triplanar Blend", Range(0,2)) = 1
+    _DetailScale("Scale", Float) = 1
+    [ToggleUI]_DetailFlip90("Flip 90", Int) = 0
+    _DetailTextureScroll("Scroll", Vector) = (0,0,0,0)
+
     UI_NoiseHeader("# Noise", Int) = 1
 
     [NonModifiableTextureData][NoScaleOffset]_BakedNoiseTex("Noise Tex > %RequiredTexture(@/BakedNoise.png)", 2D) = "white" { }
+    [Enum(World Space, 0, Local Space, 1)]_NoiseSpace("Noise Space", Int) = 0
     UI_ExtrusionHeader("## Extrusion", Int) = 0
     [Enum(Normal, 0, World Space, 1)]_ExtrusionMode("Extrusion Mode", Int) = 0
     _ExtrusionDirection("Extrusion Direction %ShowIf(_ExtrusionMode > 0)", Vector) = (0, 1, 0, 1)
@@ -58,7 +72,7 @@
 {
     #pragma shader_feature_local_vertex ONLY_TOP
     #pragma shader_feature_local APPLY_SHADING
-    #pragma shader_feature_local_vertex RECALCULATE_NORMALS
+    #pragma shader_feature_local RECALCULATE_NORMALS
 }
 
 %ShaderTags()
@@ -71,6 +85,10 @@
     Blend SrcAlpha OneMinusSrcAlpha
 }
 
+%ShadowPassModifiers()
+{
+    ZWrite [_CastShadows]
+}
 
 %ShaderDefines()
 {
@@ -82,7 +100,18 @@
 {
     float _NormalPrecision;
     half4 _Tint;
+    half4 _ShadowColor;
 
+    half4 _DetailTexture_TexelSize;
+    int _DetailMappingSpace;
+    float _DetailScale;
+    float4 _DetailTextureScroll;
+    half _DetailTextureStrength;
+    half4 _DetailTextureTint;
+    half _DetailTriplanarBlend;
+    int _DetailFlip90;
+
+    int _NoiseSpace;
     half _ExtrusionMode;
     half4 _ExtrusionDirection;
     half _L1NoiseScale;
@@ -125,101 +154,241 @@
 
     TEXTURE2D(_ShadeRamp);
     SAMPLER(sampler_ShadeRamp);
+
+    TEXTURE2D(_DetailTexture);
+    SAMPLER(sampler_DetailTexture);
 }
 
-%Vertex("CloudsVertex")
+%LibraryFunctions()
 {
-    float3 CloudExtrusion(VertexData v, float3 vertexPos, float3 wNormal, float3 exDir)
+    struct CloudNoiseParams
     {
-        float3 wPos = TransformObjectToWorld(vertexPos);
+        float noiseScale;
+        float3 noiseDirection;
+        float noiseStrength;
+    };
+
+    struct CloudNoiseMaskingParams
+    {
+        float4 mask_ST;
+        int maskMode;
+        int maskUVChannel;
+        int maskChannel;
+        float maskStrength;
+        int mappingSpace;
+        int axisX;
+        int axisY;
+    };
+
+    struct CloudVertexData
+    {
+        float4 vertex : POSITION;
+        float3 normal : NORMAL;
+        float4 tangent : TANGENT;
+        float4 color : COLOR;
+        float4 uv0 : TEXCOORD0;
+        float4 uv1 : TEXCOORD1;
+        float4 uv2 : TEXCOORD2;
+        float4 uv3 : TEXCOORD3;
+    };
+
+    float3 CloudExtrusion(
+        CloudVertexData v,
+        float3 vertexPos,
+        float3 wNormal,
+        float3 exDir,
+        TEXTURE2D_PARAM(bakedNoise, samplerBakedNoise),
+        float4 bakedNoiseTexelSize,
+        int noiseSpace,
+        TEXTURE2D_PARAM(extrusionMask, samplerExtrusionMask),
+        CloudNoiseMaskingParams maskingParams,
+        CloudNoiseParams noiseL1,
+        CloudNoiseParams noiseL2,
+        CloudNoiseParams noiseL3
+    )
+    {
+        float3 wPos = noiseSpace ? vertexPos : TransformObjectToWorld(vertexPos);
         float3 pos = wPos.xyz / 100;        
 
         float3 vertOffset = 0;
 
         [branch]
-        if (_ExtrusionMaskMode > 0)
+        if (maskingParams.maskMode > 0)
         {
             half mask = 1;
-            if (_ExtrusionMaskMode == 1)
+            if (maskingParams.maskMode == 1)
             {
                 float2 maskUv = v.uv0.xy;
                 
-                if (_ExtrusionMaskMappingSpace == 0)
+                if (maskingParams.mappingSpace == 0)
                 {
-                    switch (_ExtrusionMaskUVChannel)
+                    switch (maskingParams.maskUVChannel)
                     {
                         case 1: maskUv = v.uv1.xy; break;
                         case 2: maskUv = v.uv2.xy; break;
                         case 3: maskUv = v.uv3.xy; break;
                     }
                 }
-                if (_ExtrusionMaskMappingSpace > 0)
+                if (maskingParams.mappingSpace > 0)
                 {
                     maskUv = float2(
-                        lerp(v.vertex[_ExtrusionMaskPlanarAxisX], wPos[_ExtrusionMaskPlanarAxisX], floor(_ExtrusionMaskMappingSpace - 1)),
-                        lerp(v.vertex[_ExtrusionMaskPlanarAxisY], wPos[_ExtrusionMaskPlanarAxisY], floor(_ExtrusionMaskMappingSpace - 1))
+                        lerp(v.vertex[maskingParams.axisX], wPos[maskingParams.axisX], floor(maskingParams.mappingSpace - 1)),
+                        lerp(v.vertex[maskingParams.axisY], wPos[maskingParams.axisY], floor(maskingParams.mappingSpace - 1))
                     );
                 }
 
-                mask = SAMPLE_TEXTURE2D_LOD(_ExtrusionMask, sampler_ExtrusionMask, maskUv.xy * _ExtrusionMask_ST.xy + _ExtrusionMask_ST.zw, 0)[_ExtrusionMaskChannel];
+                mask = SAMPLE_TEXTURE2D_LOD(extrusionMask, samplerExtrusionMask, maskUv.xy * maskingParams.mask_ST.xy + maskingParams.mask_ST.zw, 0)[maskingParams.maskChannel];
             } else {
-                mask = v.color[_ExtrusionMaskChannel];
+                mask = v.color[maskingParams.maskChannel];
             }
 
-            exDir = lerp(exDir, exDir * mask, _ExtrusionMaskStrentgh);
+            exDir = lerp(exDir, exDir * mask, maskingParams.maskStrength);
         }
 
         #if defined(ONLY_TOP)
 
         if (dot(wNormal, half3(0, 1, 0)) > 0)
         {
-            vertOffset += exDir * (0.7 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
-            half3 pos2 = pos * _L2NoiseScale;
+            vertOffset += exDir * (0.7 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos * noiseL1.noiseScale + _Time.y * (noiseL1.noiseDirection / 100)) * noiseL1.noiseStrength);
+            half3 pos2 = pos * noiseL2.noiseScale;
             pos2.z /= 2;
-            vertOffset += exDir * (0.3 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
+            vertOffset += exDir * (0.3 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos2 * noiseL2.noiseScale + _Time.y * (noiseL2.noiseDirection / 100)) * noiseL2.noiseStrength);
 
-            half3 pos3 = pos * _L3NoiseScale;
-            vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+            half3 pos3 = pos * noiseL3.noiseScale;
+            vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos3 + _Time.y * (noiseL3.noiseDirection / 100)) * noiseL3.noiseStrength);
             pos3 *= 2.01;
-            vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+            vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos3 + _Time.y * (noiseL3.noiseDirection / 100)) * noiseL3.noiseStrength);
         }
 
         #else
 
-        vertOffset += exDir * (0.7 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos * _L1NoiseScale + _Time.y * (_L1NoiseDirection / 100)) * _L1NoiseStrength);
-        half3 pos2 = pos * _L2NoiseScale;
+        vertOffset += exDir * (0.7 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos * noiseL1.noiseScale + _Time.y * (noiseL1.noiseDirection / 100)) * noiseL1.noiseStrength);
+        half3 pos2 = pos * noiseL2.noiseScale;
         pos2.z /= 2;
-        vertOffset += exDir * (0.3 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos2 * _L2NoiseScale + _Time.y * (_L2NoiseDirection / 100)) * _L2NoiseStrength);
+        vertOffset += exDir * (0.3 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos2 * noiseL2.noiseScale + _Time.y * (noiseL2.noiseDirection / 100)) * noiseL2.noiseStrength);
 
-        half3 pos3 = pos * _L3NoiseScale;
-        vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+        half3 pos3 = pos * noiseL3.noiseScale;
+        vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos3 + _Time.y * (noiseL3.noiseDirection / 100)) * noiseL3.noiseStrength);
         pos3 *= 2.01;
-        vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(_BakedNoiseTex, sampler_BakedNoiseTex, _BakedNoiseTex_TexelSize, pos3 + _Time.y * (_L3NoiseDirection / 100)) * _L3NoiseStrength);
+        vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos3 + _Time.y * (noiseL3.noiseDirection / 100)) * noiseL3.noiseStrength);
 
         #endif
 
         return vertOffset;
     }
+}
 
+%ExtraPass("TransparencyPrePass", ExtraPassType.PrePass)
+{
+    %PassModifiers()
+    {
+        ZWrite On
+        ColorMask 0
+        ZTest LEqual
+    }
+
+    %Vertex("CloudsVertex")
+    {
+        void CloudsVertex(inout VertexData v, inout FragmentData o)
+        {
+            float3 wNormal = normalize(TransformObjectToWorldDir(v.normal, 0.0).xyz);
+            float3 exDir = _ExtrusionMode == 0 ? v.normal.xyz : normalize(_ExtrusionDirection.xyz);
+
+            CloudNoiseMaskingParams maskingParams;
+            maskingParams.mask_ST = _ExtrusionMask_ST;
+            maskingParams.maskMode = _ExtrusionMaskMode;
+            maskingParams.maskUVChannel = _ExtrusionMaskUVChannel;
+            maskingParams.maskChannel = _ExtrusionMaskChannel;
+            maskingParams.maskStrength = _ExtrusionMaskStrentgh;
+            maskingParams.mappingSpace = _ExtrusionMaskMappingSpace;
+            maskingParams.axisX = _ExtrusionMaskPlanarAxisX;
+            maskingParams.axisY = _ExtrusionMaskPlanarAxisY;
+
+            CloudNoiseParams noiseL1;
+            noiseL1.noiseScale = _L1NoiseScale;
+            noiseL1.noiseDirection = _L1NoiseDirection;
+            noiseL1.noiseStrength = _L1NoiseStrength;
+
+            CloudNoiseParams noiseL2;
+            noiseL2.noiseScale = _L2NoiseScale;
+            noiseL2.noiseDirection = _L2NoiseDirection;
+            noiseL2.noiseStrength = _L2NoiseStrength;
+
+            CloudNoiseParams noiseL3;
+            noiseL3.noiseScale = _L3NoiseScale;
+            noiseL3.noiseDirection = _L3NoiseDirection;
+            noiseL3.noiseStrength = _L3NoiseStrength;
+            
+            float3 vertOffset = CloudExtrusion(v, v.vertex, wNormal, exDir, TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), _BakedNoiseTex_TexelSize, _NoiseSpace, TEXTURE2D_ARGS(_ExtrusionMask, sampler_ExtrusionMask), maskingParams, noiseL1, noiseL2, noiseL3);
+            v.vertex.xyz += vertOffset;
+        }
+    }
+}
+
+
+%Vertex("CloudsVertex")
+{
     void CloudsVertex(inout VertexData v, inout FragmentData o)
     {
-        // half4 wPos = mul(unity_ObjectToWorld, v.vertex);
         float3 wNormal = TransformObjectToWorldDir(v.normal, 0.0).xyz;
-        // half3 pos = wPos.xyz / 100;
         float3 exDir = _ExtrusionMode == 0 ? v.normal.xyz : normalize(_ExtrusionDirection.xyz);
+
+        CloudNoiseMaskingParams maskingParams;
+        maskingParams.mask_ST = _ExtrusionMask_ST;
+        maskingParams.maskMode = _ExtrusionMaskMode;
+        maskingParams.maskUVChannel = _ExtrusionMaskUVChannel;
+        maskingParams.maskChannel = _ExtrusionMaskChannel;
+        maskingParams.maskStrength = _ExtrusionMaskStrentgh;
+        maskingParams.mappingSpace = _ExtrusionMaskMappingSpace;
+        maskingParams.axisX = _ExtrusionMaskPlanarAxisX;
+        maskingParams.axisY = _ExtrusionMaskPlanarAxisY;
+
+        CloudNoiseParams noiseL1;
+        noiseL1.noiseScale = _L1NoiseScale;
+        noiseL1.noiseDirection = _L1NoiseDirection;
+        noiseL1.noiseStrength = _L1NoiseStrength;
+
+        CloudNoiseParams noiseL2;
+        noiseL2.noiseScale = _L2NoiseScale;
+        noiseL2.noiseDirection = _L2NoiseDirection;
+        noiseL2.noiseStrength = _L2NoiseStrength;
+
+        CloudNoiseParams noiseL3;
+        noiseL3.noiseScale = _L3NoiseScale;
+        noiseL3.noiseDirection = _L3NoiseDirection;
+        noiseL3.noiseStrength = _L3NoiseStrength;
         
         #if defined(RECALCULATE_NORMALS) && defined(APPLY_SHADING)
         {
-            float3 vertOffset = CloudExtrusion(v, v.vertex, wNormal, exDir);
+            float3 vertOffset = CloudExtrusion(
+                v, v.vertex, wNormal, exDir,
+                TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), _BakedNoiseTex_TexelSize, _NoiseSpace,
+                TEXTURE2D_ARGS(_ExtrusionMask, sampler_ExtrusionMask),
+                maskingParams, noiseL1, noiseL2, noiseL3
+            );
             float3 newVertPos = v.vertex.xyz + vertOffset;
             
             float3 bitangent = cross(v.normal.xyz, v.tangent.xyz);
             
             float3 newTangent = v.vertex.xyz + v.tangent.xyz * _NormalPrecision;
-            newTangent = (newTangent + CloudExtrusion(v, newTangent, wNormal, exDir)) - newVertPos;
+            newTangent = (newTangent
+                + CloudExtrusion(
+                    v, newTangent, wNormal, exDir,
+                    TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), _BakedNoiseTex_TexelSize, _NoiseSpace,
+                    TEXTURE2D_ARGS(_ExtrusionMask, sampler_ExtrusionMask),
+                    maskingParams, noiseL1, noiseL2, noiseL3
+                )
+            ) - newVertPos;
 
             float3 newBitangent = v.vertex.xyz + bitangent.xyz * _NormalPrecision;
-            newBitangent = (newBitangent + CloudExtrusion(v, newBitangent, wNormal, exDir)) - newVertPos;
+            newBitangent = (newBitangent
+                + CloudExtrusion(
+                    v, newBitangent, wNormal, exDir,
+                    TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), _BakedNoiseTex_TexelSize, _NoiseSpace,
+                    TEXTURE2D_ARGS(_ExtrusionMask, sampler_ExtrusionMask),
+                    maskingParams, noiseL1, noiseL2, noiseL3
+                )
+            ) - newVertPos;
             
             v.normal.xyz = cross(newTangent, newBitangent);
             v.tangent.xyz = newTangent;
@@ -227,7 +396,7 @@
         }
         #else
         {
-            float3 vertOffset = CloudExtrusion(v, v.vertex, wNormal, exDir);
+            float3 vertOffset = CloudExtrusion(v, v.vertex, wNormal, exDir, TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), _BakedNoiseTex_TexelSize, _NoiseSpace, TEXTURE2D_ARGS(_ExtrusionMask, sampler_ExtrusionMask), maskingParams, noiseL1, noiseL2, noiseL3);
             v.vertex.xyz += vertOffset;
         }
         #endif
@@ -246,15 +415,15 @@
         float depth = sceneZ - d.extraV2F0.z;   
         depth = saturate(invLerp(0, _DepthTransp, depth));
         depth = lerp(1, depth, _EnableDepthBlending);
-        half heightAlpha = saturate(invLerp(_HeightBottom, _HeightTop, d.localSpacePosition.y));
         o.Alpha = depth;
+        half heightAlpha = saturate(invLerp(_HeightBottom, _HeightTop, d.localSpacePosition.y));
 
         #if defined(APPLY_SHADING)
         {
             Light mainLight = GetMainLight(i._ShadowCoord, d.worldSpacePosition, 0..xxxx);
 
             half3 lightAttenuation = mainLight.shadowAttenuation;
-            half3 lightColor = mainLight.color * mainLight.shadowAttenuation;
+            half3 lightColor = mainLight.color * lerp(1,  lightAttenuation + (1 - lightAttenuation) * _ShadowColor.rgb, _ShadowColor.a);
             float3 lightDir = mainLight.direction;
 
             half lightNoL = dot(d.worldNormal, lightDir);
@@ -273,6 +442,42 @@
             o.Alpha *= lerp(_ColorBottom.a, _ColorTop.a, heightAlpha);
         }
         #endif
+
+        [branch]
+        if (_DetailTexture_TexelSize.z > 16)
+        {
+            float3 wsAligned = ((_DetailMappingSpace ? d.localSpacePosition : d.worldSpacePosition) / -_DetailScale);
+
+            wsAligned += (_Time.y % 100000) * _DetailTextureScroll.xyz;
+
+            float2 xyUV = wsAligned.xy;
+            float2 zyUV = wsAligned.zy;
+            float2 xzUV = wsAligned.xz;
+
+
+            if (_DetailFlip90)
+            {
+                xyUV = xyUV.yx;
+                zyUV = zyUV.yx;
+                xzUV = xzUV.yx;
+            }
+            
+            half4 xySample = SAMPLE_TEXTURE2D(_DetailTexture, sampler_DetailTexture, xyUV);
+            half4 zySample = SAMPLE_TEXTURE2D(_DetailTexture, sampler_DetailTexture, zyUV);
+            half4 xzSample = SAMPLE_TEXTURE2D(_DetailTexture, sampler_DetailTexture, xzUV);
+            
+            float3 worldNormal = abs(d.worldNormal);
+            worldNormal = saturate(worldNormal - (1 - _DetailTriplanarBlend));
+            
+            half xNormalMask = saturate(lerp(-1, 1, worldNormal.x));
+            half yNormalMask = saturate(lerp(-1, 1, worldNormal.y));
+            half zNormalMask = saturate(lerp(-1, 1, worldNormal.z));
+            
+            half4 detail = lerp(lerp(lerp(0, xzSample, yNormalMask), zySample, xNormalMask), xySample, zNormalMask);
+            
+
+            o.Albedo = lerp(o.Albedo, o.Albedo * detail.rgb * _DetailTextureTint.rgb, detail.a * _DetailTextureTint.a * _DetailTextureStrength);
+        }
 
     }
 }
