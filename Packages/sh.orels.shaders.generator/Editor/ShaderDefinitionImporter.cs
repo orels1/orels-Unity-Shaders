@@ -1210,6 +1210,20 @@ namespace ORL.ShaderGenerator
                         continue;
                     }
 
+                    // cbuffers are not invalid, so we just paste them as-is silently
+                    if (item.Trim().StartsWith("cbuffer"))
+                    {
+                        deduped.Add(item);
+                        continue;
+                    }
+
+                    // Also pass through braces (needed for cbuffers)
+                    if (item.Trim().StartsWith("{") || item.Trim().StartsWith("}"))
+                    {
+                        deduped.Add(item);
+                        continue;
+                    }
+
                     // comments are also not invalid, but we skip them
                     if (item.Trim().StartsWith("//"))
                     {
