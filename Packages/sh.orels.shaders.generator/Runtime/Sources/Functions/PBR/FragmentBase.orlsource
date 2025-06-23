@@ -4,6 +4,9 @@
     [KeywordEnum(Default, Cloth)]SHADING_MODE("Shading Mode", Int) = 0
     [Toggle(CLEARCOAT)]_ClearCoat("Add Clear Coat %ShowIf(SHADING_MODE_DEFAULT)", Int) = 0
     _ClearCoatStrength("Clear Coat Strength %ShowIf(SHADING_MODE_DEFAULT && CLEARCOAT)", Range(0,1)) = 1
+    [ToggleUI]_HasClearCoatMask("Use Clear Coat Mask %ShowIf(SHADING_MODE_DEFAULT && CLEARCOAT)", Int) = 0
+    _ClearCoatMask("Clear Coat Mask %ShowIf(SHADING_MODE_DEFAULT && CLEARCOAT && _HasClearCoatMask)", 2D) = "white" {}
+    [Enum(R, 0, G, 1, B, 2, A, 3)][_ClearCoatMask]_ClearCoatMaskChannel("Clear Coat Mask Channel %ShowIf(SHADING_MODE_DEFAULT && CLEARCOAT && _HasClearCoatMask)", Int) = 3
     _ClearCoatSmoothness("Clear Coat Smoothness %ShowIf(SHADING_MODE_DEFAULT && CLEARCOAT)", Range(0, 1)) = 0.999
     [ToggleUI]_ClothHasCustomSheen("Custom Sheen Color %ShowIf(SHADING_MODE_CLOTH)", Int) = 0
     _ClothSheenColor("Sheen Color %ShowIf(SHADING_MODE_CLOTH && _ClothHasCustomSheen)", Color) = (0.04,0.04,0.04,1)
@@ -197,6 +200,9 @@
     #if defined(CLEARCOAT)
     half _ClearCoatStrength;
     float _ClearCoatSmoothness;
+    half4 _ClearCoatMask_ST;
+    int _ClearCoatMaskChannel;
+    int _HasClearCoatMask;
     #endif
 
     #if defined(SHADING_MODE_CLOTH)
@@ -225,6 +231,7 @@
 {
     TEXTURE2D(_DFG);
     SAMPLER(sampler_DFG);
+    TEXTURE2D(_ClearCoatMask);
 }
 
 %Includes()
@@ -637,6 +644,13 @@
         #if defined(CLEARCOAT) && defined(SHADING_MODE_DEFAULT)
         clearcoatdfguv = half3(NoV, clearCoatRoughness, 0);
         clearcoatdfg = SAMPLE_TEXTURE2D(_DFG, sampler_DFG, clearcoatdfguv).xy;
+
+        half clearCoatMask = _ClearCoatStrength;
+        [branch]
+        if (_HasClearCoatMask)
+        {
+            clearCoatMask *= SAMPLE_TEXTURE2D(_ClearCoatMask, sampler_MainTex, d.uv0.xy * _ClearCoatMask_ST.xy + _ClearCoatMask_ST.zw)[_ClearCoatMaskChannel];
+        }
         #endif
 
         // DIRECT REALTIME SPECULAR
@@ -658,7 +672,7 @@
 
                 #if defined(CLEARCOAT) && defined(SHADING_MODE_DEFAULT)
                 {
-                    clearCoatMainLightSpecular = GetSpecularHighlightsClearCoat(lightColor, f0, d.worldNormal, lightHalfVector, lightLoH, clampedClearCoatRoughness, _ClearCoatStrength, clearCoatAttenuation);
+                    clearCoatMainLightSpecular = GetSpecularHighlightsClearCoat(lightColor, f0, d.worldNormal, lightHalfVector, lightLoH, clampedClearCoatRoughness, clearCoatMask, clearCoatAttenuation);
                     clearCoatMainLightSpecular *= saturate(dot(d.worldNormal, lightDir));
                 }
                 #endif
@@ -683,7 +697,7 @@
                     // Clear Coat
                     #if defined(CLEARCOAT) && defined(SHADING_MODE_DEFAULT)
                     {
-                        clearCoatVertexLightSpecular += GetSpecularHighlightsClearCoat(vLightColors[i], f0, d.worldNormal, vLightHalfVectors[i], vLightLoHs[i], clampedClearCoatRoughness, _ClearCoatStrength, clearCoatAttenuation) * saturate(dot(d.worldNormal, vLightDirections[i]));
+                        clearCoatVertexLightSpecular += GetSpecularHighlightsClearCoat(vLightColors[i], f0, d.worldNormal, vLightHalfVectors[i], vLightLoHs[i], clampedClearCoatRoughness, clearCoatMask, clearCoatAttenuation) * saturate(dot(d.worldNormal, vLightDirections[i]));
                     }
                     #endif
                 }
@@ -875,7 +889,7 @@
 
             half clearCoatHorizon = min(1 + dot(reflDir, d.worldNormal), 1);
             clearCoatIndirectSpecular *= clearCoatHorizon * clearCoatHorizon;
-            clearCoatIndirectSpecular *= _ClearCoatStrength;
+            clearCoatIndirectSpecular *= clearCoatMask;
         }
         #endif
 
