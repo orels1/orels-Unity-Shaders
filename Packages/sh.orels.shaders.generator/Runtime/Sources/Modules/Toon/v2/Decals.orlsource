@@ -243,8 +243,10 @@
 
 %Textures()
 {
+    #if defined(DECALS_MASK_SET)
     TEXTURE2D(_DecalsMask);
     SAMPLER(sampler_DecalsMask);
+    #endif
 
     #if defined(DECAL_0)
     TEXTURE2D(_Decal0Map);

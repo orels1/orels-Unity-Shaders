@@ -25,8 +25,8 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local_fragment AL_MODE_SINGLE_CHANNEL AL_MODE_PACKED_MAP AL_MODE_UV_BASED
-    #if !defined(AL_MODE_SINGLE_CHANNEL) && !defined(AL_MODE_PACKED_MAP) && !defined(AL_MODE_UV_BASED)
+    #pragma shader_feature_local_fragment AL_MODE_NONE AL_MODE_SINGLE_CHANNEL AL_MODE_PACKED_MAP AL_MODE_UV_BASED
+    #if !defined(AL_MODE_NONE) &&!defined(AL_MODE_SINGLE_CHANNEL) && !defined(AL_MODE_PACKED_MAP) && !defined(AL_MODE_UV_BASED)
         #define AL_MODE_NONE
     #endif
 }
@@ -59,8 +59,10 @@
 
 %Textures()
 {
+    #if !defined(AL_MODE_NONE)
     TEXTURE2D(_ALMap);
     SAMPLER(sampler_ALMap);
+    #endif
 }
 
 %Fragment("ToonALFragment")

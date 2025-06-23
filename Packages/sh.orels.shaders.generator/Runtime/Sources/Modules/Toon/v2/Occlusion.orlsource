@@ -15,13 +15,6 @@
     _OcclusionDetailTiling("Tiling %ShowIf(_OcclusionDetail)", Float) = 1
     UI_OcclusionDetailTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_OcclusionDetailTilingMode == 0 && _OcclusionDetail)", Int) = 0
     UI_OcclusionDetailTilingIndependentNote("> Will scale UVs on its own %ShowIf(_OcclusionDetailTilingMode == 1 && _OcclusionDetail)", Int) = 0
-
-    // [Toggle(SSAO)]_SSAOEnabled("Screen Space Occlusion", Int) = 0
-    // _SSAONoiseTexture("Noise Texture > %RequiredTexture(@/SSRNoise.png) %ShowIf(SSAO)", 2D) = "black" {}
-    // _SSAORadius("Radius %ShowIf(SSAO)", Float) = 5
-    // _SSAOPower("Power %ShowIf(SSAO)", Float) = 3
-    // _SSAOBoost("Boost %ShowIf(SSAO)", Float) = 1
-    // _SSAOStrength("Strength %ShowIf(SSAO)", Range(0,1)) = 1
 }
 
 %ShaderFeatures()
@@ -51,11 +44,6 @@
 {
     TEXTURE2D(_OcclusionMap);
     TEXTURE2D(_OcclusionDetail);
-
-    #if defined(SSAO)
-    TEXTURE2D(_SSAONoiseTexture);
-    SAMPLER(sampler_SSAONoiseTexture);
-    #endif
 }
 
 %Fragment("ToonOcclusionFragment")
@@ -91,64 +79,5 @@
             half occlusionDetail = SAMPLE_TEXTURE2D(_OcclusionDetail, sampler_MainTex, lerp(globalUv * _OcclusionDetailTiling, d.uv0 * _OcclusionDetailTiling, _OcclusionDetailTilingMode)).r;
             o.Occlusion *= lerp(1, occlusionDetail, _OcclusionDetailStrength);
         }
-
-        #if defined(SSAO)
-        // float3 startingPoint = d.worldSpacePosition.xyz;
-        // float3 worldNormal = Unity_SafeNormalize(mul(o.Normal, d.TBNMatrix));
-        // // float3 dir = worldNormal;
-
-        // float radius = _SSAORadius / 100.0;
-        // float3 samplePoint = 0;
-
-        // half ssao = 0;
-
-        // const int kernelSize = 16;
-
-        // float3 ssaoKernel[kernelSize];
-        // float4 noiseUvs = d.screenPos;
-        // noiseUvs.xy = (noiseUvs.xy * _ScreenParams.xy) / (_SSAONoiseTexture_TexelSize.zw * noiseUvs.w);	
-
-        // float3 noise = SAMPLE_TEXTURE2D_LOD(_SSAONoiseTexture, sampler_SSAONoiseTexture, noiseUvs.xy,0).xyz;
-        // noise.x = noise.x * 2 - 1;
-        // noise.y = noise.y * 2 - 1;
-
-        // // kernel
-        // [loop]
-        // for (int i = 0; i < kernelSize; i++)
-        // {
-        //     // ssaoKernel[i] = chash31(chash11(i));
-        //     // ssaoKernel[i].x = ssaoKernel[i].x * 2 - 1;
-        //     // ssaoKernel[i].y = ssaoKernel[i].y * 2 - 1;
-        //     ssaoKernel[i] = noise.xyz;
-        //     float scale = (float) i / (float) kernelSize;
-        //     float scaleMultiplier = lerp(0.1,1.0, scale * scale);
-        //     ssaoKernel[i] *= scaleMultiplier;
-        //     ssaoKernel[i] = mul(ssaoKernel[i], d.TBNMatrix);
-        // }
-        // // float3 randomDir = float3(noise.xy, 0);
-        // // float3 randomTangent = normalize(randomDir - dot(randomDir, worldNormal) * worldNormal);
-        // // float3 randomBitangent = cross(worldNormal, randomTangent);
-        // // float3x3 TBN = float3x3(randomTangent, randomBitangent, worldNormal);
-
-        // // startingPoint += worldNormal * 0.01;
-
-        // [loop]
-        // for (int j = 0; j < kernelSize; j++) {
-        //     // samplePoint = startingPoint + mul(ssaoKernel[j], TBN) * radius;
-        //     samplePoint = startingPoint + ssaoKernel[j] * radius;
-        //     // float samplePointZ = LinearEyeDepth(SampleSceneDepth(d.screenPos.xy / d.screenPos.w));
-        //     float samplePointZ = d.screenPos.z;
-        //     float3 sampleDir = normalize(samplePoint - startingPoint);
-        //     float NoS = saturate(dot(worldNormal, sampleDir));
-        //     float4 offset = GetScreenPosition(TransformWorldToHClip(samplePoint));
-        //     offset.xy /= offset.w;
-        //     float sceneDepth = LinearEyeDepth(SampleSceneDepth(offset.xy));
-        //     float rangeCheck = saturate(radius / abs(samplePointZ - sceneDepth));
-        //     ssao += rangeCheck * step(sceneDepth + 0.005, samplePointZ) * NoS;
-        // }
-        // ssao = (ssao / (float) kernelSize);
-        // ssao = pow(saturate(1 - saturate(ssao * _SSAOBoost)), _SSAOPower);
-        // o.Occlusion *= lerp(1, ssao, _SSAOStrength);
-        #endif
     }
 }

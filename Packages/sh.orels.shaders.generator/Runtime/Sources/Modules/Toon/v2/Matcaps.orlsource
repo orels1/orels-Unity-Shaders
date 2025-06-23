@@ -68,8 +68,10 @@
 
 %Variables()
 {
+    #if defined(MATCAPS_MASK_SET)
     int _MatcapsMaskUVSet;
     float4 _MatcapsMask_ST;
+    #endif
 
     #if defined(MATCAP_0)
     half4 _Matcap0Tint;
@@ -149,8 +151,10 @@
 
 %Textures()
 {
+    #if defined(MATCAPS_MASK_SET)
     TEXTURE2D(_MatcapsMask);
     SAMPLER(sampler_MatcapsMask);
+    #endif
 
     #if defined(MATCAP_0)
     TEXTURE2D(_Matcap0Tex);
