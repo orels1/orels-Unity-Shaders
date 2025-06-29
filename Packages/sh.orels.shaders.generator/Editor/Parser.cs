@@ -383,6 +383,12 @@ namespace ORL.ShaderGenerator
                 var curr = 0;
                 while (curr + 1 <= line.Length)
                 {
+                    // Skip the rest of the line if encountered a comment
+                    if (line[curr] == '/' && curr + 1 < line.Length && line[curr + 1] == '/')
+                    {
+                        break;
+                    }
+
                     switch (line[curr])
                     {
                         case '{':
