@@ -64,6 +64,9 @@
         // Are Light Volumes enabled on scene? Returns 0 if not, returns 1, 2 or other number if there are light volumes. Number represents the light volumes system internal version number.
         float _UdonLightVolumeEnabled;
 
+        // Rreturns 1, 2 or other number if there are light volumes on the scene. Number represents the light volumes system internal version number.
+        float _UdonLightVolumeVersion;
+
         // All volumes count in scene
         float _UdonLightVolumeCount;
 
