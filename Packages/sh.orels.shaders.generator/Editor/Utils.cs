@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using ORL.ShaderGenerator.Settings;
 using UnityEditor;
 using UnityEngine;
@@ -255,6 +256,34 @@ namespace ORL.ShaderGenerator
                     }
                 }
             }
+        }
+
+        public static string IndentContents(List<string> contents, int indentLevel)
+        {
+            var sb = new StringBuilder();
+            var i = 0;
+            foreach (var contentLine in contents)
+            {
+                if (i == 0)
+                {
+                    sb.Append(contentLine + (contents.Count == 1 ? "" : "\n"));
+                    i++;
+                    continue;
+                }
+
+                if (i == contents.Count - 1)
+                {
+                    sb.Append(new string(' ', indentLevel) + contentLine);
+                }
+                else
+                {
+                    sb.Append(new string(' ', indentLevel) + contentLine + '\n');
+                }
+
+                i++;
+            }
+
+            return sb.ToString();
         }
     }
 }

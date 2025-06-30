@@ -846,7 +846,7 @@ namespace ORL.ShaderGenerator
 
                         // Simply insert the block lines if no special cases are met
                         newLine.Remove(match.Index, matchLen);
-                        newLine.Insert(match.Index, IndentContents(block.Contents, match.Index));
+                        newLine.Insert(match.Index, Utils.IndentContents(block.Contents, match.Index));
                         continue;
                     }
 
@@ -1099,96 +1099,96 @@ namespace ORL.ShaderGenerator
             switch (type)
             {
                 case DeDupeType.Properties:
-                {
-                    var tokens = ShaderLabLexer.Lex(combined, null, null, false, out _);
-                    var nodes = ShaderLabParser.ParseShaderProperties(tokens, ShaderAnalyzers.SLConfig, out _);
-                    foreach (var node in nodes)
                     {
-                        if (keySet.Contains(node.Uniform))
+                        var tokens = ShaderLabLexer.Lex(combined, null, null, false, out _);
+                        var nodes = ShaderLabParser.ParseShaderProperties(tokens, ShaderAnalyzers.SLConfig, out _);
+                        foreach (var node in nodes)
                         {
-                            if (_isDebugBuild)
+                            if (keySet.Contains(node.Uniform))
                             {
-                                Debug.LogWarning("Found duplicate item, skipping: " + node.Uniform);
-                            }
-
-                            continue;
-                        }
-
-                        keySet.Add(node.Uniform);
-                        deduped.Add(node.GetCodeInSourceText(combined));
-                    }
-
-                    break;
-                }
-                case DeDupeType.Tags:
-                {
-                    var dedupedTags = new Dictionary<string, string>();
-                    var dedupedTagsString = new StringBuilder();
-                    combined = $"Tags {{{combined}}}";
-                    var tokens = ShaderLabLexer.Lex(combined, null, null, false, out _);
-                    var nodes = ShaderLabParser.ParseShaderLabCommands(tokens, ShaderAnalyzers.SLConfig, out _);
-                    foreach (var node in nodes)
-                    {
-                        if (node is ShaderLabCommandTagsNode tags)
-                        {
-                            foreach (var tag in tags.Tags)
-                            {
-                                var tagKey = tag.Key;
-                                var tagValue = tag.Value;
-                                if (keySet.Contains(tagKey))
+                                if (_isDebugBuild)
                                 {
-                                    if (_isDebugBuild)
-                                    {
-                                        Debug.LogWarning("Found duplicate tag, updating: " + tagKey + " to " +
-                                                         tagValue);
-                                    }
-
-                                    dedupedTags[tagKey] = tagValue;
-                                    continue;
+                                    Debug.LogWarning("Found duplicate item, skipping: " + node.Uniform);
                                 }
 
-                                keySet.Add(tagKey);
-                                dedupedTags.Add(tagKey, tagValue);
+                                continue;
                             }
+
+                            keySet.Add(node.Uniform);
+                            deduped.Add(node.GetCodeInSourceText(combined));
                         }
-                    }
 
-                    foreach (var dedupedTag in dedupedTags)
-                    {
-                        dedupedTagsString.Append($"\"{dedupedTag.Key}\" = \"{dedupedTag.Value}\" ");
+                        break;
                     }
-
-                    deduped.Add(dedupedTagsString.ToString());
-                    break;
-                }
-                case DeDupeType.Modifiers:
-                {
-                    var tokens = ShaderLabLexer.Lex(combined, null, null, false, out _);
-                    var nodes = ShaderLabParser.ParseShaderLabCommands(tokens, ShaderAnalyzers.SLConfig, out _);
-                    var dedupedModifiers = new Dictionary<Type, ShaderLabCommandNode>();
-                    foreach (var node in nodes)
+                case DeDupeType.Tags:
                     {
-                        if (dedupedModifiers.ContainsKey(node.GetType()))
+                        var dedupedTags = new Dictionary<string, string>();
+                        var dedupedTagsString = new StringBuilder();
+                        combined = $"Tags {{{combined}}}";
+                        var tokens = ShaderLabLexer.Lex(combined, null, null, false, out _);
+                        var nodes = ShaderLabParser.ParseShaderLabCommands(tokens, ShaderAnalyzers.SLConfig, out _);
+                        foreach (var node in nodes)
                         {
-                            if (_isDebugBuild)
+                            if (node is ShaderLabCommandTagsNode tags)
                             {
-                                Debug.LogWarning(
-                                    $"Found duplicate shader/pass modifier, skipping: {node.GetCodeInSourceText(combined)}");
-                            }
+                                foreach (var tag in tags.Tags)
+                                {
+                                    var tagKey = tag.Key;
+                                    var tagValue = tag.Value;
+                                    if (keySet.Contains(tagKey))
+                                    {
+                                        if (_isDebugBuild)
+                                        {
+                                            Debug.LogWarning("Found duplicate tag, updating: " + tagKey + " to " +
+                                                             tagValue);
+                                        }
 
-                            continue;
+                                        dedupedTags[tagKey] = tagValue;
+                                        continue;
+                                    }
+
+                                    keySet.Add(tagKey);
+                                    dedupedTags.Add(tagKey, tagValue);
+                                }
+                            }
                         }
 
-                        dedupedModifiers.Add(node.GetType(), node);
-                    }
+                        foreach (var dedupedTag in dedupedTags)
+                        {
+                            dedupedTagsString.Append($"\"{dedupedTag.Key}\" = \"{dedupedTag.Value}\" ");
+                        }
 
-                    foreach (var dedupedModifier in dedupedModifiers)
+                        deduped.Add(dedupedTagsString.ToString());
+                        break;
+                    }
+                case DeDupeType.Modifiers:
                     {
-                        deduped.Add(dedupedModifier.Value.GetCodeInSourceText(combined));
-                    }
+                        var tokens = ShaderLabLexer.Lex(combined, null, null, false, out _);
+                        var nodes = ShaderLabParser.ParseShaderLabCommands(tokens, ShaderAnalyzers.SLConfig, out _);
+                        var dedupedModifiers = new Dictionary<Type, ShaderLabCommandNode>();
+                        foreach (var node in nodes)
+                        {
+                            if (dedupedModifiers.ContainsKey(node.GetType()))
+                            {
+                                if (_isDebugBuild)
+                                {
+                                    Debug.LogWarning(
+                                        $"Found duplicate shader/pass modifier, skipping: {node.GetCodeInSourceText(combined)}");
+                                }
 
-                    break;
-                }
+                                continue;
+                            }
+
+                            dedupedModifiers.Add(node.GetType(), node);
+                        }
+
+                        foreach (var dedupedModifier in dedupedModifiers)
+                        {
+                            deduped.Add(dedupedModifier.Value.GetCodeInSourceText(combined));
+                        }
+
+                        break;
+                    }
             }
 
             return deduped;
@@ -1267,7 +1267,7 @@ namespace ORL.ShaderGenerator
                     line.Insert(position, "\n\n");
                 }
 
-                line.Insert(position, IndentContents(block.Contents, position));
+                line.Insert(position, Utils.IndentContents(block.Contents, position));
                 i++;
             }
         }
@@ -1288,34 +1288,6 @@ namespace ORL.ShaderGenerator
                 line.Insert(position, block.CallSign);
                 i++;
             }
-        }
-
-        private string IndentContents(List<string> contents, int indentLevel)
-        {
-            var sb = new StringBuilder();
-            var i = 0;
-            foreach (var contentLine in contents)
-            {
-                if (i == 0)
-                {
-                    sb.Append(contentLine + (contents.Count == 1 ? "" : "\n"));
-                    i++;
-                    continue;
-                }
-
-                if (i == contents.Count - 1)
-                {
-                    sb.Append(new string(' ', indentLevel) + contentLine);
-                }
-                else
-                {
-                    sb.Append(new string(' ', indentLevel) + contentLine + '\n');
-                }
-
-                i++;
-            }
-
-            return sb.ToString();
         }
 
         private List<string> IndentContentsList(List<string> contents, int indentLevel)
@@ -1368,13 +1340,13 @@ namespace ORL.ShaderGenerator
                         }
 
                         Errors.Add(new FunctionParamerror
-                            {
-                                Line = parameter.Span.Start.Line,
-                                StartIndex = parameter.Span.Start.Index,
-                                EndIndex = parameter.Span.End.Index,
-                                Name = parameter.Declarator.Name,
-                                Type = paramType,
-                            },
+                        {
+                            Line = parameter.Span.Start.Line,
+                            StartIndex = parameter.Span.Start.Index,
+                            EndIndex = parameter.Span.End.Index,
+                            Name = parameter.Declarator.Name,
+                            Type = paramType,
+                        },
                             $"Invalid {paramType} parameter {parameter.Declarator.Name} in function {node.Name.GetName()}, only {string.Join(", ", allowedParams)} are supported");
                         // if (!Errors.ContainsKey(node))
                         // {
