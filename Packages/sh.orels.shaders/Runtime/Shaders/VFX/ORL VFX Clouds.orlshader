@@ -192,6 +192,7 @@
         float4 uv1 : TEXCOORD1;
         float4 uv2 : TEXCOORD2;
         float4 uv3 : TEXCOORD3;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 
     float3 CloudExtrusion(
