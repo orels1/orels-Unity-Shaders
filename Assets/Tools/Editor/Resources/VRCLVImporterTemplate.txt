@@ -43,6 +43,8 @@
 %ShaderDefines()
 {
     #define VRCLV_VERSION 2
+    #define VRCLV_MAX_VOLUMES_COUNT 32
+    #define VRCLV_MAX_LIGHTS_COUNT 128
 
     #if !defined(DISABLE_VRCLIGHTVOLUMES) && defined(VRCLIGHTVOLUMES)
         #define INTEGRATE_VRCLIGHTVOLUMES

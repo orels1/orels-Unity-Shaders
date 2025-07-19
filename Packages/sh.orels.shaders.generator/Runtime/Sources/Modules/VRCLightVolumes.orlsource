@@ -43,6 +43,8 @@
 %ShaderDefines()
 {
     #define VRCLV_VERSION 2
+    #define VRCLV_MAX_VOLUMES_COUNT 32
+    #define VRCLV_MAX_LIGHTS_COUNT 128
 
     #if !defined(DISABLE_VRCLIGHTVOLUMES) && defined(VRCLIGHTVOLUMES)
         #define INTEGRATE_VRCLIGHTVOLUMES
@@ -75,29 +77,29 @@
 
         float _UdonLightVolumeSharpBounds;
 
-        float4x4 _UdonLightVolumeInvWorldMatrix[32];
+        float4x4 _UdonLightVolumeInvWorldMatrix[VRCLV_MAX_VOLUMES_COUNT];
 
-        float4 _UdonLightVolumeRotation[64];
+        float4 _UdonLightVolumeRotation[VRCLV_MAX_VOLUMES_COUNT * 2];
 
-        float3 _UdonLightVolumeInvLocalEdgeSmooth[32];
+        float3 _UdonLightVolumeInvLocalEdgeSmooth[VRCLV_MAX_VOLUMES_COUNT];
 
-        float3 _UdonLightVolumeUvw[192];
+        float3 _UdonLightVolumeUvw[VRCLV_MAX_VOLUMES_COUNT * 6];
 
-        float3 _UdonLightVolumeOcclusionUvw[32];
+        float4 _UdonLightVolumeOcclusionUvw[VRCLV_MAX_VOLUMES_COUNT];
 
-        float4 _UdonLightVolumeColor[32];
+        float4 _UdonLightVolumeColor[VRCLV_MAX_VOLUMES_COUNT];
 
         float _UdonPointLightVolumeCount;
 
         float _UdonPointLightVolumeCubeCount;
 
-        float4 _UdonPointLightVolumePosition[128];
+        float4 _UdonPointLightVolumePosition[VRCLV_MAX_LIGHTS_COUNT];
 
-        float4 _UdonPointLightVolumeColor[128];
+        float4 _UdonPointLightVolumeColor[VRCLV_MAX_LIGHTS_COUNT];
 
-        float4 _UdonPointLightVolumeDirection[128];
+        float4 _UdonPointLightVolumeDirection[VRCLV_MAX_LIGHTS_COUNT];
 
-        float3 _UdonPointLightVolumeCustomID[128];
+        float3 _UdonPointLightVolumeCustomID[VRCLV_MAX_LIGHTS_COUNT];
 
         float _UdonLightBrightnessCutoff;
 
@@ -247,7 +249,7 @@
         float3 absDir = abs(dir);
         float2 uv;
         uint face;
-        if (absDir.x >= absDir.y && absDir.x >= absDir.z) {
+        [branch] if (absDir.x >= absDir.y && absDir.x >= absDir.z) {
             face = dir.x > 0 ? 0 : 1;
             uv = float2((dir.x > 0 ? -dir.z : dir.z), -dir.y) * rcp(absDir.x);
         } else if (absDir.y >= absDir.z) {
@@ -264,7 +266,7 @@
     float4 LV_ProjectQuadLightIrradianceSH(float3 shadingPosition, float3 lightVertices[4]) {
         // Transform the vertices into local space centered on the shading position,
         // project, the polygon onto the unit sphere.
-        for (uint edge0 = 0; edge0 < 4; edge0++) {
+        [unroll] for (uint edge0 = 0; edge0 < 4; edge0++) {
             lightVertices[edge0] = normalize(lightVertices[edge0] - shadingPosition);
         }
     
@@ -370,8 +372,7 @@
         // If the magnitude of L1 is greater than L0, we may get negative values
         // when reconstructing. To avoid, normalize L1. This is effectively de-ringing.
         float lenL1 = length(areaLightSH.xyz);
-        if (lenL1 > areaLightSH.w)
-            areaLightSH.xyz *= areaLightSH.w / lenL1;
+        if (lenL1 > areaLightSH.w) areaLightSH.xyz *= areaLightSH.w / lenL1;
         
         L0  += areaLightSH.w * color.rgb * occlusion;
         L1r += areaLightSH.xyz * color.r * occlusion;
@@ -414,7 +415,7 @@
         float3 dirN = normalize(dir);
         
         float spotMask = dot(lightDir, -dirN) - cosAngle;
-        if (spotMask < 0) return; // Culling by spot angle
+        [branch] if (spotMask < 0) return; // Culling by spot angle
     
         float3 att = LV_PointLightAttenuation(sqdist, sqlightSize, color, _UdonLightBrightnessCutoff, sqMaxDist);
             
@@ -437,10 +438,10 @@
         float3 dirN = normalize(dir);
         
         float3 localDir = LV_MultiplyVectorByQuaternion(-dirN, lightRot);
-        if (localDir.z <= 0.0) return; // Culling by direction
+        [branch] if (localDir.z <= 0.0) return; // Culling by direction
         
         float2 uv = localDir.xy * rcp(localDir.z * tanAngle);
-        if (abs(uv.x) > 1.0 || abs(uv.y) > 1.0) return; // Culling by UV
+        [branch] if (abs(uv.x) > 1.0 || abs(uv.y) > 1.0) return; // Culling by UV
         
         float3 att = LV_PointLightAttenuation(sqdist, sqlightSize, color, _UdonLightBrightnessCutoff, sqMaxDist);
             
@@ -471,24 +472,22 @@
         float4 pos = _UdonPointLightVolumePosition[id]; // Light position and inversed squared range 
         float3 dir = pos.xyz - worldPos;
         float sqlen = max(dot(dir, dir), 1e-6);
-        [branch] // Early distance based culling
-        if (sqlen > sqrRange) return;
+        [branch] if (sqlen > sqrRange) return; // Early distance based culling
         
         // Processing lights occlusion
         float lightOcclusion = 1;
-        [branch]
-        if (_UdonLightVolumeOcclusionCount != 0 && shadowId >= 0) {
+        [branch] if (_UdonLightVolumeOcclusionCount != 0 && shadowId >= 0) {
             lightOcclusion = dot(1, float4(shadowId == 0, shadowId == 1, shadowId == 2, shadowId == 3) * occlusion);
         }
         
         float4 color = _UdonPointLightVolumeColor[id]; // Color, angle
         
-        if (pos.w < 0) { // It is a spot light
+        [branch] if (pos.w < 0) { // It is a spot light
     
             float angle = color.w;
             float4 ldir = _UdonPointLightVolumeDirection[id]; // Dir + falloff or Rotation
             
-            if (customId > 0) {  // If it uses Attenuation LUT
+            [branch] if (customId > 0) {  // If it uses Attenuation LUT
                 
                 float invSqRange = abs(pos.w); // Sign of range defines if it's point light (positive) or a spot light (negative)
                 float3 dirN = dir * rsqrt(sqlen);
@@ -519,7 +518,7 @@
             
         } else if (color.w <= 1.5f) { // It is a point light
             
-            if (customId < 0) { // If it uses a cubemap
+            [branch] if (customId < 0) { // If it uses a cubemap
                 
                 float4 ldir = _UdonPointLightVolumeDirection[id]; // Dir + falloff or Rotation
                 float3 dirN = dir * rsqrt(sqlen);
@@ -622,10 +621,9 @@
         LV_SampleLightVolumeTex(uvw0, uvw1, uvw2, l0, l1r, l1g, l1b);
     
         // Sample occlusion
-        float3 uvwOcclusion = _UdonLightVolumeOcclusionUvw[id].xyz;
-        [branch]
-        if (uvwOcclusion.x >= 0) {
-            occlusion = 1.0f - LV_SAMPLE(_UdonLightVolume, uvwOcclusion + uvwScaled);
+        float4 uvwOcclusion = _UdonLightVolumeOcclusionUvw[id];
+        [branch] if (uvwOcclusion.x >= 0) {
+            occlusion = 1.0f - LV_SAMPLE(_UdonLightVolume, uvwOcclusion.xyz + uvwScaled * uvwOcclusion.w);
         } else {
             occlusion = 1;
         }
@@ -661,10 +659,9 @@
     float4 LV_SampleVolumeOcclusion(uint id, float3 localUVW) {
         
         // Sample occlusion
-        float3 uvwOcclusion = _UdonLightVolumeOcclusionUvw[id].xyz;
+        float4 uvwOcclusion = _UdonLightVolumeOcclusionUvw[id];
         
-        [branch]
-        if (uvwOcclusion.x >= 0) {
+        [branch] if (uvwOcclusion.x >= 0) {
             //uint uvwID = id * 3;
             //float4 uvwPos0 = _UdonLightVolumeUvwScale[uvwID];
             //float4 uvwPos1 = _UdonLightVolumeUvwScale[uvwID + 1];
@@ -676,7 +673,7 @@
             uint uvwID = id * 6;
             float3 uvwScaled = saturate(localUVW + 0.5) * (_UdonLightVolumeUvw[uvwID + 1].xyz - _UdonLightVolumeUvw[uvwID].xyz);
             
-            return 1.0f - LV_SAMPLE(_UdonLightVolume, uvwOcclusion + uvwScaled);
+            return 1.0f - LV_SAMPLE(_UdonLightVolume, uvwOcclusion.xyz + uvwScaled * uvwOcclusion.w);
         } else {
             return 1;
         }
@@ -685,15 +682,18 @@
 
     void LV_PointLightVolumeSH(float3 worldPos, float4 occlusion, inout float3 L0, inout float3 L1r, inout float3 L1g, inout float3 L1b) {
         
-        uint pointCount = min((uint) _UdonPointLightVolumeCount, 128);
-        if (pointCount == 0) return;
+        uint pointCount = min((uint) _UdonPointLightVolumeCount, VRCLV_MAX_LIGHTS_COUNT);
+        [branch] if (pointCount == 0) return;
         
-        uint maxOverdraw = min((uint) _UdonLightVolumeAdditiveMaxOverdraw, 32);
+        uint maxOverdraw = min((uint) _UdonLightVolumeAdditiveMaxOverdraw, VRCLV_MAX_LIGHTS_COUNT);
         uint pcount = 0; // Point lights counter
     
-        [loop]
-        for (uint pid = 0; pid < pointCount && pcount < maxOverdraw; pid++) {
-            LV_PointLight(pid, worldPos, occlusion, L0, L1r, L1g, L1b, pcount);
+        [loop] for (uint pid = 0; pid < VRCLV_MAX_LIGHTS_COUNT; pid++) {
+            [branch] if (pid < pointCount && pcount < maxOverdraw) {
+                LV_PointLight(pid, worldPos, occlusion, L0, L1r, L1g, L1b, pcount);
+            } else {
+                return; // Stop if we reached the end of lights or max overdraw count
+            }
         }
         
     }
@@ -702,18 +702,19 @@
     
         // Initializing output variables
         occlusion = 1;
+        float4 mOcclusion = 1; // Multiplicative occlusion. Applies on top of regular occlusion
         
         // Clamping gloabal iteration counts
-        uint volumesCount = min((uint) _UdonLightVolumeCount, 32);
+        uint volumesCount = min((uint) _UdonLightVolumeCount, VRCLV_MAX_VOLUMES_COUNT);
         
         //if (_UdonLightVolumeVersion < VRCLV_VERSION || volumesCount == 0 ) { // Fallback to default light probes if Light Volume are not enabled or a version is too old to have a support
-        if (volumesCount == 0) { // Legacy! Fallback to default light probes if Light Volume are not enabled or a version is too old to have a support. Legacy!
+        [branch] if (volumesCount == 0) { // Legacy! Fallback to default light probes if Light Volume are not enabled or a version is too old to have a support. Legacy!
             LV_SampleLightProbe(L0, L1r, L1g, L1b);
             return;
         }
         
-        uint maxOverdraw = min((uint) _UdonLightVolumeAdditiveMaxOverdraw, 32);
-        uint additiveCount = min((uint) _UdonLightVolumeAdditiveCount, 32);
+        uint maxOverdraw = min((uint) _UdonLightVolumeAdditiveMaxOverdraw, VRCLV_MAX_VOLUMES_COUNT);
+        uint additiveCount = min((uint) _UdonLightVolumeAdditiveCount, VRCLV_MAX_VOLUMES_COUNT);
         bool lightProbesBlend = _UdonLightVolumeProbesBlend;
         
         uint volumeID_A = -1; // Main, dominant volume ID
@@ -731,14 +732,15 @@
         uint addVolumesCount = 0;
         
         // Iterating through all light volumes with simplified algorithm requiring Light Volumes to be sorted by weight in descending order
-        [loop]
-        for (uint id = 0; id < volumesCount; id++) {
+        [loop] for (uint id = 0; id < VRCLV_MAX_VOLUMES_COUNT; id++) {
+            [branch] if (id >= volumesCount) break;
             localUVW = LV_LocalFromVolume(id, worldPos);
-            if (LV_PointLocalAABB(localUVW)) { // Intersection test
-                if (id < additiveCount) { // Sampling additive volumes
-                    if (addVolumesCount < maxOverdraw) {
-                        float4 unusedOcclusion; // Will be stripped by compiler
-                        LV_SampleVolume(id, localUVW, L0, L1r, L1g, L1b, unusedOcclusion);
+            [branch] if (LV_PointLocalAABB(localUVW)) { // Intersection test
+                [branch] if (id < additiveCount) { // Sampling additive volumes
+                    [branch] if (addVolumesCount < maxOverdraw) {
+                        float4 occ; // Multiplicative occlusion
+                        LV_SampleVolume(id, localUVW, L0, L1r, L1g, L1b, occ);
+                        mOcclusion *= occ;
                         addVolumesCount++;
                     } 
                 } else if (isNoA) { // First, searching for volume A
@@ -755,8 +757,9 @@
         }
     
         // If no volumes found, using Light Probes as fallback
-        if (isNoA && lightProbesBlend) {
+        [branch] if (isNoA && lightProbesBlend) {
             LV_SampleLightProbe(L0, L1r, L1g, L1b);
+            occlusion *= mOcclusion;
             return;
         }
             
@@ -775,12 +778,13 @@
         LV_SampleVolume(volumeID_A, localUVW_A, L0_A, L1r_A, L1g_A, L1b_A, occlusion_A);
         
         float mask = LV_BoundsMask(localUVW_A, _UdonLightVolumeInvLocalEdgeSmooth[volumeID_A]);
-        if (mask == 1 || isNoA || (_UdonLightVolumeSharpBounds && isNoB)) { // Returning SH A result if it's the center of mask or out of bounds
+        [branch] if (mask == 1 || isNoA || (_UdonLightVolumeSharpBounds && isNoB)) { // Returning SH A result if it's the center of mask or out of bounds
             L0  += L0_A;
             L1r += L1r_A;
             L1g += L1g_A;
             L1b += L1b_A;
             occlusion = occlusion_A;
+            occlusion *= mOcclusion;
             return;
         }
         
@@ -791,7 +795,7 @@
         float3 L1b_B = 0;
         float4 occlusion_B = 1;
     
-        if (isNoB && lightProbesBlend) { // No Volume found and light volumes blending enabled
+        [branch] if (isNoB && lightProbesBlend) { // No Volume found and light volumes blending enabled
     
             // Sample Light Probes B
             LV_SampleLightProbe(L0_B, L1r_B, L1g_B, L1b_B);
@@ -809,6 +813,7 @@
     
         // Lerping occlusion
         occlusion = lerp(occlusion_B, occlusion_A, mask);
+        occlusion *= mOcclusion;
     
         // Lerping SH components
         L0  += lerp(L0_B,  L0_A,  mask);
@@ -822,17 +827,15 @@
     
         // Initializing output variables
         occlusion = 1;
+        float4 mOcclusion = 1; // Multiplicative occlusion. Applies on top of regular occlusion
         
         // Clamping gloabal iteration counts
-        uint pointCount = min((uint) _UdonPointLightVolumeCount, 128);
-        uint additiveCount = min((uint) _UdonLightVolumeAdditiveCount, 32);
-        
+        uint additiveCount = min((uint) _UdonLightVolumeAdditiveCount, VRCLV_MAX_VOLUMES_COUNT);
         //if (_UdonLightVolumeVersion < VRCLV_VERSION || (additiveCount == 0 && pointCount == 0)) return;
-        if (additiveCount == 0 && pointCount == 0)
-            return; // Legacy!
+        [branch] if (additiveCount == 0 && (uint) _UdonPointLightVolumeCount == 0) return; // Legacy!
     
-        uint volumesCount = min((uint) _UdonLightVolumeCount, 32);
-        uint maxOverdraw = min((uint) _UdonLightVolumeAdditiveMaxOverdraw, 32);
+        uint volumesCount = min((uint) _UdonLightVolumeCount, VRCLV_MAX_VOLUMES_COUNT);
+        uint maxOverdraw = min((uint) _UdonLightVolumeAdditiveMaxOverdraw, VRCLV_MAX_VOLUMES_COUNT);
         
         uint volumeID_A = -1; // Main, dominant volume ID
         uint volumeID_B = -1; // Secondary volume ID to blend main with
@@ -849,15 +852,16 @@
         uint addVolumesCount = 0;
     
         // Iterating through all light volumes with simplified algorithm requiring Light Volumes to be sorted by weight in descending order
-        uint count = min(_UdonLightVolumeOcclusionCount == 0 ? additiveCount : volumesCount, 32); // Only use all volumes if occlusion volumes are enabled
-        [loop]
-        for (uint id = 0; id < count; id++) {
+        uint count = min(_UdonLightVolumeOcclusionCount == 0 ? additiveCount : volumesCount, VRCLV_MAX_VOLUMES_COUNT); // Only use all volumes if occlusion volumes are enabled
+        [loop] for (uint id = 0; id < VRCLV_MAX_VOLUMES_COUNT; id++) {
+            [branch] if(id >= count) break;
             localUVW = LV_LocalFromVolume(id, worldPos);
-            if (LV_PointLocalAABB(localUVW)) { // Intersection test
-                if (id < additiveCount) { // Sampling additive volumes
-                    if (addVolumesCount < maxOverdraw) {
-                        float4 unusedOcclusion;
-                        LV_SampleVolume(id, localUVW, L0, L1r, L1g, L1b, unusedOcclusion);
+            [branch] if (LV_PointLocalAABB(localUVW)) { // Intersection test
+                [branch] if (id < additiveCount) { // Sampling additive volumes
+                    [branch] if (addVolumesCount < maxOverdraw) {
+                        float4 occ; // Multiplicative occlusion
+                        LV_SampleVolume(id, localUVW, L0, L1r, L1g, L1b, occ);
+                        mOcclusion *= occ;
                         addVolumesCount++;
                     } 
                 } else if (isNoA) { // First, searching for volume A
@@ -874,7 +878,10 @@
         }
     
         // If no volumes found, or we don't need the occlusion data, we are done
-        if (isNoA || _UdonLightVolumeOcclusionCount == 0) return;
+        [branch] if (isNoA || _UdonLightVolumeOcclusionCount == 0) {
+            occlusion *= mOcclusion;
+            return;
+        }
         
         // Fallback to lowest weight light volume if outside of every volume
         localUVW_A = isNoA ? localUVW : localUVW_A;
@@ -884,12 +891,17 @@
         occlusion = LV_SampleVolumeOcclusion(volumeID_A, localUVW_A);
         float mask = LV_BoundsMask(localUVW_A, _UdonLightVolumeInvLocalEdgeSmooth[volumeID_A]);
         
-        if (mask == 1 || (_UdonLightVolumeSharpBounds && isNoB)) return; // Returning A result if it's the center of mask or out of bounds
+        [branch] if (mask == 1 || (_UdonLightVolumeSharpBounds && isNoB)) {
+            occlusion *= mOcclusion;
+            return; // Returning A result if it's the center of mask or out of bounds
+        }
     
         // Blending Volume A and Volume B
-        if (isNoB) occlusion = lerp(1, occlusion, mask);
+        [branch] if (isNoB) occlusion = lerp(1, occlusion, mask);
         else occlusion = lerp(LV_SampleVolumeOcclusion(volumeID_B, localUVW_B), occlusion, mask);
     
+        occlusion *= mOcclusion;
+        
     }
 
     float3 LightVolumeSpecular(float3 f0, float smoothness, float3 worldNormal, float3 viewDir, float3 L0, float3 L1r, float3 L1g, float3 L1b) {
