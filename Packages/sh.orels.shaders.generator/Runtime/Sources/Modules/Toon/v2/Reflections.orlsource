@@ -138,7 +138,7 @@
 
 %ModuleLighting("ToonReflectionLighting")
 {
-    void ToonReflectionLighting(SurfaceData o, MeshData d, half lightAttenuation, float3 lightHalfVector, half NoV, half3 indirectDiffuse, inout half3 indirectSpecular)
+    void ToonReflectionLighting(inout SurfaceData o, MeshData d, half lightAttenuation, float3 lightHalfVector, half NoV, half3 indirectDiffuse, inout half3 indirectSpecular)
     {
         #if defined(REFLECTIONS_ON) && defined(UNITY_PASS_FORWARDBASE)
         half oneMinusReflectivity = 1.0 - 0.04 - o.ReflectionMetallic * (1.0 - 0.04);
@@ -188,6 +188,8 @@
         half computedSpecularOcclusion = computeSpecularAO(NoV, o.Occlusion * reflectionOcclusion, clampedRoughness);
         computedSpecularOcclusion *= energyCompensation;
         reflection *= gtaoMultiBounce(computedSpecularOcclusion, f0);
+
+        o.Albedo *= lerp(1, oneMinusReflectivity, o.ReflectionStrength);
 
         indirectSpecular += reflection * o.ReflectionStrength;
         #endif
