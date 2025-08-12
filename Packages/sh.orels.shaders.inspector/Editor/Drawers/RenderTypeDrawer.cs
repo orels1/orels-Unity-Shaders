@@ -126,9 +126,13 @@ namespace ORL.Drawers
             if (isForcedType)
             {
                 EditorGUILayout.LabelField("Render type prefered by current shader: " + Enum.GetName(typeof(RenderType), forcedRenderType), Styles.NoteTextStyle);
-                if (!IsMaterialSetUpForRenderType(targetMaterial, propertyData, newRenderType) && savedRenderType == -1)
+                if (!IsMaterialSetUpForRenderType(targetMaterial, propertyData, forcedRenderType) && savedRenderType == -1)
                 {
-                    SetRenderType(targetMaterial, currentRenderType, propertyData, property);
+                    SetRenderType(targetMaterial, forcedRenderType, propertyData, property);
+                }
+                if (savedRenderType == -1)
+                {
+                    property.floatValue = (float)forcedRenderType;
                 }
                 return true;
             }
