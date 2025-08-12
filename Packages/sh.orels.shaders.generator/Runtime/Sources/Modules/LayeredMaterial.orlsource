@@ -30,7 +30,7 @@
     UI_LMLayer1Header("# Layer 1", Int) = 0
     [Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4, Alpha, 5)]_LMLayer1ColorMask("Mask Channel", Int) = 0
     _LMLayer1MaskRemap("Mask Remap %RemapSlider(0,1)", Vector) = (0,1,0,1)
-    _LMLayer1Strength("Layer Strength", Range(0,1)) = 0
+    _LMLayer1Strength("Layer Strength", Range(0,1)) = 1
     [Toggle(DEBUG_LAYER_1_MASK)]_LMLayer1DebugMask("Show Mask", Int) = 0
 
     UI_LMLayer1MaterialHeader("### Material", Int) = 0
@@ -61,7 +61,7 @@
     UI_LMLayer2Header("# Layer 2 %ShowIf(_LayeredMatLayersCount > 1)", Int) = 0
     [Enum(Black, 0, Red, 1, Green, 2, Blue, 3, White, 4, Alpha, 5)]_LMLayer2ColorMask("Mask Channel %ShowIf(_LayeredMatLayersCount > 1)", Int) = 1
     _LMLayer2MaskRemap("Mask Remap %ShowIf(_LayeredMatLayersCount > 1) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
-    _LMLayer2Strength("Layer Strength %ShowIf(_LayeredMatLayersCount > 1)", Range(0, 1)) = 0
+    _LMLayer2Strength("Layer Strength %ShowIf(_LayeredMatLayersCount > 1)", Range(0, 1)) = 1
     [Toggle(DEBUG_LAYER_2_MASK)]_LMLayer2DebugMask("Show Mask %ShowIf(_LayeredMatLayersCount > 1)", Int) = 0
 
     UI_LMLayer2MaterialHeader("### Material %ShowIf(_LayeredMatLayersCount > 1)", Int) = 0
