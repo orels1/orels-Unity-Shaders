@@ -27,6 +27,7 @@ namespace ORL.ShaderGenerator
             Defines = new Dictionary<string, string>
             {
                 {"SHADER_API_D3D11", "1"},
+                {"UNITY_BRANCH", ""},
                 {"TEXTURE2D(textureName)", "Texture2D textureName"},
                 {"SAMPLER(samplerName)", "SamplerState samplerName"},
                 {"TEXTURE2D_PARAM(textureName, samplerName)", "TEXTURE2D(textureName), SAMPLER(samplerName)"},
