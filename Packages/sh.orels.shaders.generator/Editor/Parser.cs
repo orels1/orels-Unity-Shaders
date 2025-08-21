@@ -43,6 +43,12 @@ namespace ORL.ShaderGenerator
             PostPass
         }
 
+        public enum ExtraPassInheritType
+        {
+            InheritParentBlocks,
+            SkipParentBlocks
+        }
+
         public static BlockType GetBlockType(string name)
         {
             switch (name)
@@ -292,6 +298,13 @@ namespace ORL.ShaderGenerator
                                         newBlock.TypedParams[1] = newBlock.Params[1] == "ExtraPassType.PrePass"
                                             ? ShaderBlock.ExtraPassType.PrePass
                                             : ShaderBlock.ExtraPassType.PostPass;
+
+                                        if (newBlock.Params.Count > 2)
+                                        {
+                                            newBlock.TypedParams[2] = newBlock.Params[2] == "ExtraPassInheritType.InheritParentBlocks"
+                                                ? ShaderBlock.ExtraPassInheritType.InheritParentBlocks
+                                                : ShaderBlock.ExtraPassInheritType.SkipParentBlocks;
+                                        }
                                     }
                                 }
 
