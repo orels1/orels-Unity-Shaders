@@ -107,7 +107,7 @@
         {
             half3 pos = (_NoiseSpace ? d.localSpacePosition.xyz : d.worldSpacePosition.xyz) + _Layer1Movement.xyz * _Time.y;
             pos *= _Layer1Scale;
-            half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.5;
+            half noise = getBakedNoise(TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), pos) * 0.5;
             half stepped = StepMask(noise, 0.11, 0.11 + _Layer1Width, _Layer1Smoothing);
             o.Alpha = stepped * _Layer1Color.a;
             o.Emission = stepped * 0.5 * _Layer1Color.rgb;
@@ -117,7 +117,7 @@
         {
             half3 pos = (_NoiseSpace ? d.localSpacePosition.xyz : d.worldSpacePosition.xyz) + _Layer2Movement.xyz * _Time.y;
             pos *= _Layer2Scale;
-            half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.5;
+            half noise = getBakedNoise(TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), pos) * 0.5;
             half stepped = StepMask(noise, 0.3, 0.3 + _Layer2Width, _Layer2Smoothing);
             o.Alpha += stepped * _Layer2Color.a;
             o.Emission += stepped * 0.25 * _Layer2Color.rgb;
@@ -130,11 +130,11 @@
             float depth = sceneZ - d.extraV2F0.z;
             
             half3 pos = (_NoiseSpace ? d.localSpacePosition : d.worldSpacePosition.xyz) * 8;
-            half edgeMask = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.5;
+            half edgeMask = getBakedNoise(TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), pos) * 0.5;
             pos *= 2.1;
-            edgeMask += getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.25;
+            edgeMask += getBakedNoise(TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), pos) * 0.25;
             pos *= 2.2;
-            edgeMask += getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos) * 0.125;
+            edgeMask += getBakedNoise(TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), pos) * 0.125;
             edgeMask = smoothstep(depth-0.05, depth + 0.05, edgeMask);
             depth = saturate(invLerp(0, max(0, _DepthBlendDistance), depth));
             depth = 1 - depth;

@@ -98,11 +98,11 @@
         if (_Noise1ScrollSpace == 2) {
             pos.y *= _ScaleY;
         }
-        half noise = 0.5 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
+        half noise = 0.5 * getBakedNoise(TEXTURE2D_ARGS(_NoiseTex, sampler_NoiseTex), pos);
         pos = mul(pos, noiseTransMatrix) * 2.01;
-        noise += 0.25 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
+        noise += 0.25 * getBakedNoise(TEXTURE2D_ARGS(_NoiseTex, sampler_NoiseTex), pos);
         pos = mul(pos, noiseTransMatrix) * 2.02;
-        noise += 0.125 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
+        noise += 0.125 * getBakedNoise(TEXTURE2D_ARGS(_NoiseTex, sampler_NoiseTex), pos);
         
         pos = _NoiseSpace ? (_NoiseSpace == 2 ? d.uv0.xyx : d.localSpacePosition) : d.worldSpacePosition;
         half3 convertedScroll2Dir = _Noise2ScrollSpace ? (_Noise2ScrollSpace == 2 ? _Noise2Scroll.xyz : TransformObjectToWorld(_Noise2Scroll.xyz / scale)) : _Noise2Scroll.xyz;
@@ -112,11 +112,11 @@
             pos.y *= _Scale2Y;
         }
         pos += half3(0.1, 1.2, 0.7);
-        half noise2 = 0.5 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
+        half noise2 = 0.5 * getBakedNoise(TEXTURE2D_ARGS(_NoiseTex, sampler_NoiseTex), pos);
         pos = mul(pos, noiseTransMatrix) * 2.01;
-        noise2 += 0.25 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
+        noise2 += 0.25 * getBakedNoise(TEXTURE2D_ARGS(_NoiseTex, sampler_NoiseTex), pos);
         pos = mul(pos, noiseTransMatrix) * 2.02;
-        noise2 += 0.125 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
+        noise2 += 0.125 * getBakedNoise(TEXTURE2D_ARGS(_NoiseTex, sampler_NoiseTex), pos);
 
         noise = saturate(invLerp(_Noise1Contrast.x, _Noise1Contrast.y, noise));
         noise2 = saturate(invLerp(_Noise2Contrast.x, _Noise2Contrast.y, noise2));

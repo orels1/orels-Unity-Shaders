@@ -99,7 +99,7 @@
 {
     void GhostLinesVertex(inout VertexData v, inout FragmentData o)
     {
-        half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, v.vertex.xyz * _GSWobbleScale + _GSWobbleMovement.xyz * _Time.y);
+        half noise = getBakedNoise(TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), v.vertex.xyz * _GSWobbleScale + _GSWobbleMovement.xyz * _Time.y);
         o.extraV2F0 = v.vertex;
         v.vertex.xyz += v.normal.xyz * noise * _GSWobbleStrength * saturate((remap(v.vertex.y, _GSWobbleRange.x, _GSWobbleRange.y, 0, 1)));
     }
@@ -119,7 +119,7 @@
 
         // lines distortion
         half3 coordSource = _GSLinesCoordinates ? d.uv0.xyx : d.extraV2F0.xyz;
-        half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, coordSource * _GSNoiseScale + _GSNoiseMovement * _Time.x);
+        half noise = getBakedNoise(TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), coordSource * _GSNoiseScale + _GSNoiseMovement * _Time.x);
         half3 pos = _GSLinesOrigin + _GSLinesMovement * _Time.x;
         half dist = length(d.extraV2F0 - pos) + lerp(0, noise, _GSNoiseStrength);
 

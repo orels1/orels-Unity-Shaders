@@ -100,9 +100,9 @@
         if (_DissolveUseBakedNoise) {
             half3 pos = d.localSpacePosition.xyz * _DissolveBakedNoiseScale;
             pos += _Time.y * _DissolveBakedNoiseScroll;
-            half noise = getBakedNoise(_DissolveBakedNoiseTex, sampler_DissolveBakedNoiseTex, pos) * 0.5;
+            half noise = getBakedNoise(TEXTURE2D_ARGS(_DissolveBakedNoiseTex, sampler_DissolveBakedNoiseTex), pos) * 0.5;
             pos *= 2.1;
-            noise += getBakedNoise(_DissolveBakedNoiseTex, sampler_DissolveBakedNoiseTex, pos) * 0.5;
+            noise += getBakedNoise(TEXTURE2D_ARGS(_DissolveBakedNoiseTex, sampler_DissolveBakedNoiseTex), pos) * 0.5;
             noise = saturate(remap(noise, 0,1, 1 - _DissolveBakedNoiseStrength,1));
             grad = saturate(grad * noise);
         }

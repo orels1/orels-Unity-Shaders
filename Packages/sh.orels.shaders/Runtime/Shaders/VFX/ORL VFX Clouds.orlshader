@@ -252,28 +252,28 @@
 
         if (dot(wNormal, half3(0, 1, 0)) > 0)
         {
-            vertOffset += exDir * (0.7 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos * noiseL1.noiseScale + _Time.y * (noiseL1.noiseDirection / 100)) * noiseL1.noiseStrength);
+            vertOffset += exDir * (0.7 * getBakedNoiseBilinear(TEXTURE2D_ARGS(bakedNoise, samplerBakedNoise), bakedNoiseTexelSize, pos * noiseL1.noiseScale + _Time.y * (noiseL1.noiseDirection / 100)) * noiseL1.noiseStrength);
             half3 pos2 = pos * noiseL2.noiseScale;
             pos2.z /= 2;
-            vertOffset += exDir * (0.3 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos2 * noiseL2.noiseScale + _Time.y * (noiseL2.noiseDirection / 100)) * noiseL2.noiseStrength);
+            vertOffset += exDir * (0.3 * getBakedNoiseBilinear(TEXTURE2D_ARGS(bakedNoise, samplerBakedNoise), bakedNoiseTexelSize, pos2 * noiseL2.noiseScale + _Time.y * (noiseL2.noiseDirection / 100)) * noiseL2.noiseStrength);
 
             half3 pos3 = pos * noiseL3.noiseScale;
-            vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos3 + _Time.y * (noiseL3.noiseDirection / 100)) * noiseL3.noiseStrength);
+            vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(TEXTURE2D_ARGS(bakedNoise, samplerBakedNoise), bakedNoiseTexelSize, pos3 + _Time.y * (noiseL3.noiseDirection / 100)) * noiseL3.noiseStrength);
             pos3 *= 2.01;
-            vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos3 + _Time.y * (noiseL3.noiseDirection / 100)) * noiseL3.noiseStrength);
+            vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(TEXTURE2D_ARGS(bakedNoise, samplerBakedNoise), bakedNoiseTexelSize, pos3 + _Time.y * (noiseL3.noiseDirection / 100)) * noiseL3.noiseStrength);
         }
 
         #else
 
-        vertOffset += exDir * (0.7 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos * noiseL1.noiseScale + _Time.y * (noiseL1.noiseDirection / 100)) * noiseL1.noiseStrength);
+        vertOffset += exDir * (0.7 * getBakedNoiseBilinear(TEXTURE2D_ARGS(bakedNoise, samplerBakedNoise), bakedNoiseTexelSize, pos * noiseL1.noiseScale + _Time.y * (noiseL1.noiseDirection / 100)) * noiseL1.noiseStrength);
         half3 pos2 = pos * noiseL2.noiseScale;
         pos2.z /= 2;
-        vertOffset += exDir * (0.3 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos2 * noiseL2.noiseScale + _Time.y * (noiseL2.noiseDirection / 100)) * noiseL2.noiseStrength);
+        vertOffset += exDir * (0.3 * getBakedNoiseBilinear(TEXTURE2D_ARGS(bakedNoise, samplerBakedNoise), bakedNoiseTexelSize, pos2 * noiseL2.noiseScale + _Time.y * (noiseL2.noiseDirection / 100)) * noiseL2.noiseStrength);
 
         half3 pos3 = pos * noiseL3.noiseScale;
-        vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos3 + _Time.y * (noiseL3.noiseDirection / 100)) * noiseL3.noiseStrength);
+        vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(TEXTURE2D_ARGS(bakedNoise, samplerBakedNoise), bakedNoiseTexelSize, pos3 + _Time.y * (noiseL3.noiseDirection / 100)) * noiseL3.noiseStrength);
         pos3 *= 2.01;
-        vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(bakedNoise, samplerBakedNoise, bakedNoiseTexelSize, pos3 + _Time.y * (noiseL3.noiseDirection / 100)) * noiseL3.noiseStrength);
+        vertOffset += exDir * (0.5 * 0.3 * getBakedNoiseBilinear(TEXTURE2D_ARGS(bakedNoise, samplerBakedNoise), bakedNoiseTexelSize, pos3 + _Time.y * (noiseL3.noiseDirection / 100)) * noiseL3.noiseStrength);
 
         #endif
 

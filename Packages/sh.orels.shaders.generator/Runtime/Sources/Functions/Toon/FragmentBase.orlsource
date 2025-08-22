@@ -334,7 +334,7 @@
 
             // Support basic directionality
             #if defined(DIRLIGHTMAP_COMBINED)
-                half4 lightMapDirection = tex2DFastBicubicSample(unity_LightmapInd, samplerunity_Lightmap, lightmapUV);
+                half4 lightMapDirection = tex2DFastBicubicSample(TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap), lightmapUV);
                 
                 // use lightmap direction if we can, realtim light is ignored in that case
                 lightDir.xyz = lightMapDirection.xyz - 0.5;

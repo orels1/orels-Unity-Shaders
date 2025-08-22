@@ -414,11 +414,11 @@
     half3 getRealtimeLightmap(half2 uv, half3 worldNormal)
     {
         half2 realtimeUV = uv;
-        half4 bakedCol = tex2DFastBicubicSample(unity_DynamicLightmap, samplerunity_DynamicLightmap, realtimeUV);
+        half4 bakedCol = tex2DFastBicubicSample(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), realtimeUV);
         half3 realtimeLightmap = DecodeRealtimeLightmap(bakedCol);
 
         #ifdef DIRLIGHTMAP_COMBINED
-        half4 realtimeDirTex = tex2DFastBicubicSample(unity_DynamicDirectionality, samplerunity_DynamicLightmap, realtimeUV);
+        half4 realtimeDirTex = tex2DFastBicubicSample(TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap), realtimeUV);
         realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
         #endif
 
@@ -439,7 +439,7 @@
         {
             bakedCol = SAMPLE_TEXTURE2D(unity_DynamicLightmap, samplerunity_DynamicLightmap, realtimeUV);
         } else {
-            bakedCol = tex2DFastBicubicSample(unity_DynamicLightmap, samplerunity_DynamicLightmap, realtimeUV);
+            bakedCol = tex2DFastBicubicSample(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), realtimeUV);
         }
         #else
         bakedCol = SAMPLE_TEXTURE2D(unity_DynamicLightmap, samplerunity_DynamicLightmap, realtimeUV);
@@ -456,7 +456,7 @@
             {
                 realtimeDirTex = SAMPLE_TEXTURE2D(unity_DynamicDirectionality, samplerunity_DynamicLightmap, realtimeUV);
             } else {
-                realtimeDirTex = tex2DFastBicubicSample(unity_DynamicDirectionality, samplerunity_DynamicLightmap, realtimeUV);
+                realtimeDirTex = tex2DFastBicubicSample(TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap), realtimeUV);
             }
             #else
             realtimeDirTex = SAMPLE_TEXTURE2D(unity_DynamicDirectionality, samplerunity_DynamicLightmap, realtimeUV);

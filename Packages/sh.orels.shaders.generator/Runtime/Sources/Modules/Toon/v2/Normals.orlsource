@@ -182,7 +182,7 @@
         {
             float4 normalTex = 0;
             if (_NormalBicubicSampling) {
-                normalTex = tex2DFastBicubicSampleNoChecks(_BumpMap, sampler_BumpMap, lerp(globalUv, d.uv0.xy, _BumpMapTilingMode) * _BumpMapTiling);
+                normalTex = tex2DFastBicubicSampleNoChecks(TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), lerp(globalUv, d.uv0.xy, _BumpMapTilingMode) * _BumpMapTiling);
             } else {
                 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, lerp(globalUv, d.uv0.xy, _BumpMapTilingMode) * _BumpMapTiling);
             }
