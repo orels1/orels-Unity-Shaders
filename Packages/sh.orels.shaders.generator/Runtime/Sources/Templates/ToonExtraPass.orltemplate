@@ -77,7 +77,7 @@ Pass
             UNITY_EXTRACT_FOG_FROM_TSPACE(i);
         #elif defined(FOG_COMBINED_WITH_WORLD_POS)
             UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
-        #else
+        #elif !defined(FOG_DISABLED)
             UNITY_EXTRACT_FOG(i);
         #endif
 
@@ -91,7 +91,9 @@ Pass
         // ExtraPass FragmentBase
         %FragmentBase
 
+        #if !defined(FOG_DISABLED)
         UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+        #endif
         
         // ExtraPass Color Chain
         %ColorFunctions
