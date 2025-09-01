@@ -124,6 +124,7 @@ namespace ORL.ShaderInspector
                 _uiState.Add("mapBakerShown", false);
             }
 
+            _docStrings.Clear();
             foreach (var prop in properties)
             {
                 if (prop.type == MaterialProperty.PropType.Texture && prop.textureDimension == TextureDimension.Tex2D && !_uiState.ContainsKey(prop.name + "_packer"))
@@ -153,6 +154,15 @@ namespace ORL.ShaderInspector
                     _uiState.Add(packerKey + "_size", 2048);
                     _uiState.Add(packerKey + "_linear", false);
                     _uiState.Add(packerKey + "_name", materialEditor.target.name + "_" + Utils.StripInternalSymbols(prop.displayName).Trim() + "_packed");
+                }
+
+                if (prop.name.StartsWith("Doc_"))
+                {
+                    var docName = prop.name.Substring(3);
+                    if (!_docStrings.ContainsKey(docName))
+                    {
+                        _docStrings.Add(docName, prop.displayName);
+                    }
                 }
             }
 
@@ -321,6 +331,8 @@ namespace ORL.ShaderInspector
         private bool _libraryOpen;
 
         private string _searchTerm;
+
+        private Dictionary<string, string> _docStrings = new Dictionary<string, string>();
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
@@ -570,6 +582,19 @@ namespace ORL.ShaderInspector
             {
                 tooltip = tooltip.Substring(tooltip.IndexOf("(") + 1);
                 tooltip = tooltip.Substring(0, tooltip.LastIndexOf(")"));
+            }
+
+            if (_docStrings.ContainsKey(property.name))
+            {
+                if (tooltip == null)
+                {
+                    tooltip = "";
+                }
+                if (tooltip.Length > 0)
+                {
+                    tooltip += "\n\n";
+                }
+                tooltip += "Docs: " + _docStrings[property.name];
             }
 
             if (isSingleLine)

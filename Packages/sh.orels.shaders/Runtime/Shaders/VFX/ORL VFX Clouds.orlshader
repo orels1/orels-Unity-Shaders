@@ -9,9 +9,13 @@
     UI_CloudsDocs("[This shader has documentation](https://shaders.orels.sh/docs/vfx/clouds)", Int) = 0
 
     UI_ShadingHeader("# Shading", Int) = 1
+    [HideInInspector]Doc_EnableDepthBlending("Enables transparency based on the depth of the scene. This allows soft blending around intersecting objects", Int) = 0
     [ToggleUI]_EnableDepthBlending("Enable Depth Blending", Int) = 1
+    [HideInInspector]Doc_DepthTransp("Only visible when **Enable Depth Blending** is checked. Controls the amount of depth-based blending applied. Based on the name - requires a depth light (see below)", Int) = 0
     _DepthTransp("Depth Transparency %ShowIf(_EnableDepthBlending)", Float) = 36
+    [HideInInspector]Doc_CastShadows("Enables shadow casting for the clouds", Int) = 0
     [ToggleUI]_CastShadows("Cast Shadows", Int) = 0
+    [HideInInspector]Doc_ApplyShading("Enables realtime Directional Light-based shading using a **Shade Ramp**", Int) = 0
     [Toggle(APPLY_SHADING)]_ApplyShading("Apply Shading", Int) = 0
     _ShadeRamp("Shade Ramp %ShowIf(APPLY_SHADING) %Gradient()", 2D) = "grayscaleRamp" {}
     _Tint("Tint %ShowIf(APPLY_SHADING)", Color) = (1,1,1,1)
