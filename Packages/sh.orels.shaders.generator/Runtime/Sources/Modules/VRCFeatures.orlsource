@@ -48,7 +48,7 @@
     void VRCFeaturesVertex(inout VertexData v)
     {
         #if defined(VRC_FEATURES)
-        bool isMainView = _VRChatCameraMode == 0;
+        bool isMainView = _VRChatCameraMode == 0 && _VRChatMirrorMode == 0;
         bool isInVRHandCam = _VRChatCameraMode == 1;
         bool isInDesktopHandCam = _VRChatCameraMode == 2;
         bool isInVR = isVR__local();
