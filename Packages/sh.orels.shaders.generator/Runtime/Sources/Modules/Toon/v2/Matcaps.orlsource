@@ -282,7 +282,7 @@
         #if defined(MATCAP_0)
         {
             half2 matcapUv = GetMatcapUV(_Matcap0UVMode, worldNormal, d.worldSpaceViewDir, _Matcap0Border);
-            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap0Tex, MatcapSampler, matcapUv, _Matcap0Blur * UNITY_SPECCUBE_LOD_STEPS).rgb;
+            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap0Tex, MatcapSampler, matcapUv, _Matcap0Blur * 9).rgb;
             matcap *= lerp(1, o.Albedo, _Matcap0TintToDiffuse);
             matcap *= _Matcap0Tint;
             
@@ -295,7 +295,7 @@
         #if defined(MATCAP_1)
         {
             half2 matcapUv = GetMatcapUV(_Matcap1UVMode, worldNormal, d.worldSpaceViewDir, _Matcap1Border);
-            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap1Tex, MatcapSampler, matcapUv, _Matcap1Blur * UNITY_SPECCUBE_LOD_STEPS).rgb;
+            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap1Tex, MatcapSampler, matcapUv, _Matcap1Blur * 9).rgb;
             matcap *= lerp(1, o.Albedo, _Matcap1TintToDiffuse);
             matcap *= _Matcap1Tint;
             
@@ -308,7 +308,7 @@
         #if defined(MATCAP_2)
         {
             half2 matcapUv = GetMatcapUV(_Matcap2UVMode, worldNormal, d.worldSpaceViewDir, _Matcap2Border);
-            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap2Tex, MatcapSampler, matcapUv, _Matcap2Blur * UNITY_SPECCUBE_LOD_STEPS).rgb;
+            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap2Tex, MatcapSampler, matcapUv, _Matcap2Blur * 9).rgb;
             matcap *= lerp(1, o.Albedo, _Matcap2TintToDiffuse);
             matcap *= _Matcap2Tint;
             
@@ -321,7 +321,7 @@
         #if defined(MATCAP_3)
         {
             half2 matcapUv = GetMatcapUV(_Matcap3UVMode, worldNormal, d.worldSpaceViewDir, _Matcap3Border);
-            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap3Tex, MatcapSampler, matcapUv, _Matcap3Blur * UNITY_SPECCUBE_LOD_STEPS).rgb;
+            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap3Tex, MatcapSampler, matcapUv, _Matcap3Blur * 9).rgb;
             matcap *= lerp(1, o.Albedo, _Matcap3TintToDiffuse);
             matcap *= _Matcap3Tint;
             
