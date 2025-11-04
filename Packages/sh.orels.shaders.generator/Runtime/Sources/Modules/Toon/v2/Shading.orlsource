@@ -85,6 +85,12 @@
 {
     void ToonShadingLightingIndirect(SurfaceData o, MeshData d, inout half3 indirectDiffuse, float3 lightDir)
     {
+        #if !defined(UNITY_PASS_FORWARDBASE)
+        {
+            return;
+        }
+        #endif
+
         #if defined(_INTEGRATE_CUSTOMPROBES)
         {
             %CustomProbesFunctions

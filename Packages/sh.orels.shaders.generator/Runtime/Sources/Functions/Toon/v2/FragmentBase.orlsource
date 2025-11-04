@@ -141,8 +141,15 @@
 
         half3 diffuseContributions = 0;
         diffuseContributions += mainLightDiffuse;
+        
+        #if defined(UNITY_PASS_FORWARDBASE)
         diffuseContributions += indirectDiffuse;
         diffuseContributions += customGIDiffuse;
+        #else
+        indirectDiffuse = 0;
+        customGIDiffuse = 0;
+        #endif
+
         diffuseContributions *= diffuseModifier;
 
         #if defined(UNITY_PASS_FORWARDBASE)
@@ -152,8 +159,14 @@
 
         half3 specularContributions = 0;
         specularContributions += max(mainLightSpecular, mainLightMixedSpecular);
+
+        #if defined(UNITY_PASS_FORWARDBASE)
         specularContributions += indirectSpecular;
         specularContributions += customGISpecular;
+        #else
+        indirectSpecular = 0;
+        customGISpecular = 0;
+        #endif
 
         specularContributions = lerp(specularContributions, dot(specularContributions, float3(0.299, 0.587, 0.114)), _MonochromeLighting);
 
