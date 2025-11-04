@@ -36,7 +36,7 @@
         #endif
         half4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
         color *= d.vertexColor.rgba;
-        o.Albedo = lerp(o.Albedo, color.rgb, color.a) * color.a;
+        o.Albedo *= color.rgb * color.a;
         o.Alpha = o.Alpha * color.a;
     }
 }
