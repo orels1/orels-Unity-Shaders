@@ -482,7 +482,7 @@
 
             // Load directional lightmap
             #if defined(DIRLIGHTMAP_COMBINED)
-                half4 lightMapDirection = tex2DFastBicubicSample(unity_LightmapInd, samplerunity_Lightmap, lightmapUV);
+                half4 lightMapDirection = tex2DFastBicubicSample(TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap), lightmapUV);
                 #if !defined(BAKERY_MONOSH)
                     lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
                 #endif
