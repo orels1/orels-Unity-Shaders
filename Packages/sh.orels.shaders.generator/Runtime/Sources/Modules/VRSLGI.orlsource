@@ -57,6 +57,12 @@
 
     void VRSLGIColor(MeshData d, SurfaceData o, inout half4 FinalColor)
     {
+        #if !defined(UNITY_PASS_FORWARDBASE)
+        {
+            return;
+        }
+        #endif
+
         #if defined(PLAT_QUEST)
         {
             return;
