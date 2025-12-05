@@ -135,7 +135,7 @@
 {
     void VRCLightVolumesCustomProbesSetup(MeshData d, inout SurfaceData o)
     {
-        #if defined(INTEGRATE_VRCLIGHTVOLUMES)
+        #if defined(INTEGRATE_VRCLIGHTVOLUMES) && !defined(ORL_LIGHTING_MODEL_UI)
         {
             float3 L0, L1r, L1g, L1b;
             LightVolumeSH(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b);
@@ -161,14 +161,14 @@
     void VRCLightVolumesCustomProbes(SurfaceData o, MeshData d, inout half3 indirectDiffuse)
     {
         // Custom Probes
-        #if defined(INTEGRATE_VRCLIGHTVOLUMES)
+        #if defined(INTEGRATE_VRCLIGHTVOLUMES) && !defined(ORL_LIGHTING_MODEL_UI)
         {
             #if defined(ORL_LIGHTING_MODEL_TOON_V2)
             {
                 o.Normal = _IgnoreLightprobeNormal ? float3(0, 0.5, 0) : o.WorldNormal;
             }
             #endif
-            indirectDiffuse = LightVolumeEvaluate(o.Normal, o.VRCLV_L0, o.VRCLV_L1r, o.VRCLV_L1g, o.VRCLV_L1b);   
+            indirectDiffuse = LightVolumeEvaluate(o.Normal, o.VRCLV_L0, o.VRCLV_L1r, o.VRCLV_L1g, o.VRCLV_L1b);
         }
         #endif
     }
@@ -178,7 +178,7 @@
 {
     void VRCLightVolumesCustomProbesBakedSpecular(SurfaceData o, MeshData d, inout half3 indirectSpecular, inout half3 bakedSpecularColor, inout half3 bakedDominantDirection)
     {
-        #if defined(INTEGRATE_VRCLIGHTVOLUMES)
+        #if defined(INTEGRATE_VRCLIGHTVOLUMES) && !defined(ORL_LIGHTING_MODEL_UI)
         bakedSpecularColor = o.VRCLV_L0;
         bakedDominantDirection = o.VRCLV_L1r.xyz + o.VRCLV_L1g.xyz + o.VRCLV_L1b.xyz;
         #endif
@@ -200,6 +200,34 @@
             #endif
         }
         #endif
+    }
+}
+
+// Color mode for UI shaders
+%Color("VRCLightVolumesColor")
+{
+    void VRCLightVolumesColor(MeshData d, bool facing, inout half4 FinalColor)
+    {
+        #if !defined(UNITY_PASS_FORWARDBASE)
+        return;
+        #endif
+        #if !defined(ORL_LIGHTING_MODEL_UI)
+        return;
+        #endif
+
+        #if defined(INTEGRATE_VRCLIGHTVOLUMES)
+        {
+            float3 L0, L1r, L1g, L1b;
+            float3 worldNormal = d.worldNormal;
+            if (!facing) {
+                worldNormal = -worldNormal;
+            }
+            LightVolumeSH(d.worldSpacePosition + worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b);
+            half3 indirectDiffuse = LightVolumeEvaluate(worldNormal, L0, L1r, L1g, L1b);
+            FinalColor.rgb *= indirectDiffuse;
+        }
+        #endif
+
     }
 }
 
