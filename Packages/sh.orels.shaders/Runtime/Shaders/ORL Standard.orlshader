@@ -108,10 +108,11 @@
         #else
             GLOBAL_uv = d.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
         #endif
-        
+
         // Do Triplanar
         if (_MappingSpace == 3)
         {
+            // Fast (bad) Triplanar
             float3 axisProjection = mul(float3(0.0001, 0.0001, 1), d.TBNMatrix);
             axisProjection = abs(axisProjection);
             axisProjection = pow(axisProjection, 160);
@@ -120,10 +121,11 @@
             axisProjection.z += saturate(1 - length(axisProjection));
 
             float3 pos = d.worldSpacePosition * _MainTex_ST.x;
-            GLOBAL_uv = pos.yx;
+            GLOBAL_uv = pos.zy;
             GLOBAL_uv *= axisProjection.x;
-            GLOBAL_uv += pos.y * axisProjection.y;
-            GLOBAL_uv += pos.z * axisProjection.z;
+            GLOBAL_uv += pos.xz * axisProjection.y;
+            GLOBAL_uv += pos.xy * axisProjection.z;
+
         }
         else if (_MappingSpace > 0)
         {
