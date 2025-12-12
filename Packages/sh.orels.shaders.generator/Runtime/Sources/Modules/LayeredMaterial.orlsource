@@ -94,7 +94,7 @@
     _LMLayer3MaskRemap("Mask Remap %ShowIf(_LayeredMatLayersCount > 2) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
     _LMLayer3Strength("Layer Strength %ShowIf(_LayeredMatLayersCount > 2)", Range(0, 1)) = 0
     [Toggle(DEBUG_LAYER_3_MASK)]_LMLayer3DebugMask("Show Mask %ShowIf(_LayeredMatLayersCount > 2)", Int) = 0
-    
+
     UI_LMLayer3MaterialHeader("### Material %ShowIf(_LayeredMatLayersCount > 2)", Int) = 0
     _LMLayer3Color("Main Color %ShowIf(_LayeredMatLayersCount > 2)", Color) = (1, 1, 1, 1)
     _LMLayer3MainTex("Albedo %ShowIf(_LayeredMatLayersCount > 2)", 2D) = "white" { }
@@ -134,7 +134,7 @@
     _LMLayer4TriplanarTiling("Tiling %ShowIf(_LMLayer4Triplanar && _LayeredMatLayersCount > 3)", Float) = 1
     _LMLayer4TriplanarBlend("Blend %ShowIf(_LMLayer4Triplanar && _LayeredMatLayersCount > 3)", Range(0,2)) = 1
     _LMLayer4TriplanarPower("Power %ShowIf(_LMLayer4Triplanar && _LayeredMatLayersCount > 3)", Float) = 1
-    
+
     [Enum(RGB, 0, R, 1, G, 2, B, 3)]_LMLayer4AlbedoChannel("Albedo Channel %ShowIf(_LMLayer4MainTex && _LayeredMatLayersCount > 3)", Int) = 0
     [NoScaleOffset]_LMLayer4MaskMap("Masks > %ShowIf(_LayeredMatLayersCount > 3)", 2D) = "white" { }
     [Enum(R, 0, G, 1, B, 2, A, 3)]_LMLayer4MetalChannel("Metal %ShowIf(_LayeredMatLayersCount > 3) %CombineWith(_LMLayer4AOChannel, _LMLayer4SmoothChannel)", Int) = 0
@@ -369,14 +369,14 @@
 
     float4 GetTriplanarSample(ORL_TriplanarUV uv, float3 weights, TEXTURE2D_PARAM(tex, texsampler))
     {
-       
+
         float4 xySample = SAMPLE_TEXTURE2D_GRAD(tex, texsampler, uv.xyUV, uv.xyDDXDDY.xy, uv.xyDDXDDY.zw);
         float4 zySample = SAMPLE_TEXTURE2D_GRAD(tex, texsampler, uv.zyUV, uv.zyDDXDDY.xy, uv.zyDDXDDY.zw);
         float4 xzSample = SAMPLE_TEXTURE2D_GRAD(tex, texsampler, uv.xzUV, uv.xzDDXDDY.xy, uv.xzDDXDDY.zw);
         // float4 xySample = SAMPLE_TEXTURE2D(tex, texsampler, uv.xyUV);
         // float4 zySample = SAMPLE_TEXTURE2D(tex, texsampler, uv.zyUV);
         // float4 xzSample = SAMPLE_TEXTURE2D(tex, texsampler, uv.xzUV);
-        
+
         return lerp(lerp(lerp(0, xzSample, weights.y), zySample, weights.x), xySample, weights.z);
     }
 
@@ -441,7 +441,7 @@
         TEXTURE2D_PARAM(maskTex, maskSampler),
         TEXTURE2D_PARAM(bumpTex, bumpSampler)
     )
-    {    
+    {
         half mask = GetMask(layerMask, layer);
 
         // Skip all the sampling if mask is black
@@ -452,7 +452,7 @@
         half4 albedo = 0;
         half4 masks = 0;
         float3 normal = 0;
-        
+
         [branch]
         if (layer.triplanar) {
             ORL_TriplanarUV triUV = GetTriplanarUV(d.worldSpacePosition, d.worldNormal, layer.triplanarTiling);
@@ -468,7 +468,7 @@
             // float4 normalXTex = SAMPLE_TEXTURE2D(bumpTex, bumpSampler, triUV.xyUV);
             // float4 normalYTex = SAMPLE_TEXTURE2D(bumpTex, bumpSampler, triUV.zyUV);
             // float4 normalZTex = SAMPLE_TEXTURE2D(bumpTex, bumpSampler, triUV.xzUV);
-            
+
             if (layer.bumpYFlip)
             {
                 normalXTex.y = 1 - normalXTex.y;
@@ -540,7 +540,7 @@
         half occlusion = masks[_LMLayerBaseAOChannel];
         metal = remap(metal, 0, 1, _LMLayerBaseMetallicRemap.x, _LMLayerBaseMetallicRemap.y);
         smooth = remap(smooth, 0, 1, _LMLayerBaseSmoothnessRemap.x, _LMLayerBaseSmoothnessRemap.y);
-        
+
         o.Metallic = hasMasks ? metal : _LMLayerBaseMetallic;
         o.Smoothness = hasMasks ? smooth : _LMLayerBaseSmoothness;
         o.Occlusion = hasMasks ? occlusion : _LMLayerBaseOcclusionStrength;
@@ -569,9 +569,8 @@
         layer1Data.metallic = _LMLayer1Metallic;
         layer1Data.metallicRemap = _LMLayer1MetallicRemap;
         layer1Data.smoothness = _LMLayer1Smoothness;
-        layer1Data.metallic = _LMLayer1Metallic;
+        layer1Data.smoothnessRemap = _LMLayer1SmoothnessRemap;
         layer1Data.ao = _LMLayer1OcclusionStrength;
-        layer1Data.metallicRemap = _LMLayer1MetallicRemap;
         layer1Data.triplanar = _LMLayer1Triplanar;
         layer1Data.triplanarTiling = _LMLayer1TriplanarTiling;
         layer1Data.triplanarBlend = _LMLayer1TriplanarBlend;
@@ -583,10 +582,10 @@
             TEXTURE2D_ARGS(_LMLayer1MaskMap, sampler_LMLayerBaseMaskMap),
             TEXTURE2D_ARGS(_LMLayer1BumpMap, sampler_LMLayerBaseBumpMap)
         );
-        
+
         [branch]
         if (_LayeredMatLayersCount < 2) return;
-        
+
         // Layer 2
         LayerData layer2Data = (LayerData)0;
         layer2Data.ST = _LMLayer2MainTex_ST;
@@ -605,9 +604,8 @@
         layer2Data.metallic = _LMLayer2Metallic;
         layer2Data.metallicRemap = _LMLayer2MetallicRemap;
         layer2Data.smoothness = _LMLayer2Smoothness;
-        layer2Data.metallic = _LMLayer2Metallic;
-        layer2Data.ao = _LMLayer2OcclusionStrength;
-        layer2Data.metallicRemap = _LMLayer2MetallicRemap;
+        layer2Data.smoothnessRemap = _LMLayer2SmoothnessRemap;
+        layer2Data.ao = _LMLayer1OcclusionStrength;
         layer2Data.triplanar = _LMLayer2Triplanar;
         layer2Data.triplanarTiling = _LMLayer2TriplanarTiling;
         layer2Data.triplanarBlend = _LMLayer2TriplanarBlend;
@@ -624,10 +622,10 @@
         #if defined(PLAT_QUEST)
             return;
         #endif
-        
+
         [branch]
         if (_LayeredMatLayersCount < 3) return;
-        
+
         // Layer 3
         LayerData layer3Data = (LayerData)0;
         layer3Data.ST = _LMLayer3MainTex_ST;
@@ -646,9 +644,8 @@
         layer3Data.metallic = _LMLayer3Metallic;
         layer3Data.metallicRemap = _LMLayer3MetallicRemap;
         layer3Data.smoothness = _LMLayer3Smoothness;
-        layer3Data.metallic = _LMLayer3Metallic;
+        layer3Data.smoothnessRemap = _LMLayer3SmoothnessRemap;
         layer3Data.ao = _LMLayer3OcclusionStrength;
-        layer3Data.metallicRemap = _LMLayer3MetallicRemap;
         layer3Data.triplanar = _LMLayer3Triplanar;
         layer3Data.triplanarTiling = _LMLayer3TriplanarTiling;
         layer3Data.triplanarBlend = _LMLayer3TriplanarBlend;
@@ -663,7 +660,7 @@
 
         [branch]
         if (_LayeredMatLayersCount < 4) return;
-        
+
         // Layer 4
         LayerData layer4Data = (LayerData)0;
         layer4Data.ST = _LMLayer4MainTex_ST;
@@ -682,9 +679,8 @@
         layer4Data.metallic = _LMLayer4Metallic;
         layer4Data.metallicRemap = _LMLayer4MetallicRemap;
         layer4Data.smoothness = _LMLayer4Smoothness;
-        layer4Data.metallic = _LMLayer4Metallic;
+        layer4Data.smoothnessRemap = _LMLayer4SmoothnessRemap;
         layer4Data.ao = _LMLayer4OcclusionStrength;
-        layer4Data.metallicRemap = _LMLayer4MetallicRemap;
         layer4Data.triplanar = _LMLayer4Triplanar;
         layer4Data.triplanarTiling = _LMLayer4TriplanarTiling;
         layer4Data.triplanarBlend = _LMLayer4TriplanarBlend;
@@ -702,7 +698,7 @@
 {
     void LayeredMaterialColor(MeshData d, inout half4 FinalColor)
     {
-        
+
         #if defined(DEBUG_LAYER_1_MASK)
         {
             half4 layerMask = _LMMaskingType == 0 ? d.vertexColor : SAMPLE_TEXTURE2D(_LMMaskTex, sampler_LMMaskTex, d.uv0.xy);
