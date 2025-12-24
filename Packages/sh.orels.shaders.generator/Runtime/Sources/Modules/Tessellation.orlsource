@@ -81,12 +81,19 @@
     [UNITY_patchconstantfunc("TessFactorsFunction")]
     TessVertexData Hull(InputPatch<TessVertexData, 3> patch, uint id : SV_OutputControlPointID)
     {
-        return patch[id];
+        TessVertexData v = patch[id];
+        UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(patch[id], v);
+        return v;
     }
 
     float4 GetTessFactors(InputPatch<TessVertexData, 3> patch)
     {
-        #if defined(TESS_MODE_DISTANCEBASED)
+        #if defined(CUSTOM_TESS_FACTORS_FUNC)
+        {
+            float4 tessFactors = CustomTessFactorsFunc(patch);
+            return tessFactors;
+        }
+        #elif defined(TESS_MODE_DISTANCEBASED)
         {
             float4 tessFactors = UnityDistanceBasedTess(
                 patch[0].vertex,
@@ -109,11 +116,6 @@
             );
             return tessFactors;
         }
-        #elif defined(CUSTOM_TESS_FACTORS_FUNC)
-        {
-            float4 tessFactors = CustomTessFactorsFunc(patch);
-            return tessFactors;
-        }
         #elif defined(TESS_MODE_STATIC)
         {
             return _TessFactor.xxxx;
@@ -128,7 +130,7 @@
         float4 TessFactorsOutput = 0;
         #if defined(TESS_FACTORS_FUNC_DEFINED)
             TessFactorsOutput = GetTessFactors(patch);
-        #else 
+        #else
             TessFactorsOutput = _TessFactor.xxxx;
         #endif
         f.edge[0] = TessFactorsOutput.x;
@@ -143,9 +145,10 @@
     FragmentData Domain(TessFactors factors, OutputPatch<TessVertexData, 3> patch, float3 baryCoords : SV_DomainLocation)
     {
         VertexData v = (VertexData) 0;
+        UNITY_SETUP_INSTANCE_ID(patch[0]);
         UNITY_TRANSFER_INSTANCE_ID(patch[0], v);
         v.vertex = patch[0].vertex * baryCoords.x + patch[1].vertex * baryCoords.y + patch[2].vertex * baryCoords.z;
-        
+
         #if defined(TESS_PHONG)
         float3 pp[3];
         for (int index = 0; index < 3; ++index)
@@ -166,10 +169,11 @@
         FragmentData o;
         UNITY_INITIALIZE_OUTPUT(FragmentData, o);
         UNITY_TRANSFER_INSTANCE_ID(patch[0], o);
+        UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(patch[0], o);
 
         // Outlines skip the vertex shader if they are disabled
         #if !defined(PASS_OUTLINE) || defined(OUTLINE_ENABLED)
-        
+
         // ForwardBase Tess Domain Vertex Chain
         %VertexFunctions
 
@@ -183,7 +187,7 @@
 
         o.pos = asfloat(-1);
         return o;
-        
+
         #endif
 
         #if defined(UNITY_PASS_SHADOWCASTER)
