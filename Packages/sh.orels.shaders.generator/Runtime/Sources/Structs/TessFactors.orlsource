@@ -1,0 +1,8 @@
+%DataStructs(-200)
+{
+    struct TessFactors
+    {
+        float edge[3] : SV_TessFactor;
+        float inside : SV_InsideTessFactor;
+    };
+}

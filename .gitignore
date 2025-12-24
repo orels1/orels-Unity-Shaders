@@ -69,6 +69,8 @@ Assets/Develop
 Assets/Develop.meta
 Assets/Bakery
 Assets/Bakery.meta
+Assets/Decalery
+Assets/Decalery.meta
 Assets/BakeryLightmaps
 Assets/BakeryLightmaps.meta
 Assets/Editor.meta
@@ -98,3 +100,43 @@ Packages/sh.orels.shaders.inspector/Editor/MaterialLibraries/Resources/**/*.json
 /Assets/Gizmos.meta
 /Assets/LTCGI-Generated
 /Assets/LTCGI-Generated.meta
+/Assets/csc.rsp
+/Assets/csc.rsp.meta
+/Assets/_PoiyomiShaders
+/Assets/_PoiyomiShaders.meta
+/Thry
+/Exports
+
+/Assets/Samples
+/Assets/Samples.meta
+
+/UserSettings/**/*
+UserSettings/Layouts/default-2022.dwlt
+UserSettings/EditorUserSettings.asset
+UserSettings/Search.settings
+Assets/TextMesh Pro
+Assets/TextMesh Pro.meta
+Assets/XR
+Assets/XR.meta
+Assets/AmplifyShaderEditor
+Assets/AmplifyShaderEditor.meta
+/bakery-*
+Assets/XSToon3
+Assets/XSToon3.meta
+Assets/AreaLit
+Assets/AreaLit.meta
+Assets/VRSL Addons
+Assets/VRSL Addons.meta
+Assets/Umodeler-Hub
+Assets/Umodeler-Hub.meta
+Assets/UniversalRenderPipelineGlobalSettings.asset
+Assets/UniversalRenderPipelineGlobalSettings.asset.meta
+ProjectSettings/UModeler-Hub.json
+
+Assets/Mochie
+Assets/Mochie.meta
+Assets/Silent
+Assets/Silent.meta
+
+ProjectSettings/lilToonSetting.json
+.vsconfig

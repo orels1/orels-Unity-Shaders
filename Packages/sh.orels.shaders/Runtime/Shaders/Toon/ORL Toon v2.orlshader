@@ -1,0 +1,34 @@
+%ShaderName("orels1/Toon/v2/Main")
+%LightingModel("@/LightingModels/Toon_v2")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_ToonDocs("[This shader has documentation](https://shaders.orels.sh/docs/toon/v2)", Int) = 0
+}
+
+%ShaderTags()
+{
+    "RenderType" = "Opaque" "Queue" = "Geometry"
+}
+
+%Includes()
+{
+    "@/Modules/AudioLink",
+    "self",
+    "@/Modules/Toon/v2/Main"
+    "@/Modules/VRCLightVolumes"
+    "@/Modules/Toon/v2/Shading",
+    "@/Modules/Toon/v2/Occlusion",
+    "@/Modules/Toon/v2/Normals",
+    "@/Modules/Toon/v2/Specular",
+    "@/Modules/Toon/v2/Matcaps",
+    "@/Modules/Toon/v2/Decals",
+    "@/Modules/Toon/v2/RimLight",
+    "@/Modules/Toon/v2/RimShadow",
+    "@/Modules/Toon/v2/Reflections",
+    "@/Modules/Toon/AudioLink",
+    "@/Modules/Toon/v2/Emission",
+    "@/Modules/Toon/v2/Outline",
+    "@/Modules/Toon/UVDiscard",
+}

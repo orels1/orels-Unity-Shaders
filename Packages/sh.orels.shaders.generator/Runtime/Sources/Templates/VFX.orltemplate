@@ -25,6 +25,120 @@
         // PrePasses
         %PrePasses
 
+        // Exra PrePasses
+        %ExtraPrePasses
+
+        %TemplateFeature("PrePass")
+        {
+            Pass
+            {
+                Tags { "LightMode" = "ForwardBase" %PassTags }
+                %PrePassModifiers
+
+                // ForwardBase Depth PrePass Start
+                CGPROGRAM
+                #pragma target 4.5
+                #pragma multi_compile_instancing
+                #pragma multi_compile_fwdbase
+                #pragma multi_compile_fog
+                #pragma shader_feature_local NEED_FOG
+                #pragma vertex Vertex
+                #pragma fragment Fragment
+                %ShaderFeatures
+
+                #define UNITY_INSTANCED_LOD_FADE
+                #define UNITY_INSTANCED_SH
+                #define UNITY_INSTANCED_LIGHTMAPSTS
+
+                #ifndef UNITY_PASS_FORWARDBASE
+                    #define UNITY_PASS_FORWARDBASE
+                #endif
+
+                // ShaderDefines
+                %ShaderDefines
+                // DataStructs
+                %DataStructs
+                // GlobalVariables
+                %GlobalVariables
+
+                // Variables
+                %Variables
+
+                // Textures
+                %Textures
+
+                // PassFunctions
+                %PassFunctions
+
+                // Functions
+                %Functions
+
+                // Free Functions
+                %FreeFunctions
+
+                // ForwardBase Depth PrePass Vertex
+                #if !defined(TESS_ENABLED)
+                FragmentData Vertex(VertexData v)
+                {
+                    UNITY_SETUP_INSTANCE_ID(v);
+                    FragmentData o;
+                    UNITY_INITIALIZE_OUTPUT(FragmentData, o);
+                    UNITY_TRANSFER_INSTANCE_ID(v, o);
+                    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+                    // ForwardBase Depth PrePass Vertex Chain
+                    %VertexFunctions
+
+                    // ForwardBase Depth PrePass VertexBase
+                    %VertexBase
+
+                    // ForwardBase Depth PrePass PostVertex Chain
+                    %PostVertexFunctions
+
+                    return o;
+                }
+                #endif
+
+                // ForwardBase Depth PrePass Fragment
+                half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
+                {
+                    UNITY_SETUP_INSTANCE_ID(i);
+                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+                    #if defined(NEED_FOG)
+                        #ifdef FOG_COMBINED_WITH_TSPACE
+                            UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+                        #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+                            UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+                        #else
+                            UNITY_EXTRACT_FOG(i);
+                        #endif
+                    #endif
+
+                    SurfaceData o = CreateSurfaceData();
+                    MeshData d = CreateMeshData(i, facing);
+                    half4 FinalColor = 1;
+
+                    // ForwardBase Depth PrePass Fragment Chain
+                    %FragmentFunctions
+
+                    // ForwardBase Depth PrePass FragmentBase
+                    %FragmentBase
+
+                    #if defined(NEED_FOG)
+                        UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+                    #endif
+
+                    // Final Color Chain
+                    %PrePassColorFunctions
+
+                    return FinalColor;
+                }
+
+                ENDCG
+                // ForwardBase Depth PrePass End
+            }
+        }
+
         Pass
         {
             Tags { "LightMode" = "ForwardBase" %PassTags }
@@ -39,6 +153,7 @@
             #pragma shader_feature_local NEED_FOG
             #pragma vertex Vertex
             #pragma fragment Fragment
+
             %ShaderFeatures
 
             #define UNITY_INSTANCED_LOD_FADE
@@ -56,20 +171,23 @@
             // GlobalVariables
             %GlobalVariables
 
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
-
             // Variables
             %Variables
 
             // Textures
             %Textures
 
+            // PassFunctions
+            %PassFunctions
+
             // Functions
             %Functions
 
+            // Free Functions
+            %FreeFunctions
+
             // ForwardBase Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -84,11 +202,19 @@
                 // ForwardBase VertexBase
                 %VertexBase
 
+                // ForwardBase PostVertex Chain
+                %PostVertexFunctions
+
                 return o;
             }
+            #endif
 
             // ForwardBase Fragment
-            half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
+            half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace
+                #if defined(NEED_SV_DEPTH)
+                , out float depth: SV_Depth
+                #endif
+            ) : SV_TARGET
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
@@ -103,7 +229,7 @@
                 #endif
 
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 half4 FinalColor = 1;
 
                 // ForwardBase Fragment Chain
@@ -125,6 +251,113 @@
             ENDCG
             // ForwardBase Pass End
         }
+
+        %TemplateFeature("ShadowCaster")
+        {
+            Pass
+            {
+                Tags { "LightMode" = "ShadowCaster" %PassTags }
+                %ShadowPassModifiers
+
+                // ShadowCaster Pass Start
+                CGPROGRAM
+                #pragma target 4.5
+                #pragma multi_compile_instancing
+                #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
+                #pragma multi_compile_shadowcaster
+                #pragma vertex Vertex
+                #pragma fragment Fragment
+                %ShaderFeatures
+
+                #define UNITY_INSTANCED_LOD_FADE
+                #define UNITY_INSTANCED_SH
+                #define UNITY_INSTANCED_LIGHTMAPSTS
+
+                #ifndef UNITY_PASS_SHADOWCASTER
+                    #define UNITY_PASS_SHADOWCASTER
+                #endif
+
+                #include "UnityPBSLighting.cginc"
+
+                // ShaderDefines
+                %ShaderDefines
+                // DataStructs
+                %DataStructs
+                // GlobalVariables
+                %GlobalVariables
+
+                // Variables
+                %Variables
+
+                // Textures
+                %Textures
+
+                // PassFunctions
+                %PassFunctions
+
+                // Functions
+                %Functions
+
+                // Free Functions
+                %FreeFunctions
+
+                // ShadowCaster Vertex
+                #if !defined(TESS_ENABLED)
+                FragmentData Vertex(VertexData v)
+                {
+                    UNITY_SETUP_INSTANCE_ID(v);
+                    FragmentData o;
+                    UNITY_INITIALIZE_OUTPUT(FragmentData, o);
+                    UNITY_TRANSFER_INSTANCE_ID(v, o);
+                    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+                    // ShadowCaster Vertex Chain
+                    %VertexFunctions
+
+                    // ShadowCaster VertexBase
+                    %VertexBase
+
+                    // ShadowCaster PostVertex Chain
+                    %PostVertexFunctions
+
+                    TRANSFER_SHADOW_CASTER_NORMALOFFSET(o);
+
+                    return o;
+                }
+                #endif
+
+                // ShadowCaster Fragment
+                half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
+                {
+                    UNITY_SETUP_INSTANCE_ID(i);
+                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+
+                    #if defined(NEED_FRAGMENT_IN_SHADOW)
+                    SurfaceData o = CreateSurfaceData();
+                    MeshData d = CreateMeshData(i);
+                    half4 FinalColor = 1;
+
+                    // ShadowCaster Fragment Chain
+                    %FragmentFunctions
+
+                    FinalColor = 1;
+
+                    // ShadowCaster Color Chain
+                    %ColorFunctions
+                    #endif
+
+                    %ShadowFunctions
+
+                    SHADOW_CASTER_FRAGMENT(i);
+                }
+
+                ENDCG
+                // ShadowCaster Pass End
+            }
+        }
+
+        // Exra Passes
+        %ExtraPasses
 
         // PostPasses
         %PostPasses

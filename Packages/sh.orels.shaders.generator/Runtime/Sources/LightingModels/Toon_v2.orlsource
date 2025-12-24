@@ -1,0 +1,10 @@
+%Template("@/Templates/Toon")
+
+%Includes()
+{
+    "target",
+    "@/Structs/Toon/MeshData",
+    "@/Structs/Toon/v2/SurfaceData",
+    "@/Functions/Toon/v2/FragmentBase",
+    "@/Functions/VertexBase",
+}

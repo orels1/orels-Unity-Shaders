@@ -1,0 +1,112 @@
+%ShaderTags()
+{
+    "LTCGI" = "_IntegrateLTCGI"
+}
+
+%Properties()
+{
+    [ToggleUI]UI_LTCGIHeader ("# LTCGI", Int) = 1
+    UI_LTCGIDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/ltcgi)", Int) = 0
+    [Toggle(INTEGRATE_LTCGI)]_IntegrateLTCGI("Integrate LTCGI", Int) = 0
+    UI_LTCGIDownload("[Make sure to download LTCGI before enabling this option](https://github.com/PiMaker/ltcgi/releases)", Int) = 0
+    [ToggleUI]_LTCGIEnableOnMobile("Enable on Mobile", Int) = 0
+    UI_LTCGIEnableOnMobileNote("?> LTCGI is pretty heavy for mobile devices, please test your content when enabling this option", Int) = 0
+    [ToggleUI]_LTCGIClampBrightness("Clamp Brightness", Int) = 0
+    _LTCGIMaxBrightness("Max Brightness %ShowIf(_LTCGIClampBrightness)", Range(0,1)) = 1
+    _LTCGIDiffuseIntensity("Diffuse Intensity", Float) = 1
+    _LTCGISpecularIntensity("Specular Intensity", Float) = 1
+    _LTCGIRoughnessModifier("Roughness Modifier", Range(-1,1)) = 0
+    [ToggleUI]_LTCGIAlphaPremultiply("Alpha Premultiply %ShowIf(INTEGRATE_AREALIT)", Float) = 0
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment INTEGRATE_LTCGI
+}
+
+%ShaderDefines()
+{
+    #if defined(INTEGRATE_LTCGI)
+        #define _INTEGRATE_CUSTOMGI_FLEX
+    #endif
+
+    #define INCLUDE_LTCGI defined(INTEGRATE_LTCGI)
+
+    #if INCLUDE_LTCGI
+        #include "Packages/at.pimaker.ltcgi/Shaders/LTCGI_structs.cginc"
+    #endif
+}
+
+%DataStructs()
+{
+    struct LTCGIAccumulatorStruct {
+        float3 diffuse;
+        float3 specular;
+    };
+
+    #define LTCGI_V2_CUSTOM_INPUT LTCGIAccumulatorStruct
+}
+
+%PassFunctions()
+{
+    #if INCLUDE_LTCGI
+
+    void LTCGICallbackDiffuse(inout LTCGIAccumulatorStruct acc, in ltcgi_output output)
+    {
+        acc.diffuse += output.intensity * output.color;
+    }
+
+    void LTCGICallbackSpecular(inout LTCGIAccumulatorStruct acc, in ltcgi_output output)
+    {
+        acc.specular += output.intensity * output.color;
+    }    
+
+    #define LTCGI_V2_DIFFUSE_CALLBACK LTCGICallbackDiffuse
+    #define LTCGI_V2_SPECULAR_CALLBACK LTCGICallbackSpecular
+    
+    #include "Packages/at.pimaker.ltcgi/Shaders/LTCGI.cginc"
+    #endif
+}
+
+%Variables()
+{
+    int _LTCGIEnableOnMobile;
+    int _LTCGIClampBrightness;
+    half _LTCGIMaxBrightness;
+    half _LTCGIDiffuseIntensity;
+    half _LTCGISpecularIntensity;
+    half _LTCGIRoughnessModifier;
+    int _LTCGIAlphaPremultiply;
+}
+
+%CustomGI("LTCGICustomGI")
+{
+    void LTCGICustomGI(MeshData d, SurfaceData o, inout half3 customGISpecular, inout half3 customGIDiffuse)
+    {
+        #if defined(PLAT_QUEST)
+        if (!_LTCGIEnableOnMobile) return;
+        #endif
+
+        #if defined(INTEGRATE_LTCGI)
+            LTCGIAccumulatorStruct ltcgiData = (LTCGIAccumulatorStruct) 0;
+
+            LTCGI_Contribution(
+                ltcgiData,
+                d.worldSpacePosition.xyz,
+                d.worldNormal.xyz, //o.Normal.xyz,
+                d.worldSpaceViewDir,
+                saturate(0.5 + _LTCGIRoughnessModifier), //saturate((1 - o.Smoothness) + _LTCGIRoughnessModifier),
+                d.uv1.xy
+            );
+
+            if (_LTCGIClampBrightness) {
+                half3 hsv = RGB2HSV(ltcgiData.specular);
+                hsv.z = tanh(hsv.z) * max(0, _LTCGIMaxBrightness);
+                customGISpecular += HSV2RGB(hsv) * _LTCGISpecularIntensity;
+            } else {
+                customGISpecular += ltcgiData.specular * _LTCGISpecularIntensity;
+            }
+            customGIDiffuse += ltcgiData.diffuse * _LTCGIDiffuseIntensity;
+        #endif
+    }
+}

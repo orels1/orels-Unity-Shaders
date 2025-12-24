@@ -33,15 +33,15 @@
 
 %Includes()
 {
-    "/Packages/sh.orels.shaders/Runtime/Shaders/ORL Standard",
+    "@/Shaders/ORL Standard",
     "self"
 }
 
 %Variables()
 {
     half4 _NeonColor;
-    half _FlickerSpeed;
-    half _FlickerFrequency;
+    float _FlickerSpeed;
+    float _FlickerFrequency;
     half4 _FlickerStrength;
     half _FlickerStrengthMultiplier;
 
@@ -52,7 +52,7 @@
     int _NeonTubeCapSource;
     half4 _NeonTubeCapMask_ST;
     int _NeonTubeCapDirection;
-    half _NeonTubeCapOffset;
+    float _NeonTubeCapOffset;
     half4 _NeonTubeCapColor;
     half _NeonTubeCapSmoothness;
 
@@ -74,15 +74,15 @@
 {
     void NeonFragment(MeshData d, inout SurfaceData o)
     {
-        half3 pos = mul(unity_ObjectToWorld, half4(0..xxx, 1));
+        float3 pos = TransformObjectToWorld(0..xxx);
         pos *= _FlickerFrequency;
         pos += _Time.y * _FlickerSpeed;
-        half noise = getBakedNoise(_BakedNoiseTex, sampler_BakedNoiseTex, pos);
+        half noise = getBakedNoise(TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), pos);
         noise = clamp(remap(noise, 0, 1, _FlickerStrength.x * _FlickerStrengthMultiplier, _FlickerStrength.y * _FlickerStrengthMultiplier), 0, 1000);
-        
+
         o.Emission = noise * _NeonColor;
         o.Albedo = clamp(o.Emission, 0, 1);
-        
+
         // this is pretty much copied from glass, but tweaked and thus lives here
         half NdV = dot(d.worldNormal, d.worldSpaceViewDir);
         half glassNdV = NdV;
@@ -93,25 +93,21 @@
         glassNdV = saturate(glassNdV);
         half unmodifiedOcclusion = o.Occlusion;
         o.Occlusion = glassNdV;
-        
+
         // Apply "neon tube" effect
         half rimNdV = NdV;
         rimNdV = saturate(rimNdV);
         rimNdV = 1 - saturate(pow(rimNdV, _NeonTubePower) * 2);
         rimNdV = smoothstep(0, _NeonTubeSmoothing, rimNdV);
         o.Emission = lerp(o.Emission, _NeonTubeColor * max(1, max(o.Emission.r, max(o.Emission.g, o.Emission.b))), rimNdV);
-        
+
         o.Emission *= glassNdV;
         o.Albedo *= glassNdV;
-        
+
         UNITY_BRANCH
         if (_NeonTubeCapEnabled)
         {
-            float3 scale = float3(
-            length(unity_ObjectToWorld._m00_m10_m20),
-            length(unity_ObjectToWorld._m01_m11_m21),
-            length(unity_ObjectToWorld._m02_m12_m22)
-            );
+            float3 scale = GetObjectScale();
             half mask = 1;
             if (_NeonTubeCapSource) {
                 mask = 1 - saturate(length(SAMPLE_TEXTURE2D(_NeonTubeCapMask, sampler_NeonTubeCapMask, d.uv0.xy * _NeonTubeCapMask_ST.xy + _NeonTubeCapMask_ST.zw).rgb));
@@ -126,7 +122,7 @@
                 }
             }
             mask = saturate(mask);
-            
+
             o.Albedo = lerp(o.Albedo, _NeonTubeCapColor, mask);
             o.Emission = lerp(o.Emission, 0, mask);
             o.Smoothness = lerp(o.Smoothness, _NeonTubeCapSmoothness, mask);

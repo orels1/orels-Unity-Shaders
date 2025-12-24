@@ -1,0 +1,73 @@
+%Properties()
+{
+    [ToggleUI]UI_RimShadowHeader("# Rim Shadow", Int) = 0
+    [Toggle(RIMSHADOW_ON)]_RimShadow("Enable Rim Shadow", Int) = 0
+    _ShadowRimTint("Tint %ShowIf(RIMSHADOW_ON)", Color) = (1,1,1,1)
+    _ShadowRimAlbedoTint("Albedo Tint %ShowIf(RIMSHADOW_ON)", Range(0,1)) = 1
+    _ShadowRimSpread("Spread %ShowIf(RIMSHADOW_ON)", Range(0,1)) = 0.5
+    _ShadowRimSharpness("Sharpness %ShowIf(RIMSHADOW_ON)", Range(0,1)) = 0.3
+    _ShadowRimThreshold("Threshold %ShowIf(RIMSHADOW_ON)", Range(0,1)) = 0.3
+    UI_ShadowRimThresholdNote("> Controls how much the rim shadow will be offset by the light direction. 1 Will only show up in the areas in shadow, 0 will show up everywhere %ShowIf(RIMSHADOW_ON)", Int) = 0
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment RIMSHADOW_ON
+}
+
+%AdditionalSurfaceData()
+{
+    #if defined(RIMSHADOW_ON)
+    half3 ShadowRimTint;
+    half ShaderRimAlbedoTint;
+    half ShadowRimSpread;
+    half ShadowRimLightThreshold;
+    half ShadowRimSharpness;
+    #endif
+}
+
+%Variables()
+{
+    #if defined(RIMSHADOW_ON)
+    half4 _ShadowRimTint;
+    half _ShadowRimSpread;
+    half _ShadowRimThreshold;
+    half _ShadowRimSharpness;
+    half _ShadowRimAlbedoTint;
+    #endif
+}
+
+%Fragment("ToonShadowRimFragment")
+{
+    void ToonShadowRimFragment(MeshData d, inout SurfaceData o) {
+        #if defined(RIMSHADOW_ON)
+
+        o.ShadowRimTint = _ShadowRimTint;
+        o.ShadowRimSpread = 1.0 - _ShadowRimSpread;
+        o.ShadowRimSharpness = 1.0 - _ShadowRimSharpness;
+        o.ShadowRimLightThreshold = _ShadowRimThreshold;
+
+        #endif
+    }
+}
+
+%ModuleLighting("ToonShadowRimLightLighting")
+{
+    void ToonShadowRimLightLighting(SurfaceData o, MeshData d, half lightNoL, inout half3 diffuseModifier)
+    {
+        #if defined(RIMSHADOW_ON)
+
+        half SVDNoN = abs(dot(d.svdn, o.WorldNormal));
+
+        half lightThreshold = o.ShadowRimLightThreshold < 0.0001 ? 1 : saturate(pow(1 - lightNoL, o.ShadowRimLightThreshold));
+
+        half shadowRimIntensity = saturate((1 - SVDNoN)) * lightThreshold;
+        shadowRimIntensity = smoothstep(o.ShadowRimSpread - o.ShadowRimSharpness, o.ShadowRimSpread + o.ShadowRimSharpness, shadowRimIntensity);
+
+        half3 rimShadow = lerp(1, o.ShadowRimTint, shadowRimIntensity);
+        rimShadow *= lerp(1, o.Albedo.rgb, o.ShaderRimAlbedoTint);
+
+        diffuseModifier *= rimShadow;
+        #endif
+    }
+}

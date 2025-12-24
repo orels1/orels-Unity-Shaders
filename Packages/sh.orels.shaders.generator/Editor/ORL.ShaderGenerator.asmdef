@@ -1,0 +1,18 @@
+{
+    "name": "ORL.ShaderGenerator",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a5857e7d50658ab468a75fe6fb42fda9"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

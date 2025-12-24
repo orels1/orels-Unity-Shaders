@@ -1,0 +1,310 @@
+%Properties()
+{
+    UI_NormalsHeader("# Normals", Int) = 1
+    [Normal]_BumpMap("Normal Map > %SetKeyword(_BumpMap, NORMALS_SET)", 2D) = "bump" {}
+    [Enum(Synced With Albedo, 0, Independent, 1)]_BumpMapTilingMode("Normal Tiling Mode %ShowIf(_BumpMap)", Int) = 0
+    _BumpMapTiling("Normal Tiling %ShowIf(_BumpMap)", Float) = 1
+    UI_BumpMapTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_BumpMapTilingMode == 0 && _BumpMap)", Int) = 0
+    UI_BumpMapTilingIndependentNote("> Will scale UVs on its own %ShowIf(_BumpMapTilingMode == 1 && _BumpMap)", Int) = 0
+    _BumpScale("Normal Map Scale %ShowIf(_BumpMap)", Range(-2, 2)) = 1
+    [ToggleUI]_FlipBumpY ("Flip Y (UE Mode) %ShowIf(_BumpMap)", Int) = 0
+    [ToggleUI]_NormalBicubicSampling("Use Bicubic Sampling %ShowIf(_BumpMap)", Int) = 0
+
+    UI_DetailNormalsHeader("# Detail Normals", Int) = 0
+    _DetailNormalsMask("Detail Normals Mask %SetKeyword(_DetailNormalsMask, DETAIL_NORMALS_MASK_SET)", 2D) = "white" {}
+    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_DetailNormalsMaskUVSet("UV Set %ShowIf(DETAIL_NORMALS_MASK_SET)", Int) = 0
+
+    UI_DetailNormalsLayer1Header("## Layer 1", Int) = 0
+    [Toggle(DETAIL_NORMALS_0)]_DetailNormals0Enabled("Enable Layer 1", Int) = 0
+    [Normal]_DetailNormals0Map("Detail Normal %ShowIf(DETAIL_NORMALS_0)", 2D) = "bump" {}
+    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_DetailNormals0UVSet("UV Set %ShowIf(_DetailNormals0Map && DETAIL_NORMALS_0)", Int) = 0
+    _DetailNormals0Scale("Detail Normal Map Scale %ShowIf(_DetailNormals0Map && DETAIL_NORMALS_0)", Range(-2, 2)) = 1
+    [ToggleUI]_FlipDetailNormals0Y("Flip Y (UE Mode) %ShowIf(_DetailNormals0Map && DETAIL_NORMALS_0)", Int) = 0
+    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_DetailNormals0MaskChannel("Mask Channel %ShowIf(DETAIL_NORMALS_0)", Int) = 0
+    _DetailNormals0MaskStrength("Mask Strength %ShowIf(DETAIL_NORMALS_0)", Range(0, 1)) = 1
+
+    UI_DetailNormalsLayer2Header("## Layer 2", Int) = 0
+    [Toggle(DETAIL_NORMALS_1)]_DetailNormals1Enabled("Enable Layer 2", Int) = 0
+    [Normal]_DetailNormals1Map("Detail Normal %ShowIf(DETAIL_NORMALS_1)", 2D) = "bump" {}
+    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_DetailNormals1UVSet("UV Set %ShowIf(_DetailNormals1Map && DETAIL_NORMALS_1)", Int) = 0
+    _DetailNormals1Scale("Detail Normal Map Scale %ShowIf(_DetailNormals1Map && DETAIL_NORMALS_1)", Range(-2, 2)) = 1
+    [ToggleUI]_FlipDetailNormals1Y("Flip Y (UE Mode) %ShowIf(_DetailNormals1Map && DETAIL_NORMALS_1)", Int) = 0
+    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_DetailNormals1MaskChannel("Mask Channel %ShowIf(DETAIL_NORMALS_1)", Int) = 0
+    _DetailNormals1MaskStrength("Mask Strength %ShowIf(DETAIL_NORMALS_1)", Range(0, 1)) = 1
+
+    UI_DetailNormalsLayer3Header("## Layer 3", Int) = 0
+    [Toggle(DETAIL_NORMALS_2)]_DetailNormals2Enabled("Enable Layer 3", Int) = 0
+    [Normal]_DetailNormals2Map("Detail Normal %ShowIf(DETAIL_NORMALS_2)", 2D) = "bump" {}
+    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_DetailNormals2UVSet("UV Set %ShowIf(_DetailNormals2Map && DETAIL_NORMALS_2)", Int) = 0
+    _DetailNormals2Scale("Detail Normal Map Scale %ShowIf(_DetailNormals2Map && DETAIL_NORMALS_2)", Range(-2, 2)) = 1
+    [ToggleUI]_FlipDetailNormals2Y("Flip Y (UE Mode) %ShowIf(_DetailNormals2Map && DETAIL_NORMALS_2)", Int) = 0
+    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_DetailNormals2MaskChannel("Mask Channel %ShowIf(DETAIL_NORMALS_2)", Int) = 0
+    _DetailNormals2MaskStrength("Mask Strength %ShowIf(DETAIL_NORMALS_2)", Range(0, 1)) = 1
+
+    UI_DetailNormalsLayer4Header("## Layer 4", Int) = 0
+    [Toggle(DETAIL_NORMALS_3)]_DetailNormals3Enabled("Enable Layer 4", Int) = 0
+    [Normal]_DetailNormals3Map("Detail Normal %ShowIf(DETAIL_NORMALS_3)", 2D) = "bump" {}
+    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_DetailNormals3UVSet("UV Set %ShowIf(_DetailNormals3Map && DETAIL_NORMALS_3)", Int) = 0
+    _DetailNormals3Scale("Detail Normal Map Scale %ShowIf(_DetailNormals3Map && DETAIL_NORMALS_3)", Range(-2, 2)) = 1
+    [ToggleUI]_FlipDetailNormals3Y("Flip Y (UE Mode) %ShowIf(_DetailNormals3Map && DETAIL_NORMALS_3)", Int) = 0
+    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_DetailNormals3MaskChannel("Mask Channel %ShowIf(DETAIL_NORMALS_3)", Int) = 0
+    _DetailNormals3MaskStrength("Mask Strength %ShowIf(DETAIL_NORMALS_3)", Range(0, 1)) = 1
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment NORMALS_SET
+    #pragma shader_feature_local_fragment DETAIL_NORMALS_MASK_SET
+    #pragma shader_feature_local_fragment DETAIL_NORMALS_0
+    #pragma shader_feature_local_fragment DETAIL_NORMALS_1
+    #pragma shader_feature_local_fragment DETAIL_NORMALS_2
+    #pragma shader_feature_local_fragment DETAIL_NORMALS_3
+}
+
+%Variables()
+{
+    #if defined(NORMALS_SET)
+    int _BumpMapTilingMode;
+    float _BumpMapTiling;
+    half _BumpScale;
+    int _FlipBumpY;
+    int _NormalBicubicSampling;
+    #endif
+
+    #if defined(DETAIL_NORMALS_MASK_SET)
+    float4 _DetailNormalsMask_ST;
+    int _DetailNormalsMaskUVSet;
+    #endif
+
+
+    #if defined(DETAIL_NORMALS_0)
+    int _DetailNormals0UVSet;
+    float4 _DetailNormals0Map_ST;
+    half _DetailNormals0Scale;
+    half _FlipDetailNormals0Y;
+    int _DetailNormals0MaskChannel;
+    half _DetailNormals0MaskStrength;
+    #endif
+
+    #if defined(DETAIL_NORMALS_1)
+    int _DetailNormals1UVSet;
+    float4 _DetailNormals1Map_ST;
+    half _DetailNormals1Scale;
+    half _FlipDetailNormals1Y;
+    int _DetailNormals1MaskChannel;
+    half _DetailNormals1MaskStrength;
+    #endif
+
+    #if defined(DETAIL_NORMALS_2)
+    int _DetailNormals2UVSet;
+    float4 _DetailNormals2Map_ST;
+    half _DetailNormals2Scale;
+    half _FlipDetailNormals2Y;
+    int _DetailNormals2MaskChannel;
+    half _DetailNormals2MaskStrength;
+    #endif
+
+    #if defined(DETAIL_NORMALS_3)
+    int _DetailNormals3UVSet;
+    float4 _DetailNormals3Map_ST;
+    half _DetailNormals3Scale;
+    half _FlipDetailNormals3Y;
+    int _DetailNormals3MaskChannel;
+    half _DetailNormals3MaskStrength;
+    #endif
+}
+
+%Textures()
+{
+    #if defined(NORMALS_SET)
+    TEXTURE2D(_BumpMap);
+    SAMPLER(sampler_BumpMap);
+    #endif
+
+    #if defined(DETAIL_NORMALS_MASK_SET)
+    TEXTURE2D(_DetailNormalsMask);
+    SAMPLER(sampler_DetailNormalsMask);
+    #endif
+
+    #if defined(DETAIL_NORMALS_0)
+    TEXTURE2D(_DetailNormals0Map);
+    #endif
+
+    #if defined(DETAIL_NORMALS_1)
+    TEXTURE2D(_DetailNormals1Map);
+    #endif
+
+    #if defined(DETAIL_NORMALS_2)
+    TEXTURE2D(_DetailNormals2Map);
+    #endif
+
+    #if defined(DETAIL_NORMALS_3)
+    TEXTURE2D(_DetailNormals3Map);
+    #endif
+
+    // Define correct samplers in case some are not defined
+    // This allows to always reuse the earlier sampler if it was available
+    #if defined(DETAIL_NORMALS_0)
+    SAMPLER(sampler_DetailNormals0Map);
+    #define DetailsLayerSampler sampler_DetailNormals0Map
+    #endif
+
+    #if !defined(DETAIL_NORMALS_0) && defined(DETAIL_NORMALS_1)
+    SAMPLER(sampler_DetailNormals1Map);
+    #define DetailsLayerSampler sampler_DetailNormals1Map
+    #endif
+
+    #if !defined(DETAIL_NORMALS_0) && !defined(DETAIL_NORMALS_1) && defined(DETAIL_NORMALS_2)
+    SAMPLER(sampler_DetailNormals2Map);
+    #define DetailsLayerSampler sampler_DetailNormals2Map
+    #endif
+
+    #if !defined(DETAIL_NORMALS_0) && !defined(DETAIL_NORMALS_1) && !defined(DETAIL_NORMALS_2) && defined(DETAIL_NORMALS_3)
+    SAMPLER(sampler_DetailNormals3Map);
+    #define DetailsLayerSampler sampler_DetailNormals3Map
+    #endif    
+}
+
+
+%Fragment("ToonNormalsFragment")
+{
+    void ToonNormalsFragment(inout MeshData d, inout SurfaceData o) {
+        float2 globalUv = 0;
+
+        #if defined(GLOBAL_UV_SET)
+        globalUv = GLOBAL_uv;
+        #else
+        globalUv = d.uv0;
+        #endif
+
+        // Main normal map, bicubic support, expected non-tiling
+        #if defined(NORMALS_SET)
+        {
+            float4 normalTex = 0;
+            if (_NormalBicubicSampling) {
+                normalTex = tex2DFastBicubicSampleNoChecks(TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), lerp(globalUv, d.uv0.xy, _BumpMapTilingMode) * _BumpMapTiling);
+            } else {
+                normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, lerp(globalUv, d.uv0.xy, _BumpMapTilingMode) * _BumpMapTiling);
+            }
+            if (_FlipBumpY)
+            {
+                normalTex.y = 1 - normalTex.y;
+            }
+            half3 normal = UnpackNormalScale(normalTex, _BumpScale);
+
+            o.Normal = BlendNormals(o.Normal, normal);
+        }
+        #endif
+
+        // Detail normals, tiling expected, RGBA masking
+        half4 detailMask = 1;
+        #if defined(DETAIL_NORMALS_MASK_SET)
+        {
+            float2 detailMaskUV = 0;
+            switch (_DetailNormalsMaskUVSet) {
+                case 0: detailMaskUV = d.uv0; break;
+                case 1: detailMaskUV = d.uv1; break;
+                case 2: detailMaskUV = d.uv2; break;
+                case 3: detailMaskUV = d.uv3; break;
+            }
+            detailMaskUV = detailMaskUV * _DetailNormalsMask_ST.xy + _DetailNormalsMask_ST.zw;
+            detailMask = SAMPLE_TEXTURE2D(_DetailNormalsMask, sampler_DetailNormalsMask, detailMaskUV);
+        }
+        #endif
+        
+        // Details Layer 1
+        #if defined(DETAIL_NORMALS_0)
+        {
+            float2 detailUV = 0;
+            switch (_DetailNormals0UVSet) {
+                case 0: detailUV = d.uv0; break;
+                case 1: detailUV = d.uv1; break;
+                case 2: detailUV = d.uv2; break;
+                case 3: detailUV = d.uv3; break;
+            }
+            detailUV = detailUV * _DetailNormals0Map_ST.xy + _DetailNormals0Map_ST.zw;
+            half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals0Map, DetailsLayerSampler, detailUV);
+            if (_FlipDetailNormals0Y)
+            {
+                detailNormalsTex.y = 1 - detailNormalsTex.y;
+            }   
+            half3 detailNormal = UnpackNormalScale(detailNormalsTex, _DetailNormals0Scale);
+            o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), lerp(1, detailMask[_DetailNormals0MaskChannel], _DetailNormals0MaskStrength));
+        }
+        #endif
+
+        #if defined(DETAIL_NORMALS_1)
+        {
+            float2 detailUV = 0;
+            switch (_DetailNormals1UVSet) {
+                case 0: detailUV = d.uv0; break;
+                case 1: detailUV = d.uv1; break;
+                case 2: detailUV = d.uv2; break;
+                case 3: detailUV = d.uv3; break;
+            }
+            detailUV = detailUV * _DetailNormals1Map_ST.xy + _DetailNormals1Map_ST.zw;
+            half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals1Map, DetailsLayerSampler, detailUV);
+            if (_FlipDetailNormals1Y)
+            {
+                detailNormalsTex.y = 1 - detailNormalsTex.y;
+            }   
+            half3 detailNormal = UnpackNormalScale(detailNormalsTex, _DetailNormals1Scale);
+            o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), lerp(1, detailMask[_DetailNormals1MaskChannel], _DetailNormals1MaskStrength));
+        }
+        #endif 
+
+        #if defined(DETAIL_NORMALS_2)
+        {
+            float2 detailUV = 0;
+            switch (_DetailNormals2UVSet) {
+                case 0: detailUV = d.uv0; break;
+                case 1: detailUV = d.uv1; break;
+                case 2: detailUV = d.uv2; break;
+                case 3: detailUV = d.uv3; break;
+            }
+            detailUV = detailUV * _DetailNormals2Map_ST.xy + _DetailNormals2Map_ST.zw;
+            half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals2Map, DetailsLayerSampler, detailUV);
+            if (_FlipDetailNormals2Y)
+            {
+                detailNormalsTex.y = 1 - detailNormalsTex.y;
+            }   
+            half3 detailNormal = UnpackNormalScale(detailNormalsTex, _DetailNormals2Scale);
+            o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), lerp(1, detailMask[_DetailNormals2MaskChannel], _DetailNormals2MaskStrength));
+        }
+        #endif
+
+        #if defined(DETAIL_NORMALS_3)
+        {
+            float2 detailUV = 0;
+            switch (_DetailNormals3UVSet) {
+                case 0: detailUV = d.uv0; break;
+                case 1: detailUV = d.uv1; break;
+                case 2: detailUV = d.uv2; break;
+                case 3: detailUV = d.uv3; break;
+            }
+            detailUV = detailUV * _DetailNormals3Map_ST.xy + _DetailNormals3Map_ST.zw;
+            half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals3Map, DetailsLayerSampler, detailUV);
+            if (_FlipDetailNormals3Y)
+            {
+                detailNormalsTex.y = 1 - detailNormalsTex.y;
+            }   
+            half3 detailNormal = UnpackNormalScale(detailNormalsTex, _DetailNormals3Scale);
+            o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), lerp(1, detailMask[_DetailNormals3MaskChannel], _DetailNormals3MaskStrength));
+        }
+        #endif
+
+        // #if defined(NORMALS_SET) || defined(DETAIL_NORMALS_SET)
+
+        // // half3 properNormal = normalize(mul(o.Normal, d.TBNMatrix));
+        // // d.worldSpaceTangent.xyz = cross(d.bitangent.xyz, properNormal);
+        // // d.bitangent.xyz = cross(properNormal, d.worldSpaceTangent.xyz);
+        // // d.TBNMatrix = float3x3(normalize(d.worldSpaceTangent.xyz), d.bitangent, d.worldNormal);
+        // // GLOBAL_pixelNormal = properNormal;
+
+        // #else
+
+        // // GLOBAL_pixelNormal = normalize(mul(o.Normal, d.TBNMatrix));
+
+        // #endif
+    }
+}

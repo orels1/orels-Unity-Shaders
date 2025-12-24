@@ -18,10 +18,10 @@
 %Fragment("CrossfadeFragment", -100)
 {
     void CrossfadeFragment(inout SurfaceData o, MeshData d) {
-        #if defined(LOD_FADE_CROSSFADE)
+        #if defined(LOD_FADE_CROSSFADE) && !defined(UNITY_PASS_SHADOWCASTER)
 
         float2 vpos = d.screenPos.xy / d.screenPos.w * _ScreenParams.xy;
-        UnityApplyDitherCrossFade(vpos);
+        LODFadeCrossFade(vpos);
 
         #endif
     }
@@ -32,8 +32,10 @@
     void CrossfadeShadow(FragmentData i) {
         #if defined(LOD_FADE_CROSSFADE)
 
+        if (unity_LODFade.x < 0) return;
+
         float2 vpos = i.screenPos.xy / i.screenPos.w * _ScreenParams.xy;
-        UnityApplyDitherCrossFade(vpos);
+        LODFadeCrossFade(vpos);
 
         #endif
     }

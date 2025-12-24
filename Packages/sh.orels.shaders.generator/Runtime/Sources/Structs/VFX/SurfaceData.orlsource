@@ -5,6 +5,10 @@
         half3 Albedo;
         half3 Emission;
         half Alpha;
+
+        // Additional Surface Data
+        %AdditionalSurfaceData
+        // Additional Surface Data End
     };
 
     SurfaceData CreateSurfaceData()

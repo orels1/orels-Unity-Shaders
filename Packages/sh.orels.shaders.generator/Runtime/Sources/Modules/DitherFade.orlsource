@@ -1,7 +1,7 @@
 %Properties()
 {
     UI_DFHeadeR("# Fade Settings", Int) = 1
-    UI_DFDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/dither-fade)", Int) = 0
+    UI_DFDocs("[This module has documentation](https://shaders.orels.sh/docs/configurable-shaders/modules/dither-fade)", Int) = 0
     [Toggle(DITHER_FADE)]_EnableDitherFade("Enable", Int) = 0
     _DitherTex("Dither Texture > %RequiredTexture(@/BayerDither4x4.png)", 2D) = "unity_DitherMask" {}
     _DFStart("Fade Start", Float) = 4
@@ -13,7 +13,7 @@
 
 %ShaderTags()
 {
-    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout"
+    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout" "ORL_RenderType" = "Cutout"
 }
 
 %ShaderFeatures()
@@ -46,11 +46,11 @@
     void DitherFadeVertex(inout VertexData v, inout FragmentData o)
     {
         #if defined(DITHER_FADE)
-        o.extraV2F0 = ComputeScreenPos(UnityObjectToClipPos(v.vertex));
-        // COMPUTE_EYEDEPTH macro
-        o.extraV2F0.z = -UnityObjectToViewPos(v.vertex).z;
+        o.extraV2F0 = GetScreenPosition(TransformObjectToHClip(v.vertex));
+        o.extraV2F0.z = -TransformWorldToView(TransformObjectToWorld(v.vertex)).z;
+
         // yeet the vertices completely if we're beyond the fade range
-        half dist = distance(mul(unity_ObjectToWorld, float4(0, 0, 0, 1)).xyz, _WorldSpaceCameraPos);
+        half dist = distance(TransformObjectToWorld(0..xxx), _WorldSpaceCameraPos);
         half factor = invLerp(_DFEnd, _DFStart, dist);
         factor = lerp(factor, 1 - _DFOverrideProgress, _DFOverrideFade);
         if (factor <= 0) {
@@ -73,7 +73,7 @@
     {
         #if defined(DITHER_FADE)
         half2 screenPos = d.extraV2F0 .xy / d.extraV2F0 .w * _ScreenParams.xy;
-        half dist = distance(mul(unity_ObjectToWorld, float4(0, 0, 0, 1)).xyz, _WorldSpaceCameraPos);
+        half dist = distance(TransformObjectToWorld(0..xxx), _WorldSpaceCameraPos);
         half factor = invLerp(_DFEnd, _DFStart, dist);
         factor = lerp(factor, 1 - _DFOverrideProgress, _DFOverrideFade);
         SampleDither(screenPos, saturate(factor));

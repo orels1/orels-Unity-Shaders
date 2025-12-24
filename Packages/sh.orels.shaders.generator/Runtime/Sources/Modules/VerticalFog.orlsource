@@ -23,10 +23,12 @@
 %Color("VerticalFogColor")
 {
     void VerticalFogColor(MeshData d, inout half4 FinalColor) {
+        #if defined(UNITY_PASS_FORWARDBASE)
         half mask = saturate(remap(d.worldSpacePosition.y, _VFStart, _VFEnd, 0, 1));
         mask = pow(mask, _VFPow);
         half4 col = lerp(_VFBottomColor, _VFTopColor, mask);
         FinalColor.rgb *= _VFGlobalTint;
         FinalColor.rgb = lerp(FinalColor.rgb, col.rgb, col.a);
+        #endif
     }
 }

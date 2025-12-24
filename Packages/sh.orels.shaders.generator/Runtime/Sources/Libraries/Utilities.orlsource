@@ -1,6 +1,11 @@
-﻿%LibraryFunctions()
+﻿%LibraryFunctions(-50)
 {
     #define FLT_EPSILON     1.192092896e-07
+
+    // Helpful Macros
+    #define DEBUG_FC(x) FinalColor.rgb *= 0.0001; \
+                     FinalColor.rgb += x; \
+                     return
 
     half3 BlendOverlay(half3 target, half3 source)
     {
@@ -13,6 +18,14 @@
         return true;
     #else
         return false;
+    #endif
+    }
+
+    bool isStereoView() {
+    #ifdef USING_STEREO_MATRICES
+        return true;
+    #else
+        return UNITY_MATRIX_P._13 != 0;
     #endif
     }
 
@@ -83,7 +96,7 @@
         return 1.0f + w3(a) / (w2(a) + w3(a)) + 0.5f;
     }
 
-    half4 tex2DFastBicubicSample(Texture2D tex, SamplerState texSampler, half2 uv)
+    half4 tex2DFastBicubicSample(TEXTURE2D_PARAM(tex, sampler_tex), float2 uv)
     {
         #if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
         half width;
@@ -109,17 +122,49 @@
         half h0y = h0(fy);
         half h1y = h1(fy);
 
-        half4 r = g0(fy) * (g0x * tex.Sample(texSampler, (half2(px + h0x, py + h0y) * 1.0f / width)) +
-        g1x * tex.Sample(texSampler, (half2(px + h1x, py + h0y) * 1.0f / width))) +
-        g1(fy) * (g0x * tex.Sample(texSampler, (half2(px + h0x, py + h1y) * 1.0f / width)) +
-        g1x * tex.Sample(texSampler, (half2(px + h1x, py + h1y) * 1.0f / width)));
+        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+        g1x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+        g1(fy) * (g0x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+        g1x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h1x, py + h1y) * 1.0f / width)));
         return r;
         #else
-        return tex.Sample(texSampler, uv);
+        return SAMPLE_TEXTURE2D(tex, sampler_tex, uv);
         #endif
     }
 
-    half4 tex2DFastBicubicSampleLevel(Texture2D tex, SamplerState texSampler, half2 uv, int level)
+    float4 tex2DFastBicubicSampleNoChecks(TEXTURE2D_PARAM(tex, sampler_tex), float2 uv)
+    {
+        half width;
+        half height;
+        tex.GetDimensions(width, height);
+        half x = uv.x * width;
+        half y = uv.y * height;
+
+
+
+        x -= 0.5f;
+        y -= 0.5f;
+        half px = floor(x);
+        half py = floor(y);
+        half fx = x - px;
+        half fy = y - py;
+
+        // note: we could store these functions in a lookup table texture, but maths is cheap
+        half g0x = g0(fx);
+        half g1x = g1(fx);
+        half h0x = h0(fx);
+        half h1x = h1(fx);
+        half h0y = h0(fy);
+        half h1y = h1(fy);
+
+        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+        g1x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+        g1(fy) * (g0x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+        g1x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h1x, py + h1y) * 1.0f / width)));
+        return r;
+    }
+
+    half4 tex2DFastBicubicSampleLevel(TEXTURE2D_PARAM(tex, sampler_tex), float2 uv, int level)
     {
         #if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
         half width;
@@ -145,50 +190,66 @@
         half h0y = h0(fy);
         half h1y = h1(fy);
 
-        half4 r = g0(fy) * (g0x * tex.SampleLevel(texSampler, (half2(px + h0x, py + h0y) * 1.0f / width), level) +
-        g1x * tex.SampleLevel(texSampler, (half2(px + h1x, py + h0y) * 1.0f / width), level)) +
-        g1(fy) * (g0x * tex.SampleLevel(texSampler, (half2(px + h0x, py + h1y) * 1.0f / width), level) +
-        g1x * tex.SampleLevel(texSampler, (half2(px + h1x, py + h1y) * 1.0f / width), level));
+        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D_LOD(tex, sampler_tex, (half2(px + h0x, py + h0y) * 1.0f / width), level) +
+        g1x * SAMPLE_TEXTURE2D_LOD(tex, sampler_tex, (half2(px + h1x, py + h0y) * 1.0f / width), level)) +
+        g1(fy) * (g0x * SAMPLE_TEXTURE2D_LOD(tex, sampler_tex, (half2(px + h0x, py + h1y) * 1.0f / width), level) +
+        g1x * SAMPLE_TEXTURE2D_LOD(tex, sampler_tex, (half2(px + h1x, py + h1y) * 1.0f / width), level));
         return r;
         #else
-        return tex.SampleLevel(texSampler, uv, level);
+        return SAMPLE_TEXTURE2D_LOD(tex, sampler_tex, uv, level);
         #endif
     }
 
-    half getBakedNoise(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+    half getBakedNoise(TEXTURE2D_PARAM(noiseTex, sampler_noiseTex), float3 p)
     {
-        half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
-        half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
+        float3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+        float2 uv = (p.xy + i.xy + float2(37, 17) * i.z + .5) / 256.;
         uv.y *= -1;
-        p.xy = noiseTex.SampleLevel(noiseTexSampler, uv, 0).yx;
+        p.xy = SAMPLE_TEXTURE2D_LOD(noiseTex, sampler_noiseTex, uv, 0).yx;
         return lerp(p.x, p.y, p.z);
     }
 
-    half getBakedNoiseBicubic(Texture2D noiseTex, SamplerState noiseTexSampler, half3 p)
+    // Manual bilinear sampling to avoid 8 bit precision issues
+    // Based on https://www.shadertoy.com/view/MllSzX
+    half getBakedNoiseBilinear(TEXTURE2D_PARAM(noiseTex, sampler_noiseTex), float4 texSize, float3 p)
     {
-        half3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
-        half2 uv = (p.xy + i.xy + half2(37, 17) * i.z + .5) / 256.;
+        float3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+        float2 uv = (p.xy + i.xy + float2(37, 17) * i.z + .5) / 256.;
         uv.y *= -1;
-        p.xy = tex2DFastBicubicSampleLevel(noiseTex, noiseTexSampler, uv, 0).yx;
+        
+        float2 pixelUv = uv * texSize.zw + 0.5;
+        float2 pixelUvFrac = frac(pixelUv);
+
+        pixelUv = (floor(pixelUv) / texSize.zw) - texSize.xy * 0.5;
+
+        float4 sample0 = SAMPLE_TEXTURE2D_LOD(noiseTex, sampler_noiseTex, pixelUv, 0);
+        float4 sample1 = SAMPLE_TEXTURE2D_LOD(noiseTex, sampler_noiseTex, pixelUv + float2(texSize.x, 0), 0);
+        float4 sample2 = SAMPLE_TEXTURE2D_LOD(noiseTex, sampler_noiseTex, pixelUv + float2(0, texSize.y), 0);
+        float4 sample3 = SAMPLE_TEXTURE2D_LOD(noiseTex, sampler_noiseTex, pixelUv + float2(texSize.x, texSize.y), 0);
+
+        float4 filtered1 = lerp(sample0, sample1, pixelUvFrac.x);
+        float4 filtered2 = lerp(sample2, sample3, pixelUvFrac.x);
+        float4 filtered = lerp(filtered1, filtered2, pixelUvFrac.y);
+        
+        p.xy = filtered.yx;
         return lerp(p.x, p.y, p.z);
     }
 
-    half3 TransformObjectToWorld(half3 pos)
+    half getBakedNoiseBicubic(TEXTURE2D_PARAM(noiseTex, sampler_noiseTex), float3 p)
     {
-        return mul(unity_ObjectToWorld, half4(pos, 1)).xyz;
-    };
-
-    half3 TransformWorldToObject(half3 pos)
-    {
-        return mul(unity_WorldToObject, half4(pos, 0)).xyz;
-    };
+        float3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
+        float2 uv = (p.xy + i.xy + float2(37, 17) * i.z + .5) / 256.;
+        uv.y *= -1;
+        p.xy = tex2DFastBicubicSampleLevel(TEXTURE2D_ARGS(noiseTex, sampler_noiseTex), uv, 0).yx;
+        return lerp(p.x, p.y, p.z);
+    }
 
     half remap(half s, half a1, half a2, half b1, half b2)
     {
         return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
     }
 
-    half3 ApplyLut2D(Texture2D LUT2D, SamplerState lutSampler, half3 uvw)
+    half3 ApplyLut2D(TEXTURE2D_PARAM(lut2d, sampler_lut2d), half3 uvw)
     {
         half3 scaleOffset = half3(1.0 / 1024.0, 1.0 / 32.0, 31.0);
         // Strip format where `height = sqrt(width)`
@@ -197,8 +258,8 @@
         uvw.xy = uvw.xy * scaleOffset.z * scaleOffset.xy + scaleOffset.xy * 0.5;
         uvw.x += shift * scaleOffset.y;
         uvw.xyz = lerp(
-            LUT2D.Sample(lutSampler, uvw.xy).rgb,
-            LUT2D.Sample(lutSampler, uvw.xy + half2(scaleOffset.y, 0.0)).rgb,
+            SAMPLE_TEXTURE2D(lut2d, sampler_lut2d, uvw.xy).rgb,
+            SAMPLE_TEXTURE2D(lut2d, sampler_lut2d, uvw.xy + half2(scaleOffset.y, 0.0)).rgb,
             uvw.z - shift
         );
         return uvw;
@@ -218,6 +279,14 @@
         half d = q.x - min(q.w, q.y);
         half e = 1.0e-10;
         return half3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+    }
+
+    half3 HSVAdjust(half3 hsv, half3 adjustment)
+    {
+        hsv.x = frac(hsv.x + adjustment.x);
+        hsv.y = saturate(hsv.y + adjustment.y);
+        hsv.z = saturate(hsv.z + adjustment.z);
+        return hsv;
     }
 
     half3 AdjustContrast(half3 color, half contrast)
@@ -413,6 +482,45 @@
         return mul(rotMat, source);
     }
 
+    struct ORL_UVChannelData
+    {
+        float4 uv0;
+        float4 uv1;
+        float4 uv2;
+        float4 uv3;
+    };
+
+    #define SetupChannelData(d) (ORL_UVChannelData)0; \
+                                uvData.uv0 = d.uv0; \
+                                uvData.uv1 = d.uv1; \
+                                uvData.uv2 = d.uv2; \
+                                uvData.uv3 = d.uv3
+
+    float2 GetUVChannel(ORL_UVChannelData d, int channel, float4 ST)
+    {
+        float2 UV = 0;
+        switch (channel) {
+            case 0: UV = d.uv0; break;
+            case 1: UV = d.uv1; break;
+            case 2: UV = d.uv2; break;
+            case 3: UV = d.uv3; break;
+        }
+        UV = UV * ST.xy + ST.zw;
+        return UV;
+    }
+
+    float2 RotateAroundCenter2D(float2 source, float angle)
+    {
+        angle = radians(angle);
+        float sinAngle = sin(angle);
+        float cosAngle = cos(angle);
+        float2x2 rotationMatrix = { cosAngle, -sinAngle, sinAngle, cosAngle };
+        source -= 0.5;
+        source = mul(rotationMatrix, source);
+        source += 0.5;
+        return source;
+    }
+
     
     float GLSLMod(float x, float y)
     {
@@ -422,5 +530,125 @@
     float2 GLSLMod(float2 x, float2 y)
     {
         return (((x)-(y)*floor((x)/(y))));
+    }
+
+    // Found in this article on tonemapping: https://mini.gmshaders.com/p/tonemaps
+    // Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
+    float3 Tonemap_ACES(float3 x)
+    {
+        float a = 2.51;
+        float b = 0.03;
+        float c = 2.43;
+        float d = 0.59;
+        float e = 0.14;
+        return (x * (a * x + b)) / (x * (c * x + d) + e);
+    }
+
+    // Hable 2010, "Filmic Tonemapping Operators"
+    float3 Tonemap_Uncharted2(float3 x)
+    {
+        x *= 16.0;
+        float A = 0.15;
+        float B = 0.50;
+        float C = 0.10;
+        float D = 0.20;
+        float E = 0.02;
+        float F = 0.30;
+        
+        return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+    }
+
+    float3 Tonemap_Unreal(float3 x)
+    {
+        // Unreal 3, Documentation: "Color Grading"
+        // Adapted to be close to Tonemap_ACES, with similar range
+        // Gamma 2.2 correction is baked in, don't use with sRGB conversion!
+        return x / (x + 0.155) * 1.019;
+    }
+
+    // https://github.com/yuki-koyama/enhancer
+    // MIT License
+
+    // Copyright (c) 2018 Yuki Koyama
+
+    // Permission is hereby granted, free of charge, to any person obtaining a copy
+    // of this software and associated documentation files (the "Software"), to deal
+    // in the Software without restriction, including without limitation the rights
+    // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    // copies of the Software, and to permit persons to whom the Software is
+    // furnished to do so, subject to the following conditions:
+
+    // The above copyright notice and this permission notice shall be included in all
+    // copies or substantial portions of the Software.
+
+    // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    // SOFTWARE.
+    float3 applyLiftGammaGainEffect(float3 linear_rgb, float3 lift, float3 gamma, float3 gain)
+    {
+        float3 lift_applied_linear_rgb  = clamp((linear_rgb - 1.0) * (2.0 - lift) + 1.0, 0.0, 1.0);
+        float3 gain_applied_linear_rgb  = lift_applied_linear_rgb * gain;
+        float3 gamma_applied_linear_rgb = pow(gain_applied_linear_rgb, 1.0 / gamma);
+
+        return gamma_applied_linear_rgb;
+    }
+
+    
+    // https://github.com/MochiesCode/Mochies-Unity-Shaders/
+    // MIT License
+
+    // Copyright (c) 2020 MochiesCode
+
+    // Permission is hereby granted, free of charge, to any person obtaining a copy
+    // of this software and associated documentation files (the "Software"), to deal
+    // in the Software without restriction, including without limitation the rights
+    // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    // copies of the Software, and to permit persons to whom the Software is
+    // furnished to do so, subject to the following conditions:
+
+    // The above copyright notice and this permission notice shall be included in all
+    // copies or substantial portions of the Software.
+
+    // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    // SOFTWARE.
+    float3 GetSpritesheetUV(float2 uv, float2 rowsColumns, float fps, int pauseFrames, int frameOffset){
+        float2 size = float2(1/rowsColumns.x, 1/rowsColumns.y);
+        uint totalFrames = rowsColumns.x * rowsColumns.y;
+        uint index = 0;
+        index = (_Time.y * fps + frameOffset) % (totalFrames + pauseFrames);
+
+        if (index > totalFrames) {
+            index = totalFrames;
+        }
+
+        uint indexX = index % rowsColumns.x;
+        uint indexY = floor((index % totalFrames) / rowsColumns.x);
+        float2 offset = float2(size.x*indexX,-size.y*indexY);
+        float2 uv1 = uv*size;
+        uv1.y = uv1.y + size.y*(rowsColumns.y - 1);
+        uv = uv1 + offset;
+        return float3(uv,0);
+    }
+
+    // SDFS
+    // https://iquilezles.org/articles/distfunctions2d/
+    float SDFBox(float2 p, float2 b )
+    {
+        float2 d = abs(p)-b;
+        return length(max(d,0.0)) + min(max(d.x,d.y),0.0);
+    }
+
+    float SDFCircle(float2 p, float r)
+    {
+        return length(p) - r;
     }
 }

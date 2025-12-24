@@ -1,0 +1,83 @@
+%Properties()
+{
+    UI_OcclusionHeader("# Occlusion", Int) = 1
+    _OcclusionMap("Occlusion >", 2D) = "white" {}
+    _OcclusionStrength("Occlusion Strength %ShowIf(_OcclusionMap)", Range(0,1)) = 0
+    [Enum(Synced With Albedo, 0, Independent, 1)]_OcclusionTilingMode("Tiling Mode %ShowIf(_OcclusionMap)", Int) = 0
+    _OcclusionTiling("Tiling %ShowIf(_OcclusionMap)", Float) = 1
+    UI_OcclusionTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_OcclusionTilingMode == 0 && _OcclusionMap)", Int) = 0
+    UI_OcclusionTilingIndependentNote("> Will scale UVs on its own %ShowIf(_OcclusionTilingMode == 1 && _OcclusionMap)", Int) = 0
+
+    [ToggleUI]_OcclusionDetailEnabled("Occlusion Detail Enabled", Int) = 0
+    _OcclusionDetail("Occlusion Detail > %ShowIf(_OcclusionDetailEnabled)", 2D) = "white" {}
+    _OcclusionDetailStrength("Occlusion Detail Strength %ShowIf(_OcclusionDetail && _OcclusionDetailEnabled)", Range(0,1)) = 1
+    [Enum(Synced With Albedo, 0, Independent, 1)]_OcclusionDetailTilingMode("Tiling Mode %ShowIf(_OcclusionDetail)", Int) = 0
+    _OcclusionDetailTiling("Tiling %ShowIf(_OcclusionDetail)", Float) = 1
+    UI_OcclusionDetailTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_OcclusionDetailTilingMode == 0 && _OcclusionDetail)", Int) = 0
+    UI_OcclusionDetailTilingIndependentNote("> Will scale UVs on its own %ShowIf(_OcclusionDetailTilingMode == 1 && _OcclusionDetail)", Int) = 0
+}
+
+%ShaderFeatures()
+{
+    // #pragma shader_feature_local_fragment SSAO
+}
+
+%Variables()
+{
+    half _OcclusionStrength;
+    int _OcclusionTilingMode;
+    half _OcclusionTiling;
+
+    int _OcclusionDetailEnabled;
+    half _OcclusionDetailStrength;
+    int _OcclusionDetailTilingMode;
+    half _OcclusionDetailTiling;
+
+    float4 _SSAONoiseTexture_TexelSize;
+    half _SSAORadius;
+    half _SSAOPower;
+    half _SSAOBoost;
+    half _SSAOStrength;
+}
+
+%Textures()
+{
+    TEXTURE2D(_OcclusionMap);
+    TEXTURE2D(_OcclusionDetail);
+}
+
+%Fragment("ToonOcclusionFragment")
+{
+    float chash11(float p)
+    {
+        p = frac(p * .1031);
+        p *= p + 33.33;
+        p *= p + p;
+        return frac(p);
+    }
+
+    float3 chash31(float p)
+    {
+        float3 p3 = frac(p * float3(.1031, .1030, .0973));
+        p3 += dot(p3, p3.yzx+33.33);
+        return frac((p3.xxy+p3.yzz)*p3.zyx); 
+    }
+
+    void ToonOcclusionFragment(MeshData d, inout SurfaceData o) {
+        half2 globalUv = 0;
+
+        #if defined(GLOBAL_UV_SET)
+        globalUv = GLOBAL_uv;
+        #else
+        globalUv = d.uv0;
+        #endif
+
+        half occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_MainTex, lerp(globalUv * _OcclusionTiling, d.uv0 * _OcclusionTiling, _OcclusionTilingMode)).r;
+        o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
+        
+        if (_OcclusionDetailEnabled) {
+            half occlusionDetail = SAMPLE_TEXTURE2D(_OcclusionDetail, sampler_MainTex, lerp(globalUv * _OcclusionDetailTiling, d.uv0 * _OcclusionDetailTiling, _OcclusionDetailTilingMode)).r;
+            o.Occlusion *= lerp(1, occlusionDetail, _OcclusionDetailStrength);
+        }
+    }
+}

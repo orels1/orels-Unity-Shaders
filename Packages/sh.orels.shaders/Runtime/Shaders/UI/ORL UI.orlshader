@@ -13,8 +13,8 @@
 {
     half4 _Glow;
     half4 _MainTex_ST;
-    half2 GLOBAL_uv_offset;
-    half2 GLOBAL_uv_scale;
+    float2 GLOBAL_uv_offset;
+    float2 GLOBAL_uv_scale;
 }
 
 %Textures()
@@ -27,7 +27,7 @@
 {
     void UIFragment(MeshData d, inout SurfaceData o)
     {
-        half2 uv = d.uv0 * _MainTex_ST.xy + _MainTex_ST.zw;
+        float2 uv = d.uv0 * _MainTex_ST.xy + _MainTex_ST.zw;
         #if defined(GLOBAL_UV_SCALE)
         uv *= GLOBAL_uv_scale;
         #endif
@@ -36,7 +36,7 @@
         #endif
         half4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
         color *= d.vertexColor.rgba;
-        o.Albedo = lerp(o.Albedo, color.rgb, color.a);
+        o.Albedo *= color.rgb * color.a;
         o.Alpha = o.Alpha * color.a;
     }
 }

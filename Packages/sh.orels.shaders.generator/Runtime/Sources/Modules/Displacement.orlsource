@@ -1,0 +1,30 @@
+%Properties()
+{
+    [ToggleUI]UI_VertexHeightHeader("# Displacement", Int) = 0
+    _VertexHeight("Displacement Map >", 2D) = "gray" {}
+    _VertexHeightAmount("Displacement Amount", Range(0, 3)) = 0
+    _VertexHeightOffset("Displacement Offset", Range(-1, 1)) = 0.5
+}
+
+%Variables()
+{
+    half _VertexHeightAmount;
+    half _VertexHeightOffset;
+}
+
+%Textures()
+{
+    TEXTURE2D(_VertexHeight);
+    SAMPLER(sampler_VertexHeight);
+}
+
+%Vertex("VertexHeightVertex")
+{
+    void VertexHeightVertex(inout VertexData v)
+    {
+        float2 uv = v.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+        half height = (SAMPLE_TEXTURE2D_LOD(_VertexHeight, sampler_VertexHeight, uv, 0).r * 2 - 1);
+        half3 mainOffset = v.vertex.xyz + v.normal * (height + _VertexHeightOffset) * _VertexHeightAmount;
+        v.vertex.xyz = mainOffset;
+    }
+}

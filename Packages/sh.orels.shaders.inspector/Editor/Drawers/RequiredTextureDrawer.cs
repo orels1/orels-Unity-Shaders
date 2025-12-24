@@ -7,16 +7,16 @@ using UnityEngine;
 
 namespace ORL.Drawers
 {
-    public class RequiredTextureDrawer: IDrawerFunc
+    public class RequiredTextureDrawer : IDrawerFunc
     {
         public string FunctionName => "RequiredTexture";
-        
+
         // Matches %RequiredTexture(TexPath);
         private Regex _matcher = new Regex(@"(?<=[\w\s\>\s]+)\%RequiredTexture\((?<texPath>[\w\,\s\&\|\(\)\!\<\>\=\$\/\-\.\@]+)\)");
 
         private string _savedPath;
         private Texture2D _savedTex;
-        
+
         public string[] PersistentKeys => Array.Empty<string>();
 
         public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next)
@@ -34,14 +34,21 @@ namespace ORL.Drawers
 
             return EditorGUI.indentLevel == -1 || next();
         }
-        
+
         private Texture2D FetchTex(string texPath)
         {
             var cleaned = texPath.Replace("@/", "Packages/sh.orels.shaders.generator/Runtime/Assets/");
             var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(cleaned);
             if (tex == null)
             {
-                Debug.LogError($"Could not find texture at path {cleaned}");
+                var cleaned2 = texPath.Replace("@/", "Packages/sh.orels.shaders/Runtime/Assets/");
+                tex = AssetDatabase.LoadAssetAtPath<Texture2D>(cleaned2);
+
+                if (tex == null)
+                {
+                    Debug.LogError($"Could not find texture at path {cleaned} or {cleaned2}");
+                }
+
             }
 
             return tex;

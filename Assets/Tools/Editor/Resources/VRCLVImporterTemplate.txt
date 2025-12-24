@@ -1,0 +1,146 @@
+// Below is the integration CGINC from the VRCLightVolumes project
+// https://github.com/REDSIM/VRCLightVolumes
+// MIT License
+
+// Copyright (c) 2025 RED_SIM
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+
+%Properties()
+{
+    UI_VRCLightVolumesHeader("# VRC Light Volumes", Int) = 0
+    [Toggle(VRCLIGHTVOLUMES)]_VRCLightVolumesEnabled("Enable VRC Light Volumes", Int) = 0
+    _VRCLightVolumesSurfacePushoff("Surface Pushoff", Range(0, 1)) = 0.08
+    UI_VRCLightVolumesSurfacePushoffNote("> Pushes the volume sampling point away from the surface along the normal vector. This is useful for avoiding leaking and other artifacts on thin surfaces\nValues in 0.05-0.15 range are recommended", Int) = 0
+}
+
+%ShaderFeatures()
+{
+   
+    #pragma shader_feature_local_fragment VRCLIGHTVOLUMES
+
+    // Global keyword to enable in the project
+    #pragma shader_feature_fragment DISABLE_VRCLIGHTVOLUMES
+}
+
+%ShaderDefines()
+{
+    #define VRCLV_VERSION 2
+    #define VRCLV_MAX_VOLUMES_COUNT 32
+    #define VRCLV_MAX_LIGHTS_COUNT 128
+
+    #if !defined(DISABLE_VRCLIGHTVOLUMES) && defined(VRCLIGHTVOLUMES)
+        #define INTEGRATE_VRCLIGHTVOLUMES
+
+        #define LV_PI 3.141592653589793f
+        #define LV_PI2 6.283185307179586f
+
+        #define _INTEGRATE_CUSTOMPROBES
+        #define _INTEGRATE_CUSTOMGI_FLEX
+    #endif
+}
+
+%%VARIABLES
+
+%AdditionalSurfaceData()
+{
+    #if defined(INTEGRATE_VRCLIGHTVOLUMES)
+    float3 VRCLV_L0;
+    float3 VRCLV_L1r;
+    float3 VRCLV_L1g;
+    float3 VRCLV_L1b;
+    #endif
+}
+
+%%TEXTURES
+
+%CustomProbesSetup("VRCLightVolumesCustomProbesSetup")
+{
+    void VRCLightVolumesCustomProbesSetup(MeshData d, inout SurfaceData o)
+    {
+        #if defined(INTEGRATE_VRCLIGHTVOLUMES)
+        {
+            float3 L0, L1r, L1g, L1b;
+            LightVolumeSH(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b);
+            o.VRCLV_L0 = L0;
+            o.VRCLV_L1r = L1r;
+            o.VRCLV_L1g = L1g;
+            o.VRCLV_L1b = L1b;
+
+            // Since toon shaders can derive light directions from probes
+            // we need to directly modify these values
+            #if defined(ORL_LIGHTING_MODEL_TOON_V2)
+            unity_SHAr = float4(L1r, L0.r);
+            unity_SHAg = float4(L1g, L0.g);
+            unity_SHAb = float4(L1b, L0.b);
+            #endif
+        }
+        #endif
+    }
+}
+
+%CustomProbes("VRCLightVolumesCustomProbes")
+{
+    void VRCLightVolumesCustomProbes(SurfaceData o, MeshData d, inout half3 indirectDiffuse)
+    {
+        // Custom Probes
+        #if defined(INTEGRATE_VRCLIGHTVOLUMES)
+        {
+            #if defined(ORL_LIGHTING_MODEL_TOON_V2)
+            {
+                o.Normal = _IgnoreLightprobeNormal ? float3(0, 0.5, 0) : o.WorldNormal;
+            }
+            #endif
+            indirectDiffuse = LightVolumeEvaluate(o.Normal, o.VRCLV_L0, o.VRCLV_L1r, o.VRCLV_L1g, o.VRCLV_L1b);   
+        }
+        #endif
+    }
+}
+
+%CustomProbesBakedSpecular("VRCLightVolumesCustomProbesBakedSpecular")
+{
+    void VRCLightVolumesCustomProbesBakedSpecular(SurfaceData o, MeshData d, inout half3 indirectSpecular, inout half3 bakedSpecularColor, inout half3 bakedDominantDirection)
+    {
+        #if defined(INTEGRATE_VRCLIGHTVOLUMES)
+        bakedSpecularColor = o.VRCLV_L0;
+        bakedDominantDirection = o.VRCLV_L1r.xyz + o.VRCLV_L1g.xyz + o.VRCLV_L1b.xyz;
+        #endif
+    }
+}
+
+%CustomGI("VRCLightVolumesCustomGI")
+{
+    void VRCLightVolumesCustomGI(SurfaceData o, MeshData d, inout half3 indirectDiffuse)
+    {
+        #if defined(INTEGRATE_VRCLIGHTVOLUMES)
+        {
+            #if defined(LIGHTMAP_ON)
+            {
+                float3 L0, L1r, L1g, L1b;
+                LightVolumeAdditiveSH(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b);
+                indirectDiffuse += LightVolumeEvaluate(o.Normal, L0, L1r, L1g, L1b);
+            }
+            #endif
+        }
+        #endif
+    }
+}
+
+%%FUNCTIONS

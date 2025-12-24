@@ -1,0 +1,197 @@
+%Properties()
+{
+    UI_ReflectionsHeader("# Reflections", Int) = 0
+    [Toggle(REFLECTIONS_ON)]_ReflectionsOn("Enable Reflections", Int) = 0
+    
+    _MetallicGlossMap("Metallic Smoothness %ShowIf(REFLECTIONS_ON)", 2D) = "white" {}
+    UI_MetallicNote("> R - Metallic, A - Smoothness %ShowIf(REFLECTIONS_ON)", Int) = 0
+    _Smoothness ("Smoothness %ShowIf(!_MetallicGlossMap && (REFLECTIONS_ON))", Range(0, 1)) = 0.5
+    [ToggleUI]_RoughnessMode ("Roughness Mode %ShowIf(_MetallicGlossMap && (REFLECTIONS_ON))", Int) = 0
+    _Metallic ("Metallic %ShowIf(!_MetallicGlossMap && (REFLECTIONS_ON))", Range(0, 1)) = 0
+    _MetallicRemap("Metallic Remap %ShowIf(_MetallicGlossMap && (REFLECTIONS_ON)) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
+    _SmoothnessRemap("Smoothness Remap %ShowIf(_MetallicGlossMap && (REFLECTIONS_ON)) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
+    _ReflectionAnisotropy("Anisotropy %ShowIf(REFLECTIONS_ON)", Range(-1, 1)) = 0
+    _ReflectivityLevel("Reflectivity %ShowIf(REFLECTIONS_ON)", Range(0, 1)) = 0.5
+
+    UI_ReflectionMaskingHeader("## Masking %ShowIf(REFLECTIONS_ON)", Int) = 0
+    _ReflectionMask("Reflection Mask %ShowIf(REFLECTIONS_ON)", 2D) = "white" {}
+    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ReflectionMaskUVSet("UV Set %ShowIf(_ReflectionMask && REFLECTIONS_ON)", Int) = 0
+    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_ReflectionMaskChannel("Mask Channel %ShowIf(_ReflectionMask && REFLECTIONS_ON)", Int) = 0
+    _ReflectionMaskStrength("Mask Strength %ShowIf(_ReflectionMask && REFLECTIONS_ON)", Range(0, 1)) = 1
+    _ReflectionStrength("Reflection Strength %ShowIf(REFLECTIONS_ON)", Range(0, 1)) = 1
+
+    UI_ReflectionTweaksHeader("## Tweaks %ShowIf(REFLECTIONS_ON)", Int) = 0
+    _ReflectionOcclusion("Reflection Occlusion %ShowIf(REFLECTIONS_ON)", Range(0, 1)) = 0.25
+    _ReflectionRealtimeShadowOcclusion("Realtime Shadow Reflection Occlusion %ShowIf(REFLECTIONS_ON)", Range(0, 1)) = 0
+    UI_ReflectionOcclusionNote("> This effect is not physically accurate, it can be useful to tone down strong reflection probes in shadowed areas %ShowIf(_ReflectionRealtimeShadowOcclusion > 0 && REFLECTIONS_ON)", Int) = 0
+    _ReflectionGSAAVariance("GSAA Variance %ShowIf(GSAA)", Range(0, 1)) = 0.05
+    _ReflectionGSAAThreshold("GSAA Threshold %ShowIf(GSAA)", Range(0, 1)) = 0.1
+
+    _BakedCubemap("Fallback Cubemap > %ShowIf(REFLECTIONS_ON)", CUBE) = "black" {}
+    UI_FallbackNote("> Will be used if world has no reflections %ShowIf(REFLECTIONS_ON)", Int) = 0
+    [NonModifiableTextureData]_DFG("DFG > %RequiredTexture(@/dfg-multiscatter.exr) %ShowIf(REFLECTIONS_ON)", 2D) = "white" {}
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment REFLECTIONS_ON
+}
+
+%Variables()
+{
+    #if defined(REFLECTIONS_ON)
+    float4 _MetallicGlossMap_ST;
+    half _Smoothness;
+    int _RoughnessMode;
+    half _Metallic;
+    half4 _MetallicRemap;
+    half4 _SmoothnessRemap;
+    half4 _MetallicGlossMap_TexelSize;
+    half _ReflectionAnisotropy;
+    half _ReflectivityLevel;
+
+    float4 _ReflectionMask_ST;
+    int _ReflectionMaskUVSet;
+    int _ReflectionMaskChannel;
+    half _ReflectionMaskStrength;
+    half _ReflectionStrength;
+
+    half _ReflectionOcclusion;
+    half _ReflectionRealtimeShadowOcclusion;
+    half _ReflectionGSAAVariance;
+    half _ReflectionGSAAThreshold;
+
+    half4 _BakedCubemap_TexelSize;
+    #endif
+}
+
+%Textures()
+{
+    #if defined(REFLECTIONS_ON)
+    TEXTURE2D(_MetallicGlossMap);
+    TEXTURE2D(_ReflectionMask);
+
+    TEXTURECUBE(_BakedCubemap);
+    SAMPLER(sampler_BakedCubemap);
+
+    TEXTURE2D(_DFG);
+    SAMPLER(sampler_DFG);
+    #endif
+}
+
+%AdditionalSurfaceData()
+{
+    #if defined(REFLECTIONS_ON)
+    half ReflectionMetallic;
+    half ReflectionSmoothness;
+    half ReflectivityLevel;
+    half ReflectionAnisotropy;
+    half ReflectionStrength;
+    #endif
+}
+
+%ShaderDefines()
+{
+    #define ORL_MIN_ROUGHNESS 0.002025
+    #if defined(PLAT_QUEST)
+        #define ORL_MIN_ROUGHNESS 0.007921
+    #endif
+}
+
+%Fragment("ToonReflectionFragment")
+{
+    void ToonReflectionFragment(MeshData d, inout SurfaceData o) {
+        #if defined(REFLECTIONS_ON)
+
+        float2 reflectionMaskUv = 0;
+        switch (_ReflectionMaskUVSet) {
+            case 0: reflectionMaskUv = d.uv0; break;
+            case 1: reflectionMaskUv = d.uv1; break;
+            case 2: reflectionMaskUv = d.uv2; break;
+            case 3: reflectionMaskUv = d.uv3; break;
+        }
+        reflectionMaskUv = reflectionMaskUv * _ReflectionMask_ST.xy + _ReflectionMask_ST.zw;
+        half mask = SAMPLE_TEXTURE2D(_ReflectionMask, sampler_MainTex, reflectionMaskUv)[_ReflectionMaskChannel];
+        mask = _ReflectionStrength * lerp(1, mask, _ReflectionMaskStrength);
+            
+        half4 metalSmooth = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MainTex, d.uv0.xy * _MetallicGlossMap_ST.xy + _MetallicGlossMap_ST.zw);
+        int hasMetallicSmooth = _MetallicGlossMap_TexelSize.z > 8;
+        half metal = metalSmooth.r;
+        half smooth = metalSmooth.a;
+        
+        if (_RoughnessMode)
+        {
+            smooth = 1 - smooth;
+        }
+
+        metal = remap(metal, 0, 1, _MetallicRemap.x, _MetallicRemap.y);
+        smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
+        o.ReflectionMetallic = lerp(_Metallic, metal, hasMetallicSmooth);
+        o.ReflectionSmoothness = lerp(_Smoothness, smooth, hasMetallicSmooth);
+        o.ReflectionAnisotropy = _ReflectionAnisotropy;
+
+        o.ReflectionStrength = mask;
+        o.ReflectivityLevel = _ReflectivityLevel;
+        #endif
+    }
+}
+
+%ModuleLighting("ToonReflectionLighting")
+{
+    void ToonReflectionLighting(inout SurfaceData o, MeshData d, half lightAttenuation, float3 lightHalfVector, half NoV, half3 indirectDiffuse, inout half3 indirectSpecular)
+    {
+        #if defined(REFLECTIONS_ON) && defined(UNITY_PASS_FORWARDBASE)
+        half oneMinusReflectivity = 1.0 - 0.04 - o.ReflectionMetallic * (1.0 - 0.04);
+        half3 f0 = 0.16 * o.ReflectivityLevel * o.ReflectivityLevel * oneMinusReflectivity + o.Albedo * o.ReflectionMetallic;
+
+        half perceptualRoughness = 1 - o.ReflectionSmoothness;
+        perceptualRoughness = GSAA_Filament(d.worldNormal, perceptualRoughness, _ReflectionGSAAVariance, _ReflectionGSAAThreshold);
+
+        float3 dfguv = float3(NoV, perceptualRoughness, 0);
+        float2 dfg = SAMPLE_TEXTURE2D(_DFG, sampler_DFG, dfguv).xy;
+        half3 energyCompensation = 1.0 + f0 * (1.0 / dfg.y - 1.0);
+
+        half clampedRoughness = max(perceptualRoughness * perceptualRoughness, ORL_MIN_ROUGHNESS);
+
+        float3 reflDir = 0;
+        half anisotropyAbs = abs(o.ReflectionAnisotropy);
+        if (anisotropyAbs > 0.0001)
+        {
+            float3 anisotropicDirection = o.ReflectionAnisotropy >= 0.0 ? d.bitangent : d.worldSpaceTangent.xyz;
+            float3 anisotropicTangent = cross(anisotropicDirection, d.worldSpaceViewDir);
+            float3 anisotropicNormal = cross(anisotropicTangent, anisotropicDirection);
+            float bendFactor = anisotropyAbs * saturate(5.0 * perceptualRoughness);
+            float3 bentNormal = normalize(lerp(o.WorldNormal, anisotropicNormal, bendFactor));
+            reflDir = reflect(-d.worldSpaceViewDir, bentNormal);
+        } else {
+            reflDir = reflect(-d.worldSpaceViewDir, o.WorldNormal);
+        }
+
+        half4 rawProbe0;
+        half3 reflection = getEnvReflectionDirect(reflDir, d.worldSpacePosition, o.WorldNormal, perceptualRoughness, -1, rawProbe0);
+
+        // If reflection doesn't exist - fall back to a cubemap
+        if (unity_SpecCube0_HDR.a == 0 && rawProbe0.a == 0)
+        {
+            half mipLevel = perceptualRoughnessToMipmapLevel(perceptualRoughness*(1.7 - 0.7*perceptualRoughness));
+            reflection = SAMPLE_TEXTURECUBE_LOD(_BakedCubemap, sampler_BakedCubemap, reflDir, mipLevel).rgb;
+        }
+
+        half horizon = min(1 + dot(reflDir, o.WorldNormal), 1);
+        reflection *= horizon * horizon;
+        half reflectionOcclusion = saturate(length(indirectDiffuse) * (1.0 / _ReflectionOcclusion));
+
+        half3 envBRDF = EnvBRDFMultiscatter(dfg, f0);
+        reflection *= envBRDF;
+
+        reflectionOcclusion *= lerp(1, lightAttenuation, _ReflectionRealtimeShadowOcclusion);
+        half computedSpecularOcclusion = computeSpecularAO(NoV, o.Occlusion * reflectionOcclusion, clampedRoughness);
+        computedSpecularOcclusion *= energyCompensation;
+        reflection *= gtaoMultiBounce(computedSpecularOcclusion, f0);
+
+        o.Albedo *= lerp(1, oneMinusReflectivity, o.ReflectionStrength);
+
+        indirectSpecular += reflection * o.ReflectionStrength;
+        #endif
+    }
+}

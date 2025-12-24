@@ -1,0 +1,199 @@
+%Includes()
+{
+    "@/Structs/TessVertexData",
+    "@/Structs/TessFactors",
+    "self"
+}
+
+%Properties()
+{
+    UI_TessellationHeader("# Tessellation", Int) = 0
+    [Toggle(TESS_PHONG)]_TessPhong("Enable Phong Tessellation", Int) = 0
+    [KeywordEnum(Static, DistanceBased, EdgeLength)]TESS_MODE("Tessellation Mode", Int) = 0
+    [IntRange]_TessFactor("Tessellation Factor %ShowIf(TESS_MODE_STATIC || TESS_MODE_DISTANCEBASED)", Range(1, 16)) = 3
+    _TessMinDist("Start Distance %ShowIf(TESS_MODE_DISTANCEBASED)", Float) = 3
+    _TessMaxDist("End Distance %ShowIf(TESS_MODE_DISTANCEBASED)", Float) = 20
+    _TessEdgeLength("Max Edge Length %ShowIf(TESS_MODE_EDGELENGTH)", Float) = 80
+    _TessMaxDisplacement("Max Displacement %ShowIf(TESS_MODE_EDGELENGTH)", Float) = 0.1
+    UI_TessMaxDisplacementNote("> This defines how much you will be displacing the mesh to help with optimisations %ShowIf(TESS_MODE_EDGELENGTH)", Int) = 0
+}
+
+%ShaderTags()
+{
+    "DisableBatching" = "True"
+}
+
+%ShaderFeatures()
+{
+    // Tessellation "features"
+    #pragma hull Hull
+    #pragma domain Domain
+    #pragma require tessellation tessHW
+    #pragma shader_feature_local_domain TESS_PHONG
+    #pragma shader_feature_local_hull TESS_MODE_STATIC TESS_MODE_DISTANCEBASED TESS_MODE_EDGELENGTH
+}
+
+%ShaderDefines()
+{
+    #define TESS_ENABLED
+    #define TESS_FACTORS_FUNC_DEFINED
+
+    #include "Tessellation.cginc"
+}
+
+%Variables()
+{
+    int _TessFactor;
+    half _TessMinDist;
+    half _TessMaxDist;
+    half _TessEdgeLength;
+    half _TessMaxDisplacement;
+}
+
+%FreeFunctions()
+{
+    // Tess Vertex
+    TessVertexData Vertex(VertexData v)
+    {
+        UNITY_SETUP_INSTANCE_ID(v);
+        TessVertexData o = (TessVertexData) 0;
+        UNITY_TRANSFER_INSTANCE_ID(v, o);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+        o.vertex = v.vertex;
+        o.normal = v.normal;
+        o.tangent = v.tangent;
+        o.color = v.color;
+        o.uv0 = v.uv0;
+        o.uv1 = v.uv1;
+        o.uv2 = v.uv2;
+        o.uv3 = v.uv3;
+
+        return o;
+    }
+
+    // Tess Hull
+    [maxtessfactor(16.0)]
+    [UNITY_domain("tri")]
+    [UNITY_outputcontrolpoints(3)]
+    [UNITY_outputtopology("triangle_cw")]
+    [UNITY_partitioning("integer")]
+    [UNITY_patchconstantfunc("TessFactorsFunction")]
+    TessVertexData Hull(InputPatch<TessVertexData, 3> patch, uint id : SV_OutputControlPointID)
+    {
+        TessVertexData v = patch[id];
+        UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(patch[id], v);
+        return v;
+    }
+
+    float4 GetTessFactors(InputPatch<TessVertexData, 3> patch)
+    {
+        #if defined(CUSTOM_TESS_FACTORS_FUNC)
+        {
+            float4 tessFactors = CustomTessFactorsFunc(patch);
+            return tessFactors;
+        }
+        #elif defined(TESS_MODE_DISTANCEBASED)
+        {
+            float4 tessFactors = UnityDistanceBasedTess(
+                patch[0].vertex,
+                patch[1].vertex,
+                patch[2].vertex,
+                _TessMinDist,
+                _TessMaxDist,
+                _TessFactor
+            );
+            return tessFactors;
+        }
+        #elif defined(TESS_MODE_EDGELENGTH)
+        {
+            float4 tessFactors = UnityEdgeLengthBasedTessCull(
+                patch[0].vertex,
+                patch[1].vertex,
+                patch[2].vertex,
+                _TessEdgeLength,
+                _TessMaxDisplacement
+            );
+            return tessFactors;
+        }
+        #elif defined(TESS_MODE_STATIC)
+        {
+            return _TessFactor.xxxx;
+        }
+        #endif
+    }
+
+    // TessFactor
+    TessFactors TessFactorsFunction(InputPatch<TessVertexData, 3> patch)
+    {
+        TessFactors f;
+        float4 TessFactorsOutput = 0;
+        #if defined(TESS_FACTORS_FUNC_DEFINED)
+            TessFactorsOutput = GetTessFactors(patch);
+        #else
+            TessFactorsOutput = _TessFactor.xxxx;
+        #endif
+        f.edge[0] = TessFactorsOutput.x;
+        f.edge[1] = TessFactorsOutput.y;
+        f.edge[2] = TessFactorsOutput.z;
+        f.inside = TessFactorsOutput.w;
+        return f;
+    }
+
+    // Tess Domain
+    [UNITY_domain("tri")]
+    FragmentData Domain(TessFactors factors, OutputPatch<TessVertexData, 3> patch, float3 baryCoords : SV_DomainLocation)
+    {
+        VertexData v = (VertexData) 0;
+        UNITY_SETUP_INSTANCE_ID(patch[0]);
+        UNITY_TRANSFER_INSTANCE_ID(patch[0], v);
+        v.vertex = patch[0].vertex * baryCoords.x + patch[1].vertex * baryCoords.y + patch[2].vertex * baryCoords.z;
+
+        #if defined(TESS_PHONG)
+        float3 pp[3];
+        for (int index = 0; index < 3; ++index)
+        {
+            pp[index] = v.vertex.xyz - patch[index].normal * (dot(v.vertex.xyz, patch[index].normal) - dot(patch[index].vertex.xyz, patch[index].normal));
+        }
+        v.vertex.xyz = 0.5 * (pp[0]*baryCoords.x + pp[1]*baryCoords.y + pp[2]*baryCoords.z) + (0.5) * v.vertex.xyz;
+        #endif
+
+        v.normal = patch[0].normal * baryCoords.x + patch[1].normal * baryCoords.y + patch[2].normal * baryCoords.z;
+        v.tangent = patch[0].tangent * baryCoords.x + patch[1].tangent * baryCoords.y + patch[2].tangent * baryCoords.z;
+        v.color = patch[0].color * baryCoords.x + patch[1].color * baryCoords.y + patch[2].color * baryCoords.z;
+        v.uv0 = patch[0].uv0 * baryCoords.x + patch[1].uv0 * baryCoords.y + patch[2].uv0 * baryCoords.z;
+        v.uv1 = patch[0].uv1 * baryCoords.x + patch[1].uv1 * baryCoords.y + patch[2].uv1 * baryCoords.z;
+        v.uv2 = patch[0].uv2 * baryCoords.x + patch[1].uv2 * baryCoords.y + patch[2].uv2 * baryCoords.z;
+        v.uv3 = patch[0].uv3 * baryCoords.x + patch[1].uv3 * baryCoords.y + patch[2].uv3 * baryCoords.z;
+
+        FragmentData o;
+        UNITY_INITIALIZE_OUTPUT(FragmentData, o);
+        UNITY_TRANSFER_INSTANCE_ID(patch[0], o);
+        UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(patch[0], o);
+
+        // Outlines skip the vertex shader if they are disabled
+        #if !defined(PASS_OUTLINE) || defined(OUTLINE_ENABLED)
+
+        // ForwardBase Tess Domain Vertex Chain
+        %VertexFunctions
+
+        // ForwardBase Tess Domain VertexBase
+        %VertexBase
+
+        #endif
+
+        // Outlines nan the vertices if they are disbaled
+        #if defined(PASS_OUTLINE) && !defined(OUTLINE_ENABLED)
+
+        o.pos = asfloat(-1);
+        return o;
+
+        #endif
+
+        #if defined(UNITY_PASS_SHADOWCASTER)
+        TRANSFER_SHADOW_CASTER_NORMALOFFSET(o);
+        #endif
+
+        return o;
+    }
+}

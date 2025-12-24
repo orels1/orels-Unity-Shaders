@@ -1,0 +1,416 @@
+%Properties()
+{
+    UI_MatcapsHader("# Matcaps", Int) = 1
+    _MatcapsMask("Matcap Mask %SetKeyword(_MatcapsMask, MATCAPS_MASK_SET)", 2D) = "white" {}
+    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_MatcapsMaskUVSet("UV Set %ShowIf(_MatcapsMask)", Int) = 0
+
+    UI_Matcap0Header("## Layer 1", Int) = 0
+    [Toggle(MATCAP_0)]_Matcap0Enabled("Enable Layer 1", Int) = 0
+    _Matcap0Tex("Matcap > %ShowIf(MATCAP_0)", 2D) = "white" {}
+    _Matcap0Tint("Tint %ShowIf(MATCAP_0)", Color) = (1,1,1,1)
+    [Enum(UTS, 0, Top Pinch, 1, Double Sided, 2)]_Matcap0UVMode("UV Mode %ShowIf(MATCAP_0)", Int) = 2
+    _Matcap0Border("Border %ShowIf(MATCAP_0)", Range(0, 1)) = 0.43
+    _Matcap0Blur("Matcap Blur Level %ShowIf(MATCAP_0)", Range(0, 1)) = 0
+    _Matcap0TintToDiffuse("Tint Matcap to Diffuse %ShowIf(MATCAP_0)", Range(0, 1)) = 0
+    [Enum(Additive,0,Multiply,1,Subtract,2)]_Matcap0BlendMode("Blend Mode %ShowIf(MATCAP_0)", Float) = 0
+    _Matcap0Strength("Strength %ShowIf(MATCAP_0)", Range(0, 1)) = 1
+    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_Matcap0MaskChannel("Mask Channel %ShowIf(MATCAP_0)", Int) = 0
+    _Matcap0MaskStrength("Mask Strength %ShowIf(MATCAP_0)", Range(0, 1)) = 1
+
+    UI_Matcap1Header("## Layer 2", Int) = 0
+    [Toggle(MATCAP_1)]_Matcap1Enabled("Enable Layer 2", Int) = 0
+    _Matcap1Tex("Matcap > %ShowIf(MATCAP_1)", 2D) = "white" {}
+    _Matcap1Tint("Tint %ShowIf(MATCAP_1)", Color) = (1,1,1,1)
+    [Enum(UTS, 0, Top Pinch, 1, Double Sided, 2)]_Matcap1UVMode("UV Mode %ShowIf(MATCAP_1)", Int) = 2
+    _Matcap1Border("Border %ShowIf(MATCAP_1)", Range(0, 1)) = 0.43
+    _Matcap1Blur("Matcap Blur Level %ShowIf(MATCAP_1)", Range(0, 1)) = 0
+    _Matcap1TintToDiffuse("Tint Matcap to Diffuse %ShowIf(MATCAP_1)", Range(0, 1)) = 0
+    [Enum(Additive,0,Multiply,1,Subtract,2)]_Matcap1BlendMode("Blend Mode %ShowIf(MATCAP_1)", Float) = 0
+    _Matcap1Strength("Strength %ShowIf(MATCAP_1)", Range(0, 1)) = 1
+    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_Matcap1MaskChannel("Mask Channel %ShowIf(MATCAP_1)", Int) = 0
+    _Matcap1MaskStrength("Mask Strength %ShowIf(MATCAP_1)", Range(0, 1)) = 1
+    
+    UI_Matcap2Header("## Layer 3", Int) = 0
+    [Toggle(MATCAP_2)]_Matcap2Enabled("Enable Layer 3", Int) = 0
+    _Matcap2Tex("Matcap > %ShowIf(MATCAP_2)", 2D) = "white" {}
+    _Matcap2Tint("Tint %ShowIf(MATCAP_2)", Color) = (1,1,1,1)
+    [Enum(UTS, 0, Top Pinch, 1, Double Sided, 2)]_Matcap2UVMode("UV Mode %ShowIf(MATCAP_2)", Int) = 2
+    _Matcap2Border("Border %ShowIf(MATCAP_2)", Range(0, 1)) = 0.43
+    _Matcap2Blur("Matcap Blur Level %ShowIf(MATCAP_2)", Range(0, 1)) = 0
+    _Matcap2TintToDiffuse("Tint Matcap to Diffuse %ShowIf(MATCAP_2)", Range(0, 1)) = 0
+    [Enum(Additive,0,Multiply,1,Subtract,2)]_Matcap2BlendMode("Blend Mode %ShowIf(MATCAP_2)", Float) = 0
+    _Matcap2Strength("Strength %ShowIf(MATCAP_2)", Range(0, 1)) = 1
+    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_Matcap2MaskChannel("Mask Channel %ShowIf(MATCAP_2)", Int) = 0
+    _Matcap2MaskStrength("Mask Strength %ShowIf(MATCAP_2)", Range(0, 1)) = 1
+
+    UI_Matcap3Header("## Layer 4", Int) = 0
+    [Toggle(MATCAP_3)]_Matcap3Enabled("Enable Layer 4", Int) = 0
+    _Matcap3Tex("Matcap > %ShowIf(MATCAP_3)", 2D) = "white" {}
+    _Matcap3Tint("Tint %ShowIf(MATCAP_3)", Color) = (1,1,1,1)
+    [Enum(UTS, 0, Top Pinch, 1, Double Sided, 2)]_Matcap3UVMode("UV Mode %ShowIf(MATCAP_3)", Int) = 2
+    _Matcap3Border("Border %ShowIf(MATCAP_3)", Range(0, 1)) = 0.43
+    _Matcap3Blur("Matcap Blur Level %ShowIf(MATCAP_3)", Range(0, 1)) = 0
+    _Matcap3TintToDiffuse("Tint Matcap to Diffuse %ShowIf(MATCAP_3)", Range(0, 1)) = 0
+    [Enum(Additive,0,Multiply,1,Subtract,2)]_Matcap3BlendMode("Blend Mode %ShowIf(MATCAP_3)", Float) = 0
+    _Matcap3Strength("Strength %ShowIf(MATCAP_3)", Range(0, 1)) = 1
+    [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_Matcap3MaskChannel("Mask Channel %ShowIf(MATCAP_3)", Int) = 0
+    _Matcap3MaskStrength("Mask Strength %ShowIf(MATCAP_3)", Range(0, 1)) = 1
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment MATCAPS_MASK_SET
+    #pragma shader_feature_local_fragment MATCAP_0
+    #pragma shader_feature_local_fragment MATCAP_1
+    #pragma shader_feature_local_fragment MATCAP_2
+    #pragma shader_feature_local_fragment MATCAP_3
+}
+
+%Variables()
+{
+    #if defined(MATCAPS_MASK_SET)
+    int _MatcapsMaskUVSet;
+    float4 _MatcapsMask_ST;
+    #endif
+
+    #if defined(MATCAP_0)
+    half4 _Matcap0Tint;
+    int _Matcap0UVMode;
+    half _Matcap0Border;
+    half _Matcap0Blur;
+    half _Matcap0TintToDiffuse;
+    half _Matcap0Strength;
+    int _Matcap0BlendMode;
+    int _Matcap0MaskChannel;
+    half _Matcap0MaskStrength;
+    #endif
+
+    #if defined(MATCAP_1)
+    half4 _Matcap1Tint;
+    int _Matcap1UVMode;
+    half _Matcap1Border;
+    half _Matcap1Blur;
+    half _Matcap1TintToDiffuse;
+    half _Matcap1Strength;
+    int _Matcap1BlendMode;
+    int _Matcap1MaskChannel;
+    half _Matcap1MaskStrength;
+    #endif
+
+    #if defined(MATCAP_2)
+    half4 _Matcap2Tint;
+    int _Matcap2UVMode;
+    half _Matcap2Border;
+    half _Matcap2Blur;
+    half _Matcap2TintToDiffuse;
+    half _Matcap2Strength;
+    int _Matcap2BlendMode;
+    int _Matcap2MaskChannel;
+    half _Matcap2MaskStrength;
+    #endif
+
+    #if defined(MATCAP_3)
+    half4 _Matcap3Tint;
+    int _Matcap3UVMode;
+    half _Matcap3Border;
+    half _Matcap3Blur;
+    half _Matcap3TintToDiffuse;
+    half _Matcap3Strength;
+    int _Matcap3BlendMode;
+    int _Matcap3MaskChannel;
+    half _Matcap3MaskStrength;
+    #endif
+}
+
+%AdditionalSurfaceData()
+{
+    #if defined(MATCAP_0)
+    half3 Matcap0;
+    half Matcap0BlendMode;
+    half Matcap0Mask;
+    #endif
+
+    #if defined(MATCAP_1)
+    half3 Matcap1;
+    half Matcap1BlendMode;
+    half Matcap1Mask;
+    #endif
+
+    #if defined(MATCAP_2)
+    half3 Matcap2;
+    half Matcap2BlendMode;
+    half Matcap2Mask;
+    #endif
+
+    #if defined(MATCAP_3)
+    half3 Matcap3;
+    half Matcap3BlendMode;
+    half Matcap3Mask;
+    #endif
+}
+
+%Textures()
+{
+    #if defined(MATCAPS_MASK_SET)
+    TEXTURE2D(_MatcapsMask);
+    SAMPLER(sampler_MatcapsMask);
+    #endif
+
+    #if defined(MATCAP_0)
+    TEXTURE2D(_Matcap0Tex);
+    #endif
+
+    #if defined(MATCAP_1)
+    TEXTURE2D(_Matcap1Tex);
+    #endif
+
+    #if defined(MATCAP_2)
+    TEXTURE2D(_Matcap2Tex);
+    #endif
+
+    #if defined(MATCAP_3)
+    TEXTURE2D(_Matcap3Tex);
+    #endif
+
+    // Define correct samplers in case some are not defined
+    // This allows to always reuse the earlier sampler if it was available
+    #if defined(MATCAP_0)
+    SAMPLER(sampler_Matcap0Tex);
+    #define MatcapSampler sampler_Matcap0Tex
+    #endif
+
+    #if !defined(MATCAP_0) && defined(MATCAP_1)
+    SAMPLER(sampler_Matcap1Tex);
+    #define MatcapSampler sampler_Matcap1Tex
+    #endif
+
+    #if !defined(MATCAP_0) && !defined(MATCAP_1) && defined(MATCAP_2)
+    SAMPLER(sampler_Matcap2Tex);
+    #define MatcapSampler sampler_Matcap2Tex
+    #endif
+
+    #if !defined(MATCAP_0) && !defined(MATCAP_1) && !defined(MATCAP_2) && defined(MATCAP_3)
+    SAMPLER(sampler_Matcap3Tex);
+    #define MatcapSampler sampler_Matcap3Tex
+    #endif    
+}
+
+%PassFunctions()
+{
+    // https://github.com/poiyomi/PoiyomiToonShader
+    // MIT License
+
+    // Copyright (c) 2023 Poiyomi Inc.
+
+    // Permission is hereby granted, free of charge, to any person obtaining a copy
+    // of this software and associated documentation files (the "Software"), to deal
+    // in the Software without restriction, including without limitation the rights
+    // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    // copies of the Software, and to permit persons to whom the Software is
+    // furnished to do so, subject to the following conditions:
+
+    // The above copyright notice and this permission notice shall be included in all
+    // copies or substantial portions of the Software.
+
+    // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    // SOFTWARE.
+    float2 GetMatcapUV(int _MatcapUVMode, float3 worldNormal, float3 viewDir, half border)
+    {
+        float2 matcapUV = 0;
+        switch(_MatcapUVMode)
+        {
+            // Normal / UTS
+            case 0:
+            {
+                float3 viewNormal = TransformWorldToViewNormal(worldNormal);
+                float3 normalBasedDirection = viewNormal.xyz * float3(-1, -1, 1);
+                float3 viewSpaceViewDir = TransformWorldToViewDir(viewDir);
+                float3 viewBasedDirection = viewSpaceViewDir * float3(-1, -1, 1) + float3(0, 0, 1);
+                float3 noSknewViewNormal = viewBasedDirection * dot(viewBasedDirection, normalBasedDirection) / viewBasedDirection.b - normalBasedDirection;
+                
+                matcapUV = noSknewViewNormal.rg * border + 0.5;
+                break;
+            }
+            
+            // Top Pinch
+            case 1:
+            {
+                float3 worldViewUp = normalize(float3(0, 1, 0) - viewDir * dot(viewDir, float3(0, 1, 0)));
+                float3 worldViewRight = normalize(cross(viewDir, worldViewUp));
+                matcapUV = float2(dot(worldViewRight, worldNormal), dot(worldViewUp, worldNormal)) * border + 0.5;
+                break;
+            }
+            // Custom Double Sided
+            case 2:
+            {
+                float3 reflection = reflect(-viewDir, worldNormal);
+                float2 uv = float2(dot(reflection, float3(1, 0, 0)), dot(reflection, float3(0, 1, 0)));
+                matcapUV = uv * border + 0.5;
+                break;
+            }
+        }
+
+        return matcapUV;
+    }
+}
+
+%Fragment("ToonMatcapFragment")
+{
+    void ToonMatcapFragment(MeshData d, inout SurfaceData o)
+    {
+        half4 matcapMask = 1;
+        #if defined(MATCAPS_MASK_SET)
+        {
+            float2 matcapMaskUV = 0;
+            switch (_MatcapsMaskUVSet) {
+                case 0: matcapMaskUV = d.uv0; break;
+                case 1: matcapMaskUV = d.uv1; break;
+                case 2: matcapMaskUV = d.uv2; break;
+                case 3: matcapMaskUV = d.uv3; break;
+            }
+            matcapMaskUV = matcapMaskUV * _MatcapsMask_ST.xy + _MatcapsMask_ST.zw;
+            matcapMask = SAMPLE_TEXTURE2D(_MatcapsMask, sampler_MatcapsMask, matcapMaskUV);
+        }
+        #endif
+
+        float3 worldNormal = Unity_SafeNormalize(mul(o.Normal, d.TBNMatrix));
+        #if defined(MATCAP_0)
+        {
+            half2 matcapUv = GetMatcapUV(_Matcap0UVMode, worldNormal, d.worldSpaceViewDir, _Matcap0Border);
+            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap0Tex, MatcapSampler, matcapUv, _Matcap0Blur * 9).rgb;
+            matcap *= lerp(1, o.Albedo, _Matcap0TintToDiffuse);
+            matcap *= _Matcap0Tint;
+            
+            o.Matcap0 = matcap;
+            o.Matcap0BlendMode = _Matcap0BlendMode;
+            o.Matcap0Mask = lerp(1, matcapMask[_Matcap0MaskChannel], _Matcap0MaskStrength) * _Matcap0Strength;
+        }
+        #endif
+
+        #if defined(MATCAP_1)
+        {
+            half2 matcapUv = GetMatcapUV(_Matcap1UVMode, worldNormal, d.worldSpaceViewDir, _Matcap1Border);
+            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap1Tex, MatcapSampler, matcapUv, _Matcap1Blur * 9).rgb;
+            matcap *= lerp(1, o.Albedo, _Matcap1TintToDiffuse);
+            matcap *= _Matcap1Tint;
+            
+            o.Matcap1 = matcap;
+            o.Matcap1BlendMode = _Matcap1BlendMode;
+            o.Matcap1Mask = lerp(1, matcapMask[_Matcap1MaskChannel], _Matcap1MaskStrength) * _Matcap1Strength;
+        }
+        #endif
+
+        #if defined(MATCAP_2)
+        {
+            half2 matcapUv = GetMatcapUV(_Matcap2UVMode, worldNormal, d.worldSpaceViewDir, _Matcap2Border);
+            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap2Tex, MatcapSampler, matcapUv, _Matcap2Blur * 9).rgb;
+            matcap *= lerp(1, o.Albedo, _Matcap2TintToDiffuse);
+            matcap *= _Matcap2Tint;
+            
+            o.Matcap2 = matcap;
+            o.Matcap2BlendMode = _Matcap2BlendMode;
+            o.Matcap2Mask = lerp(1, matcapMask[_Matcap2MaskChannel], _Matcap2MaskStrength) * _Matcap2Strength;
+        }
+        #endif
+
+        #if defined(MATCAP_3)
+        {
+            half2 matcapUv = GetMatcapUV(_Matcap3UVMode, worldNormal, d.worldSpaceViewDir, _Matcap3Border);
+            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap3Tex, MatcapSampler, matcapUv, _Matcap3Blur * 9).rgb;
+            matcap *= lerp(1, o.Albedo, _Matcap3TintToDiffuse);
+            matcap *= _Matcap3Tint;
+            
+            o.Matcap3 = matcap;
+            o.Matcap3BlendMode = _Matcap3BlendMode;
+            o.Matcap3Mask = lerp(1, matcapMask[_Matcap3MaskChannel], _Matcap3MaskStrength) * _Matcap3Strength;
+        }
+        #endif
+    }
+}
+
+%ModuleFinalColor("ToonMatcapFinalColor")
+{
+    void ToonMatcapFinalColor(SurfaceData o, MeshData d, half3 lightColor, half lightAttenuation, half3 indirectDiffuse, inout half4 FinalColor)
+    {
+        #if defined(MATCAP_0)
+        {
+            half3 matcapBlended = o.Matcap0 * (indirectDiffuse + lightColor * lightAttenuation * 0.5);
+            // Pre-blend based on mastcap blend mode
+            half3 matcap = lerp(matcapBlended, lerp(o.Matcap0, matcapBlended, saturate(o.Matcap0BlendMode - 1)), o.Matcap0BlendMode);
+
+            // Blend with final color
+            FinalColor.rgb = lerp(
+                FinalColor.rgb + lerp(0, matcap, o.Matcap0Mask),
+                lerp(
+                    FinalColor.rgb * lerp(1, matcap, o.Matcap0Mask),
+                    FinalColor.rgb - lerp(0, matcap, o.Matcap0Mask),
+                    saturate(o.Matcap0BlendMode - 1)
+                ),
+                saturate(o.Matcap0BlendMode)
+            );
+        }
+        #endif
+
+        #if defined(MATCAP_1)
+        {
+            half3 matcapBlended = o.Matcap1 * (indirectDiffuse + lightColor * lightAttenuation * 0.5);
+            // Pre-blend based on mastcap blend mode
+            half3 matcap = lerp(matcapBlended, lerp(o.Matcap1, matcapBlended, saturate(o.Matcap1BlendMode - 1)), o.Matcap1BlendMode);
+
+            // Blend with final color
+            FinalColor.rgb = lerp(
+                FinalColor.rgb + lerp(0, matcap, o.Matcap1Mask),
+                lerp(
+                    FinalColor.rgb * lerp(1, matcap, o.Matcap1Mask),
+                    FinalColor.rgb - lerp(0, matcap, o.Matcap1Mask),
+                    saturate(o.Matcap1BlendMode - 1)
+                ),
+                saturate(o.Matcap1BlendMode)
+            );
+        }
+        #endif
+
+        #if defined(MATCAP_2)
+        {
+            half3 matcapBlended = o.Matcap2 * (indirectDiffuse + lightColor * lightAttenuation * 0.5);
+            // Pre-blend based on mastcap blend mode
+            half3 matcap = lerp(matcapBlended, lerp(o.Matcap2, matcapBlended, saturate(o.Matcap2BlendMode - 1)), o.Matcap2BlendMode);
+
+            // Blend with final color
+            FinalColor.rgb = lerp(
+                FinalColor.rgb + lerp(0, matcap, o.Matcap2Mask),
+                lerp(
+                    FinalColor.rgb * lerp(1, matcap, o.Matcap2Mask),
+                    FinalColor.rgb - lerp(0, matcap, o.Matcap2Mask),
+                    saturate(o.Matcap2BlendMode - 1)
+                ),
+                saturate(o.Matcap2BlendMode)
+            );
+        }
+        #endif
+
+        #if defined(MATCAP_3)
+        {
+            half3 matcapBlended = o.Matcap3 * (indirectDiffuse + lightColor * lightAttenuation * 0.5);
+            // Pre-blend based on mastcap blend mode            
+            half3 matcap = lerp(matcapBlended, lerp(o.Matcap3, matcapBlended, saturate(o.Matcap3BlendMode - 1)), o.Matcap3BlendMode);
+
+            // Blend with final color
+            FinalColor.rgb = lerp(
+                FinalColor.rgb + lerp(0, matcap, o.Matcap3Mask),
+                lerp(
+                    FinalColor.rgb * lerp(1, matcap, o.Matcap3Mask),
+                    FinalColor.rgb - lerp(0, matcap, o.Matcap3Mask),
+                    saturate(o.Matcap3BlendMode - 1)
+                ),
+                saturate(o.Matcap3BlendMode)
+            );
+        }
+        #endif
+    }
+}

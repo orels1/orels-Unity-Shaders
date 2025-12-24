@@ -1,0 +1,31 @@
+fileFormatVersion: 2
+guid: e2f774be372cb2434b4c4e8527e39b9f
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 14030a0b230d45068f811d1ad116f246, type: 3}
+  debugBuild: 0
+  samplerCount: 0
+  textureCount: 0
+  featureCount: 0
+  Errors: []
+  ShaderName: '"orels1/Toon/LTCGI"'
+  LightingModel: '@/LightingModels/Toon'
+  IncludedModules:
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/AudioLink.orlsource
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/Toon/Main.orlsource
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/Toon/Occlusion.orlsource
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/Toon/Normals.orlsource
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/Toon/Outline.orlsource
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/Toon/Specular.orlsource
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/Toon/Reflections.orlsource
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/Toon/AudioLink.orlsource
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/Toon/Emission.orlsource
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/Toon/RimLight.orlsource
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/Toon/ShadowRim.orlsource
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/Toon/LTCGI.orlsource
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/VRCFeatures.orlsource

@@ -1,0 +1,98 @@
+%Properties()
+{
+    UI_OutlineHeader("# Outline", Int) = 0
+    [Toggle(OUTLINE_ENABLED)]_Outline("Enable Outline %SetProp((!_OutlineIgnoreStencils && OUTLINE_ENABLED), _StencilBasePass, 2, 0)", Int) = 0
+    _OutlineTex("Texture > %ShowIf(OUTLINE_ENABLED)", 2D) = "white" {}
+    [HDR]_OutlineColor("Color %ShowIf(OUTLINE_ENABLED)", Color) = (0.5, 0.5, 0.5, 1)
+    [Enum(Lit, 0, Emissive, 1)]_OutlineLightingMode("Lighting Mode %ShowIf(OUTLINE_ENABLED)", Int) = 0
+    _OutlineAlbedoTint("Albedo Tint %ShowIf(OUTLINE_ENABLED)", Range(0, 1)) = 0
+    [Tooltip(Uses the Red channel)]_OutlineMask("Width Mask > %ShowIf(OUTLINE_ENABLED)", 2D) = "white" {}
+    [PowerSlider(3.0)]_OutlineWidth("Width %ShowIf(OUTLINE_ENABLED)", Range(0, 10)) = 1
+    [ToggleUI]_OutlineWidthAdjustByVertexColor("Adjust by Vertex Color", Int) = 0
+    [HideInInspector]_StencilBasePass("Stencil Base Pass", Float) = 0
+    [ToggleUI]_OutlineIgnoreStencils("Ignore Stencils %SetProp((_OutlineIgnoreStencils), _StencilOutlineComp, 8, 6) %ShowIf(OUTLINE_ENABLED)", Int) = 0
+    UI_OutlineIgnoreStencilsNote("> Allows overlapping shapes to show outlines on top of each other. Does not work correctly with transparent materials", Int) = 0
+    [HideInInspector]_StencilOutlineComp("Stencil Outline Comp", Float) = 6
+    [HideInInspector]_StencilBaseComp("Stencil Base Comp", Float) = 8
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local OUTLINE_ENABLED
+}
+
+%Variables()
+{
+    #if defined(OUTLINE_ENABLED) && defined(PASS_OUTLINE)
+    int _StencilBasePass;
+    int _StencilBaseComp;
+    int _StencilOutlineComp;
+
+    half4 _OutlineColor;
+    int _OutlineLightingMode;
+    half _OutlineAlbedoTint;
+    half _OutlineWidth;
+    int _OutlineWidthAdjustByVertexColor;
+    #endif
+}
+
+%AdditionalSurfaceData()
+{
+    #if defined(OUTLINE_ENABLED) && defined(PASS_OUTLINE)
+    half3 OutlineColor;
+    half OutlineAlbedoTint;
+    int OutlineLightingMode;
+    #endif
+}
+
+%Textures()
+{
+    #if defined(OUTLINE_ENABLED) && defined(PASS_OUTLINE)
+    TEXTURE2D(_OutlineTex);
+    TEXTURE2D(_OutlineMask);
+    SAMPLER(sampler_OutlineMask);
+    #endif
+}
+
+%Vertex("ToonOutlineVertex")
+{
+    void ToonOutlineVertex(inout VertexData v)
+    {
+        #if defined(OUTLINE_ENABLED) && defined(PASS_OUTLINE)
+        half mask = SAMPLE_TEXTURE2D_LOD(_OutlineMask, sampler_OutlineMask, v.uv0, 0);
+        half3 width = mask * _OutlineWidth * .01;
+        width *= min(distance(TransformObjectToWorld(v.vertex.xyz), _WorldSpaceCameraPos) * 3, 1);
+        v.vertex.xyz += v.normal.xyz * lerp(width, width * v.color.r, _OutlineWidthAdjustByVertexColor);
+        #endif
+    }
+}
+
+%Fragment("ToonOutlineFragment")
+{
+    void ToonOutlineFragment(MeshData d, inout SurfaceData o)
+    {
+        #if defined(OUTLINE_ENABLED) && defined(PASS_OUTLINE)
+        half3 outline = SAMPLE_TEXTURE2D(_OutlineTex, sampler_MainTex, d.uv0).rgb;
+        o.OutlineColor = _OutlineColor * outline;
+        o.OutlineLightingMode = _OutlineLightingMode;
+        o.OutlineAlbedoTint = _OutlineAlbedoTint;
+        #endif
+    }
+}
+
+%ModuleFinalColor("ToonOutlineFinalColor")
+{
+    void ToonOutlineFinalColor(SurfaceData o, MeshData d, half lightAttenuation, half lightNoL, half3 lightColor, half3 indirectDiffuse, inout half4 FinalColor)
+    {
+        #if defined(OUTLINE_ENABLED) && defined(PASS_OUTLINE)
+        half3 outlineColor = 0;
+        half3 ol = o.OutlineColor;
+        // ensure the sampler is preserved
+        ol = lerp(ol.rgb + o.Albedo * 0.000001, ol.rgb * o.Albedo, o.OutlineAlbedoTint);
+        outlineColor = ol * saturate(lightAttenuation * lightNoL) * lightColor.rgb;
+        outlineColor += indirectDiffuse * ol;
+        outlineColor = lerp(outlineColor, ol, o.OutlineLightingMode);
+        FinalColor.rgb = outlineColor;
+        #endif
+    }
+}

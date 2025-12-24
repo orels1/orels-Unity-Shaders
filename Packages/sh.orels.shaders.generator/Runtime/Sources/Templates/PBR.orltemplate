@@ -7,9 +7,6 @@
     SubShader
     {
         Tags { "VRCFallback"="Standard" %ShaderTags }
-        ZTest[_ZTest]
-        ZWrite[_ZWrite]
-        Cull[_CullMode]
         
         %ShaderModifiers
 
@@ -28,6 +25,9 @@
 
         // PrePasses
         %PrePasses
+
+        // Exra PrePasses
+        %ExtraPrePasses
 
         Pass
         {
@@ -59,20 +59,23 @@
             // GlobalVariables
             %GlobalVariables
 
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
-
             // Variables
             %Variables
 
             // Textures
             %Textures
 
+            // PassFunctions
+            %PassFunctions
+            
             // Functions
             %Functions
 
+            // FreeFunctions
+            %FreeFunctions
+
             // ForwardBase Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -87,12 +90,26 @@
                 // ForwardBase VertexBase
                 %VertexBase
 
+                // ForwardBase PostVertex Chain
+                %PostVertexFunctions
+
                 return o;
             }
+            #endif
 
             // ForwardBase Fragment
-            half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
+            half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace
+                #if defined(NEED_SV_DEPTH)
+                , out float depth: SV_Depth
+                #endif
+                #if defined(NEED_SV_DEPTH_LEQUAL)
+                , out float depth: SV_DepthLessEqual
+                #endif
+            ) : SV_TARGET
             {
+                #if !defined(NEED_SV_DEPTH) && !defined(NEED_SV_DEPTH_LEQUAL)
+                float depth = 0;
+                #endif
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 #ifdef FOG_COMBINED_WITH_TSPACE
@@ -104,7 +121,7 @@
                 #endif
 
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 half4 FinalColor = 1;
 
                 // ForwardBase Fragment Chain
@@ -157,20 +174,23 @@
             // GlobalVariables
             %GlobalVariables
 
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
-
             // Variables
             %Variables
 
             // Textures
             %Textures
 
+            // PassFunctions
+            %PassFunctions
+            
             // Functions
             %Functions
 
+            // FreeFunctions
+            %FreeFunctions
+
             // ForwardAdd Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -185,12 +205,26 @@
                 // ForwardAdd VertexBase
                 %VertexBase
 
+                // ForwardAdd PostVertex Chain
+                %PostVertexFunctions
+
                 return o;
             }
+            #endif
 
             // ForwardAdd Fragment
-            half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
+            half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace
+                #if defined(NEED_SV_DEPTH)
+                , out float depth: SV_Depth
+                #endif
+                #if defined(NEED_SV_DEPTH_LEQUAL)
+                , out float depth: SV_DepthLessEqual
+                #endif
+            ) : SV_TARGET
             {
+                #if !defined(NEED_SV_DEPTH) && !defined(NEED_SV_DEPTH_LEQUAL)
+                float depth = 0;
+                #endif
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 #ifdef FOG_COMBINED_WITH_TSPACE
@@ -202,7 +236,7 @@
                 #endif
 
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 half4 FinalColor = 1;
 
                 // ForwardAdd Fragment Chain
@@ -258,9 +292,7 @@
             // GlobalVariables
             %GlobalVariables
 
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
+        
 
             // Variables
             %Variables
@@ -268,10 +300,17 @@
             // Textures
             %Textures
 
+            // PassFunctions
+            %PassFunctions
+            
             // Functions
             %Functions
 
+            // FreeFunctions
+            %FreeFunctions
+
             // ForwardBase Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -286,17 +325,32 @@
                 // Meta VertexBase
                 %VertexBase
 
+                // Meta PostVertex Chain
+                %PostVertexFunctions
+
                 return o;
             }
+            #endif
 
             // Meta Fragment
-            half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
+            half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace
+                #if defined(NEED_SV_DEPTH)
+                , out float depth: SV_Depth
+                #endif
+                #if defined(NEED_SV_DEPTH_LEQUAL)
+                , out float depth: SV_DepthLessEqual
+                #endif
+            ) : SV_TARGET
             {
+                // Stub depth in case its not used
+                #if !defined(NEED_SV_DEPTH) && !defined(NEED_SV_DEPTH_LEQUAL)
+                float depth = 0;
+                #endif
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 // Meta pass only takes Albedo, Alpha and Emission
                 half4 FinalColor = 1;
 
@@ -358,9 +412,7 @@
             // GlobalVariables
             %GlobalVariables
 
-            #if defined(NEED_DEPTH)
-                UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
-            #endif
+        
 
             // Variables
             %Variables
@@ -368,10 +420,17 @@
             // Textures
             %Textures
 
+            // PassFunctions
+            %PassFunctions
+            
             // Functions
             %Functions
 
+            // FreeFunctions
+            %FreeFunctions
+
             // ShadowCaster Vertex
+            #if !defined(TESS_ENABLED)
             FragmentData Vertex(VertexData v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
@@ -386,20 +445,34 @@
                 // ShadowCaster VertexBase
                 %VertexBase
 
+                // ShadowCaster PostVertex Chain
+                %PostVertexFunctions
+
                 TRANSFER_SHADOW_CASTER_NORMALOFFSET(o);
 
                 return o;
             }
+            #endif
 
             // ShadowCaster Fragment
-            half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
+            half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace
+                #if defined(NEED_SV_DEPTH)
+                , out float depth: SV_Depth
+                #endif
+                #if defined(NEED_SV_DEPTH_LEQUAL)
+                , out float depth: SV_DepthLessEqual
+                #endif
+            ) : SV_TARGET
             {
+                #if !defined(NEED_SV_DEPTH) && !defined(NEED_SV_DEPTH_LEQUAL)
+                float depth = 0;
+                #endif
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
                 #if defined(NEED_FRAGMENT_IN_SHADOW)
                 SurfaceData o = CreateSurfaceData();
-                MeshData d = CreateMeshData(i);
+                MeshData d = CreateMeshData(i, facing);
                 half4 FinalColor = 1;
 
                 // ShadowCaster Fragment Chain
@@ -419,6 +492,9 @@
             ENDCG
             // ShadowCaster Pass End
         }
+
+        // ExtraPasses
+        %ExtraPasses
 
         // PostPasses
         %PostPasses

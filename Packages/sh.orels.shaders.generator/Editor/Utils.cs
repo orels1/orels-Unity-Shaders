@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using ORL.ShaderGenerator.Settings;
 using UnityEditor;
 using UnityEngine;
 
@@ -23,7 +26,7 @@ namespace ORL.ShaderGenerator
         {
             return "/Packages/sh.orels.shaders.generator/Runtime/Sources";
         }
-        
+
         public static string ResolveORLAsset(string path, bool bundled, string basePath = null)
         {
             if (bundled)
@@ -34,7 +37,42 @@ namespace ORL.ShaderGenerator
             var freeAsset = ResolveFreeAsset(path, basePath);
             if (freeAsset == null)
             {
-                throw new SourceAssetNotFoundException(path, new[] {basePath});
+                throw new SourceAssetNotFoundException(path, new[] { basePath });
+            }
+
+            return freeAsset;
+        }
+
+        public static string ResolveORLAsset(string path, bool bundled, List<ModuleRemap> remaps, string basePath = null)
+        {
+            if (remaps != null)
+            {
+                foreach (var remap in remaps)
+                {
+                    // Ignore empty entries
+                    if (string.IsNullOrWhiteSpace(remap.Source) || string.IsNullOrWhiteSpace(remap.Destination)) continue;
+
+                    if (path.Equals(remap.Source, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        path = remap.Destination;
+                    }
+                    // If the remap is not bundled, resolve as free asset
+                    if (!path.StartsWith("@/"))
+                    {
+                        bundled = false;
+                    }
+                }
+            }
+
+            if (bundled)
+            {
+                return ResolveBundledAsset(path);
+            }
+
+            var freeAsset = ResolveFreeAsset(path, basePath);
+            if (freeAsset == null)
+            {
+                throw new SourceAssetNotFoundException(path, new[] { basePath });
             }
 
             return freeAsset;
@@ -51,7 +89,7 @@ namespace ORL.ShaderGenerator
             if (!string.IsNullOrWhiteSpace(builtInAsset)) return builtInAsset;
 
             var shaderPackageAsset = ResolveFreeAsset(cleaned, shaderSourcesFolder);
-            
+
             if (builtInAsset == null && shaderPackageAsset == null)
             {
                 throw new SourceAssetNotFoundException(path, new[] { sourcesFolder, shaderSourcesFolder });
@@ -65,7 +103,8 @@ namespace ORL.ShaderGenerator
             var fullPath = basePath + "/" + path;
             // Resolve absolute paths
             var isAbsoluteImport = path.StartsWith("/");
-            if (isAbsoluteImport) {
+            if (isAbsoluteImport)
+            {
                 fullPath = path.Substring(1);
             }
             // Resolve relative paths
@@ -110,12 +149,12 @@ namespace ORL.ShaderGenerator
             {
                 return (isAbsoluteImport ? path.Substring(1) : fullPath) + ".orlsource";
             }
-            
+
             if (orlShaderExists)
             {
                 return (isAbsoluteImport ? path.Substring(1) : fullPath) + ".orlshader";
             }
-            
+
             if (orlTemplateExists)
             {
                 return (isAbsoluteImport ? path.Substring(1) : fullPath) + ".orltemplate";
@@ -128,16 +167,26 @@ namespace ORL.ShaderGenerator
         {
             return ResolveORLAsset(path, true);
         }
-        
+
         public static string[] GetORLTemplate(string path)
         {
-            var fullPath = ResolveORLAsset(path, true);
+            return GetORLTemplate(path, null);
+        }
+
+        public static string[] GetORLTemplate(string path, List<ModuleRemap> remaps)
+        {
+            var fullPath = ResolveORLAsset(path, true, remaps);
             return File.ReadAllLines(fullPath);
         }
-        
+
         public static string[] GetORLSource(string path)
         {
-            var fullPath = ResolveORLAsset(path, true);
+            return GetORLSource(path, null);
+        }
+
+        public static string[] GetORLSource(string path, List<ModuleRemap> remaps)
+        {
+            var fullPath = ResolveORLAsset(path, true, remaps);
             return File.ReadAllLines(fullPath);
         }
 
@@ -146,12 +195,17 @@ namespace ORL.ShaderGenerator
             return File.ReadAllLines(ResolveORLAsset(path, path.StartsWith("@/"), basePath));
         }
 
+        public static string[] GetAssetSource(string path, string basePath, List<ModuleRemap> remaps)
+        {
+            return File.ReadAllLines(ResolveORLAsset(path, path.StartsWith("@/"), remaps, basePath));
+        }
+
         public static Texture2D GetNonModifiableTexture(Shader shader, string name)
         {
             var so = new SerializedObject(shader);
             var texList = so.FindProperty("m_NonModifiableTextures");
             if (texList.arraySize == 0) return null;
-            
+
             for (var i = 0; i < texList.arraySize; i++)
             {
                 var tex = texList.GetArrayElementAtIndex(i);
@@ -164,13 +218,19 @@ namespace ORL.ShaderGenerator
             return null;
         }
 
+
         public static void RecursivelyCollectDependencies(List<string> sourceList, ref List<string> dependencies, string basePath)
+        {
+            RecursivelyCollectDependencies(sourceList, ref dependencies, basePath, null);
+        }
+
+        public static void RecursivelyCollectDependencies(List<string> sourceList, ref List<string> dependencies, string basePath, List<ModuleRemap> remaps)
         {
             var parser = new Parser();
             foreach (var source in sourceList)
             {
-                var blocks = parser.Parse(GetAssetSource(source, basePath));
-                var includesBlockIndex = blocks.FindIndex(b => b.Name == "%Includes");
+                var blocks = parser.Parse(GetAssetSource(source, basePath, remaps));
+                var includesBlockIndex = blocks.FindIndex(b => b.CoreBlockType == ShaderBlock.BlockType.Includes);
                 if (includesBlockIndex == -1)
                 {
                     dependencies.Add(source);
@@ -191,11 +251,39 @@ namespace ORL.ShaderGenerator
                     if (!dependencies.Contains(depPath))
                     {
                         var deepDeps = new List<string>();
-                        RecursivelyCollectDependencies(new List<string> {depPath}, ref deepDeps, basePath);
+                        RecursivelyCollectDependencies(new List<string> { depPath }, ref deepDeps, basePath, remaps);
                         dependencies.AddRange(deepDeps);
                     }
                 }
             }
+        }
+
+        public static string IndentContents(List<string> contents, int indentLevel)
+        {
+            var sb = new StringBuilder();
+            var i = 0;
+            foreach (var contentLine in contents)
+            {
+                if (i == 0)
+                {
+                    sb.Append(contentLine + (contents.Count == 1 ? "" : "\n"));
+                    i++;
+                    continue;
+                }
+
+                if (i == contents.Count - 1)
+                {
+                    sb.Append(new string(' ', indentLevel) + contentLine);
+                }
+                else
+                {
+                    sb.Append(new string(' ', indentLevel) + contentLine + '\n');
+                }
+
+                i++;
+            }
+
+            return sb.ToString();
         }
     }
 }

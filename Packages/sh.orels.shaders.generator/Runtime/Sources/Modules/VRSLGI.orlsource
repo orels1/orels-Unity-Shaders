@@ -1,0 +1,138 @@
+%Properties()
+{
+    [ToggleUI]UI_VRSLGIHeader("# VRSL GI", Int) = 1
+    UI_VRSLGIDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/vrslgi)", Int) = 0
+    [Toggle(_VRSL_GI)]useVRSLGI("Integrate VRSL GI", Float) = 0.0
+    UI_VRSLGIDownload("[Make sure to download VRSLGI Shader Pack before enabling this option](https://github.com/AcChosen/VR-Stage-Lighting-GI-ShaderPack/releases)", Int) = 0
+    _VRSLGIStrength("VRSL GI Strength %ShowIf(_VRSL_GI)", Float) = 2
+    _VRSLDiffuseMix("VRSL Diffuse Mix %ShowIf(_VRSL_GI)", Range(0, 1)) = 0.25
+    _VRSLRoughnessModifier("Roughness Modifier %ShowIf(_VRSL_GI)", Range(-1,1)) = 0
+    [TpggleUI]_VRSLAlphaPremultiply("Alpha Premultiply %ShowIf(_VRSL_GI)", Float) = 0
+    [Toggle(_VRSL_GI_SPECULARHIGHLIGHTS)]useVRSLGISpecular("Use VRSL GI Specular %ShowIf(_VRSL_GI)", Float) = 1.0
+    [KeywordEnum(GGX, Beckman, Phong)]_VRSL_SPECFUNC("VRSL Specular Function %ShowIf(_VRSL_GI && _VRSL_GI_SPECULARHIGHLIGHTS)", Int) = 0 // Selecting the specular function.
+    _VRSLGISpecularClamp("Max Specular Brightness %ShowIf(_VRSL_GI && _VRSL_GI_SPECULARHIGHLIGHTS)", Range(1.0, 50000.0)) = 10000
+    [Toggle(_VRSL_SHADOWMASK1)]_UseVRSLShadowMask1("Use VRSL Shadow Mask 1 %ShowIf(_VRSL_GI)", Int) = 0 // The first shadow mask toggle
+    _VRSLShadowMask1("VRSL GI ShadowMask 1 > %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", 2D) = "white" {} // The first shadow mask texture
+    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, UV1_LightmapST, 9)]_VRSLShadowmaskUVSet("VRSL Shadow Mask UV Set %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", Int) = 1
+
+    [KeywordEnum(R, RG, RGB, RGBA)]_VRSL_SHADOWMASK("Active Channels %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", Int) = 3
+    _UseVRSLShadowMask1RStrength("VRSL SM 1 R Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", Range(0.0, 1.0)) = 1.0 // the R strength of the first shadow mask
+    _UseVRSLShadowMask1GStrength("VRSL SM 1 G Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", Range(0.0, 1.0)) = 1.0 // the G strength of the first shadow mask
+    _UseVRSLShadowMask1BStrength("VRSL SM 1 B Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", Range(0.0, 1.0)) = 1.0 // the B strength of the first shadow mask
+    _UseVRSLShadowMask1AStrength("VRSL SM 1 A Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", Range(0.0, 1.0)) = 1.0 // the A strength of the first shadow mask
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment _VRSL_GI
+    #pragma shader_feature_local_fragment _VRSL_SPECFUNC_GGX _VRSL_SPECFUNC_BECKMAN _VRSL_SPECFUNC_PHONG
+    #pragma shader_feature_local_fragment _VRSL_GI_SPECULARHIGHLIGHTS
+    #pragma shader_feature_local_fragment _VRSL_SHADOWMASK1
+    #pragma shader_feature_local_fragment _VRSL_GLOBALLIGHTTEXTURE
+    #pragma shader_feature_local_fragment _ _VRSL_SHADOWMASK_RG _VRSL_SHADOWMASK_RGB _VRSL_SHADOWMASK_RGBA
+}
+
+%Variables()
+{
+    half _VRSLRoughnessModifier;
+    int _VRSLAlphaPremultiply;
+    int _VRSLShadowmaskUVSet;
+}
+
+%ShaderDefines()
+{
+    #if !defined(_VRSL_GI)
+        #define SKIP_VRSLGI
+    #endif
+
+    #define INCLUDE_VRSLGI defined(_VRSL_GI)
+
+    #if INCLUDE_VRSLGI
+        #include "Assets/VRSL Addons/VRSL-GI Shader Package/VRSLGI-Functions.cginc"
+    #endif
+}
+
+%Color("VRSLGIColor")
+{
+
+    void VRSLGIColor(MeshData d, SurfaceData o, inout half4 FinalColor)
+    {
+        #if !defined(UNITY_PASS_FORWARDBASE)
+        {
+            return;
+        }
+        #endif
+
+        #if defined(PLAT_QUEST)
+        {
+            return;
+        }
+        #else
+        {
+            #if defined(_VRSL_GI) && !defined(SKIP_VRSLGI)
+            {
+                float2 uv = d.uv0.xy;
+                #if defined(LIGHTMAP_ON)
+                {
+                    if (_VRSLShadowmaskUVSet == 9)
+                    {
+                        uv = d.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+                    }
+                }
+                #else
+                {
+                    switch (_VRSLShadowmaskUVSet)
+                    {
+                        case 1: uv = d.uv1.xy; break;
+                        case 2: uv = d.uv2.xy; break;
+                        case 3: uv = d.uv3.xy; break;
+                    }
+                }
+                #endif
+
+                #if defined(ORL_LIGHTING_MODEL_VFX)
+                float oneMinusReflectivity = 0.96;
+                #else
+                float oneMinusReflectivity = 1.0 - 0.04 - o.Metallic * (1.0 - 0.04);
+                #endif
+
+                _VRSLMetallicMapStrength = 1;
+                _VRSLSpecularShine = 1;
+                _VRSLSpecularMultiplier = 1;
+
+                #if defined(ORL_LIGHTING_MODEL_VFX) || defined(ORL_LIGHTING_MODEL_TOONV2)
+                float3 giOutput = VRSLGI(
+                    d.worldSpacePosition,
+                    d.worldNormal,
+                    saturate(0.5 + _VRSLRoughnessModifier),
+                    d.worldSpaceViewDir,
+                    o.Albedo * oneMinusReflectivity,
+                    float2(0.96, saturate(0.5 + _VRSLRoughnessModifier)),
+                    uv,
+                    1
+                );
+                #else
+                float3 giOutput = VRSLGI(
+                    d.worldSpacePosition,
+                    Unity_SafeNormalize(mul(o.Normal, d.TBNMatrix)),
+                    saturate((1 - o.Smoothness) + _VRSLRoughnessModifier),
+                    d.worldSpaceViewDir,
+                    o.Albedo * oneMinusReflectivity,
+                    float2(o.Metallic, saturate(o.Smoothness + (1 - _VRSLRoughnessModifier))),
+                    uv,
+                    o.Occlusion
+                );
+                #endif
+
+                FinalColor.rgb += giOutput;
+
+                if (_VRSLAlphaPremultiply)
+                {
+                    FinalColor.rgb *= FinalColor.a;
+                }
+            }
+            #endif
+        }
+        #endif
+    }
+}

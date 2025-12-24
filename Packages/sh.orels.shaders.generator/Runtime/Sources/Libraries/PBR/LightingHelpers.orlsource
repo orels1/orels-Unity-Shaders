@@ -4,10 +4,11 @@
     // [Xiexe-Unity-Shaders](https://github.com/Xiexe/Xiexes-Unity-Shaders) (c) Xiexe (MIT)
     // [z3y shaders](https://github.com/z3y/shaders) (c) z3y (MIT)
 
-    half D_GGX(half NoH, half roughness)
+    // Default shading mode
+    float D_GGX(float NoH, float roughness)
     {
-        half a = NoH * roughness;
-        half k = roughness / (1.0 - NoH * NoH + a * a);
+        float a = NoH * roughness;
+        float k = roughness / (1.0 - NoH * NoH + a * a);
         return k * k * (1.0 / UNITY_PI);
     }
 
@@ -24,10 +25,44 @@
 
     half V_SmithGGXCorrelated(half NoV, half NoL, half roughness)
     {
-        half a2 = roughness * roughness;
+        half a2 = roughness * roughness;        
         half GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
         half GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
         return 0.5 / (GGXV + GGXL);
+    }
+
+    // Clear Coat visibility
+    float V_Kelemen(float LoH) {
+        // Kelemen 2001, "A Microfacet Based Coupled Specular-Matte BRDF Model with Importance Sampling"
+        return min((0.25 / (LoH * LoH)), 65504.0);
+    }
+
+    // Cloth shading mode
+    half D_Ashikhmin(half roughness, half NoH) {
+        // Ashikhmin 2007, "Distribution-based BRDFs"
+        half a2 = roughness * roughness;
+        half cos2h = NoH * NoH;
+        half sin2h = max(1.0 - cos2h, 0.0078125); // 2^(-14/2), so sin2h^2 > 0 in fp16
+        half sin4h = sin2h * sin2h;
+        half cot2 = -cos2h / (a2 * sin2h);
+        return 1.0 / (UNITY_PI * (4.0 * a2 + 1.0) * sin4h) * (4.0 * exp(cot2) + sin4h);
+    }
+
+    half D_Charlie(half roughness, half NoH) {
+        // Estevez and Kulla 2017, "Production Friendly Microfacet Sheen BRDF"
+        half invAlpha  = 1.0 / roughness;
+        half cos2h = NoH * NoH;
+        half sin2h = max(1.0 - cos2h, 0.0078125); // 2^(-14/2), so sin2h^2 > 0 in fp16
+        return (2.0 + invAlpha) * pow(sin2h, invAlpha * 0.5) / (2.0 * UNITY_PI);
+    }
+
+    half V_Neubelt(half NoV, half NoL) {
+        // Neubelt and Pettineo 2013, "Crafting a Next-gen Material Pipeline for The Order: 1886"
+        return min(1.0 / (4.0 * (NoL + NoV - NoL * NoV)), 65504.0);
+    }
+
+    float Fd_Wrap(float NoL, float w) {
+        return saturate((NoL + w) / ((1.0 + w) * (1.0 + w)));
     }
 
     half3 F_Schlick(half u, half3 f0)
@@ -39,6 +74,10 @@
     {
         // Schlick 1994, "An Inexpensive BRDF Model for Physically-Based Rendering"
         return f0 + (f90 - f0) * pow(1.0 - VoH, 5);
+    }
+
+    float F_Schlick(float f0, float f90, float VoH) {
+        return f0 + (f90 - f0) * pow5(1.0 - VoH);
     }
 
     half3 fresnel(half3 f0, half LoH)
@@ -56,6 +95,47 @@
         return lightScatter * viewScatter;
     }
 
+    // These are taken from David M's improved box projection code https://github.com/frostbone25/Unity-Improved-Box-Projected-Reflections
+    //SOURCE - https://github.com/Unity-Technologies/Graphics/blob/504e639c4e07492f74716f36acf7aad0294af16e/Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl  
+    //From Moving Frostbite to PBR document
+    //This function fakes the roughness based integration of reflection probes by adjusting the roughness value
+    //NOTE: Untouched from HDRP
+    float ComputeDistanceBaseRoughness(float distanceIntersectionToShadedPoint, float distanceIntersectionToProbeCenter, float perceptualRoughness)
+    {
+        float newPerceptualRoughness = clamp(distanceIntersectionToShadedPoint / distanceIntersectionToProbeCenter * perceptualRoughness, 0, perceptualRoughness);
+        return lerp(newPerceptualRoughness, perceptualRoughness, perceptualRoughness);
+    }
+
+    //SOURCE - https://github.com/Unity-Technologies/Graphics/blob/504e639c4e07492f74716f36acf7aad0294af16e/Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl#L78
+    //This simplified version assume that we care about the result only when we are inside the box
+    //NOTE: Untouched from HDRP
+    float IntersectRayAABBSimple(float3 start, float3 dir, float3 boxMin, float3 boxMax)
+    {
+        float3 invDir = rcp(dir);
+
+        // Find the ray intersection with box plane
+        float3 rbmin = (boxMin - start) * invDir;
+        float3 rbmax = (boxMax - start) * invDir;
+
+        float3 rbminmax = float3((dir.x > 0.0) ? rbmax.x : rbmin.x, (dir.y > 0.0) ? rbmax.y : rbmin.y, (dir.z > 0.0) ? rbmax.z : rbmin.z);
+
+        return min(min(rbminmax.x, rbminmax.y), rbminmax.z);
+    }
+
+    //SOURCE - https://github.com/Unity-Technologies/Graphics/blob/504e639c4e07492f74716f36acf7aad0294af16e/Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl  
+    //return projectionDistance, can be used in ComputeDistanceBaseRoughness formula
+    //return in R the unormalized corrected direction which is used to fetch cubemap but also its length represent the distance of the capture point to the intersection
+    //Length R can be reuse as a parameter of ComputeDistanceBaseRoughness for distIntersectionToProbeCenter
+    //NOTE: Modified to be much simpler, and to work with the Built-In Render Pipeline (BIRP)
+    float EvaluateLight_EnvIntersection(float3 worldSpacePosition, inout float3 R, float4 probePosition, float4 boxMin, float4 boxMax)
+    {
+        float projectionDistance = IntersectRayAABBSimple(worldSpacePosition, R, boxMin.xyz, boxMax.xyz);
+
+        R = (worldSpacePosition + projectionDistance * R) - probePosition.xyz;
+
+        return projectionDistance;
+    }
+
     half3 getBoxProjection(half3 direction, half3 position, half4 cubemapPosition, half3 boxMin, half3 boxMax)
     {
         #if defined(UNITY_SPECCUBE_BOX_PROJECTION) && !defined(UNITY_PBS_USE_BRDF2) || defined(FORCE_BOX_PROJECTION)
@@ -70,36 +150,103 @@
         return direction;
     }
 
-    half3 getEnvReflection(half3 worldSpaceViewDir, half3 worldSpacePosition, half3 normal, half smoothness, int mip)
+    half3 getEnvReflectionDirect(float3 reflDir, half3 worldSpacePosition, half3 normal, half roughness, int mip, inout half4 rawProbe0)
     {
         half3 env = 0;
-        half3 reflDir = reflect(worldSpaceViewDir, normal);
-        half perceptualRoughness = 1 - smoothness;
-        half rough = perceptualRoughness * perceptualRoughness;
-        reflDir = lerp(reflDir, normal, rough * rough);
+
+        float mipLevel = (float) mip;
+        if (mip == -1)
+        {
+            mipLevel = perceptualRoughnessToMipmapLevel(roughness*(1.7 - 0.7*roughness));
+        }
 
         half3 reflectionUV1 = getBoxProjection(reflDir, worldSpacePosition, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
-        half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, mip);
+        half4 probe0 = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectionUV1, mipLevel);
+        rawProbe0 = probe0;
         half3 probe0sample = DecodeHDR(probe0, unity_SpecCube0_HDR);
 
         half3 indirectSpecular;
         half interpolator = unity_SpecCube0_BoxMin.w;
 
+        indirectSpecular = probe0sample;
+
+        #if defined(UNITY_SPECCUBE_BLENDING) || defined(FORCE_BOX_PROJECTION)
         UNITY_BRANCH
         if (interpolator < 0.99999)
         {
             half3 reflectionUV2 = getBoxProjection(reflDir, worldSpacePosition, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
-            half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, mip);
+            half4 probe1 = UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD(unity_SpecCube1, unity_SpecCube0, reflectionUV2, mipLevel);
             half3 probe1sample = DecodeHDR(probe1, unity_SpecCube1_HDR);
             indirectSpecular = lerp(probe1sample, probe0sample, interpolator);
         }
-        else
-        {
-            indirectSpecular = probe0sample;
-        }
+        #endif
 
         env = indirectSpecular;
         return env;
+    }
+
+    half3 getEnvReflectionDirect(float3 reflDir, half3 worldSpacePosition, half3 normal, half roughness, int mip)
+    {
+        half4 rawProbe0;
+        return getEnvReflectionDirect(reflDir, worldSpacePosition, normal, roughness, mip, rawProbe0);
+    }
+
+    half3 getEnvReflectionHardened(float3 reflDir, half3 worldSpacePosition, half roughness, half hardenStrength)
+    {
+        float3 boxProjectedReflDir = reflDir;
+        float projectionDistance = EvaluateLight_EnvIntersection(worldSpacePosition, boxProjectedReflDir, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+        float distanceBasedRoughness = ComputeDistanceBaseRoughness(projectionDistance, length(boxProjectedReflDir), roughness);
+        
+        distanceBasedRoughness = lerp(roughness, distanceBasedRoughness, hardenStrength);
+        float mipLevel = perceptualRoughnessToMipmapLevel(distanceBasedRoughness * (1.7 - 0.7 * distanceBasedRoughness));
+
+        half4 probe0data = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, boxProjectedReflDir, mipLevel);
+        half3 probe0 = DecodeHDR(probe0data, unity_SpecCube0_HDR);
+
+        half3 indirectSpecular = probe0;
+
+
+        #if defined(UNITY_SPECCUBE_BLENDING) || defined(FORCE_BOX_PROJECTION)
+        UNITY_BRANCH
+        if (unity_SpecCube0_BoxMin.w < 0.99999)
+        {
+            boxProjectedReflDir = reflDir;
+            distanceBasedRoughness = roughness;
+            if (unity_SpecCube1_ProbePosition.w > 0)
+            {
+                projectionDistance = EvaluateLight_EnvIntersection(worldSpacePosition, boxProjectedReflDir, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
+                distanceBasedRoughness = ComputeDistanceBaseRoughness(projectionDistance, length(boxProjectedReflDir), roughness);
+                distanceBasedRoughness = lerp(roughness, distanceBasedRoughness, hardenStrength);
+            }
+            
+            mipLevel = perceptualRoughnessToMipmapLevel(distanceBasedRoughness * (1.7 - 0.7 * distanceBasedRoughness));
+            half4 probe1data = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube0, boxProjectedReflDir, mipLevel);
+            half3 probe1 = DecodeHDR(probe1data, unity_SpecCube1_HDR);
+
+            indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
+        }
+        #endif
+        return indirectSpecular;
+    }
+
+    half3 getEnvReflection(half3 worldSpaceViewDir, half3 worldSpacePosition, half3 normal, half smoothness)
+    {
+        float3 reflDir = reflect(worldSpaceViewDir, normal);
+        half perceptualRoughness = 1 - smoothness;
+        reflDir = lerp(reflDir, normal, max(perceptualRoughness * perceptualRoughness, 0.002));
+        perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+
+        return getEnvReflectionDirect(reflDir, worldSpacePosition, normal, perceptualRoughness, -1);
+    }
+
+    half3 getEnvReflection(half3 worldSpaceViewDir, half3 worldSpacePosition, half3 normal, half smoothness, int mip)
+    {
+        float3 reflDir = reflect(worldSpaceViewDir, normal);
+        half perceptualRoughness = 1 - smoothness;
+        reflDir = lerp(reflDir, normal, max(perceptualRoughness * perceptualRoughness, 0.002));
+        perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+
+        return getEnvReflectionDirect(reflDir, worldSpacePosition, normal, perceptualRoughness, mip);
     }
 
     half3 EnvBRDFMultiscatter(half2 dfg, half3 f0)
@@ -183,16 +330,62 @@
         #endif
     }
 
-    half3 GetSpecularHighlights(half3 worldNormal, half3 lightColor, half3 lightDirection, half3 f0, half3 viewDir, half clampedRoughness, half NoV, half3 energyCompensation)
+    half3 GetSpecularHighlights(half3 lightColor, half3 f0, float3 worldNormal, float3 halfVector, half LoH, half NoL, half NoV, half roughness, half3 energyCompensation)
     {
-        half3 halfVector = Unity_SafeNormalize(lightDirection + viewDir);
+        half NoH = saturate(dot(worldNormal, halfVector));
+        half3 F = F_Schlick(LoH, f0);
+        float D = D_GGX(NoH, roughness);
+        half V = V_SmithGGXCorrelated(NoV, NoL, roughness);
+        F *= energyCompensation;
+
+        return max(0, D * V * F) * lightColor * UNITY_PI;
+    }
+
+    half3 GetSpecularHighlightsAnisotropic(half3 lightColor, half3 f0, float3 worldNormal, float3 worldTangent, float3 bitangent, float3 halfVector, half LoH, half NoL, half NoV, half roughness, half3 energyCompensation, half anisotropy)
+    {
+        half NoH = saturate(dot(worldNormal, halfVector));
+        half3 F = F_Schlick(LoH, f0);
+        float at = max(roughness * (1.0 + anisotropy), 0.001);
+        float ab = max(roughness * (1.0 - anisotropy), 0.001);
+        float D = D_GGX_Anisotropic(NoH, halfVector, worldTangent, bitangent, at, ab);
+        half V = V_SmithGGXCorrelated(NoV, NoL, roughness);
+        F *= energyCompensation;
+
+        return max(0, D * V * F) * lightColor * UNITY_PI;
+    }
+
+    half3 GetSpecularHighlightsClearCoat(half3 lightColor, half3 f0, float3 worldNormal, float3 halfVector, half LoH, half roughness, half strength, inout half clearCoatAttenuation)
+    {
+        half NoH = saturate(dot(worldNormal, halfVector));
+        half3 F = F_Schlick(0.04, 1.0, LoH) * strength;
+        float D = D_GGX(NoH, roughness);
+        half V = V_Kelemen(LoH);
+
+        clearCoatAttenuation = 1.0 - F;
+
+        return max(0, D * V * F) * lightColor * UNITY_PI;
+    }
+
+    half3 GetSpecularHighlightsCloth(half3 lightColor, float3 worldNormal, float3 halfVector, half NoL, half NoV, half roughness, half3 energyCompensation, half3 albedoSqrt, int customSheen, half3 sheenColor)
+    {
+        half NoH = saturate(dot(worldNormal, halfVector));
+        half3 F = customSheen ? sheenColor : albedoSqrt;
+        float D = D_Charlie(roughness, NoH);
+        half V = V_Neubelt(NoV, NoL);
+
+        return max(0, D * V * F) * lightColor * UNITY_PI;
+    }
+
+    half3 GetSpecularHighlights(float3 worldNormal, half3 lightColor, float3 lightDirection, half3 f0, float3 viewDir, half clampedRoughness, half NoV, half3 energyCompensation)
+    {
+        float3 halfVector = Unity_SafeNormalize(lightDirection + viewDir);
 
         half NoH = saturate(dot(worldNormal, halfVector));
         half NoL = saturate(dot(worldNormal, lightDirection));
         half LoH = saturate(dot(lightDirection, halfVector));
 
         half3 F = F_Schlick(LoH, f0);
-        half D = D_GGX(NoH, clampedRoughness);
+        float D = D_GGX(NoH, clampedRoughness);
         half V = V_SmithGGXCorrelated(NoV, NoL, clampedRoughness);
 
         #ifndef UNITY_PBS_USE_BRDF2
@@ -202,16 +395,74 @@
         return max(0, (D * V) * F) * lightColor * NoL * UNITY_PI;
     }
 
+    half3 GetSpecularHighlightsCloth(float3 worldNormal, half3 lightColor, float3 lightDirection, half3 f0, float3 viewDir, half clampedRoughness, half NoV, half3 albedoSqrt, int customSheen, half3 sheenColor)
+    {
+        float3 halfVector = Unity_SafeNormalize(lightDirection + viewDir);
+
+        half NoH = saturate(dot(worldNormal, halfVector));
+        half NoL = saturate(dot(worldNormal, lightDirection));
+        half LoH = saturate(dot(lightDirection, halfVector));
+        
+        half3 F = customSheen ? sheenColor : albedoSqrt;
+        float D = D_Charlie(clampedRoughness, NoH);
+        half V = V_Neubelt(NoV, NoL);
+
+        return max(0, (D * V) * F) * lightColor * NoL * UNITY_PI;
+    }
+
     #ifdef DYNAMICLIGHTMAP_ON
     half3 getRealtimeLightmap(half2 uv, half3 worldNormal)
     {
         half2 realtimeUV = uv;
-        half4 bakedCol = UNITY_SAMPLE_TEX2D(unity_DynamicLightmap, realtimeUV);
+        half4 bakedCol = tex2DFastBicubicSample(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), realtimeUV);
         half3 realtimeLightmap = DecodeRealtimeLightmap(bakedCol);
 
         #ifdef DIRLIGHTMAP_COMBINED
-        half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
+        half4 realtimeDirTex = tex2DFastBicubicSample(TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap), realtimeUV);
         realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
+        #endif
+
+        return realtimeLightmap;
+    }
+    #endif
+
+    #ifdef DYNAMICLIGHTMAP_ON
+    half3 getRealtimeLightmap(half2 uv, half3 worldNormal, int disableBicubic)
+    {
+        half2 realtimeUV = uv;
+        half4 bakedCol;
+
+        // Sample main lightmap
+        #if defined(BICUBIC_LIGHTMAP)
+        [branch]
+        if (disableBicubic)
+        {
+            bakedCol = SAMPLE_TEXTURE2D(unity_DynamicLightmap, samplerunity_DynamicLightmap, realtimeUV);
+        } else {
+            bakedCol = tex2DFastBicubicSample(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), realtimeUV);
+        }
+        #else
+        bakedCol = SAMPLE_TEXTURE2D(unity_DynamicLightmap, samplerunity_DynamicLightmap, realtimeUV);
+        #endif 
+        half3 realtimeLightmap = DecodeRealtimeLightmap(bakedCol);
+
+        // Sample directional lightmap
+        #ifdef DIRLIGHTMAP_COMBINED
+        {
+            half4 realtimeDirTex;
+            #if defined(BICUBIC_LIGHTMAP)
+            [branch]
+            if (disableBicubic)
+            {
+                realtimeDirTex = SAMPLE_TEXTURE2D(unity_DynamicDirectionality, samplerunity_DynamicLightmap, realtimeUV);
+            } else {
+                realtimeDirTex = tex2DFastBicubicSample(TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap), realtimeUV);
+            }
+            #else
+            realtimeDirTex = SAMPLE_TEXTURE2D(unity_DynamicDirectionality, samplerunity_DynamicLightmap, realtimeUV);
+            #endif 
+            realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
+        }
         #endif
 
         return realtimeLightmap;
@@ -220,13 +471,22 @@
 
     half computeSpecularAO(half NoV, half ao, half roughness)
     {
-        return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
+        return saturate(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao);
     }
 
-    half shEvaluateDiffuseL1Geomerics(half L0, half3 L1, half3 n)
+    half3 gtaoMultiBounce(half visibility, half3 albedo) {
+        // Jimenez et al. 2016, "Practical Realtime Strategies for Accurate Indirect Occlusion"
+        half3 a =  2.0404 * albedo - 0.3324;
+        half3 b = -4.7951 * albedo + 0.6417;
+        half3 c =  2.7552 * albedo + 0.6903;
+
+        return max((visibility), ((visibility * a + b) * visibility + c) * visibility);
+    }
+
+    half shEvaluateDiffuseL1Geomerics(half L0, half3 L1, float3 n)
     {
         // average energy
-        half R0 = L0;
+        half R0 = max(0,L0);
 
         // avg direction of incoming light
         half3 R1 = 0.5f * L1;
@@ -250,6 +510,15 @@
         half a = (1.0f - lenR1 / R0) / (1.0f + lenR1 / R0);
 
         return max(0, R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p)));
+    }
+
+    half3 GetNonLinearSH(half3 L0, half3 L1r, half3 L1g, half3 L1b, float3 n)
+    {
+        half3 result;
+        result.r = shEvaluateDiffuseL1Geomerics(L0.r, L1r.xyz, n);
+        result.g = shEvaluateDiffuseL1Geomerics(L0.g, L1g.xyz, n);
+        result.b = shEvaluateDiffuseL1Geomerics(L0.b, L1b.xyz, n);
+        return result;
     }
 
     // Based on bakery's suggestion - use multiply instead of min for the darkest color
@@ -281,5 +550,110 @@
 
         // 3) Pick darkest color
         return lightmap * realtimeShadow;
+    }
+
+    float4x4 getVertexLightsDir(float3 worldPos) {
+        float3 toLightX = float3(unity_4LightPosX0.x, unity_4LightPosY0.x, unity_4LightPosZ0.x);
+        float3 toLightY = float3(unity_4LightPosX0.y, unity_4LightPosY0.y, unity_4LightPosZ0.y);
+        float3 toLightZ = float3(unity_4LightPosX0.z, unity_4LightPosY0.z, unity_4LightPosZ0.z);
+        float3 toLightW = float3(unity_4LightPosX0.w, unity_4LightPosY0.w, unity_4LightPosZ0.w);
+
+        float3 dirX = normalize(toLightX - worldPos);
+        float3 dirY = length(toLightY) > 0 ? normalize(toLightY - worldPos) : 0;
+        float3 dirZ = length(toLightZ) > 0 ? normalize(toLightZ - worldPos) : 0;
+        float3 dirW = length(toLightW) > 0 ? normalize(toLightW - worldPos) : 0;
+
+        float4x4 retval = 0;
+            retval[0] = float4(dirX, 0);
+            retval[1] = float4(dirY, 0);
+            retval[2] = float4(dirZ, 0);
+            retval[3] = float4(dirW, 0);
+        return retval;
+    }
+
+    float4x4 getVertexLightsColors(float3 worldPos, float3 normal, bool usendl = true)
+    {
+        float4 toLightX = unity_4LightPosX0 - worldPos.x;
+        float4 toLightY = unity_4LightPosY0 - worldPos.y;
+        float4 toLightZ = unity_4LightPosZ0 - worldPos.z;
+
+        float4 lengthSq = 0;
+        lengthSq += toLightX * toLightX;
+        lengthSq += toLightY * toLightY;
+        lengthSq += toLightZ * toLightZ;
+        lengthSq = max(lengthSq, 0.000001);
+
+        float4 ndl = 0;
+        UNITY_BRANCH
+        if (usendl) {
+            ndl += toLightX * normal.x;
+            ndl += toLightY * normal.y;
+            ndl += toLightZ * normal.z;
+            ndl = max (float4(0,0,0,0), ndl * rsqrt(lengthSq));
+            ndl = ndl*0.5+0.5;
+        }
+
+        float4 atten = 1.0 / (1.0 + lengthSq * unity_4LightAtten0);
+        float4 atten2 = saturate(1 - (unity_4LightAtten0 * lengthSq / 25)); // Black magic
+        atten = min(atten, atten2 * atten2); // more black magic
+        atten *= usendl ? ndl : 1;
+        
+        float4x4 retval = 0;
+            retval[0] = unity_LightColor[0] * atten.x;
+            retval[1] = unity_LightColor[1] * atten.y;
+            retval[2] = unity_LightColor[2] * atten.z;
+            retval[3] = unity_LightColor[3] * atten.w;
+        return retval;
+    }
+
+    float4x4 getVertexLightsColors(float3 worldPos, float3 normal, out float4 attenuation, bool usendl = true)
+    {
+        float4 toLightX = unity_4LightPosX0 - worldPos.x;
+        float4 toLightY = unity_4LightPosY0 - worldPos.y;
+        float4 toLightZ = unity_4LightPosZ0 - worldPos.z;
+
+        float4 lengthSq = 0;
+        lengthSq += toLightX * toLightX;
+        lengthSq += toLightY * toLightY;
+        lengthSq += toLightZ * toLightZ;
+        lengthSq = max(lengthSq, 0.000001);
+
+        float4 ndl = 0;
+        UNITY_BRANCH
+        if (usendl) {
+            ndl += toLightX * normal.x;
+            ndl += toLightY * normal.y;
+            ndl += toLightZ * normal.z;
+            ndl = max (float4(0,0,0,0), ndl * rsqrt(lengthSq));
+            ndl = ndl*0.5+0.5;
+        }
+
+        float4 atten = 1.0 / (1.0 + lengthSq * unity_4LightAtten0);
+        float4 atten2 = saturate(1 - (unity_4LightAtten0 * lengthSq / 25)); // Black magic
+        atten = min(atten, atten2 * atten2); // more black magic
+        atten *= usendl ? ndl : 1;
+
+        attenuation = atten;
+        
+        float4x4 retval = 0;
+            retval[0] = unity_LightColor[0] * atten.x;
+            retval[1] = unity_LightColor[1] * atten.y;
+            retval[2] = unity_LightColor[2] * atten.z;
+            retval[3] = unity_LightColor[3] * atten.w;
+        return retval;
+    }
+
+    float4 getVertexLightRanges()
+    {
+        float4 ranges = 5.0 * (1.0 / sqrt(unity_4LightAtten0.xyzw));
+        
+        if (all(!isnan(ranges))) return ranges;
+
+        return float4(
+            isnan(ranges.x) ? 0.0 : ranges.x,
+            isnan(ranges.y) ? 0.0 : ranges.y,
+            isnan(ranges.z) ? 0.0 : ranges.z,
+            isnan(ranges.w) ? 0.0 : ranges.w
+        );
     }
 }

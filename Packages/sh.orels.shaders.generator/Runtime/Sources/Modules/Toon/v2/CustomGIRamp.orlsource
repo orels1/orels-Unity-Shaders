@@ -1,0 +1,22 @@
+%Properties()
+{
+    [ToggleUI]UI_CustomGIDiffuseRampHeader ("# Custom GI Diffuse Ramp", Int) = 1
+    _CustomGIDiffuseRamp("Custom GI Diffuse Ramp %Gradient()", 2D) = "grayscaleRamp" {}
+}
+
+%Textures()
+{
+    TEXTURE2D(_CustomGIDiffuseRamp);
+    SAMPLER(sampler_CustomGIDiffuseRamp);
+}
+
+%CustomGI("CustomGIDiffuseRamp", 1000)
+{
+    void CustomGIDiffuseRamp(inout half3 customGIDiffuse)
+    {
+        half3 rampHSV = RGB2HSV(customGIDiffuse);
+        rampHSV.z = tanh(rampHSV.z);
+        rampHSV.z = SAMPLE_TEXTURE2D(_CustomGIDiffuseRamp, sampler_CustomGIDiffuseRamp, half2(rampHSV.z, 0)).r;
+        customGIDiffuse = HSV2RGB(rampHSV);
+    }
+}

@@ -107,16 +107,20 @@
 					blueData = 1 - blueData;
 				}
 				float alphaData = _AlphaTexPresent ? _AlphaTex.SampleLevel(sampler_AlphaTex, i.uv, 0)[_AlphaChannel] : _AlphaFill;
+
 				if (_AlphaInvert)
 				{
 					alphaData = 1 - alphaData;
 				}
 
-				// if (!_IsLinear)
-				// {
-				// 	return float4(pow(float3(redData, greenData, blueData),2.2), alphaData);
-				// }
-				return float4(redData, greenData, blueData, _AlphaTexPresent ? pow(alphaData, 1.0/2.2) : alphaData);
+				if (!_IsLinear)
+				{
+					redData = LinearToGammaSpaceExact(redData);
+					greenData = LinearToGammaSpaceExact(greenData);
+					blueData = LinearToGammaSpaceExact(blueData);
+				}
+
+				return float4(redData, greenData, blueData, alphaData);
 			}
 			ENDCG
 		}

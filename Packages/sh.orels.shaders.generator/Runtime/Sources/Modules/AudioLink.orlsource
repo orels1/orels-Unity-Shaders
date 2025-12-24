@@ -42,6 +42,7 @@
     #define ALPASS_GENERALVU_UNIX_DAYS      uint2(5,23)
     #define ALPASS_GENERALVU_UNIX_SECONDS   uint2(6,23)
     #define ALPASS_GENERALVU_SOURCE_POS     uint2(7,23)
+    #define ALPASS_MEDIASTATE               uint2(5,22)
 
     #define ALPASS_CCINTERNAL               uint2(12,22) //Size: 12, 2
     #define ALPASS_CCCOLORS                 uint2(25,22) //Size: 12, 1 (Note Color #0 is always black, Colors start at 1)
@@ -131,6 +132,7 @@
         #endif
     }
 
+    // DEPRECATED! Use AudioLinkGetVersionMajor and AudioLinkGetVersionMinor() instead.
     //Get version of audiolink present in the world, 0 if no audiolink is present
     float AudioLinkGetVersion()
     {
@@ -147,6 +149,37 @@
             return 1;
         else
             return 0;
+    }
+
+    float AudioLinkGetVersionMajor()
+    {
+        return AudioLinkData(ALPASS_GENERALVU).y;
+    }
+
+    float AudioLinkGetVersionMinor()
+    {
+        // If the major version is 1 or greater, we are using the new versioning system.
+        if (AudioLinkGetVersionMajor() > 0)
+        {
+            return AudioLinkData(ALPASS_GENERALVU).w;
+        }
+        // Otherwise, defer to the old logic for determining version.
+        else
+        {
+            int2 dims;
+            #if !defined(AUDIOLINK_STANDARD_INDEXING)
+                _AudioTexture.GetDimensions(dims.x, dims.y);
+            #else
+                dims = _AudioTexture_TexelSize.zw;
+            #endif
+
+            if (dims.x >= 128)
+                return AudioLinkData(ALPASS_GENERALVU).x;
+            else if (dims.x > 16)
+                return 1;
+            else
+                return 0;
+        }
     }
 
     // This pulls data from this texture.

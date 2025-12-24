@@ -52,8 +52,10 @@
     #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
 }
 
-%ShadeDefines()
+%ShaderDefines()
 {
+    #define ORL_LIGHTING_MODEL_UI
+
     #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
       #define PLAT_QUEST
     #else
@@ -61,11 +63,13 @@
         #undef PLAT_QUEST
       #endif
     #endif
+
+    #include "UnityUI.cginc"
 }
 
 %FragmentBase("FragmentBase")
 {
-    void FragmentBase(SurfaceData o, inout half4 FinalColor)
+    void FragmentBase(MeshData d, SurfaceData o, inout half4 FinalColor)
     {
         o.Albedo += _TextureSampleAdd;
         o.Albedo *= _Color.rgb;

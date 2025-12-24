@@ -1,0 +1,117 @@
+%Properties()
+{
+    UI_MaskedTweaksHeader("# Masked Tweaks", Int) = 1
+    [Toggle(MASKED_TWEAKS)]_MaskedTweaksEnabled("Enable Masked Tweaks", Int) = 0
+    _MaskedTweaksMap("Masked Tweaks Map %ShowIf(MASKED_TWEAKS)", 2D) = "black" {}
+
+    UI_MaskedTweaksColorHeader("## Colors %ShowIf(MASKED_TWEAKS)", Int) = 1
+    [ToggleUI]_MaskedTweaksColor("Swap Colors %ShowIf(MASKED_TWEAKS)", Int) = 0
+    [HDR]_MaskedTweaksRed("Red Mask Color %ShowIf(_MaskedTweaksColor && MASKED_TWEAKS)", Color) = (0.932,0.231,0.278,1)
+    [HDR]_MaskedTweaksGreen("Green Mask Color %ShowIf(_MaskedTweaksColor && MASKED_TWEAKS)", Color) = (0.0574,0.214,0.0318,1)
+    [HDR]_MaskedTweaksBlue("Blue Mask Color %ShowIf(_MaskedTweaksColor && MASKED_TWEAKS)", Color) = (0.0239,0.0815,0.401,1)
+    [HDR]_MaskedTweaksAlpha("Alpha Mask Color %ShowIf(_MaskedTweaksColor && MASKED_TWEAKS)", Color) = (1,1,1,0)
+    
+    [ToggleUI]_MaskedTweaksHSV("HSV Adjustment %ShowIf(MASKED_TWEAKS)", Int) = 0
+    UI_MaskedTweaksHSVRedHeader("### Red Mask Channel %ShowIf(_MaskedTweaksHSV && MASKED_TWEAKS)", Int) = 1
+    _MaskedTweaksHSVRedStrength("Adjustment Strength %ShowIf(_MaskedTweaksHSV && MASKED_TWEAKS)", Range(0,1)) = 1
+    _MaskedTweaksRedHSV("Red Mask HSV %ShowIf(_MaskedTweaksHSV && MASKED_TWEAKS) %Vector3(Hue, Saturation, Value)", Vector) = (0,0,0,0)
+    UI_MaskedTweaksHSVGreenHeader("### Green Mask Channel %ShowIf(_MaskedTweaksHSV && MASKED_TWEAKS)", Int) = 1
+    _MaskedTweaksHSVGreenStrength("Adjustment Strength %ShowIf(_MaskedTweaksHSV && MASKED_TWEAKS)", Range(0,1)) = 1
+    _MaskedTweaksGreenHSV("Green Mask HSV %ShowIf(_MaskedTweaksHSV && MASKED_TWEAKS) %Vector3(Hue, Saturation, Value)", Vector) = (0,0,0,0)
+    UI_MaskedTweaksHSVBlueHeader("### Blue Mask Channel %ShowIf(_MaskedTweaksHSV && MASKED_TWEAKS)", Int) = 1
+    _MaskedTweaksHSVBlueStrength("Adjustment Strength %ShowIf(_MaskedTweaksHSV && MASKED_TWEAKS)", Range(0,1)) = 1
+    _MaskedTweaksBlueHSV("Blue Mask HSV %ShowIf(_MaskedTweaksHSV && MASKED_TWEAKS) %Vector3(Hue, Saturation, Value)", Vector) = (0,0,0,0)
+    UI_MaskedTweaksHSVAlphaHeader("### Alpha Mask Channel %ShowIf(_MaskedTweaksHSV && MASKED_TWEAKS)", Int) = 1
+    _MaskedTweaksHSVAlphaStrength("Adjustment Strength %ShowIf(_MaskedTweaksHSV && MASKED_TWEAKS)", Range(0,1)) = 0
+    _MaskedTweaksAlphaHSV("Alpha Mask HSV %ShowIf(_MaskedTweaksHSV && MASKED_TWEAKS) %Vector3(Hue, Saturation, Value)", Vector) = (0,0,0,0)
+
+    UI_MaskedTweaksSmoothnessHeader("## Smoothness %ShowIf(MASKED_TWEAKS)", Int) = 1
+    [ToggleUI]_MaskedTweaksSmoothness("Tweak Smoothness %ShowIf(MASKED_TWEAKS)", Int) = 0
+    [ToggleUI]_MaskedTweaksSmoothnessOffset("Offset Smoothness %ShowIf(_MaskedTweaksSmoothness && MASKED_TWEAKS)", Int) = 0
+    _MaskedTweaksRedSmoothness("Red Mask Smoothness %ShowIf(_MaskedTweaksSmoothness && MASKED_TWEAKS)", Range(-1,1)) = 0.5
+    _MaskedTweaksGreenSmoothness("Green Mask Smoothness %ShowIf(_MaskedTweaksSmoothness && MASKED_TWEAKS)", Range(-1,1)) = 0.5
+    _MaskedTweaksBlueSmoothness("Blue Mask Smoothness %ShowIf(_MaskedTweaksSmoothness && MASKED_TWEAKS)", Range(-1,1)) = 0.5
+    _MaskedTweaksAlphaSmoothness("Alpha Mask Smoothness %ShowIf(_MaskedTweaksSmoothnessOffset && _MaskedTweaksSmoothness && MASKED_TWEAKS)", Range(-1,1)) = 0.5
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment MASKED_TWEAKS
+}
+
+%Variables()
+{
+    #if defined(MASKED_TWEAKS)
+    half4 _MaskedTweaksMap_ST;
+
+    int _MaskedTweaksColor;
+    half4 _MaskedTweaksRed;
+    half4 _MaskedTweaksGreen;
+    half4 _MaskedTweaksBlue;
+    half4 _MaskedTweaksAlpha;
+
+    int _MaskedTweaksHSV;
+    half _MaskedTweaksHSVRedStrength;
+    half3 _MaskedTweaksRedHSV;
+    half _MaskedTweaksHSVGreenStrength;
+    half3 _MaskedTweaksGreenHSV;
+    half _MaskedTweaksHSVBlueStrength;
+    half3 _MaskedTweaksBlueHSV;
+    half _MaskedTweaksHSVAlphaStrength;
+    half3 _MaskedTweaksAlphaHSV;
+
+    int _MaskedTweaksSmoothness;
+    int _MaskedTweaksSmoothnessOffset;
+    half _MaskedTweaksRedSmoothness;
+    half _MaskedTweaksGreenSmoothness;
+    half _MaskedTweaksBlueSmoothness;
+    half _MaskedTweaksAlphaSmoothness;
+    #endif
+}
+
+%Textures()
+{
+    #if defined(MASKED_TWEAKS)
+    TEXTURE2D(_MaskedTweaksMap);
+    SAMPLER(sampler_MaskedTweaksMap);
+    #endif
+}
+
+%Fragment("MaskedTweaksFragment")
+{
+    void MaskedTweaksFragment(MeshData d, inout SurfaceData o)
+    {
+        #if defined(MASKED_TWEAKS)
+        half4 mask = SAMPLE_TEXTURE2D(_MaskedTweaksMap, sampler_MaskedTweaksMap, d.uv0.xy * _MaskedTweaksMap_ST.xy + _MaskedTweaksMap_ST.zw);
+        if (_MaskedTweaksColor) {
+            o.Albedo = lerp(o.Albedo, _MaskedTweaksRed, mask.r * _MaskedTweaksRed.a);
+            o.Albedo = lerp(o.Albedo, _MaskedTweaksGreen, mask.g * _MaskedTweaksGreen.a);
+            o.Albedo = lerp(o.Albedo, _MaskedTweaksBlue, mask.b * _MaskedTweaksBlue.a);
+            o.Albedo = lerp(o.Albedo, _MaskedTweaksAlpha, mask.a * _MaskedTweaksAlpha.a);
+        }
+        
+        if (_MaskedTweaksHSV) {
+            half3 albedoHSV = RGB2HSV(o.Albedo);
+            albedoHSV = lerp(albedoHSV, HSVAdjust(albedoHSV, _MaskedTweaksRedHSV), mask.r * _MaskedTweaksHSVRedStrength);
+            albedoHSV = lerp(albedoHSV, HSVAdjust(albedoHSV, _MaskedTweaksGreenHSV), mask.g * _MaskedTweaksHSVGreenStrength);
+            albedoHSV = lerp(albedoHSV, HSVAdjust(albedoHSV, _MaskedTweaksBlueHSV), mask.b * _MaskedTweaksHSVBlueStrength);
+            albedoHSV = lerp(albedoHSV, HSVAdjust(albedoHSV, _MaskedTweaksAlphaHSV), mask.a * _MaskedTweaksHSVAlphaStrength);
+            o.Albedo = HSV2RGB(albedoHSV);
+        }
+
+        #if defined(ORL_LIGHTING_MODEL_PBR)
+        {
+            if (_MaskedTweaksSmoothness) {
+                o.Smoothness = lerp(o.Smoothness, saturate(_MaskedTweaksSmoothnessOffset ? (o.Smoothness + _MaskedTweaksRedSmoothness) : _MaskedTweaksRedSmoothness), mask.r);
+                o.Smoothness = lerp(o.Smoothness, saturate(_MaskedTweaksSmoothnessOffset ? (o.Smoothness + _MaskedTweaksGreenSmoothness) : _MaskedTweaksGreenSmoothness), mask.g);
+                o.Smoothness = lerp(o.Smoothness, saturate(_MaskedTweaksSmoothnessOffset ? (o.Smoothness + _MaskedTweaksBlueSmoothness) : _MaskedTweaksBlueSmoothness), mask.b);
+                if (_MaskedTweaksSmoothnessOffset)
+                {
+                    o.Smoothness = lerp(o.Smoothness, saturate(o.Smoothness + _MaskedTweaksAlphaSmoothness), mask.a);
+                }
+            }
+        }
+        #endif
+        #endif
+    }
+}

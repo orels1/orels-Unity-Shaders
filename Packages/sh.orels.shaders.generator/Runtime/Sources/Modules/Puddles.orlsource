@@ -29,7 +29,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local RAINDROPS_ENABLE
+    #pragma shader_feature_local_fragment RAINDROPS_ENABLE
 }
 
 %Variables()
@@ -123,8 +123,8 @@
         half puddlesMask = 1;
 
         if (_PuddlesMaskMappingSpace == 3) {
-            half2 uvX, uvY, uvZ;
-            half weightX, weightY, weightZ;
+            float2 uvX, uvY, uvZ;
+            float weightX, weightY, weightZ;
             GetTriplanarUV(d.worldSpacePosition.xyz * _PuddlesMask_ST.x, uvX, uvY, uvZ);
             GetTriplanarWeights(d.worldNormal, weightX, weightY, weightZ);
             puddlesMask = SAMPLE_TEXTURE2D(_PuddlesMask, sampler_PuddlesMask, uvX).r * weightX;
@@ -144,12 +144,12 @@
 
         o.Smoothness = lerp(o.Smoothness, 1, mask);
         o.Metallic = lerp(o.Metallic, 0, mask);
-        o.Normal = normalize(lerp(o.Normal, UnpackScaleNormal(half4(0.5, 0.5, 0.5, 1.0), 0), mask));
+        o.Normal = Unity_SafeNormalize(lerp(o.Normal, float4(0, 0, 1, 0), mask));
         o.Albedo = lerp(o.Albedo, o.Albedo * _PuddlesColor.rgb, mask * _PuddlesColor.a);
 
         #if defined(RAINDROPS_ENABLE)
 
-        half2 uv = 0;
+        float2 uv = 0;
 
         switch (_RaindropsMappingSpace) {
             case 0: // World Space
@@ -196,20 +196,14 @@
         sweepMask = sin(sweepMask);
         sweepMask *= (1 - time) * packed.r;
 
-        // half blendLoop = sin((_Time.y * UNITY_PI + UNITY_PI/2.0)) * 0.5 + 0.5;
-        // blendLoop = smoothstep(0, 1, blendLoop);
-
         half4 packedNormal = half4(packed.gb, 0.5, 1);
-        float3 unpackedNormal = UnpackScaleNormal(packedNormal, _RaindropsNormalStrength * sweepMask * raindropsFilter * mask);
-        // o.Normal = unpackedNormal;
-        // o.Emission = blendLoop;
-        // return;
+        float3 unpackedNormal = UnpackNormalScale(packedNormal, _RaindropsNormalStrength * sweepMask * raindropsFilter * mask);
 
         uv += half2(0.23, 1.45); //* floor(_Time.y - 0.5);
         half angle = _RaindropsLayer2Rotation * 360.0;
         half sinAngle = sin(angle);
         half cosAngle = cos(angle);
-        half2x2 rotMat = {cosAngle, sinAngle, -sinAngle, cosAngle};
+        float2x2 rotMat = {cosAngle, sinAngle, -sinAngle, cosAngle};
         uv = mul(uv, rotMat);
         
         packed = SAMPLE_TEXTURE2D(_RaindropsMap, sampler_RaindropsMap, uv);
@@ -223,7 +217,7 @@
         sweepMask *= (1 - time) * packed.r;
 
         packedNormal = half4(packed.gb, 0.5, 1);
-        float3 unpackedNormal2 = UnpackScaleNormal(packedNormal, _RaindropsNormalStrength * sweepMask * raindropsFilter * mask);
+        float3 unpackedNormal2 = UnpackNormalScale(packedNormal, _RaindropsNormalStrength * sweepMask * raindropsFilter * mask);
         
         o.Normal = BlendNormals(o.Normal, BlendNormals(unpackedNormal, unpackedNormal2));
 

@@ -5,17 +5,19 @@
     [Toggle(DETAILS_OVERLAY)]_DetailsOverlay("Enable Details", Int) = 0
     [ToggleUI]_DIgnoreMask("Ignore Mask %ShowIf(DETAILS_OVERLAY)", Int) = 0
     UI_IgnoreMaskNote("> Force-draws the detail effects %ShowIf(DETAILS_OVERLAY)", Int) = 0
-    [KeywordEnum(Packed, Separated)]DETAILS_MODE("Detail Map Mode %ShowIf(DETAILS_OVERLAY)", Int) = 0
+    [KeywordEnum(Packed, Separated)]DETAILS_MODE("Detail Map Mode %ShowIf(DETAILS_OVERLAY)", Int) = 1
     _DDetailsMap("Details Map %ShowIf(DETAILS_OVERLAY)", 2D) = "gray" { }
     UI_DetailsMapNote("> R: Albedo, G: Normal G, B: Smooth, A: Normal R. Uncheck sRGB! %ShowIf(DETAILS_OVERLAY && DETAILS_MODE_PACKED)", Int) = 0
-    UI_DetailsMapNoteSeparate("> RGB: Albedo, A: Smooth. Uncheck sRGB! %ShowIf(DETAILS_OVERLAY && DETAILS_MODE_SEPARATED)", Int) = 0
+    UI_DetailsMapNoteSeparate("> RGB: Albedo, A: Smooth %ShowIf(DETAILS_OVERLAY && DETAILS_MODE_SEPARATED)", Int) = 0
     [NoScaleOffset]_DDetailsNormal("Details Normal Map > %ShowIf(DETAILS_OVERLAY && DETAILS_MODE_SEPARATED)", 2D) = "bump" { }
     [Enum(UV, 0, Local Space, 1, World Space, 2)]_DMappingSpace("Mapping Space %ShowIf(DETAILS_OVERLAY)", Int) = 0
     [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_DUVChannel("UV Set %ShowIf(_DMappingSpace == 0 && DETAILS_OVERLAY)", Int) = 0
     [Enum(X, 0, Y, 1, Z, 2)]_DPlanarAxisX("X Axis %ShowIf(_DMappingSpace > 0 && DETAILS_OVERLAY) %CombineWith(_DPlanarAxisY)", Int) = 0
     [HideInInspector][Enum(X, 0, Y, 1, Z, 2)]_DPlanarAxisY("Y Axis", Int) = 2
     _DAlbedoScale("Albedo Scale %ShowIf(DETAILS_OVERLAY)", Range(0.0, 2.0)) = 1
-    UI_DetailAlbedoNote("> Values < 0.5 - darken, > 0.5 - lighten %ShowIf(DETAILS_OVERLAY)", Int) = 0
+    UI_DetailAlbedoNote("> Values < 0.5 - darken, > 0.5 - lighten %ShowIf(DETAILS_OVERLAY && !_DAlbedoMixingLegacy)", Int) = 0
+    UI_DAlbedoMixingLegacyNote("> Multiplies albedo by 2x the detail Albedo. Same as BIRP Standard Shader %ShowIf(DETAILS_OVERLAY && _DAlbedoMixingLegacy && DETAILS_MODE_SEPARATED)", Int) = 0
+    [ToggleUI]_DAlbedoMixingLegacy("Legacy Albedo Mixing %ShowIf(DETAILS_OVERLAY && DETAILS_MODE_SEPARATED)", Int) = 0
     _DNormalScale("Normal Scale %ShowIf(DETAILS_OVERLAY)", Range(0.0, 2.0)) = 1
     [ToggleUI]_DNormalFlipY("Flip Y (UE Mode) %ShowIf(DETAILS_OVERLAY)", Int) = 0
     _DSmoothScale("Smooth Scale %ShowIf(DETAILS_OVERLAY)", Range(0.0, 2.0)) = 1
@@ -24,8 +26,8 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local DETAILS_OVERLAY
-    #pragma shader_feature_local _ DETAILS_MODE_PACKED DETAILS_MODE_SEPARATED
+    #pragma shader_feature_local_fragment DETAILS_OVERLAY
+    #pragma shader_feature_local_fragment _ DETAILS_MODE_PACKED DETAILS_MODE_SEPARATED
 }
 
 %ShaderDefines()
@@ -37,6 +39,7 @@
 
 %Variables()
 {
+    #if defined(DETAILS_OVERLAY)
     int _DIgnoreMask;
     half4 _DDetailsMap_ST;
     int _DMappingSpace;
@@ -47,14 +50,18 @@
     half _DNormalScale;
     int _DNormalFlipY;
     half _DSmoothScale;
+    int _DAlbedoMixingLegacy;
+    #endif
 }
 
 %Textures()
 {
+    #if defined(DETAILS_OVERLAY)
     TEXTURE2D(_DDetailsMap);
     SAMPLER(sampler_DDetailsMap);
     TEXTURE2D(_DDetailsNormal);
     SAMPLER(sampler_DDetailsNormal);
+    #endif
 }
 
 %LibraryFunctions()
@@ -100,7 +107,7 @@
         #endif
 
         half mask = lerp(masks, 1, _DIgnoreMask);
-        half2 uv = d.uv0.xy;
+        float2 uv = d.uv0.xy;
         switch(_DUVChannel)
         {
             case 1: uv = d.uv1.xy; break;
@@ -118,6 +125,7 @@
         half4 detailsMap = SAMPLE_TEXTURE2D(_DDetailsMap, sampler_DDetailsMap, uv);
 
         #if defined(DETAILS_MODE_PACKED)
+        
         // 0.5 is the neutral value
         half detailAlbedo = detailsMap.r * 2.0 - 1.0;
         half detailSmooth = detailsMap.b * 2.0 - 1.0;
@@ -126,10 +134,15 @@
         {
             detailsMap.g = 1 - detailsMap.g;
         }
-        detailNormal = UnpackNormalAG(detailsMap, _DNormalScale);
+        detailNormal = UnpackNormalScale(float4(detailsMap.ag, 1, 1), _DNormalScale);
         half detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
-        #elif defined(DETAILS_MODE_SEPARATED)
-        half3 detailAlbedo = detailsMap.rgb * 2.0 - 1.0;
+        half3 albedoOverlay = lerp(sqrt(o.Albedo), (detailAlbedo < 0.0) ? 0.0.xxx : 1.0.xxx, detailAlbedoSpeed * detailAlbedoSpeed);
+        albedoOverlay *= albedoOverlay;
+
+        // Packed mode only supports HDRP-style albedo mixing
+        o.Albedo = lerp(o.Albedo, saturate(albedoOverlay), mask);
+
+        #elif defined(DETAILS_MODE_SEPARATED)        
         half detailSmooth = detailsMap.a * 2.0 - 1.0;
 
         half4 packedNormal = SAMPLE_TEXTURE2D(_DDetailsNormal, sampler_DDetailsNormal, uv);
@@ -137,15 +150,19 @@
         {
             packedNormal.g = 1 - packedNormal.g;
         }
-        half3 detailNormal = UnpackScaleNormal(packedNormal, _DNormalScale);
+        half3 detailNormal = UnpackNormalScale(packedNormal, _DNormalScale);
 
-        half3 detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+        // Separated mdoe supports BIRP-style 2x albedo mixing
+        if (_DAlbedoMixingLegacy) {
+            o.Albedo *= LerpWhiteTo(detailsMap.rgb * unity_ColorSpaceDouble.rgb, mask * _DAlbedoScale);
+        } else {
+            half3 detailAlbedo = detailsMap.rgb * 2.0 - 1.0;
+            half3 detailAlbedoSpeed = saturate(abs(detailAlbedo) * _DAlbedoScale);
+            half3 albedoOverlay = lerp(sqrt(o.Albedo), (detailAlbedo < 0.0) ? 0.0.xxx : 1.0.xxx, detailAlbedoSpeed * detailAlbedoSpeed);
+            albedoOverlay *= albedoOverlay;
+            o.Albedo = lerp(o.Albedo, saturate(albedoOverlay), mask);
+        }
         #endif
-
-        // do the albedo details
-        half3 albedoOverlay = lerp(sqrt(o.Albedo), (detailAlbedo < 0.0) ? 0.0.xxx : 1.0.xxx, detailAlbedoSpeed * detailAlbedoSpeed);
-        albedoOverlay *= albedoOverlay;
-        o.Albedo = lerp(o.Albedo, saturate(albedoOverlay), mask);
 
         // do the smooth details
         half detailSmoothSpeed = saturate(abs(detailSmooth) * _DSmoothScale);

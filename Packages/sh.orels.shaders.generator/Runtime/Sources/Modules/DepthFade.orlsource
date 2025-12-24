@@ -1,0 +1,63 @@
+%Properties()
+{
+    UI_DepthFadeHeader("# Depth Fade", Int) = 1
+    UI_DepthFadeDocs("[This module has documentation](https://shaders.orels.sh/docs/configurable-shaders/modules/depth-fade)", Int) = 0
+    [Toggle(DEPTH_FADE)]_DepthFade("Enable Depth Fade", Int) = 0
+    _DepthParticlesNearFadeDistance("Near Distance %ShowIf(DEPTH_FADE)", Float) = 0.0
+    _DepthParticlesFarFadeDistance("Far Distance %ShowIf(DEPTH_FADE)", Float) = 1.0
+    [ToggleUI]_DepthFadePremultiply("Alpha Premultiply %ShowIf(DEPTH_FADE)", Int) = 0
+}
+
+%Variables()
+{
+    float _DepthParticlesNearFadeDistance;
+    float _DepthParticlesFarFadeDistance;
+    int _DepthFadePremultiply;
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local DEPTH_FADE
+}
+
+%AdditionalFragmentData()
+{
+    float4 depthFadeParams : DEPTH_FADE_PARAMS;
+}
+
+%AdditionalMeshData()
+{
+    float4 depthFadeParams;
+}
+
+%AdditionalMeshDataCreator()
+{
+    d.depthFadeParams = i.depthFadeParams;
+}
+
+%Vertex("DepthFadeVertex")
+{
+    void DepthFadeVertex(VertexData v, inout FragmentData o)
+    {
+        #if defined(DEPTH_FADE)
+        o.depthFadeParams = GetScreenPosition(TransformObjectToHClip(v.vertex));
+        o.depthFadeParams.z = -TransformWorldToView(TransformObjectToWorld(v.vertex)).z;
+        #endif
+    }
+}
+
+%Fragment("DepthFadeFragment")
+{
+    void DepthFadeFragment(MeshData d, inout SurfaceData o)
+    {
+        #if defined(DEPTH_FADE)
+        float sceneZ = LinearEyeDepth(SampleSceneDepth(d.depthFadeParams.xy / d.depthFadeParams.w));
+        float softParticleInvFade = 1.0 / (_DepthParticlesFarFadeDistance - _DepthParticlesNearFadeDistance);
+        float fade = saturate(softParticleInvFade * ((sceneZ - _DepthParticlesNearFadeDistance) - d.depthFadeParams.z));
+        o.Alpha *= fade;
+        if (_DepthFadePremultiply) {
+            o.Albedo *= fade;
+        }
+        #endif
+    }
+}

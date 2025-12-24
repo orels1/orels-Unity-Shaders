@@ -5,6 +5,10 @@
     [Enum(Off, 0, On, 1)]_ZWrite("Depth Write", Int) = 1
     [Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("Depth Test", Int) = 4
     [ToggleUI]_IgnoreLightprobeNormal("Uniform Lightprobe Color", Int) = 0
+    [ToggleUI]_MinLight("Raise Minimum Light", Int) = 0
+    UI_MinLightNote("?> This will raise the minimum light level and make you glow in dark environments. While not accurate to any world lighting, this can be nice to have to take pictures", Int) = 0
+    _MonochromeLighting("Monochrome Lighting", Range(0,1)) = 0
+    UI_MonochromeLightingNote("?> This will make the environment lighting only control the intensity without affecting the color of your object. This is now physically accurate.", Int) = 0
 }
 
 %Includes()
@@ -13,8 +17,22 @@
     "self"
 }
 
+%ShaderFeatures()
+{
+    #pragma multi_compile _ VERTEXLIGHT_ON
+}
+
+%ShaderModifiers()
+{
+    ZTest [_ZTest]
+    ZWrite [_ZWrite]
+    Cull [_CullMode]
+}
+
 %ShaderDefines()
 {
+    #define ORL_LIGHTING_MODEL_TOON
+
     #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
         #define PLAT_QUEST
     #else
@@ -31,6 +49,8 @@
 %Variables()
 {
     int _IgnoreLightprobeNormal;
+    int _MinLight;
+    half _MonochromeLighting;
 }
 
 %Textures()
@@ -79,7 +99,8 @@
         half grayIndirect = dot(indirectDiffuse, float3(1,1,1));
         half attenFactor = lerp(attenuation, 1, smoothstep(0, 0.2, grayIndirect));
 
-        diffuse = ramp * attenFactor * half4(lightCol, 1) + indirect;
+        diffuse = ramp * attenFactor * half4(lightCol, 1);
+        diffuse += indirect;
         diffuse = albedo.xyzz * diffuse;
         return diffuse;
     }
@@ -186,7 +207,8 @@
         float3 directSpecularAniso = max(0, (D * V) * F);
 
         specular = lerp(directSpecularNonAniso, directSpecularAniso, saturate(abs(anisotropy * 100)));
-        specular = lerp(specular, smoothstep(0.5, 0.51, specular), o.SpecularSharpness) * 3 * lightColor.xyz * specularIntensity; // Multiply by 3 to bring up to brightness of standard
+        specular = lerp(specular, smoothstep(0.5, 0.51, specular), o.SpecularSharpness);
+        specular *= 3 * lightColor.xyz * specularIntensity; // Multiply by 3 to bring up to brightness of standard
         specular *= lerp(1, o.Albedo, o.SpecularAlbedoTint);
         specular = clamp(specular, 0, specularIntensity);
         return specular;
@@ -194,16 +216,18 @@
 
     half3 calcReflectionBlending(SurfaceData o, half reflectivity, half3 col, half3 indirectSpecular)
     {
-        if (o.ReflectionBlendMode == 0) { // Additive
-            col += indirectSpecular.xyzz * reflectivity;
-            return col;
-        } else if (o.ReflectionBlendMode == 1) { //Multiplicitive
-            col = lerp(col, col * indirectSpecular.xyz, reflectivity);
-            return col;
-        } else if(o.ReflectionBlendMode == 2) { //Subtractive
-            col -= indirectSpecular.xyz * reflectivity;
-            return col;
-        }
+        half3 reflection = indirectSpecular.xyzz * reflectivity;
+
+        // Doing a Lerp allows shaders to smoothly transition between blend modes
+        col = lerp(
+            col + reflection, // Additive
+            lerp(
+                lerp(col, col * indirectSpecular.xyz, reflectivity), // Multiplicitive
+                col - reflection, // Subtractive
+                saturate(o.ReflectionBlendMode - 1)
+            ),
+            saturate(o.ReflectionBlendMode)
+        );
         return col;
     }
 
@@ -302,10 +326,47 @@
             indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, unity_SHAg.xyz, lerp(o.Normal, half3(0,0.5,0), _IgnoreLightprobeNormal));
             indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, unity_SHAb.xyz, lerp(o.Normal, half3(0,0.5,0), _IgnoreLightprobeNormal));
             indirectDiffuse = max(0, indirectDiffuse);
-        #else
-            indirectDiffuse = 0;
+        #elif defined(UNITY_PASS_FORWARDBASE)
+            // This here is an attempt to provide a somewhat usable ramp for lightmaps
+            half2 lightmapUV = d.lightmapUv.xy;
+            half4 bakedColorTex = 0;
+            half3 lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
+
+            // Support basic directionality
+            #if defined(DIRLIGHTMAP_COMBINED)
+                half4 lightMapDirection = tex2DFastBicubicSample(TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap), lightmapUV);
+                
+                // use lightmap direction if we can, realtim light is ignored in that case
+                lightDir.xyz = lightMapDirection.xyz - 0.5;
+                lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
+                lightNoL = dot(o.Normal, lightDir);
+                lightLoH = dot(lightDir, lightHalfVector);
+                
+                lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
+
+                lightColor = lightMap * 0.6;
+                indirectDiffuse = lightMap * 0.4;
+            #else
+                // Hacky way to support both cases of dirlight + baked and bakedy only but no directionality
+                // baked generates a light dir of 0,1,0
+                if (dot(lightDir.xyz, half3(0,1,0)) > 0.95) {
+                    lightDir.xyz = 0;
+                    lightNoL = 1;
+                }
+                indirectDiffuse = lightMap;
+            #endif
+
+            // we can end up using this twice, once above in the Dirlight logic and once here if both a realtime light
+            // and baked lightmap are present
+            half sharp2 = o.ShadowSharpness * 0.5;
+            lightAttenuation = smoothstep(sharp, 1 - sharp, saturate(length(lightMap)));
         #endif
         indirectDiffuse *= lerp(occlusion, 1, o.OcclusionMode);
+
+        if (_MonochromeLighting > 0)
+        {
+            indirectDiffuse = lerp(indirectDiffuse, dot(indirectDiffuse, float3(0.299, 0.587, 0.114)), _MonochromeLighting);
+        }
 
         bool lightEnv = any(lightDir.xyz);
         // if there is no realtime light - we rely solely on probes
@@ -314,6 +375,10 @@
             indirectDiffuse = indirectDiffuse * 0.4;
         }
 
+        #if defined(UNITY_PASS_FORWARDBASE)
+        indirectDiffuse = lerp(indirectDiffuse, max(indirectDiffuse, 0.05), _MinLight);
+        #endif
+
         half lightAvg = (dot(indirectDiffuse.rgb, grayscaleVec) + dot(lightColor.rgb, grayscaleVec)) / 2;
 
         // Light Ramp
@@ -321,6 +386,26 @@
         half4 diffuse = 1;
         ramp = calcRamp(lightNoL, lightAttenuation, occlusion, o.OcclusionMode);
         diffuse = calcDiffuse(lightAttenuation, o.Albedo.rgb, indirectDiffuse, lightColor, ramp);
+
+        #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+        float4 vLightAttenuations = 0;
+        float4x4 vLightColors = getVertexLightsColors(d.worldSpacePosition, o.Normal, vLightAttenuations, false);
+        float4x4 vLightDirections = getVertexLightsDir(d.worldSpacePosition);
+        float4x4 vLightHalfVectors = 0;
+        float4 vLightNoLs = 0;
+        float4 vLightLoHs = 0;
+        half4 vRamp = 1;
+
+        [unroll(4)]
+        for (int i = 0; i < 4; i++)
+        {
+            vLightHalfVectors[i].rgb = Unity_SafeNormalize(vLightDirections[i] + d.worldSpaceViewDir);
+            vLightLoHs[i] = saturate(dot(vLightDirections[i], vLightHalfVectors[i]));
+            vLightNoLs[i] = saturate(dot(o.Normal, vLightDirections[i]));
+            vRamp = calcRamp(vLightNoLs[i], vLightAttenuations[i], occlusion, o.OcclusionMode);
+            diffuse += calcDiffuse(vLightAttenuations[i], o.Albedo.rgb, 0, vLightColors[i], vRamp);
+        }
+        #endif
 
         // Rims
         half3 rimLight = 0;
@@ -342,7 +427,17 @@
         #endif
         
         #if defined(SPECULAR_ON)
-        directSpecular = calcDirectSpecular(d, o, lightNoL, NoH, NoV, lightLoH, lightColor, lightHalfVector, o.SpecularAnisotropy) * lightNoL * occlusion * lightAttenuation;
+        directSpecular = calcDirectSpecular(d, o, lightNoL, NoH, NoV, lightLoH, lightColor, lightHalfVector, o.SpecularAnisotropy);
+        directSpecular *= lightNoL * occlusion * lightAttenuation;
+        #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+        {
+            [unroll(4)]
+            for (int i = 0; i < 4; i++)
+            {
+                directSpecular += calcDirectSpecular(d, o, vLightNoLs[i], vLightLoHs[i], NoV, vLightLoHs[i], vLightColors[i], vLightHalfVectors[i], o.SpecularAnisotropy) * vLightNoLs[i] * occlusion * vLightAttenuations[i];
+            }
+        }
+        #endif
         #endif
 
         FinalColor.rgb = diffuse.rgb * rimShadow.rgb;

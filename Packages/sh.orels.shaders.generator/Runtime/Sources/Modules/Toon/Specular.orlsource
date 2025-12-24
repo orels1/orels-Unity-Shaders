@@ -26,7 +26,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local SPECULAR_ON
+    #pragma shader_feature_local_fragment SPECULAR_ON
 }
 
 %Variables()
@@ -72,7 +72,7 @@
 
         half3 specMap = SAMPLE_TEXTURE2D(_SpecularMap, sampler_MainTex, specularUv);
         o.SpecularIntensity = max(0, _SpecularIntensity * specMap.r);
-        o.SpecularArea = max(0.01, GSAA_Filament(o.Normal, _SpecularRoughness, 0.05, 0.1) * specMap.b);
+        o.SpecularArea = max(0.01, GSAA_Filament(d.worldNormal, _SpecularRoughness, 0.05, 0.1) * specMap.b);
         o.SpecularAnisotropy = _SpecularAnisotropy;
         o.SpecularAlbedoTint = _SpecularAlbedoTint * specMap.g;
         o.SpecularSharpness = _SpecularSharpness;

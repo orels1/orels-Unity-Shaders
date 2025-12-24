@@ -1,0 +1,271 @@
+%ShaderName("orels1/Standard Hotspotting")
+%CustomEditor("ORL.ShaderInspector.InspectorGUI")
+
+%Properties()
+{
+    UI_HotspottingHeader("# Hotspotting", Int) = 1
+    _HotspotMask("Hotspot Mask > %RequiredTexture(@/Hotspot/Main_hotspot_map_smooth.png)", 2D) = "black" {}
+    _HotspotNormal("Hotspot Normal > %RequiredTexture(@/Hotspot/Main_hotspot_groove_normal.png)", 2D) = "bump" {}
+    _HotspotTilingX("Tiling X %CombineWith(_HotspotTilingY)", Float) = 1
+    [HideInInspector]_HotspotTilingY("Tiling Y", Float) = 1
+    [Enum(0 Degrees, 0, 90 Degrees, 1, 180 Degrees, 2, 270 Degrees, 3)]_HotspotRotation("Hotspot Rotation", Int) = 0
+
+    UI_HotspottingGrooveDetailHeader("# Hotspot Groove Detail", Int) = 1
+    _HotspotDirt("Dirt %RequiredTexture(@/Hotspot/Hotspot_dirt.png)", 2D) = "black" {}
+    _HotspotDirtMaskParams("Edge Masking %Vector2(Mask Min, Mask Max)", Vector) = (0, 100, 0, 0)
+    _HotspotDirtMaskNudge("Nudge %CombineWith(_HotspotDirtMaskSharpness)", Float) = 1
+    [HideInInspector]_HotspotDirtMaskSharpness("Sharpness", Float) = 1
+    _HotspotDirtMaskStrength("Dirt Mask Strength", Range(0, 1)) = 1
+    _HotspotDirtColor("Color", Color) = (0.5, 0.5, 0.5, 1)
+    [Enum(Blend, 0, Add, 1, Multiply, 2, Overlay, 3)]_HotspotDirtBlendMode("Color Blend Mode", Int) = 0
+    _HotspotDirtBlendOverlayBoost("Overlay Boost %ShowIf(_HotspotDirtBlendMode == 3)", Float) = 1.0
+    _HotspotDirtBlendFactor("Blend Amount", Range(0, 1)) = 1
+    [Enum(Add, 0, Multiply, 1)]_HotspotSmoothnessBlendMode("Smoothness Blend Mode", Int) = 0
+    _HotspotDirtSmoothnessAddModifier("Smoothness Modifier %ShowIf(_HotspotSmoothnessBlendMode == 0)", Range(-1,1)) = 0
+    _HotspotDirtSmoothnessMultiplyModifier("Smoothness Modifier %ShowIf(_HotspotSmoothnessBlendMode == 1)", Range(0, 5)) = 1
+
+    UI_HotspotGrooveAOHeader("## Groove AO", Int) = 1
+    _HotspotGrooveAO("AO Strength", Range(0,1)) = 1.0
+    _HotspotGrooveAOMaskParams("Masking %Vector2(Mask Min, Mask Max)", Vector) = (0, 100, 0, 0)
+    _HotspotGrooveAOMaskNudge("Nudge %CombineWith(_HotspotGrooveAOSharpness)", Float) = 1
+    [HideInInspector]_HotspotGrooveAOSharpness("Sharpness", Float) = 1
+
+    UI_HotspottingPerTileHeader("# Hotspot Per-Tile Variance", Int) = 1
+    [Toggle(PER_TILE_VARIANCE)]_HotspotPerTileVariance("Add per-tile variance", Int) = 0
+    UI_HotspotPerTileVarianceNote("> Adds simple per-tile material variance", Int) = 0
+    _HotspotId("Hotspot Id > %RequiredTexture(@/Hotspot/Main_spot_id_grayscale.png) %ShowIf(PER_TILE_VARIANCE)", 2D) = "black" {}
+    _HotspotVarianceOffset("Variance Offset %ShowIf(PER_TILE_VARIANCE)", Float) = 0
+    _HotspotPerTileAlbedo("Albedo Variance %ShowIf(PER_TILE_VARIANCE)", Range(0, 1)) = 0
+    _HotspotPerTileSmoothness("Smoothness Variance %ShowIf(PER_TILE_VARIANCE)", Range(0, 1)) = 0
+
+    UI_HotspottingDetailsHeader("# Hotspot Details", Int) = 1
+    [Toggle(HOTSPOT_DETAILS)]_HostpostDetails("Enable Per-Tile Details", Int) = 0
+    UI_HotspotDetailsNote("> Adds a second material layer within individual tiles", Int) = 0
+    
+    UI_HotspotDetailsMasking("## Masking %ShowIf(HOTSPOT_DETAILS)", Int) = 0
+    _HotspotDetailMaskParams("Masking %ShowIf(HOTSPOT_DETAILS) %Vector2(Mask Min, Mask Max)", Vector) = (0, 100, 0, 0)
+    _HotsportDetailMaskSharpness("Mask Sharpness %ShowIf(HOTSPOT_DETAILS)", Float) = 1
+    _HotspotDetailMaskDirtInfluence("Dirt Mask Influence %ShowIf(HOTSPOT_DETAILS)", Range(0, 1)) = 0
+    [Enum(Subtract, 0, Multiply, 1)]_HotspotDetailMaskDirtInfluenceMode("Dirt Mask Influence Mode %ShowIf(HOTSPOT_DETAILS)", Int) = 0
+    [ToggleUI]_HotspotDetailMaskDirtInvertInfleunce("Invert Dirt Mask Influence %ShowIf(HOTSPOT_DETAILS && _HotspotDetailMaskDirtInfluenceMode == 0)", Int) = 0
+
+    UI_HotspotDetailMaterial("## Material Properties %ShowIf(HOTSPOT_DETAILS)", Int) = 0
+    _HotspotDetailTintColor("Color %ShowIf(HOTSPOT_DETAILS)", Color) = (1, 1, 1, 1)
+    _HotspotDetailAlbedo("Albedo %ShowIf(HOTSPOT_DETAILS)", 2D) = "white" {}
+    _HotspotDetailMasks("Masks > %ShowIf(HOTSPOT_DETAILS)", 2D) = "black" {}
+    _HotspotDetailNormal("Normal > %ShowIf(HOTSPOT_DETAILS)", 2D) = "bump" {}
+    _HotspotDetailNormalScale("Normal Scale %ShowIf(HOTSPOT_DETAILS)", Range(-1, 1)) = 1
+    [Enum(Blend, 0, Replace, 1)]_HostpotDetailNormalBlend("Normal Blend Mode %ShowIf(HOTSPOT_DETAILS)", Int) = 0
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment HOTSPOT_DETAILS
+    #pragma shader_feature_local_fragment PER_TILE_VARIANCE
+}
+
+%ShaderTags()
+{
+    "PreviewType" = "Plane"
+}
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "self"
+}
+
+%Variables()
+{
+    int _HotspotRotation;
+    float _HotspotTilingX;
+    float _HotspotTilingY;
+
+    half _HotspotVarianceOffset;
+    half _HotspotPerTileAlbedo;
+    half _HotspotPerTileSmoothness;
+
+    half _HotspotGrooveAO;
+    float4 _HotspotGrooveAOMaskParams;
+    float _HotspotGrooveAOMaskNudge;
+    float _HotspotGrooveAOSharpness;
+    float4 _HotspotDirtMaskParams;
+    float _HotspotDirtMaskNudge;
+    float _HotspotDirtMaskSharpness;
+    half _HotspotDirtMaskStrength;
+    half4 _HotspotDirtColor;
+    half4 _HotspotDirt_ST;
+    int _HotspotDirtBlendMode;
+    half _HotspotDirtBlendOverlayBoost;
+    half _HotspotDirtBlendFactor;
+    int _HotspotSmoothnessBlendMode;
+    half _HotspotDirtSmoothnessAddModifier;
+    half _HotspotDirtSmoothnessMultiplyModifier;
+
+    int _HostpostDetails;
+    half4 _HotspotDetailMaskParams;
+    half _HotsportDetailMaskSharpness;
+    half _HotspotDetailMaskDirtInfluence;
+    int _HotspotDetailMaskDirtInfluenceMode;
+    int _HotspotDetailMaskDirtInvertInfleunce;
+    half _HotspotDetailNormalScale;
+    int _HostpotDetailNormalBlend;
+    half4 _HotspotDetailTintColor;
+    half4 _HotspotDetailAlbedo_ST;
+}
+
+%Textures()
+{
+    TEXTURE2D(_HotspotMask);
+    SAMPLER(sampler_HotspotMask);
+    TEXTURE2D(_HotspotNormal);
+    TEXTURE2D(_HotspotId);
+    TEXTURE2D(_HotspotDirt);
+
+    TEXTURE2D(_HotspotDetailNormal);
+    SAMPLER(sampler_HotspotDetailNormal);
+    TEXTURE2D(_HotspotDetailMasks);
+    SAMPLER(sampler_HotspotDetailMasks);
+    TEXTURE2D(_HotspotDetailAlbedo);
+}
+
+%Fragment("HotspottingFragment")
+{
+    void HotspottingFragment(MeshData d, inout SurfaceData o)
+    {
+        #if defined(UNITY_PASS_META)
+        return;
+        #endif
+
+        float2 uv = d.uv0.xy;
+        switch (_HotspotRotation)
+        {
+            case 1:
+                uv = uv.yx;
+                break;
+            case 2:
+                uv.y = 1 - uv.y;
+                break;
+            case 3:
+                uv = uv.yx;
+                uv.y = 1 - uv.y;
+                break;
+        }
+
+        uv.xy -= 0.5;
+        uv.xy *= float2(_HotspotTilingX, _HotspotTilingY);
+        uv.xy += 0.5;
+
+        float mask = SAMPLE_TEXTURE2D(_HotspotMask, sampler_HotspotMask, uv).r;
+
+        half grooveMask = 1 - smoothstep(_HotspotGrooveAOMaskParams.x, _HotspotGrooveAOMaskParams.y, saturate(mask * _HotspotGrooveAOMaskNudge) * 100.0);
+        grooveMask = saturate(pow(grooveMask, 1.0 / _HotspotGrooveAOSharpness));
+        half dirtMask = smoothstep(_HotspotDirtMaskParams.x, _HotspotDirtMaskParams.y, mask * 100.0);
+        dirtMask = saturate(dirtMask * _HotspotDirtMaskNudge);
+        dirtMask = pow(dirtMask, _HotspotDirtMaskSharpness);
+        half2 dirtUV = uv.xy * _HotspotDirt_ST.xy + _HotspotDirt_ST.zw;
+        half3 dirt = SAMPLE_TEXTURE2D(_HotspotDirt, sampler_HotspotMask, dirtUV).r;
+        dirt = lerp(0, dirt, _HotspotDirtMaskStrength);
+
+        o.Occlusion = lerp(o.Occlusion, lerp(1, 0, _HotspotGrooveAO), grooveMask);
+
+        half3 hotspotNormal = UnpackNormalScale(SAMPLE_TEXTURE2D(_HotspotNormal, sampler_HotspotMask, uv), 1.0);
+
+        // Flip the normals for the rotations
+        switch (_HotspotRotation)
+        {
+            case 1:
+                hotspotNormal.xy = hotspotNormal.yx;
+                break;
+            case 2:
+                hotspotNormal.y *= -1.0;
+                break;
+            case 3:
+                hotspotNormal.xy = hotspotNormal.yx;
+                hotspotNormal.x *= -1.0;
+                break;
+        }
+
+        o.Normal = BlendNormals(o.Normal, hotspotNormal);
+
+        #if defined(HOTSPOT_DETAILS)
+        {
+            half detailsMask = smoothstep(_HotspotDetailMaskParams.x, _HotspotDetailMaskParams.y, mask * 100.0);
+            if (_HotspotDetailMaskDirtInfluenceMode == 0) {
+                if (_HotspotDetailMaskDirtInvertInfleunce) {
+                    detailsMask = saturate(detailsMask - lerp(0, dirt, _HotspotDetailMaskDirtInfluence));
+                } else {
+                    detailsMask = 1 - saturate(((1 - detailsMask) - lerp(0, dirt, _HotspotDetailMaskDirtInfluence)));
+                }
+            } else {
+                detailsMask = saturate(detailsMask * lerp(1, dirt, _HotspotDetailMaskDirtInfluence));
+            }
+            detailsMask = saturate(pow(detailsMask, _HotsportDetailMaskSharpness));
+
+            half2 detailNormalUV = uv.xy * _HotspotDetailAlbedo_ST.xy + _HotspotDetailAlbedo_ST.zw;
+            half4 detailNormal = SAMPLE_TEXTURE2D(_HotspotDetailNormal, sampler_HotspotDetailNormal, detailNormalUV);
+
+            if (_HostpotDetailNormalBlend == 0) {
+                // Blend the detail normals with the base layer normals
+                o.Normal = BlendNormals(o.Normal, UnpackNormalScale(detailNormal, _HotspotDetailNormalScale * detailsMask));
+            } else {
+                // Replace the base layer normals with the detail normals blended with the hotspot edges
+                o.Normal = normalize(
+                    lerp(
+                        o.Normal,
+                        BlendNormals(hotspotNormal, UnpackNormalScale(detailNormal, _HotspotDetailNormalScale)),
+                    detailsMask)
+                );
+            }
+
+            half2 detailMasksUV = uv.xy * _HotspotDetailAlbedo_ST.xy + _HotspotDetailAlbedo_ST.zw;
+            half4 detailMasks = SAMPLE_TEXTURE2D(_HotspotDetailMasks, sampler_HotspotDetailMasks, detailMasksUV);
+            o.Metallic = lerp(o.Metallic, detailMasks.r, detailsMask);
+            o.Smoothness = lerp(o.Smoothness, detailMasks.a, detailsMask);
+            o.Occlusion = lerp(o.Occlusion, detailMasks.g, detailsMask);
+
+            half2 detailAlbedoUV = uv.xy * _HotspotDetailAlbedo_ST.xy + _HotspotDetailAlbedo_ST.zw;
+            half3 detailAlbedo = SAMPLE_TEXTURE2D(_HotspotDetailAlbedo, sampler_HotspotDetailMasks, detailAlbedoUV).rgb;
+
+            o.Albedo = lerp(o.Albedo, detailAlbedo * _HotspotDetailTintColor.rgb, detailsMask);
+        }
+        #endif
+
+        #if defined(PER_TILE_VARIANCE)
+        {
+            half variance = SAMPLE_TEXTURE2D(_HotspotId, sampler_HotspotMask, uv.xy).r * 2.0;
+            variance = frac(variance + _HotspotVarianceOffset);
+            variance = variance * 2.0 - 1.0;
+            o.Albedo = lerp(o.Albedo, saturate(o.Albedo + variance), _HotspotPerTileAlbedo);
+            o.Smoothness = lerp(o.Smoothness, saturate(o.Smoothness - variance), _HotspotPerTileSmoothness);
+        }
+        #endif
+
+        // Dirt is overlayed on top 
+        dirtMask = saturate((1 - dirtMask) - dirt);
+
+        // Perform dirt albedo blending
+        half3 newAlbedo = lerp(o.Albedo, _HotspotDirtColor, dirtMask * _HotspotDirtBlendFactor);
+        switch (_HotspotDirtBlendMode)
+        {
+            case 1:
+                newAlbedo = lerp(o.Albedo, saturate(o.Albedo + _HotspotDirtColor), dirtMask * _HotspotDirtBlendFactor);
+                break;
+            case 2:
+                newAlbedo = lerp(o.Albedo, saturate(o.Albedo * _HotspotDirtColor), dirtMask * _HotspotDirtBlendFactor);
+                break;
+            case 3:
+                newAlbedo = lerp(o.Albedo, saturate(BlendOverlay(o.Albedo, _HotspotDirtColor * _HotspotDirtBlendOverlayBoost)), dirtMask * _HotspotDirtBlendFactor);
+                break;
+        }
+
+        o.Albedo = newAlbedo;
+        
+        // Perform dirt smoothness blending
+        o.Smoothness = lerp(
+            lerp(o.Smoothness, saturate(o.Smoothness + _HotspotDirtSmoothnessAddModifier), dirtMask),
+            lerp(o.Smoothness, saturate(o.Smoothness * _HotspotDirtSmoothnessMultiplyModifier), dirtMask),
+            _HotspotSmoothnessBlendMode
+        );
+    }
+}

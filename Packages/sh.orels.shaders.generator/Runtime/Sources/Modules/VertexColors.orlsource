@@ -1,0 +1,66 @@
+%Properties()
+{
+    UI_VertexColorsHeader("# Vertex Colors", Int) = 1
+    UI_VertexColorsDocs("[This module has documentation](https://shaders.orels.sh/docs/configurable-shaders/modules/vertex-colors)", Int) = 0
+    UI_VertexColorsNote("> Select which material parameters will be affected by vertex colors", Int) = 0
+    [ToggleUI]_VCAlbedo("Albedo", Int) = 0
+    _VCAlbedoStrength("Albedo Strength %ShowIf(_VCAlbedo)", Range(0, 1)) = 1
+    [ToggleUI]_VCAlpha("Alpha", Int) = 0
+    _VCAlphaStrength("Alpha Strength %ShowIf(_VCAlpha) %CombineWith(_VCAlphaChannel)", Range(0, 1)) = 1
+    [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)]_VCAlphaChannel("Channel %ShowIf(_VCAlpha)", Int) = 3
+    [ToggleUI]_VCAlphaPremultiply("Alpha Premultiply %ShowIf(_VCAlpha)", Int) = 0
+    [ToggleUI]_VCEmission("Emission", Int) = 0
+    _VCEmissionStrength("Emission Strength %ShowIf(_VCEmission)", Range(0, 1)) = 1
+    [ToggleUI]_VCMetallic("Metallic", Int) = 0
+    _VCMetallicStrength("Metallic Strength %ShowIf(_VCMetallic) %CombineWith(_VCMetallicMapChannel)", Range(0, 1)) = 1
+    [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)]_VCMetallicMapChannel("Channel %ShowIf(_VCMetallic)", Int) = 0
+    [ToggleUI]_VCSmoothness("Smoothness", Int) = 0
+    _VCSmoothnessStrength("Smoothness Strength %ShowIf(_VCSmoothness) %CombineWith(_VCSmoothnessMapChannel)", Range(0, 1)) = 1
+    [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)]_VCSmoothnessMapChannel("Channel %ShowIf(_VCSmoothness)", Int) = 0
+    [ToggleUI]_VCOcclusion("Occlusion", Int) = 0
+    _VCOcclusionStrength("Occlusion Strength %ShowIf(_VCOcclusion) %CombineWith(_VCOcclusionMapChannel)", Range(0, 1)) = 1
+    [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)]_VCOcclusionMapChannel("Channel %ShowIf(_VCOcclusion)", Int) = 0
+}
+
+%Variables()
+{
+    int _VCAlbedo;
+    half _VCAlbedoStrength;
+    int _VCAlpha;
+    half _VCAlphaStrength;
+    int _VCAlphaChannel;
+    int _VCAlphaPremultiply;
+    int _VCEmission;
+    half _VCEmissionStrength;
+    int _VCMetallic;
+    half _VCMetallicStrength;
+    int _VCMetallicMapChannel;
+    int _VCSmoothness;
+    half _VCSmoothnessStrength;
+    int _VCSmoothnessMapChannel;
+    int _VCOcclusion;
+    half _VCOcclusionStrength;
+    int _VCOcclusionMapChannel;
+}
+
+%ShaderDefines()
+{
+    #define NEED_ALBEDO_ALPHA
+}
+
+%Fragment("VertexColorsFragment")
+{
+    void VertexColorsFragment(MeshData d, inout SurfaceData o)
+    {
+        if (_VCAlbedo) o.Albedo = lerp(o.Albedo, o.Albedo * d.vertexColor.rgb, _VCAlbedoStrength);
+        if (_VCAlpha) o.Alpha = lerp(o.Alpha, o.Alpha * d.vertexColor[_VCAlphaChannel], _VCAlphaStrength);
+        if (_VCAlphaPremultiply) o.Albedo *= lerp(1, d.vertexColor[_VCAlphaChannel], _VCAlphaStrength);
+        if (_VCEmission) o.Emission = lerp(o.Emission, o.Emission * d.vertexColor.rgb, _VCEmissionStrength);
+
+        #if !defined(ORL_LIGHTING_MODEL_VFX)
+        if (_VCMetallic) o.Metallic = lerp(o.Metallic, o.Metallic * d.vertexColor[_VCMetallicMapChannel], _VCMetallicStrength);
+        if (_VCSmoothness) o.Smoothness = lerp(o.Smoothness, o.Smoothness * d.vertexColor[_VCSmoothnessMapChannel], _VCSmoothnessStrength);
+        if (_VCOcclusion) o.Occlusion = lerp(o.Occlusion, o.Occlusion * d.vertexColor[_VCOcclusionMapChannel], _VCOcclusionStrength);
+        #endif
+    }    
+}

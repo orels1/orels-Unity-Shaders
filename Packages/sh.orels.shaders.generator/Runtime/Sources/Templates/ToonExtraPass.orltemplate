@@ -1,0 +1,106 @@
+Pass
+{
+    Name %PassName
+    Tags { "LightMode" = "ForwardBase" %PassTags }
+    %PassModifiers
+
+    // ForwardBase Pass Start
+    CGPROGRAM
+    #pragma target 4.5
+    #pragma multi_compile_instancing
+    #pragma multi_compile_fwdbase
+    #pragma multi_compile_fog
+    #pragma vertex Vertex
+    #pragma fragment Fragment
+    
+    %ShaderFeatures
+
+    #define UNITY_INSTANCED_LOD_FADE
+    #define UNITY_INSTANCED_SH
+    #define UNITY_INSTANCED_LIGHTMAPSTS
+
+    #ifndef UNITY_PASS_FORWARDBASE
+        #define UNITY_PASS_FORWARDBASE
+    #endif
+
+    // ShaderDefines
+    %ShaderDefines
+    // DataStructs
+    %DataStructs
+    // GlobalVariables
+    %GlobalVariables
+
+    // Variables
+    %Variables
+
+    // Textures
+    %Textures
+
+    // PassFunctions
+    %PassFunctions
+
+    // Functions
+    %Functions
+
+    // Free Functions
+    %FreeFunctions
+
+    // ExtraPass Vertex
+    #if !defined(TESS_ENABLED)
+    FragmentData Vertex(VertexData v)
+    {
+        UNITY_SETUP_INSTANCE_ID(v);
+        FragmentData o;
+        UNITY_INITIALIZE_OUTPUT(FragmentData, o);
+        UNITY_TRANSFER_INSTANCE_ID(v, o);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+        // ExtraPass Vertex Chain
+        %VertexFunctions
+
+        // ExtraPass VertexBase
+        %VertexBase
+
+        // ExtraPass PostVertex Chain
+        %PostVertexFunctions
+
+        return o;
+    }
+    #endif
+
+    // ExtraPass Fragment
+    half4 Fragment(FragmentData i, bool facing: SV_IsFrontFace) : SV_TARGET
+    {
+        UNITY_SETUP_INSTANCE_ID(i);
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+        #ifdef FOG_COMBINED_WITH_TSPACE
+            UNITY_EXTRACT_FOG_FROM_TSPACE(i);
+        #elif defined(FOG_COMBINED_WITH_WORLD_POS)
+            UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
+        #elif !defined(FOG_DISABLED)
+            UNITY_EXTRACT_FOG(i);
+        #endif
+
+        SurfaceData o = CreateSurfaceData();
+        MeshData d = CreateMeshData(i, facing);
+        half4 FinalColor = 1;
+
+        // ExtraPass Fragment Chain
+        %FragmentFunctions
+
+        // ExtraPass FragmentBase
+        %FragmentBase
+
+        #if !defined(FOG_DISABLED)
+        UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+        #endif
+        
+        // ExtraPass Color Chain
+        %ColorFunctions
+
+        return FinalColor;
+    }
+
+    ENDCG
+    // ExtraPass Pass End
+}

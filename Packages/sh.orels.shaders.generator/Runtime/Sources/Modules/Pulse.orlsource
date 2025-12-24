@@ -16,7 +16,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local PULSE_SHOW_GRAD
+    #pragma shader_feature_local_fragment PULSE_SHOW_GRAD
 }
 
 %Variables()
@@ -58,7 +58,7 @@
                     case 0: gradSource = d.localSpacePosition[(_PulseGradientDirection % totalChannels)] * (_PulseGradientDirection > 2 ? -1 : 1); break;
                     case 1: gradSource = d.uv0[(_PulseGradientDirection % totalChannels)] * (_PulseGradientDirection > 2 ? -1 : 1); break;
                     case 2: {
-                        half2 uv = d.uv0 * _PulseTexture_ST.xy + _PulseTexture_ST.zw;
+                        float2 uv = d.uv0 * _PulseTexture_ST.xy + _PulseTexture_ST.zw;
                         gradSource = SAMPLE_TEXTURE2D(_PulseTexture, sampler_PulseTexture, uv)[(_PulseGradientDirection % totalChannels)] * (_PulseGradientDirection > 2 ? -1 : 1);
                         break;
                     }

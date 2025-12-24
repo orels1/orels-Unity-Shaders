@@ -16,13 +16,13 @@ namespace ORL.Drawers
         // Matches "Gradient((0,0,0,1), (1,1,1,1))"
         // Or "Gradient()"
         private Regex _matcher = new Regex(@"%Gradient\(((?<startColor>\([\,\s\d]+\)),\s?(?<endColor>\([\,\s\d]+\)))?\)");
-        
-        public string[] PersistentKeys => new [] { "Gradient_" };
-        
+
+        public string[] PersistentKeys => new[] { "Gradient_" };
+
         public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next)
         {
             if (EditorGUI.indentLevel == -1) return true;
-            
+
             var match = _matcher.Match(property.displayName);
             var groups = match.Groups.Cast<Group>().Where(g => !string.IsNullOrEmpty(g.Value)).ToList();
             groups.RemoveAt(0);
@@ -43,14 +43,14 @@ namespace ORL.Drawers
                 var color = val.Value.Trim('(', ')').Split(',');
                 endColor = new Color(float.Parse(color[0]), float.Parse(color[1]), float.Parse(color[2]), float.Parse(color[3]));
             }
-            
+
             var strippedName = Utils.StripInternalSymbols(property.displayName);
             var uiKey = "Gradient_" + strippedName;
-            var savedGradient = uiState.ContainsKey(uiKey) ? (Gradient) uiState[uiKey] : null;
+            var savedGradient = uiState.ContainsKey(uiKey) ? (Gradient)uiState[uiKey] : null;
             var hasSavedGradient = savedGradient != null;
 
             EditorGUI.BeginChangeCheck();
-            
+
             var baseRect = EditorGUILayout.GetControlRect();
             var texRect = baseRect;
             texRect.width = 20f;
@@ -60,8 +60,8 @@ namespace ORL.Drawers
             labelRect.width = Mathf.Min(150f, EditorStyles.label.CalcSize(new GUIContent(strippedName)).x + 20f * EditorGUIUtility.pixelsPerPoint);
             EditorGUI.LabelField(labelRect, strippedName);
             var gradRect = baseRect;
-            gradRect.xMin = EditorGUIUtility.labelWidth + 6.0f;
-            gradRect.width = EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth - 28f;
+            gradRect.xMin = EditorGUIUtility.labelWidth + 34.0f;
+            gradRect.width = EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth - 38f;
             gradRect.width /= 2f;
             gradRect.width -= 5f;
             Gradient grad;
@@ -71,14 +71,15 @@ namespace ORL.Drawers
                 if (hasSavedGradient)
                 {
                     oldGradCopy.SetKeys(savedGradient.colorKeys, savedGradient.alphaKeys);
+                    oldGradCopy.mode = savedGradient.mode;
                 }
                 else
                 {
-                    oldGradCopy.SetKeys(new []
+                    oldGradCopy.SetKeys(new[]
                     {
                         new GradientColorKey(startColor, 0f),
                         new GradientColorKey(endColor, 1f)
-                    }, new []
+                    }, new[]
                     {
                         new GradientAlphaKey(startColor.a, 0),
                         new GradientAlphaKey(endColor.a, 1)
@@ -137,7 +138,7 @@ namespace ORL.Drawers
             }
             return true;
         }
-        
+
         private Texture2D GenerateGradient(Gradient gradient)
         {
             var newTex = new Texture2D(256, 4, TextureFormat.RGBA32, false);
@@ -187,5 +188,5 @@ namespace ORL.Drawers
             return exported;
         }
     }
-    
+
 }

@@ -1,9 +1,9 @@
-%ShaderName("orels1/Standard Cutout")
+%ShaderName("orels1/Standard Foliage")
 %CustomEditor("ORL.ShaderInspector.InspectorGUI")
 
 %Properties()
 {
-    UI_CutoutHeader("# Cutout", Int) = 1
+    UI_CutoutHeader("# Foliage", Int) = 1
     _Cutoff("Cutoff", Range(0, 1)) = 0.5
     [Toggle(_NATIVE_A2C)]_AlphaToMask("Alpha To Coverage (A2C)", Int) = 0
     [Toggle(DITHER_FADE)]_EnableDitherFade("Enable Dither Fade", Int) = 0
@@ -19,7 +19,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local _NATIVE_A2C
+    #pragma shader_feature_local_fragment _NATIVE_A2C
 }
 
 %ShaderDefines()
@@ -29,7 +29,7 @@
 
 %ShaderTags()
 {
-    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout"
+    "Queue" = "AlphaTest" "RenderType" = "TransparentCutout" "ORL_RenderType" = "Cutout"
 }
 
 %PassModifiers()
@@ -45,7 +45,7 @@
 %Fragment("CutoutFragment")
 {
     void CutoutFragment(inout SurfaceData o) {
-        #if defined(_NATIVE_A2C) && defined(UNITY_PASS_FORWARDBASE)
+        #if defined(_NATIVE_A2C) && (defined(UNITY_PASS_FORWARDBASE))
         
         half antiAliased = o.Alpha - 0.5;
         antiAliased /= max(0.0001, fwidth(o.Alpha));
@@ -54,7 +54,7 @@
 
         #endif
         
-        #if !defined(_NATIVE_A2C) || !defined(UNITY_PASS_FORWARDBASE)
+        #if !defined(_NATIVE_A2C) || (!defined(UNITY_PASS_FORWARDBASE))
         if (o.Alpha < _Cutoff)  {
             clip(-1);
         }
@@ -65,9 +65,21 @@
 %Shadow("CutoutShadow")
 {
     void CutoutShadow(FragmentData i) {
-        half alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv0.xy).a;
+        half alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv0.xy * _MainTex_ST.xy + _MainTex_ST.zw).a;
         if (alpha < _Cutoff)  {
             clip(-1);
         }
+    }
+}
+
+%Color("CutoutColor")
+{
+    void CutoutColor(SurfaceData o, inout half4 FinalColor)
+    {
+        #if defined(_NATIVE_A2C)
+        {
+            FinalColor.a = o.Alpha;
+        }
+        #endif
     }
 }

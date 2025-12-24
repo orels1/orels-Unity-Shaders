@@ -8,6 +8,7 @@
     [ToggleUI]_UseTrailColor("Use Trail Color", Int) = 0
     UI_UseTrailColorNote("> This will ignore the Color option above and use the trail gradient", Int) = 0
     _ColorBoost("Color Boost %ShowIf(_UseTrailColor)", Float) = 1
+    [ToggleUI]_LinearColor("Linear Trail Color %ShowIf(_UseTrailColor)", Int) = 0
 
     UI_NoiseControlHeader("# Noise Control", Int) = 1
     [Enum(World, 0, Local, 1, UV, 2)]_NoiseSpace("Noise Coordinate Space", Int) = 0
@@ -39,7 +40,7 @@
 
 %ShaderTags()
 {
-    "Queue" = "Transparent" "RenderType" = "Transparent" "IgnoreProjector" = "True"
+    "Queue" = "Transparent" "RenderType" = "Transparent" "IgnoreProjector" = "True" "ORL_RenderType" = "Fade"
 }
 
 %ShaderModifiers()
@@ -53,6 +54,7 @@
 {
     half4 _Color;
     int _UseTrailColor;
+    int _LinearColor;
     half _ColorBoost;
     half _Scale;
     half _ScaleY;
@@ -88,37 +90,33 @@
             -0.80, 0.36, -0.48,
             -0.60, -0.48, 0.64
         };
-        half3 scale = float3(
-            length(unity_ObjectToWorld._m00_m10_m20),
-            length(unity_ObjectToWorld._m01_m11_m21),
-            length(unity_ObjectToWorld._m02_m12_m22)
-        );
-        half3 pos = _NoiseSpace ? (_NoiseSpace == 2 ? d.uv0.xyx : d.localSpacePosition) : d.worldSpacePosition;
-        half3 convertedScroll1Dir = _Noise1ScrollSpace ? (_Noise1ScrollSpace == 2 ? _Noise1Scroll.xyz : mul(unity_ObjectToWorld, half4(_Noise1Scroll.xyz / scale, 0)).xyz) : _Noise1Scroll.xyz;
+        float3 scale = GetObjectScale();
+        float3 pos = _NoiseSpace ? (_NoiseSpace == 2 ? d.uv0.xyx : d.localSpacePosition) : d.worldSpacePosition;
+        half3 convertedScroll1Dir = _Noise1ScrollSpace ? (_Noise1ScrollSpace == 2 ? _Noise1Scroll.xyz : TransformObjectToWorld(_Noise1Scroll.xyz / scale)) : _Noise1Scroll.xyz;
         pos += _Time.y * convertedScroll1Dir;
         pos *= _Scale;
         if (_Noise1ScrollSpace == 2) {
             pos.y *= _ScaleY;
         }
-        half noise = 0.5 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
+        half noise = 0.5 * getBakedNoise(TEXTURE2D_ARGS(_NoiseTex, sampler_NoiseTex), pos);
         pos = mul(pos, noiseTransMatrix) * 2.01;
-        noise += 0.25 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
+        noise += 0.25 * getBakedNoise(TEXTURE2D_ARGS(_NoiseTex, sampler_NoiseTex), pos);
         pos = mul(pos, noiseTransMatrix) * 2.02;
-        noise += 0.125 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
+        noise += 0.125 * getBakedNoise(TEXTURE2D_ARGS(_NoiseTex, sampler_NoiseTex), pos);
         
         pos = _NoiseSpace ? (_NoiseSpace == 2 ? d.uv0.xyx : d.localSpacePosition) : d.worldSpacePosition;
-        half3 convertedScroll2Dir = _Noise2ScrollSpace ? (_Noise2ScrollSpace == 2 ? _Noise2Scroll.xyz : mul(unity_ObjectToWorld, half4(_Noise2Scroll.xyz / scale , 0)).xyz) : _Noise2Scroll.xyz;
+        half3 convertedScroll2Dir = _Noise2ScrollSpace ? (_Noise2ScrollSpace == 2 ? _Noise2Scroll.xyz : TransformObjectToWorld(_Noise2Scroll.xyz / scale)) : _Noise2Scroll.xyz;
         pos += _Time.y * convertedScroll2Dir;
         pos *= _Scale2;
         if (_Noise1ScrollSpace == 2) {
             pos.y *= _Scale2Y;
         }
         pos += half3(0.1, 1.2, 0.7);
-        half noise2 = 0.5 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
+        half noise2 = 0.5 * getBakedNoise(TEXTURE2D_ARGS(_NoiseTex, sampler_NoiseTex), pos);
         pos = mul(pos, noiseTransMatrix) * 2.01;
-        noise2 += 0.25 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
+        noise2 += 0.25 * getBakedNoise(TEXTURE2D_ARGS(_NoiseTex, sampler_NoiseTex), pos);
         pos = mul(pos, noiseTransMatrix) * 2.02;
-        noise2 += 0.125 * getBakedNoise(_NoiseTex, sampler_NoiseTex, pos);
+        noise2 += 0.125 * getBakedNoise(TEXTURE2D_ARGS(_NoiseTex, sampler_NoiseTex), pos);
 
         noise = saturate(invLerp(_Noise1Contrast.x, _Noise1Contrast.y, noise));
         noise2 = saturate(invLerp(_Noise2Contrast.x, _Noise2Contrast.y, noise2));
@@ -130,6 +128,9 @@
         half waviness = SAMPLE_TEXTURE2D(_WavinessTex, sampler_WavinessTex, waveUv);
         waviness = saturate(invLerp(_WavinessContrast.x, _WavinessContrast.y, waviness));
         
+        if (_LinearColor) {
+            d.vertexColor.rgb = pow(d.vertexColor.rgb, 2.2);
+        }
         o.Albedo = blended * lerp(_Color.rgb, d.vertexColor.rgb * _ColorBoost, _UseTrailColor);
         o.Alpha = blended * lerp(1, d.vertexColor.a, _UseTrailColor);
         o.Alpha *= waviness;

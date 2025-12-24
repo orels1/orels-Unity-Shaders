@@ -1,6 +1,11 @@
 {
     "name": "ORL.ShaderInspector",
-    "references": [],
+    "rootNamespace": "",
+    "references": [
+        "GUID:a1653399f63795746b1857281d1e400d",
+        "GUID:7f2b18295eece7a49ab038d58f0c3037",
+        "GUID:a5857e7d50658ab468a75fe6fb42fda9"
+    ],
     "includePlatforms": [
         "Editor"
     ],
@@ -10,6 +15,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "sh.orels.shaders.generator",
+            "expression": "",
+            "define": "ORL_SHADER_GENERATOR"
+        }
+    ],
     "noEngineReferences": false
 }

@@ -16,7 +16,7 @@
 You should grab the top `.unitypackage` file from the latest release. It contains all the shaders and tools. It should be named like
 
 ```
-sh.orels.shaders-full-X.X.X.unitypackage
+sh.orels.shaders-combined-X.X.X.unitypackage
 ```
 
 ## For VCC users

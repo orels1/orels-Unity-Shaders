@@ -50,7 +50,7 @@
     void UI_ScrollerFragment(MeshData d, inout SurfaceData o) {
         GLOBAL_uv_scale = _ScrollTiling;
         GLOBAL_uv_offset = _Time.y * _ScrollSpeed.xy;
-        GLOBAL_uv_offset += ParallaxOffset(-1, _ScrollParallaxOffset, d.tangentSpaceViewDir);
+        GLOBAL_uv_offset += ParallaxOffset1Step(-1, _ScrollParallaxOffset, d.tangentSpaceViewDir);
         if (_EdgeFade) {
             half dist = RoundedBox(d.uv0 - 0.5, half2(_EdgeFadeScale, _EdgeFadeScale), _EdgeFadeRounding - 0.1);
             o.Alpha = smoothstep(dist - _EdgeFadeAmount, dist + _EdgeFadeAmount, 0.0);

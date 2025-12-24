@@ -1,4 +1,5 @@
 %ShaderName("orels1/Standard Layered Material Triplanar Effects")
+%TemplateFeatures("Stencil")
 %CustomEditor("ORL.ShaderInspector.InspectorGUI")
 
 %Includes()

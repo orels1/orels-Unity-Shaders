@@ -3,6 +3,9 @@
     UI_GlitchHeader("# Glitch Screen", Int) = 1
     UI_GlitchDocs("[This module has documentation](https://shaders.orels.sh/docs/vfx/glitch-screen)", Int) = 0
     _GlitchTexture("Base Texture", 2D) = "white" {}
+    [Toggle(SEPARATE_ALPHA)]_SeparateAlpha("Separate Transparency Texture", Int) = 0
+    _AlphaTex("Transparency %ShowIf(_SeparateAlpha)", 2D) = "white" {}
+    _AlphaScale("Alpha Scale %ShowIf(_MainTex || SEPARATE_ALPHA)", Range(0,2)) = 1
     [HDR]_PosterEmission("Emission", Color) = (1,1,1,1)
     _GlitchEffectCycleSpeed("Effects Cycle Speed", Float) = 0.5
     UI_GlitchEffectCycleNote("> Controls how often the whole effect will be switched around", Int) = 0
@@ -27,23 +30,30 @@
     _GlitchColorGlitchSpeed("Speed", Float) = 0.5
 }
 
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment SEPARATE_ALPHA
+}
+
 %Variables()
 {
-    half4 _GlitchTexture_ST;
+    float4 _GlitchTexture_ST;
+    float4 _AlphaTex_ST;
+    half _AlphaScale;
     half4 _PosterEmission;
     half _GlitchEffectCycleSpeed;
 
     int _GlitchPixelEnabled;
-    half4 _GlitchPixel_ST;
+    float4 _GlitchPixel_ST;
     float _GlitchPixelHorizontal;
     float _GlitchPixelVertical;
     half3 _GlitchColorScales;
     
-    half4 _GlitchShiftMask_ST;
+    float4 _GlitchShiftMask_ST;
     half _GlitchShiftChance;
     half _GlitchSiftRandomizationAmount;
 
-    half4 _GlitchColorGlitchMask_ST;
+    float4 _GlitchColorGlitchMask_ST;
     half _GlitchColorGlitchChance;
     half _GlitchColorGlitchSpeed;
 }
@@ -52,6 +62,7 @@
 {
     TEXTURE2D(_GlitchPixel);
     SAMPLER(sampler_GlitchPixel);
+    TEXTURE2D(_AlphaTex);
     TEXTURE2D(_GlitchShiftMask);
     SAMPLER(sampler_GlitchShiftMask);
     TEXTURE2D(_GlitchTexture);
@@ -84,7 +95,7 @@
     // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     // SOFTWARE.
-    half3 RGBPixel(Texture2D subpixel, SamplerState pixelSampler, half3 viewDir, half3 worldNormal, half2 uv, half3 sourceCol)
+    half3 RGBPixel(Texture2D subpixel, SamplerState pixelSampler, half3 viewDir, half3 worldNormal, float2 uv, half3 sourceCol)
     {
         half4 rgbpixel = subpixel.Sample(pixelSampler, uv);
 
@@ -122,24 +133,42 @@
     void GlitchFragment(MeshData d, inout SurfaceData o)
     {
         int index = floor(_Time.x * (_GlitchEffectCycleSpeed / 100.0) * 64.0 * 64.0) % (64*64);
-        half2 offset = half2(floor(index % 64.0), floor(index / 64.0)) / 64.0;
-        half4 offsetMask = SAMPLE_TEXTURE2D(_GlitchShiftMask, sampler_GlitchShiftMask, offset);
-        half2 uv = d.uv0 * _GlitchShiftMask_ST.xy + _GlitchShiftMask_ST.zw;
+        float2 offset = float2(floor(index % 64.0), floor(index / 64.0)) / 64.0;
+
+        float2 cleanUV = d.uv0;
+        float2 derivatives = float2(ddx(cleanUV.x), ddy(cleanUV.y));
+
+        half4 offsetMask = SAMPLE_TEXTURE2D_GRAD(_GlitchShiftMask, sampler_GlitchShiftMask, offset, derivatives.x, derivatives.y);
+        float2 uv = d.uv0 * _GlitchShiftMask_ST.xy + _GlitchShiftMask_ST.zw;
         uv += (offsetMask.aa - 0.5) * (10 * offsetMask.a);
-        half4 shiftMask = SAMPLE_TEXTURE2D(_GlitchShiftMask, sampler_GlitchShiftMask, uv);
+
+        cleanUV = d.uv0.x * _GlitchShiftMask_ST.xy + _GlitchShiftMask_ST.zw;
+        derivatives = float2(ddx(cleanUV.x), ddy(cleanUV.y));
+        float4 shiftMask = SAMPLE_TEXTURE2D_GRAD(_GlitchShiftMask, sampler_GlitchShiftMask, uv, derivatives.x, derivatives.y);
 
         uv = d.uv0 * _GlitchTexture_ST.xy + _GlitchTexture_ST.zw;
         if (offsetMask.a >= (1 - _GlitchShiftChance)) {
             uv.y -= saturate((frac(_Time.y * 0.2 + shiftMask.g + offsetMask.a * 0.5) % (shiftMask.b + (offsetMask.a - 0.5) * _GlitchSiftRandomizationAmount))) * shiftMask.r;
         }
-        o.Albedo = SAMPLE_TEXTURE2D(_GlitchTexture, sampler_GlitchTexture, uv);
+
+        cleanUV = d.uv0 * _GlitchTexture_ST.xy + _GlitchTexture_ST.zw;
+        derivatives = float2(ddx(cleanUV.x), ddy(cleanUV.y));
+        half4 glitchColor = SAMPLE_TEXTURE2D_GRAD(_GlitchTexture, sampler_GlitchTexture, uv, derivatives.x, derivatives.y);
+        o.Albedo = glitchColor.rgb;
+
+        
+        #if defined(SEPARATE_ALPHA) 
+        o.Alpha = saturate(SAMPLE_TEXTURE2D(_AlphaTex, sampler_GlitchTexture, d.uv0.xy * _AlphaTex_ST.xy + _AlphaTex_ST.zw).r * _AlphaScale);
+        #else
+        o.Alpha = saturate(glitchColor.a * _AlphaScale);
+        #endif
 
         uv = d.uv0 * _GlitchColorGlitchMask_ST.xy + _GlitchColorGlitchMask_ST.zw;
-        uv += half2(floor(offsetMask.a * 8) / 8.0, floor(offsetMask.a * 4) / 4.0);
+        uv += float2(floor(offsetMask.a * 8) / 8.0, floor(offsetMask.a * 4) / 4.0);
         half4 colorGlitch = SAMPLE_TEXTURE2D(_GlitchColorGlitchMask, sampler_GlitchShiftMask, uv);
 
         index = floor(_Time.x * (_GlitchColorGlitchSpeed / 10.0) * 64.0 * 64.0) % (64*64);
-        offset = half2(floor(index % 64.0), floor(index / 64.0)) / 64.0;
+        offset = float2(floor(index % 64.0), floor(index / 64.0)) / 64.0;
         half4 colorGlitchProgression = SAMPLE_TEXTURE2D(_GlitchColorGlitchMask, sampler_GlitchShiftMask, offset);
         
         uv = d.uv0;

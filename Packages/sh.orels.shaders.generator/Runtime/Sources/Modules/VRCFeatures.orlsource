@@ -17,7 +17,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local VRC_FEATURES
+    #pragma shader_feature_local_vertex VRC_FEATURES
 }
 
 %Variables()
@@ -36,22 +36,32 @@
 
 %Vertex("VRCFeaturesVertex", -100)
 {
+    bool isVR__local()
+    {
+    #if UNITY_SINGLE_PASS_STEREO
+        return true;
+    #else
+        return false;
+    #endif
+    }
+
     void VRCFeaturesVertex(inout VertexData v)
     {
         #if defined(VRC_FEATURES)
+        bool isMainView = _VRChatCameraMode == 0 && _VRChatMirrorMode == 0;
         bool isInVRHandCam = _VRChatCameraMode == 1;
         bool isInDesktopHandCam = _VRChatCameraMode == 2;
-        bool isInVR = isVR();
+        bool isInVR = isVR__local();
         bool isInDesktop = !isInVR && !isInDesktopHandCam;
         bool isInVRMirror = _VRChatMirrorMode == 1;
         bool isInDesktopMirror = _VRChatMirrorMode == 2;
 
-        if (_VRCHideInVR && isInVR)
+        if (_VRCHideInVR && isInVR && isMainView)
         {
             v.vertex = asfloat(-1);
             return;
         }
-        if (_VRCHideInDesktop && isInDesktop)
+        if (_VRCHideInDesktop && isInDesktop && isMainView)
         {
             v.vertex = asfloat(-1);
             return;

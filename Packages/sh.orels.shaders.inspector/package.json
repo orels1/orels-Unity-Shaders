@@ -2,8 +2,8 @@
   "name": "sh.orels.shaders.inspector",
   "displayName": "ORL Shader Inspector",
   "description": "A simple property-based shader inspector with extension support",
-  "version": "6.3.0",
-  "unity": "2019.4",
+  "version": "7.0.0",
+  "unity": "2022.3",
   "author": {
     "name": "orels1",
     "url": "https://github.com/orels1"
@@ -11,7 +11,8 @@
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "2.0.2"
   },
-  "documentationUrl": "https://shaders.orels.sh",
+  "documentationUrl": "https://shaders.orels.sh/docs/inspector/overview",
+  "changelogUrl": "https://shaders.orels.sh/docs/changelog",
   "keywords": [
     "shaders",
     "inspector",

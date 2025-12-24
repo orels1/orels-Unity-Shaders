@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 03d4f1b63f179364f950e5b0d8a22666
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 14030a0b230d45068f811d1ad116f246, type: 3}
+  debugBuild: 0
+  samplerCount: 0
+  textureCount: 0
+  featureCount: 0
+  Errors: []
+  ShaderName: '"orels1/Toon/v2/Transparent PrePass"'
+  LightingModel: '@/LightingModels/Toon_v2'
+  IncludedModules:
+  - Packages/sh.orels.shaders/Runtime/Shaders/Toon/ORL Toon v2 Transparent.orlshader

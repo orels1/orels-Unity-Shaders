@@ -6,20 +6,24 @@
     UI_SpinHeader("## Spin", Int) = 0
     [KeywordEnum(None, Local, World)]SPIN("Spinning", Int) = 0
     _SpinAxis("Spin Axis %ShowIf(!SPIN_NONE)", Vector) = (0, 1, 0, 0)
-    [ToggleUI]_NormalizeSpinAxis("Normalize Axis", Int) = 1
+    [ToggleUI]_NormalizeSpinAxis("Normalize Axis %ShowIf(!SPIN_NONE)", Int) = 1
     _SpinOrigin("Spin Origin Point %ShowIf(!SPIN_NONE)", Vector) = (0, 0, 0, 0)
     UI_SpinOriginNote("> Spin Origin Point is considered in object's local space %ShowIf(!SPIN_NONE)", Int) = 0
     _SpinSpeed("Spin Speed %ShowIf(!SPIN_NONE)", Float) = 1
+    UI_SpinOffsetsHeader("## Offsets %ShowIf(!SPIN_NONE)", Int) = 0
     _SpinPhaseOffset("Phase Offset %ShowIf(!SPIN_NONE)", Float) = 0
-    [ToggleUI]_SpinPositionOffset("Position Offset %ShowIf(!SPIN_NONE)", Int) = 0
-    [Enum(XYZ, 0, X, 1, Y, 2, Z, 3)]_SpinPositionOffsetAxis("Position Offset Axis %ShowIf(!SPIN_NONE && _SpinPositionOffset)", Int) = 0
-    _SpinPositionOffsetScale("Position Offset Scale %ShowIf(!SPIN_NONE && _SpinPositionOffset)", Float) = 1
+    [ToggleUI]_SpinPositionOffset("Position-Based Offset %ShowIf(!SPIN_NONE)", Int) = 0
+    [Enum(XYZ, 0, X, 1, Y, 2, Z, 3)]_SpinPositionOffsetAxis("Offset Axis %ShowIf(!SPIN_NONE && _SpinPositionOffset)", Int) = 0
+    _SpinPositionOffsetScale("Offset Scale %ShowIf(!SPIN_NONE && _SpinPositionOffset)", Float) = 1
+    _SpinPositionOffsetSpeed("Offset Speed Modifier %ShowIf(!SPIN_NONE && _SpinPositionOffset)", Float) = 0.1
+    [ToggleUI]_SpinStoppedChance("Spin Stopped Chance %ShowIf(!SPIN_NONE && _SpinPositionOffset)", Int) = 0
+    _SpinStoppedChanceSeed("Spin Stopped Chance Seed %ShowIf(!SPIN_NONE && _SpinStoppedChance && _SpinPositionOffset)", Int) = 0
 
     // FLOATING
     UI_FloatHeader("## Float", Int) = 0
     [KeywordEnum(None, Local, World)]FLOATING("Floating", Int) = 0
     _FloatAxis("Float Axis %ShowIf(!FLOATING_NONE)", Vector) = (0, 1, 0, 0)
-    [ToggleUI]_NormalizeFloatAxis("Normalize Axis", Int) = 1
+    [ToggleUI]_NormalizeFloatAxis("Normalize Axis %ShowIf(!FLOATING_NONE)", Int) = 1
     _FloatSpeed("Float Speed %ShowIf(!FLOATING_NONE)", Float) = 1
     _FloatPhaseOffset("Phase Offset %ShowIf(!FLOATING_NONE)", Float) = 0
     [ToggleUI]_FloatPositionOffset("Position Offset %ShowIf(!FLOATING_NONE)", Int) = 0
@@ -49,9 +53,9 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local _ SPIN_LOCAL SPIN_WORLD
-    #pragma shader_feature_local _ FLOATING_LOCAL FLOATING_WORLD
-    #pragma shader_feature_local _ SCALE_UNIFORM SCALE_FLOW
+    #pragma shader_feature_local_vertex SPIN_NONE SPIN_LOCAL SPIN_WORLD
+    #pragma shader_feature_local_vertex FLOATING_NONE FLOATING_LOCAL FLOATING_WORLD
+    #pragma shader_feature_local_vertex SCALE_NONE SCALE_UNIFORM SCALE_FLOW
 }
 
 %ShaderTags()
@@ -61,15 +65,6 @@
 
 %ShaderDefines()
 {
-    #if !defined(SPIN_WORLD) && !defined(SPIN_LOCAL)
-    #define SPIN_NONE
-    #endif
-    #if !defined(FLOATING_WORLD) && !defined(FLOATING_LOCAL)
-    #define FLOATING_NONE
-    #endif
-    #if !defined(SCALE_UNIFORM) && !defined(SCALE_FLOW)
-    #define SCALE_NONE
-    #endif
     #define EXTRA_V2F_0
 }
 
@@ -85,6 +80,9 @@
     int _SpinPositionOffsetAxis;
     half _SpinPositionOffsetScale;
     half4 _SpinOrigin;
+    half _SpinPositionOffsetSpeed;
+    int _SpinStoppedChance;
+    float _SpinStoppedChanceSeed;
 
     half4 _FloatAxis;
     int _NormalizeFloatAxis;
@@ -112,43 +110,57 @@
 
 %Vertex("VertexAnimationVertex")
 {
+    float chash13(float3 p3)
+    {
+        p3  = frac(p3 * .1031);
+        p3 += dot(p3, p3.zyx + 31.32);
+        return frac((p3.x + p3.y) * p3.z);
+    }
+
     void VertexAnimationVertex(inout VertexData v, inout FragmentData o)
     {
         // half3 wsVert = TransformObjectToWorld(v.vertex.xyz);
         // half3 wsNormal = TransformObjectToWorld(v.normal.xyz);
-        half3 wsObjectPosition = mul(unity_ObjectToWorld, half4(0,0,0,1));
+        float3 wsObjectPosition = TransformObjectToWorld(0..xxx);
         half factor = 0;
         o.extraV2F0 = v.vertex;
         
         #if defined(SPIN_LOCAL) || defined(SPIN_WORLD)
         {
-            half3 origin = _SpinOrigin.xyz;
+            float3 origin = _SpinOrigin.xyz;
             if (_NormalizeSpinAxis) {
                 _SpinAxis.xyz = normalize(_SpinAxis.xyz);
             }
             
-            half offset = _SpinPhaseOffset;
+            float offset = _SpinPhaseOffset;
+            float speedOffset = 0;
             if (_SpinPositionOffset) {
                 if (_SpinPositionOffsetAxis == 0) {
-                    offset += length(wsObjectPosition.xyz) * _SpinPositionOffsetScale;
+                    offset += length(wsObjectPosition.xyz);
                 } else {
-                    offset += wsObjectPosition[_SpinPositionOffsetAxis - 1] * _SpinPositionOffsetScale;
+                    offset += wsObjectPosition[_SpinPositionOffsetAxis - 1];
                 }
+                offset *= _SpinPositionOffsetScale;
+                speedOffset = pow(abs(_SpinPositionOffsetSpeed), offset) * sign(_SpinPositionOffsetSpeed);
             }
-            half factor = _Time.y * _SpinSpeed + offset;
+
+            float factor = _Time.y * (_SpinSpeed + speedOffset) + offset;
+            factor %= 6.2831;
+
+             if (_SpinStoppedChance) {
+                float3 seed = _SpinStoppedChanceSeed + offset;
+                float chance = step(0.5, chash13(seed));
+                factor *= chance;
+            }
 
             #if defined(SPIN_LOCAL)
             v.vertex.xyz = RotateAroundAxis(origin, v.vertex.xyz, _SpinAxis.xyz, factor);
             v.normal.xyz = RotateAroundAxis(origin, v.normal.xyz, _SpinAxis.xyz, factor);
             #elif defined(SPIN_WORLD)
-            float3 scale = float3(
-                length(unity_ObjectToWorld._m00_m10_m20),
-                length(unity_ObjectToWorld._m01_m11_m21),
-                length(unity_ObjectToWorld._m02_m12_m22)
-            );
-            half3 lsAxis = normalize(TransformWorldToObject(_SpinAxis.xyz));
-            half3 vertRot = RotateAroundAxis(origin, v.vertex.xyz, lsAxis, factor);
-            half3 normalRot = RotateAroundAxis(origin, v.normal.xyz, lsAxis, factor);
+            float3 scale = GetObjectScale();
+            float3 lsAxis = normalize(TransformWorldToObjectDir(_SpinAxis.xyz));
+            float3 vertRot = RotateAroundAxis(origin, v.vertex.xyz, lsAxis, factor);
+            float3 normalRot = RotateAroundAxis(origin, v.normal.xyz, lsAxis, factor);
             v.vertex.xyz = vertRot;
             v.normal.xyz = normalRot;
             #endif
@@ -169,12 +181,12 @@
             factor = lerp((factor + 1) / 2, factor, _FloatTwoWay);
             
             #if defined(FLOATING_LOCAL)
-            half3 axis = _FloatAxis.xyz;
+            float3 axis = _FloatAxis.xyz;
             if (_NormalizeFloatAxis) {
                 axis = normalize(axis);
             }
             #elif defined(FLOATING_WORLD)
-            half3 axis = normalize(TransformWorldToObject(_FloatAxis.xyz)).xyz;
+            float3 axis = normalize(TransformWorldToObjectDir(_FloatAxis.xyz)).xyz;
             #endif
 
             v.vertex.xyz += factor * axis * _FloatAmount;
@@ -200,7 +212,7 @@
         {
             half offset = _ScalePhaseOffset;
             half factor = ((_Time.y * _ScaleSpeed + offset) % (1.1 + _ScaleFlowWidth * 2 + _ScaleFlowCyclePause)) - 0.1;
-            half2 uvChannel = v.uv0;
+            float2 uvChannel = v.uv0;
             switch (_ScaleFlowUVChannel)
             {
                 case 1: uvChannel = v.uv1; break;

@@ -17,7 +17,7 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local UV_DISCARD
+    #pragma shader_feature_local_vertex UV_DISCARD
 }
 
 %Variables()
@@ -45,7 +45,7 @@
 
     void ToonUVDiscardVertex(inout VertexData v) {
         #if defined(UV_DISCARD)
-        half2 uv = v.uv0;
+        float2 uv = v.uv0;
         switch (_UVDiscardUVSet)
         {
             case 0: uv = v.uv0; break;

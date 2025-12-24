@@ -1,0 +1,26 @@
+%DataStructs()
+{
+    struct SurfaceData
+    {
+        half3 Albedo;
+        half3 Emission;
+        half Alpha;
+        half Occlusion;
+        float3 Normal;
+        float3 WorldNormal;
+    
+        // Additional Surface Data
+        %AdditionalSurfaceData
+        // Additional Surface Data End
+    };
+
+    SurfaceData CreateSurfaceData()
+    {
+        SurfaceData o = (SurfaceData) 0;
+        o.Albedo = 0.5;
+        o.Occlusion = 1;
+        o.Normal = float3(0, 0, 1);
+        o.Alpha = 1;
+        return o;
+    }
+}
