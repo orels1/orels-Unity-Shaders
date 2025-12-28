@@ -13,8 +13,10 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local_fragment PARALLAX
+    #pragma shader_feature_local PARALLAX
     #pragma shader_feature_local_fragment _PARALLAXSTEPS_EIGHT _PARALLAXSTEPS_SIXTEEN _PARALLAXSTEPS_THIRTYTWO _PARALLAXSTEPS_SIXTYFOUR
+
+    #define ORL_MODULE_PARALLAX_INCLUDED
 }
 
 %Variables()
@@ -24,14 +26,14 @@
     half _HeightRefPlane;
     int _ParallaxScaleBasedOnAngle;
     #endif
-    
+
     float2 GLOBAL_parallaxUv;
 
     half GLOBAL_heightMask;
     half GLOBAL_heightMaskSmoothing;
-    
+
     int GLOBAL_heightSet;
-    half GLOBAL_height; 
+    half GLOBAL_height;
 }
 
 %Textures()

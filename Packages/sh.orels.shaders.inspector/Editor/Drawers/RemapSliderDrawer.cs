@@ -17,7 +17,7 @@ namespace ORL.Drawers
 
         public string[] PersistentKeys => Array.Empty<string>();
 
-        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next, Dictionary<string, LocalizationData.LocalizedPropData> localizationData)
+        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next, Dictionary<string, LocalizationData.LocalizedLanguageData> localizationData)
         {
             if (EditorGUI.indentLevel == -1) return true;
 
@@ -42,6 +42,12 @@ namespace ORL.Drawers
             } else if (localizationData.ContainsKey(property.name))
             {
                 tooltip = localizationData[property.name].tooltip;
+            }
+            
+            if (localizationData.ContainsKey(property.name) &&
+                !string.IsNullOrEmpty(localizationData[property.name].name))
+            {
+                strippedName = localizationData[property.name].name;
             }
 
             var baseRect = EditorGUILayout.GetControlRect();

@@ -1,0 +1,98 @@
+propName;EN;JA
+
+=== NAMES ===
+
+UI_ShadingModeHeader; Shading Mode;シェーディングモード
+SHADING_MODE;Shading Mode;シェーディングモード
+_ClearCoat;Add Clear Coat;クリアコートを追加
+_ClearCoatStrength;Clear Coat Strength;クリアコート強度
+_HasClearCoatMask;Use Clear Coat Mask;クリアコートマスクを使用
+_ClearCoatMask;Clear Coat Mask;クリアコートマスク
+_ClearCoatMaskChannel;Clear Coat Mask Channel;クリアコートマスクチャンネル
+_ClearCoatSmoothness;Clear Coat Smoothness;クリアコートスムースネス
+_ClothHasCustomSheen;Custom Sheen Color;カスタムシーンカラー
+_ClothSheenColor;Sheen Color;シーンカラー
+_ClothHasSubsurface;Add Subsurface Color;サブサーフェスカラーを追加
+_ClothSubsurfaceColor;Subsurface Color;サブサーフェスカラー
+
+UI_AdvancedSettingsHeader; Advanced Settings;詳細設定
+_CullMode;Culling Mode;カリングモード
+_RenderType;Render Type;レンダータイプ
+_BlendOp;Blend Operation;ブレンド操作
+_SrcBlend;Source Blend;ソースブレンド
+_DstBlend;Destination Blend;デスティネーションブレンド
+_BlendOpAlpha;Blend Operation Alpha;ブレンド操作アルファ
+_SrcBlendAlpha;Source Blend Alpha;ソースブレンドアルファ
+_DstBlendAlpha;Destination Blend Alpha;デスティネーションブレンドアルファ
+_Cutoff;Cutoff;カットオフ
+_ShadeVertexLights;Enable Vertex Lights;頂点ライトを有効化
+
+UI_AdvancedSettingsDepthHeader; Depth;深度
+_ZWrite;Depth Write;深度書き込み
+_ZTest;Depth Test;深度テスト
+
+UI_GSAAHeader; GSAA;GSAA
+_EnableGSAA;GSAA Enabled;GSAAを有効化
+UI_GSAANote; GSAA dramatically reduces specular aliasing;GSAAはスペキュラーエイリアシングを大幅に軽減します
+_GSAAVariance;GSAA Variance;GSAA分散
+_GSAAThreshold;GSAA Threshold;GSAAしきい値
+_GSAAIncludeNormalMaps;Include Normal Maps;ノーマルマップを含める
+
+UI_MobileTweaks; Mobile Tweaks;モバイル調整
+_ForceBoxProjection;Force Box Projection;ボックスプロジェクションを強制
+_ApplyColorCorrection;Apply Mobile Color Correction;モバイル色補正を適用
+MOBILE_TONEMAP;Mobile Tonemap Mode;モバイルトーンマップモード
+_ColorCorrLift;Lift;リフト
+_ColorCorrGamma;Gamma;ガンマ
+_ColorCorrGain;Gain;ゲイン
+
+UI_LightmappingHeader; Lightmapping;ライトマッピング
+_NonlinearSH;Non-Linear Lightprobe SH;非線形ライトプローブSH
+_SpecOcclusion;Reflection Probe Occlusion;リフレクションプローブオクルージョン
+_RealtimeShadowSpecOcclusion;Realtime Shadow Specular Occlusion;リアルタイムシャドウスペキュラーオクルージョン
+_Bicubic;Bicubic Sampling;バイキュービックサンプリング
+_BakedSpecular;Baked Specular;ベイクドスペキュラー
+_SpecularRoughnessMod;Specular Roughness Mod;スペキュラーラフネス調整
+_BakedSpecularOcclusion;Baked Specular Occlusion;ベイクドスペキュラーオクルージョン
+
+UI_GITweaksHeader; Global Illumination Tweaks;グローバルイルミネーション調整
+_BoxProjectionContactHardening;Box Projection Contact Hardening;ボックスプロジェクション接触硬化
+_BoxProjectionContactHardeningStrength;Hardening Strength;硬化強度
+_GIEmissiveBoost;GI Emissive Boost;GIエミッシブブースト
+_IgnoreRealtimeGI;Ignore Relatime GI;リアルタイムGIを無視
+_RealtimeGIDisableBicubic;Disable Bicubic for RTGI;RTGI用バイキュービックを無効化
+
+UI_BakeryHeader; Bakery Features;Bakery機能
+_BakeryEnabled;Enable Bakery Features;Bakery機能を有効化
+BAKERY;Bakery Mode;Bakeryモード
+_BakerySHNonLinear;Bakery Non-Linear SH;Bakery非線形SH
+_BakeryVolume;Support Volumes;ボリュームをサポート
+UI_BakeryVolumeAssigner;Volume Assigner;ボリューム割り当て
+_BakeryCompressedVolume;Support Compressed Volumes;圧縮ボリュームをサポート
+_BakeryVolumeRotationY;Support Baked Volume Rotation;ベイクドボリューム回転をサポート
+_BakeryVolumeRotation;Support Runtime Volume Rotation;ランタイムボリューム回転をサポート
+UI_AdvancedSettingsStancilHeader; Stencils;ステンシル
+_StencilRef;Reference;リファレンス
+_StencilComp;Comparison;比較
+_StencilPassOp;Pass Operation;パス操作
+_StencilFailOp;Fail Operation;失敗操作
+_StencilZFailOp;ZFail Operation;Z失敗操作
+
+UI_InternalHeader; Internal;内部
+INTERNAL_ShaderVersion;Shader Version;シェーダーバージョン
+INTERNAL_MaterialShaderVersion;Material Shader Version;マテリアルシェーダーバージョン
+_DFG;DFG;DFG
+
+UI_BakerySHHeader; Bakery SH;Bakery SH
+_RNM0;RNM0;RNM0
+_RNM1;RNM1;RNM1
+_RNM2;RNM2;RNM2
+
+UI_BakeryVolumesHeader; Bakery Volumes;Bakeryボリューム
+_Volume0;Volume 0;ボリューム0
+_Volume1;Volume 1;ボリューム1
+_Volume2;Volume 2;ボリューム2
+_Volume3;Volume 3;ボリューム3
+_VolumeMask;Volume Mask;ボリュームマスク
+_VolumeMin;Volume min;ボリューム最小
+_VolumeInvSize;Volume Inv Size;ボリューム逆サイズ

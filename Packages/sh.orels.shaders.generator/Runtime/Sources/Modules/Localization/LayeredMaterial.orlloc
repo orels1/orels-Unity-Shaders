@@ -1,22 +1,160 @@
-propName;EN
+propName;EN;JA
 
-_LayeredMatLayersCount;The amount of layers used
-_LMMaskingType;Controls what is used for masking
-_LMMaskTex;This will be used to mask the layers by color
-_LMMaskTexUV;Selects the UV set used for sampling the Mask Texture
-_LMMaskDebugging;Displays the mask values on the mesh based on selected Mask Type
-_LMMaskDebuggingChannel;Controls which channel to display during debugging
+=== NAMES ===
 
-_LMLayerBaseColor;Main Tint Color
-_LMLayerBaseUV;Selects the UV set used for sampling all the Base Layer textures
-_LMLayerBaseMaskMap;Texture containing Metallic, Smoothness, and AO maps. Default channel layout is Red: Metallic, Green: AO, Alpha: Smoothness. Can be adjusted using a remapper below
-_LMLayerBaseMetalChannel;Selects a channel containing Metal values
-_LMLayerBaseAOChannel;Selects a channel containing AO values
-_LMLayerBaseSmoothChannel;Selects a channel containing Smoothness values
-_LMLayerBaseSmoothness;Controls global smoothness level, uses this value across the whole material
-_LMLayerBaseRoughnessMode;Flips the channel value. If your texture contains Roughness instead of Smoothness - you should use this option
-_LMLayerBaseMetallic;Controls global metalness level, uses this value across the whole material
-_LMLayerBaseMetallicRemap;Allows you to adjust the range of metalness values of the provided Metal map
-_LMLayerBaseSmoothnessRemap;Allows you to adjust the range of smoothness values of the provided Smoothness map
-_LMLayerBaseOcclusionStrength;Controls the strength of the provided Ambient Occlusion map
-_LMLayerBaseFlipBumpY;Flips the green channel of the normal map for DirectX-style normal maps, which are commonly found in something like Unreal Engine assets. If your normal map looks "upside-down" - you should try this option
+UI_LayeredMatHeader; Layers;レイヤー
+_LayeredMatLayersCount;Layer Count;レイヤー数
+_LMMaskingType;Mask Type;マスクタイプ
+_LMMaskTex;Mask Texture;マスクテクスチャ
+_LMMaskTexUV;UV Set;UVセット
+_LMMaskDebugging;Mask Debugging;マスクデバッグ
+_LMMaskDebuggingChannel;Debug Channel;デバッグチャンネル
+
+UI_LMLayerBaseHeader; Base Layer;ベースレイヤー
+_LMLayerBaseColor;Main Color;メインカラー
+_LMLayerBaseUV;UV Set;UVセット
+_LMLayerBaseMainTex;Albedo;アルベド
+_LMLayerBaseMaskMap;Masks;マスク
+_LMLayerBaseMetalChannel;Metal;メタル
+_LMLayerBaseAOChannel;AO;AO
+_LMLayerBaseSmoothChannel;Smooth;スムース
+_LMLayerBaseSmoothness;Smoothness;スムースネス
+_LMLayerBaseRoughnessMode;Roughness Mode;ラフネスモード
+_LMLayerBaseMetallic;Metallic;メタリック
+_LMLayerBaseMetallicRemap;Metallic Remap;メタリックリマップ
+_LMLayerBaseSmoothnessRemap;Smoothness Remap;スムースネスリマップ
+_LMLayerBaseOcclusionStrength;AO Strength;AO強度
+_LMLayerBaseBumpMap;Normal Map;ノーマルマップ
+_LMLayerBaseBumpScale;Normal Map Scale;ノーマルマップスケール
+_LMLayerBaseFlipBumpY;Flip Y (UE Mode);Y反転（UEモード）]
+
+UI_LMLayer1Header; Layer 1;レイヤー1
+_LMLayer1ColorMask;Mask Channel;マスクチャンネル
+_LMLayer1MaskRemap;Mask Remap;マスクリマップ
+_LMLayer1Strength;Layer Strength;レイヤー強度
+_LMLayer1DebugMask;Show Mask;マスクを表示
+UI_LMLayer1MaterialHeader; Material;マテリアル
+_LMLayer1Color;Main Color;メインカラー
+_LMLayer1MainTex;Albedo;アルベド
+_LMLayer1Triplanar;Enable Triplanar;トライプラナーを有効化
+_LMLayer1TriplanarTiling;Tiling;タイリング
+_LMLayer1TriplanarBlend;Blend;ブレンド
+_LMLayer1TriplanarPower;Power;強度
+_LMLayer1AlbedoChannel;Albedo Channel;アルベドチャンネル
+_LMLayer1MaskMap;Masks;マスク
+_LMLayer1MetalChannel;Metal;メタル
+_LMLayer1AOChannel;AO;AO
+_LMLayer1SmoothChannel;Smooth;スムース
+_LMLayer1Smoothness;Smoothness;スムースネス
+_LMLayer1RoughnessMode;Roughness Mode;ラフネスモード
+_LMLayer1Metallic;Metallic;メタリック
+_LMLayer1MetallicRemap;Metallic Remap;メタリックリマップ
+_LMLayer1SmoothnessRemap;Smoothness Remap;スムースネスリマップ
+_LMLayer1OcclusionStrength;AO Strength;AO強度
+_LMLayer1BumpMap;Normal Map;ノーマルマップ
+_LMLayer1BumpScale;Normal Map Scale;ノーマルマップスケール
+_LMLayer1FlipBumpY;Flip Y (UE Mode);Y反転（UEモード）
+
+UI_LMLayer2Header; Layer 2;レイヤー2
+_LMLayer2ColorMask;Mask Channel;マスクチャンネル
+_LMLayer2MaskRemap;Mask Remap;マスクリマップ
+_LMLayer2Strength;Layer Strength;レイヤー強度
+_LMLayer2DebugMask;Show Mask;マスクを表示
+UI_LMLayer2MaterialHeader; Material;マテリアル
+_LMLayer2Color;Main Color;メインカラー
+_LMLayer2MainTex;Albedo;アルベド
+_LMLayer2Triplanar;Enable Triplanar;トライプラナーを有効化
+_LMLayer2TriplanarTiling;Tiling;タイリング
+_LMLayer2TriplanarBlend;Blend;ブレンド
+_LMLayer2TriplanarPower;Power;強度
+_LMLayer2AlbedoChannel;Albedo Channel;アルベドチャンネル
+_LMLayer2MaskMap;Masks;マスク
+_LMLayer2MetalChannel;Metal;メタル
+_LMLayer2AOChannel;AO;AO
+_LMLayer2SmoothChannel;Smooth;スムース
+_LMLayer2Smoothness;Smoothness;スムースネス
+_LMLayer2RoughnessMode;Roughness Mode;ラフネスモード
+_LMLayer2Metallic;Metallic;メタリック
+_LMLayer2MetallicRemap;Metallic Remap;メタリックリマップ
+_LMLayer2SmoothnessRemap;Smoothness Remap;スムースネスリマップ
+_LMLayer2OcclusionStrength;AO Strength;AO強度
+_LMLayer2BumpMap;Normal Map;ノーマルマップ
+_LMLayer2BumpScale;Normal Map Scale;ノーマルマップスケール
+_LMLayer2FlipBumpY;Flip Y (UE Mode);Y反転（UEモード）
+
+UI_LMLayer3Header; Layer 3;レイヤー3
+_LMLayer3ColorMask;Mask Channel;マスクチャンネル
+_LMLayer3MaskRemap;Mask Remap;マスクリマップ
+_LMLayer3Strength;Layer Strength;レイヤー強度
+_LMLayer3DebugMask;Show Mask;マスクを表示
+UI_LMLayer3MaterialHeader; Material;マテリアル
+_LMLayer3Color;Main Color;メインカラー
+_LMLayer3MainTex;Albedo;アルベド
+_LMLayer3Triplanar;Enable Triplanar;トライプラナーを有効化
+_LMLayer3TriplanarTiling;Tiling;タイリング
+_LMLayer3TriplanarBlend;Blend;ブレンド
+_LMLayer3TriplanarPower;Power;強度
+_LMLayer3AlbedoChannel;Albedo Channel;アルベドチャンネル
+_LMLayer3MaskMap;Masks;マスク
+_LMLayer3MetalChannel;Metal;メタル
+_LMLayer3AOChannel;AO;AO
+_LMLayer3SmoothChannel;Smooth;スムース
+_LMLayer3Smoothness;Smoothness;スムースネス
+_LMLayer3RoughnessMode;Roughness Mode;ラフネスモード
+_LMLayer3Metallic;Metallic;メタリック
+_LMLayer3MetallicRemap;Metallic Remap;メタリックリマップ
+_LMLayer3SmoothnessRemap;Smoothness Remap;スムースネスリマップ
+_LMLayer3OcclusionStrength;AO Strength;AO強度
+_LMLayer3BumpMap;Normal Map;ノーマルマップ
+_LMLayer3BumpScale;Normal Map Scale;ノーマルマップスケール
+_LMLayer3FlipBumpY;Flip Y (UE Mode);Y反転（UEモード）
+
+UI_LMLayer4Header; Layer 4;レイヤー4
+_LMLayer4ColorMask;Mask Channel;マスクチャンネル
+_LMLayer4MaskRemap;Mask Remap;マスクリマップ
+_LMLayer4Strength;Layer Strength;レイヤー強度
+_LMLayer4DebugMask;Show Mask;マスクを表示
+UI_LMLayer4MaterialHeader; Material;マテリアル
+_LMLayer4Color;Main Color;メインカラー
+_LMLayer4MainTex;Albedo;アルベド
+_LMLayer4Triplanar;Enable Triplanar;トライプラナーを有効化
+_LMLayer4TriplanarTiling;Tiling;タイリング
+_LMLayer4TriplanarBlend;Blend;ブレンド
+_LMLayer4TriplanarPower;Power;強度
+_LMLayer4AlbedoChannel;Albedo Channel;アルベドチャンネル
+_LMLayer4MaskMap;Masks;マスク
+_LMLayer4MetalChannel;Metal;メタル
+_LMLayer4AOChannel;AO;AO
+_LMLayer4SmoothChannel;Smooth;スムース
+_LMLayer4Smoothness;Smoothness;スムースネス
+_LMLayer4RoughnessMode;Roughness Mode;ラフネスモード
+_LMLayer4Metallic;Metallic;メタリック
+_LMLayer4MetallicRemap;Metallic Remap;メタリックリマップ
+_LMLayer4SmoothnessRemap;Smoothness Remap;スムースネスリマップ
+_LMLayer4OcclusionStrength;AO Strength;AO強度
+_LMLayer4BumpMap;Normal Map;ノーマルマップ
+_LMLayer4BumpScale;Normal Map Scale;ノーマルマップスケール
+_LMLayer4FlipBumpY;Flip Y (UE Mode);Y反転（UEモード）
+
+=== TOOLTIPS ===
+
+_LayeredMatLayersCount;The amount of layers used;使用するレイヤーの数
+_LMMaskingType;Controls what is used for masking;マスキングに使用するものを制御
+_LMMaskTex;This will be used to mask the layers by color;色によってレイヤーをマスクするために使用されます
+_LMMaskTexUV;Selects the UV set used for sampling the Mask Texture;マスクテクスチャのサンプリングに使用するUVセットを選択
+_LMMaskDebugging;Displays the mask values on the mesh based on selected Mask Type;選択したマスクタイプに基づいてメッシュ上にマスク値を表示
+_LMMaskDebuggingChannel;Controls which channel to display during debugging;デバッグ中に表示するチャンネルを制御
+
+_LMLayerBaseColor;Main Tint Color;メインの色合い
+_LMLayerBaseUV;Selects the UV set used for sampling all the Base Layer textures;すべてのベースレイヤーテクスチャのサンプリングに使用するUVセットを選択
+_LMLayerBaseMaskMap;Texture containing Metallic, Smoothness, and AO maps. Default channel layout is Red: Metallic, Green: AO, Alpha: Smoothness. Can be adjusted using a remapper below;メタリック、スムースネス、AOマップを含むテクスチャ。デフォルトのチャンネル配置は赤:メタリック、緑:AO、アルファ:スムースネス。下のリマッパーで調整可能
+_LMLayerBaseMetalChannel;Selects a channel containing Metal values;メタル値を含むチャンネルを選択
+_LMLayerBaseAOChannel;Selects a channel containing AO values;AO値を含むチャンネルを選択
+_LMLayerBaseSmoothChannel;Selects a channel containing Smoothness values;スムースネス値を含むチャンネルを選択
+_LMLayerBaseSmoothness;Controls global smoothness level, uses this value across the whole material;グローバルなスムースネスレベルを制御し、マテリアル全体でこの値を使用
+_LMLayerBaseRoughnessMode;Flips the channel value. If your texture contains Roughness instead of Smoothness - you should use this option;チャンネル値を反転します。テクスチャがスムースネスの代わりにラフネスを含む場合は、このオプションを使用してください
+_LMLayerBaseMetallic;Controls global metalness level, uses this value across the whole material;グローバルなメタルネスレベルを制御し、マテリアル全体でこの値を使用
+_LMLayerBaseMetallicRemap;Allows you to adjust the range of metalness values of the provided Metal map;提供されたメタルマップのメタルネス値の範囲を調整できます
+_LMLayerBaseSmoothnessRemap;Allows you to adjust the range of smoothness values of the provided Smoothness map;提供されたスムースネスマップのスムースネス値の範囲を調整できます
+_LMLayerBaseOcclusionStrength;Controls the strength of the provided Ambient Occlusion map;提供されたアンビエントオクルージョンマップの強度を制御
+_LMLayerBaseFlipBumpY;Flips the green channel of the normal map for DirectX-style normal maps, which are commonly found in something like Unreal Engine assets. If your normal map looks "upside-down" - you should try this option;Unreal Engineアセットなどで一般的に見られるDirectXスタイルのノーマルマップのために、ノーマルマップの緑チャンネルを反転します。ノーマルマップが「上下逆」に見える場合は、このオプションを試してください

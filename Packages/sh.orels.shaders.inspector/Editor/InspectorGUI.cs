@@ -36,7 +36,26 @@ namespace ORL.ShaderInspector
 
         #region State Management
         private string[] _persistedKeys = new[] { "debugShown", "mapBakerShown" };
+        
+        private string _selectedLanguage = "EN";
+        private readonly Dictionary<string, int> _languageValues = new Dictionary<string, int>()
+        {
+            { "EN", 0 },
+            { "JP", 1 }
+        };
+        private readonly string[] _languageKeys = new string[]
+        {
+            "EN", "JP"
+        };
+        private readonly string[] _languageNames = new string[]
+        {
+            "English",
+            "日本語（実験的）[DeepL]"
+        };
+        // Contains all languages
         private Dictionary<string, LocalizationData.LocalizedPropData> _localizedPropData;
+        // Contains current language only
+        private Dictionary<string, LocalizationData.LocalizedLanguageData> _localizedLanguageData;
 
         private void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
@@ -172,6 +191,12 @@ namespace ORL.ShaderInspector
                         _localizedPropData.Add(locAsset.properties[i], locAsset.data[i]);
                     }
                 }
+            }
+            
+            _localizedLanguageData = new Dictionary<string, LocalizationData.LocalizedLanguageData>(_localizedPropData.Count);
+            foreach (var kvp in _localizedPropData)
+            {
+                _localizedLanguageData.Add(kvp.Key, kvp.Value.data.Find(e => e.language == _selectedLanguage));
             }
 
             _initialized = true;
@@ -402,6 +427,21 @@ namespace ORL.ShaderInspector
                 }
             }
 #endif
+            
+            using (new EditorGUI.IndentLevelScope(-1))
+            {
+                var newIndex = EditorGUILayout.Popup("Language", _languageValues[_selectedLanguage], _languageNames);
+                if (newIndex != _languageValues[_selectedLanguage])
+                {
+                    _selectedLanguage = _languageKeys[newIndex];
+                    _localizedLanguageData =
+                        new Dictionary<string, LocalizationData.LocalizedLanguageData>(_localizedPropData.Count);
+                    foreach (var kvp in _localizedPropData)
+                    {
+                        _localizedLanguageData.Add(kvp.Key, kvp.Value.data.Find(e => e.language == _selectedLanguage));
+                    }
+                }
+            }
 
             var filteredProperties = properties;
             using (new EditorGUI.IndentLevelScope(-1))
@@ -426,7 +466,7 @@ namespace ORL.ShaderInspector
             {
                 filteredProperties = properties.Where(p => p.displayName.ToLowerInvariant().Contains(_searchTerm.ToLowerInvariant())).ToArray();
             }
-
+            
             EditorGUILayout.Space();
 
             EditorGUIUtility.fieldWidth = 64f;
@@ -490,7 +530,8 @@ namespace ORL.ShaderInspector
             if (currDrawer.MatchDrawer(property))
             {
                 drawers.RemoveAt(0);
-                return currDrawer.OnGUI(editor, properties, property, index, ref _uiState, () => MatchDrawerStack(drawers, editor, properties, property, index), _localizedPropData);
+                return currDrawer.OnGUI(editor, properties, property, index, ref _uiState,
+                    () => MatchDrawerStack(drawers, editor, properties, property, index), _localizedLanguageData);
             }
 
             drawers.RemoveAt(0);
@@ -508,7 +549,8 @@ namespace ORL.ShaderInspector
             if (_drawerFuncs.ContainsKey(currDrawerFunc))
             {
                 funcs.RemoveAt(0);
-                return _drawerFuncs[currDrawerFunc].OnGUI(editor, properties, property, index, ref _uiState, () => MatchDrawerFuncStack(funcs, editor, properties, property, index), _localizedPropData);
+                return _drawerFuncs[currDrawerFunc].OnGUI(editor, properties, property, index, ref _uiState, (
+)                    => MatchDrawerFuncStack(funcs, editor, properties, property, index), _localizedLanguageData);
             }
 
             funcs.RemoveAt(0);
@@ -590,9 +632,15 @@ namespace ORL.ShaderInspector
                 tooltip = tooltip.Substring(tooltip.IndexOf("(") + 1);
                 tooltip = tooltip.Substring(0, tooltip.LastIndexOf(")"));
             }
-            else if (_localizedPropData.ContainsKey(property.name))
+            else if (_localizedLanguageData.ContainsKey(property.name))
             {
-                tooltip = _localizedPropData[property.name].tooltip;
+                tooltip = _localizedLanguageData[property.name].tooltip;
+            }
+
+            if (_localizedLanguageData.ContainsKey(property.name) &&
+                !string.IsNullOrEmpty(_localizedLanguageData[property.name].name))
+            {
+                strippedName = _localizedLanguageData[property.name].name;
             }
 
             if (isSingleLine)
