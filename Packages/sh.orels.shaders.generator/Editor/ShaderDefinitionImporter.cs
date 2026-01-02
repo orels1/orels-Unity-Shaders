@@ -1092,6 +1092,12 @@ namespace ORL.ShaderGenerator
 
         // Matches SAMPLER()
         private Regex _samplerRegex = new Regex(@"(?:SAMPLER)(?:_CMP)?\((?<identifier>[\w]+)\)");
+        
+        // Matches TEXTURE2D_PARAM()
+        private Regex _texParamRegex = new Regex(@"TEXTURE2D_PARAM\((?<identifier>[\w]+),\s*(?<sampler>[\w]+)\)");
+        
+        // Matches TEXTURE2D_ARGS()
+        private Regex _texArgsRegex = new Regex(@"TEXTURE2D_ARGS\((?<identifier>[\w]+),\s?(?<sampler>[\w]+)\)");
 
         private enum DeDupeType
         {
@@ -1476,13 +1482,15 @@ namespace ORL.ShaderGenerator
                 var skippingSampling = false;
                 foreach (var line in source)
                 {
-                    if (line.Contains("// Sampling Library Module Start"))
+                    if (line.Contains("// Sampling Library Module Start")
+                        || line.Contains("// BiRP to URP Sampling Macros Start"))
                     {
                         skippingSampling = true;
                         continue;
                     }
 
-                    if (line.Contains("// Sampling Library Module End"))
+                    if (line.Contains("// Sampling Library Module End")
+                        || line.Contains("// BiRP to URP Sampling Macros End"))
                     {
                         skippingSampling = false;
                         continue;
@@ -1508,7 +1516,25 @@ namespace ORL.ShaderGenerator
                         continue;
                     }
 
-                    if (line.Contains("SAMPLE_TEXTURE2D_GRAD"))
+                    var paramsMatch = _texParamRegex.Match(line);
+                    if (paramsMatch.Success)
+                    {
+                        var newLine = line.Replace(paramsMatch.Value,
+                            $"Texture2D<float4> {paramsMatch.Groups["identifier"].Value}, SamplerState {paramsMatch.Groups["sampler"].Value}");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+                    
+                    var argsMatch = _texArgsRegex.Match(line);
+                    if (argsMatch.Success)
+                    {
+                        var newLine = line.Replace(argsMatch.Value,
+                            $"{argsMatch.Groups["identifier"].Value}, {argsMatch.Groups["sampler"].Value}");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+
+                    if (line.Contains("SAMPLE_TEXTURE2D_GRAD("))
                     {
                         // search and parse parameters to rewrite into a `tex.SampleGrad` call
                         var substring = line.Substring(line.IndexOf("SAMPLE_TEXTURE2D_GRAD") + 21);
@@ -1538,36 +1564,39 @@ namespace ORL.ShaderGenerator
                         processedSource.AppendLine(newLine);
                         continue;
                     }
-
-
+                    
                     if (line.Contains("SAMPLE_TEXTURE2D_LOD"))
                     {
-                        var newLine = line.Replace("SAMPLE_TEXTURE2D_LOD", "UNITY_SAMPLE_TEX2D_LOD_SAMPLER")
-                            .Replace("sampler_", "_");
+                        var newLine = line.Replace("SAMPLE_TEXTURE2D_LOD", "UNITY_SAMPLE_TEX2D_SAMPLER_LOD").Replace("sampler", "");
+                        processedSource.AppendLine(newLine);
+                        continue;
+                    }
+                    
+                    // Special Handling for ScreenSpace textures
+                    if (line.Contains("SAMPLE_TEXTURE2D_X"))
+                    {
+                        var newLine = line.Replace("SAMPLE_TEXTURE2D_X", "UNITY_SAMPLE_TEX2D_SAMPLER").Replace("sampler", "");
                         processedSource.AppendLine(newLine);
                         continue;
                     }
 
                     if (line.Contains("SAMPLE_TEXTURE2D"))
                     {
-                        var newLine = line.Replace("SAMPLE_TEXTURE2D", "UNITY_SAMPLE_TEX2D_SAMPLER")
-                            .Replace("sampler_", "_");
+                        var newLine = line.Replace("SAMPLE_TEXTURE2D", "UNITY_SAMPLE_TEX2D_SAMPLER").Replace("sampler", "");
                         processedSource.AppendLine(newLine);
                         continue;
                     }
 
                     if (line.Contains("SAMPLE_TEXTURECUBE_LOD"))
                     {
-                        var newLine = line.Replace("SAMPLE_TEXTURECUBE_LOD", "UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD")
-                            .Replace("sampler_", "_");
+                        var newLine = line.Replace("SAMPLE_TEXTURECUBE_LOD", "UNITY_SAMPLE_TEXCUBE_SAMPLER_LOD").Replace("sampler", "");
                         processedSource.AppendLine(newLine);
                         continue;
                     }
 
                     if (line.Contains("SAMPLE_TEXTURECUBE"))
                     {
-                        var newLine = line.Replace("SAMPLE_TEXTURECUBE", "UNITY_SAMPLE_TEXCUBE_SAMPLER")
-                            .Replace("sampler_", "_");
+                        var newLine = line.Replace("SAMPLE_TEXTURECUBE", "UNITY_SAMPLE_TEXCUBE_SAMPLER").Replace("sampler", "");
                         processedSource.AppendLine(newLine);
                         continue;
                     }

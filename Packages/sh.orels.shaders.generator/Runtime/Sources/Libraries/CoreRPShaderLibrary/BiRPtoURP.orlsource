@@ -1,5 +1,7 @@
 %LibraryFunctions(-100)
 {
+    // BiRP to URP Library Module Start
+
     //--------------------------------------------------------------
     // Macros to redefine built-in macros to those used by the URP
     //--------------------------------------------------------------
@@ -69,7 +71,7 @@
         return inVec * rsqrt(dp3);
     }
 
-
+    // BiRP to URP Sampling Macros Start
     #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 
         #define SLICE_ARRAY_INDEX   unity_StereoEyeIndex
@@ -107,7 +109,7 @@
         #define GATHER_GREEN_TEXTURE2D_X(textureName, samplerName, coord2)      GATHER_GREEN_TEXTURE2D(textureName, samplerName, coord2)
         #define GATHER_BLUE_TEXTURE2D_X(textureName, samplerName, coord2)       GATHER_BLUE_TEXTURE2D(textureName, samplerName, coord2)
     #endif
-
+    // BiRP to URP Sampling Macros End
 
 
     //-----------------------------------------------------------------------------
@@ -513,7 +515,7 @@
     Light GetMainLight()
     {
         Light light;
-        
+
         light.direction = _WorldSpaceLightPos0.xyz;
         light.shadowAttenuation = 1.0;
         light.color = _LightColor0.rgb;
@@ -546,11 +548,11 @@
         #ifndef USING_DIRECTIONAL_LIGHT
         light.direction = normalize(UnityWorldSpaceLightDir(positionWS));
         #endif
-        
+
         __BridgeShadowStruct input = (__BridgeShadowStruct) 0;
         input._ShadowCoord = shadowCoord;
         UNITY_LIGHT_ATTENUATION(lightAttenuation, input, positionWS);
-        
+
         light.shadowAttenuation = lightAttenuation;
 
         return light;
@@ -568,4 +570,6 @@
         #endif
     }
     #endif
+
+    // BiRP to URP Library Module End
 }

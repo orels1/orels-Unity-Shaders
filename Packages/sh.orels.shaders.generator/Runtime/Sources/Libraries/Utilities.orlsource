@@ -96,7 +96,7 @@
         return 1.0f + w3(a) / (w2(a) + w3(a)) + 0.5f;
     }
 
-    half4 tex2DFastBicubicSample(TEXTURE2D_PARAM(tex, sampler_tex), float2 uv)
+    half4 tex2DFastBicubicSample(TEXTURE2D_PARAM(tex, samplertex), float2 uv)
     {
         #if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
         half width;
@@ -122,17 +122,17 @@
         half h0y = h0(fy);
         half h1y = h1(fy);
 
-        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h0x, py + h0y) * 1.0f / width)) +
-        g1x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h1x, py + h0y) * 1.0f / width))) +
-        g1(fy) * (g0x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h0x, py + h1y) * 1.0f / width)) +
-        g1x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h1x, py + h1y) * 1.0f / width)));
+        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D(tex, samplertex, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+        g1x * SAMPLE_TEXTURE2D(tex, samplertex, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+        g1(fy) * (g0x * SAMPLE_TEXTURE2D(tex, samplertex, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+        g1x * SAMPLE_TEXTURE2D(tex, samplertex, (half2(px + h1x, py + h1y) * 1.0f / width)));
         return r;
         #else
-        return SAMPLE_TEXTURE2D(tex, sampler_tex, uv);
+        return SAMPLE_TEXTURE2D(tex, samplertex, uv);
         #endif
     }
 
-    float4 tex2DFastBicubicSampleNoChecks(TEXTURE2D_PARAM(tex, sampler_tex), float2 uv)
+    float4 tex2DFastBicubicSampleNoChecks(TEXTURE2D_PARAM(tex, samplertex), float2 uv)
     {
         half width;
         half height;
@@ -157,14 +157,14 @@
         half h0y = h0(fy);
         half h1y = h1(fy);
 
-        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h0x, py + h0y) * 1.0f / width)) +
-        g1x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h1x, py + h0y) * 1.0f / width))) +
-        g1(fy) * (g0x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h0x, py + h1y) * 1.0f / width)) +
-        g1x * SAMPLE_TEXTURE2D(tex, sampler_tex, (half2(px + h1x, py + h1y) * 1.0f / width)));
+        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D(tex, samplertex, (half2(px + h0x, py + h0y) * 1.0f / width)) +
+        g1x * SAMPLE_TEXTURE2D(tex, samplertex, (half2(px + h1x, py + h0y) * 1.0f / width))) +
+        g1(fy) * (g0x * SAMPLE_TEXTURE2D(tex, samplertex, (half2(px + h0x, py + h1y) * 1.0f / width)) +
+        g1x * SAMPLE_TEXTURE2D(tex, samplertex, (half2(px + h1x, py + h1y) * 1.0f / width)));
         return r;
     }
 
-    half4 tex2DFastBicubicSampleLevel(TEXTURE2D_PARAM(tex, sampler_tex), float2 uv, int level)
+    half4 tex2DFastBicubicSampleLevel(TEXTURE2D_PARAM(tex, samplertex), float2 uv, int level)
     {
         #if !defined(PLAT_QUEST) && defined(BICUBIC_LIGHTMAP)
         half width;
@@ -190,57 +190,57 @@
         half h0y = h0(fy);
         half h1y = h1(fy);
 
-        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D_LOD(tex, sampler_tex, (half2(px + h0x, py + h0y) * 1.0f / width), level) +
-        g1x * SAMPLE_TEXTURE2D_LOD(tex, sampler_tex, (half2(px + h1x, py + h0y) * 1.0f / width), level)) +
-        g1(fy) * (g0x * SAMPLE_TEXTURE2D_LOD(tex, sampler_tex, (half2(px + h0x, py + h1y) * 1.0f / width), level) +
-        g1x * SAMPLE_TEXTURE2D_LOD(tex, sampler_tex, (half2(px + h1x, py + h1y) * 1.0f / width), level));
+        half4 r = g0(fy) * (g0x * SAMPLE_TEXTURE2D_LOD(tex, samplertex, (half2(px + h0x, py + h0y) * 1.0f / width), level) +
+        g1x * SAMPLE_TEXTURE2D_LOD(tex, samplertex, (half2(px + h1x, py + h0y) * 1.0f / width), level)) +
+        g1(fy) * (g0x * SAMPLE_TEXTURE2D_LOD(tex, samplertex, (half2(px + h0x, py + h1y) * 1.0f / width), level) +
+        g1x * SAMPLE_TEXTURE2D_LOD(tex, samplertex, (half2(px + h1x, py + h1y) * 1.0f / width), level));
         return r;
         #else
-        return SAMPLE_TEXTURE2D_LOD(tex, sampler_tex, uv, level);
+        return SAMPLE_TEXTURE2D_LOD(tex, samplertex, uv, level);
         #endif
     }
 
-    half getBakedNoise(TEXTURE2D_PARAM(noiseTex, sampler_noiseTex), float3 p)
+    half getBakedNoise(TEXTURE2D_PARAM(noiseTex, samplernoiseTex), float3 p)
     {
         float3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
         float2 uv = (p.xy + i.xy + float2(37, 17) * i.z + .5) / 256.;
         uv.y *= -1;
-        p.xy = SAMPLE_TEXTURE2D_LOD(noiseTex, sampler_noiseTex, uv, 0).yx;
+        p.xy = SAMPLE_TEXTURE2D_LOD(noiseTex, samplernoiseTex, uv, 0).yx;
         return lerp(p.x, p.y, p.z);
     }
 
     // Manual bilinear sampling to avoid 8 bit precision issues
     // Based on https://www.shadertoy.com/view/MllSzX
-    half getBakedNoiseBilinear(TEXTURE2D_PARAM(noiseTex, sampler_noiseTex), float4 texSize, float3 p)
+    half getBakedNoiseBilinear(TEXTURE2D_PARAM(noiseTex, samplernoiseTex), float4 texSize, float3 p)
     {
         float3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
         float2 uv = (p.xy + i.xy + float2(37, 17) * i.z + .5) / 256.;
         uv.y *= -1;
-        
+
         float2 pixelUv = uv * texSize.zw + 0.5;
         float2 pixelUvFrac = frac(pixelUv);
 
         pixelUv = (floor(pixelUv) / texSize.zw) - texSize.xy * 0.5;
 
-        float4 sample0 = SAMPLE_TEXTURE2D_LOD(noiseTex, sampler_noiseTex, pixelUv, 0);
-        float4 sample1 = SAMPLE_TEXTURE2D_LOD(noiseTex, sampler_noiseTex, pixelUv + float2(texSize.x, 0), 0);
-        float4 sample2 = SAMPLE_TEXTURE2D_LOD(noiseTex, sampler_noiseTex, pixelUv + float2(0, texSize.y), 0);
-        float4 sample3 = SAMPLE_TEXTURE2D_LOD(noiseTex, sampler_noiseTex, pixelUv + float2(texSize.x, texSize.y), 0);
+        float4 sample0 = SAMPLE_TEXTURE2D_LOD(noiseTex, samplernoiseTex, pixelUv, 0);
+        float4 sample1 = SAMPLE_TEXTURE2D_LOD(noiseTex, samplernoiseTex, pixelUv + float2(texSize.x, 0), 0);
+        float4 sample2 = SAMPLE_TEXTURE2D_LOD(noiseTex, samplernoiseTex, pixelUv + float2(0, texSize.y), 0);
+        float4 sample3 = SAMPLE_TEXTURE2D_LOD(noiseTex, samplernoiseTex, pixelUv + float2(texSize.x, texSize.y), 0);
 
         float4 filtered1 = lerp(sample0, sample1, pixelUvFrac.x);
         float4 filtered2 = lerp(sample2, sample3, pixelUvFrac.x);
         float4 filtered = lerp(filtered1, filtered2, pixelUvFrac.y);
-        
+
         p.xy = filtered.yx;
         return lerp(p.x, p.y, p.z);
     }
 
-    half getBakedNoiseBicubic(TEXTURE2D_PARAM(noiseTex, sampler_noiseTex), float3 p)
+    half getBakedNoiseBicubic(TEXTURE2D_PARAM(noiseTex, samplernoiseTex), float3 p)
     {
         float3 i = floor(p); p -= i; p *= p * (3. - 2. * p);
         float2 uv = (p.xy + i.xy + float2(37, 17) * i.z + .5) / 256.;
         uv.y *= -1;
-        p.xy = tex2DFastBicubicSampleLevel(TEXTURE2D_ARGS(noiseTex, sampler_noiseTex), uv, 0).yx;
+        p.xy = tex2DFastBicubicSampleLevel(TEXTURE2D_ARGS(noiseTex, samplernoiseTex), uv, 0).yx;
         return lerp(p.x, p.y, p.z);
     }
 
@@ -249,7 +249,7 @@
         return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
     }
 
-    half3 ApplyLut2D(TEXTURE2D_PARAM(lut2d, sampler_lut2d), half3 uvw)
+    half3 ApplyLut2D(TEXTURE2D_PARAM(lut2d, samplerlut2d), half3 uvw)
     {
         half3 scaleOffset = half3(1.0 / 1024.0, 1.0 / 32.0, 31.0);
         // Strip format where `height = sqrt(width)`
@@ -258,15 +258,15 @@
         uvw.xy = uvw.xy * scaleOffset.z * scaleOffset.xy + scaleOffset.xy * 0.5;
         uvw.x += shift * scaleOffset.y;
         uvw.xyz = lerp(
-            SAMPLE_TEXTURE2D(lut2d, sampler_lut2d, uvw.xy).rgb,
-            SAMPLE_TEXTURE2D(lut2d, sampler_lut2d, uvw.xy + half2(scaleOffset.y, 0.0)).rgb,
+            SAMPLE_TEXTURE2D(lut2d, samplerlut2d, uvw.xy).rgb,
+            SAMPLE_TEXTURE2D(lut2d, samplerlut2d, uvw.xy + half2(scaleOffset.y, 0.0)).rgb,
             uvw.z - shift
         );
         return uvw;
     }
 
     half3 HSV2RGB(half3 hsv)
-    {    
+    {
         return hsv.z + hsv.z * hsv.y * (clamp(abs(fmod(hsv.x * 6.0 + half3(0,4,2), 6.0) - 3.0) - 1.0,0.0,1.0) - 1.0);
     }
 
@@ -521,7 +521,7 @@
         return source;
     }
 
-    
+
     float GLSLMod(float x, float y)
     {
         return (((x)-(y)*floor((x)/(y))));
@@ -554,7 +554,7 @@
         float D = 0.20;
         float E = 0.02;
         float F = 0.30;
-        
+
         return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
     }
 
@@ -597,7 +597,7 @@
         return gamma_applied_linear_rgb;
     }
 
-    
+
     // https://github.com/MochiesCode/Mochies-Unity-Shaders/
     // MIT License
 
