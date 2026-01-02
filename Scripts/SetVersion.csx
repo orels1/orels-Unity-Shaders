@@ -6,7 +6,8 @@ using SemanticVersioning;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-public enum TargetPackages {
+public enum TargetPackages
+{
     All,
     Shaders,
     Generator,
@@ -47,12 +48,16 @@ Dictionary<TargetPackages, string> PackageIds = new() {
 };
 
 Parser.Default.ParseArguments<Options>(Args)
-    .WithParsed<Options>(o => {
+    .WithParsed<Options>(o =>
+    {
         TargetPackages targetPackages;
-        if (string.IsNullOrWhiteSpace(o.PackageName)) {
+        if (string.IsNullOrWhiteSpace(o.PackageName))
+        {
             targetPackages = TargetPackages.All;
-        } else {
-            switch (o.PackageName) 
+        }
+        else
+        {
+            switch (o.PackageName)
             {
                 case "shaders":
                     targetPackages = TargetPackages.Shaders;
@@ -69,19 +74,23 @@ Parser.Default.ParseArguments<Options>(Args)
         }
         Console.WriteLine($"Target Package: {targetPackages} ({PackageIds[targetPackages]})");
         var settingExactVersion = false;
-        if (!string.IsNullOrWhiteSpace(o.Version)) {
+        if (!string.IsNullOrWhiteSpace(o.Version))
+        {
             settingExactVersion = true;
             Console.WriteLine($"Planning to set to version: {o.Version}\n");
         }
 
         var targetJSONs = new List<string>();
-        if (targetPackages == TargetPackages.All || targetPackages == TargetPackages.Shaders) {
+        if (targetPackages == TargetPackages.All || targetPackages == TargetPackages.Shaders)
+        {
             targetJSONs.Add("../Packages/sh.orels.shaders/package.json");
         }
-        if (targetPackages == TargetPackages.All || targetPackages == TargetPackages.Generator) {
+        if (targetPackages == TargetPackages.All || targetPackages == TargetPackages.Generator)
+        {
             targetJSONs.Add("../Packages/sh.orels.shaders.generator/package.json");
         }
-        if (targetPackages == TargetPackages.All || targetPackages == TargetPackages.Inspector) {
+        if (targetPackages == TargetPackages.All || targetPackages == TargetPackages.Inspector)
+        {
             targetJSONs.Add("../Packages/sh.orels.shaders.inspector/package.json");
         }
 
@@ -93,29 +102,37 @@ Parser.Default.ParseArguments<Options>(Args)
             var displayName = packageJSON!["displayName"]!;
             var version = packageJSON!["version"]!;
             Console.Write($"{displayName} | {version}");
-            if (settingExactVersion) {
+            if (settingExactVersion)
+            {
                 Console.WriteLine($" -> {o.Version}");
                 packageJSON["version"] = o.Version;
-                
+
                 // Update lockstep deps
-                if (o.UpdateDependencies && packageJSON!["name"]!.ToString() == "sh.orels.shaders") {
+                if (o.UpdateDependencies && packageJSON!["name"]!.ToString() == "sh.orels.shaders")
+                {
                     Console.WriteLine($"Updating dependencies to {o.Version} as well");
                     packageJSON["vpmDependencies"]["sh.orels.shaders.generator"] = $"^{o.Version}";
                     packageJSON["vpmDependencies"]["sh.orels.shaders.inspector"] = $"^{o.Version}";
                 }
-            } else if (!string.IsNullOrWhiteSpace(o.NewBetaVersion)) {
+            }
+            else if (!string.IsNullOrWhiteSpace(o.NewBetaVersion))
+            {
                 var newVersion = $"{version}-{o.NewBetaVersion}.1";
                 Console.WriteLine($" -> {newVersion}");
                 packageJSON["version"] = newVersion;
 
-                if (o.UpdateDependencies && packageJSON!["name"]!.ToString() == "sh.orels.shaders") {
+                if (o.UpdateDependencies && packageJSON!["name"]!.ToString() == "sh.orels.shaders")
+                {
                     Console.WriteLine($"Updating dependencies to {newVersion} as well");
                     packageJSON["vpmDependencies"]["sh.orels.shaders.generator"] = $"^{newVersion}";
                     packageJSON["vpmDependencies"]["sh.orels.shaders.inspector"] = $"^{newVersion}";
                 }
-            } else if (o.Beta) {
+            }
+            else if (o.Beta)
+            {
                 var parsed = new Version(version.ToString());
-                if (!parsed.IsPreRelease) {
+                if (!parsed.IsPreRelease)
+                {
                     Console.WriteLine($"\nVersion {version} is not a pre-release, cannot bump");
                     return;
                 }
@@ -124,7 +141,27 @@ Parser.Default.ParseArguments<Options>(Args)
                 packageJSON["version"] = newVersion;
                 Console.WriteLine($" -> {newVersion}");
 
-                if (o.UpdateDependencies && packageJSON!["name"]!.ToString() == "sh.orels.shaders") {
+                if (o.UpdateDependencies && packageJSON!["name"]!.ToString() == "sh.orels.shaders")
+                {
+                    Console.WriteLine($"Updating dependencies to {newVersion} as well");
+                    packageJSON["vpmDependencies"]["sh.orels.shaders.generator"] = $"^{newVersion}";
+                    packageJSON["vpmDependencies"]["sh.orels.shaders.inspector"] = $"^{newVersion}";
+                }
+            }
+            else if (o.Minor)
+            {
+                var parsed = new Version(version.ToString());
+                if (parsed.IsPreRelease)
+                {
+                    Console.WriteLine($"\nVersion {version} is a pre-release, cannot bump minor version");
+                    return;
+                }
+                var newVersion = $"{parsed.Major}.{parsed.Minor + 1}.{parsed.Patch}";
+                packageJSON["version"] = newVersion;
+                Console.WriteLine($" -> {newVersion}");
+
+                if (o.UpdateDependencies && packageJSON!["name"]!.ToString() == "sh.orels.shaders")
+                {
                     Console.WriteLine($"Updating dependencies to {newVersion} as well");
                     packageJSON["vpmDependencies"]["sh.orels.shaders.generator"] = $"^{newVersion}";
                     packageJSON["vpmDependencies"]["sh.orels.shaders.inspector"] = $"^{newVersion}";

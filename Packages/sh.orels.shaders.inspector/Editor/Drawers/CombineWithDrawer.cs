@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -19,7 +19,7 @@ namespace ORL.Drawers
 
         public string[] PersistentKeys => Array.Empty<string>();
 
-        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next)
+        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next, Dictionary<string, LocalizationData.LocalizedPropData> localizationData)
         {
             if (EditorGUI.indentLevel == -1) return true;
 
@@ -33,7 +33,7 @@ namespace ORL.Drawers
 
             baseRect.width = baseSize;
             baseRect.width -= _baseOffset;
-            DrawElement(baseRect, editor, property, index);
+            DrawElement(baseRect, editor, property, index, localizationData);
 
             var i = 1;
             foreach (var group in groups)
@@ -48,13 +48,13 @@ namespace ORL.Drawers
 
                 var newRect = baseRect;
                 newRect.x += (baseSize) * i + _baseOffset;
-                DrawElement(newRect, editor, properties[propIndex], propIndex);
+                DrawElement(newRect, editor, properties[propIndex], propIndex, localizationData);
                 i++;
             }
             return true;
         }
 
-        private void DrawElement(Rect controlRect, MaterialEditor editor, MaterialProperty property, int index)
+        private void DrawElement(Rect controlRect, MaterialEditor editor, MaterialProperty property, int index, Dictionary<string, LocalizationData.LocalizedPropData> localizationData)
         {
             var localRect = controlRect;
             var name = Utils.StripInternalSymbols(property.displayName);
@@ -64,17 +64,27 @@ namespace ORL.Drawers
             labelRect.width = labelSize.x * EditorGUIUtility.pixelsPerPoint;
 
             var defaultProps = (editor.target as Material).shader.GetPropertyAttributes(index);
+            var tooltip = Array.Find(defaultProps, attr => attr.StartsWith("Tooltip("));
+            if (!string.IsNullOrWhiteSpace(tooltip))
+            {
+                tooltip = tooltip.Substring(tooltip.IndexOf("(") + 1);
+                tooltip = tooltip.Substring(0, tooltip.LastIndexOf(")"));
+            } else if (localizationData.ContainsKey(property.name))
+            {
+                tooltip = localizationData[property.name].tooltip;
+            }
+            
             var enumAttribute = Array.Find(defaultProps, attr => attr.StartsWith("Enum("));
 
             if (!string.IsNullOrWhiteSpace(enumAttribute))
             {
                 localRect.xMin += labelSize.x;
-                EditorGUI.LabelField(labelRect, name);
-                editor.ShaderProperty(localRect, property, new GUIContent(""));
+                EditorGUI.LabelField(labelRect, new GUIContent(name, tooltip));
+                editor.ShaderProperty(localRect, property, new GUIContent("", tooltip));
                 return;
             }
 
-            editor.ShaderProperty(localRect, property, new GUIContent(name));
+            editor.ShaderProperty(localRect, property, new GUIContent(name, tooltip));
         }
     }
 }

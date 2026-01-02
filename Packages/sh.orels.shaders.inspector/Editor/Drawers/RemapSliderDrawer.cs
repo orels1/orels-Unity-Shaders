@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -17,7 +17,7 @@ namespace ORL.Drawers
 
         public string[] PersistentKeys => Array.Empty<string>();
 
-        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next)
+        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next, Dictionary<string, LocalizationData.LocalizedPropData> localizationData)
         {
             if (EditorGUI.indentLevel == -1) return true;
 
@@ -32,6 +32,18 @@ namespace ORL.Drawers
 
             var strippedName = Utils.StripInternalSymbols(property.displayName);
 
+            // make sure we dont miss the tooltip for the field
+            var defaultProps = (editor.target as Material).shader.GetPropertyAttributes(index);
+            var tooltip = Array.Find(defaultProps, attr => attr.StartsWith("Tooltip("));
+            if (!string.IsNullOrWhiteSpace(tooltip))
+            {
+                tooltip = tooltip.Substring(tooltip.IndexOf("(") + 1);
+                tooltip = tooltip.Substring(0, tooltip.LastIndexOf(")"));
+            } else if (localizationData.ContainsKey(property.name))
+            {
+                tooltip = localizationData[property.name].tooltip;
+            }
+
             var baseRect = EditorGUILayout.GetControlRect();
             var maxSliderSize = baseRect.width * 0.62f;
             var labelRect = baseRect;
@@ -40,7 +52,7 @@ namespace ORL.Drawers
             baseRect.width = EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth - 42f;
 
             EditorGUI.BeginChangeCheck();
-            EditorGUI.LabelField(labelRect, strippedName);
+            EditorGUI.LabelField(labelRect, new GUIContent(strippedName, tooltip));
             EditorGUI.MinMaxSlider(baseRect, "", ref currValue.x, ref currValue.y, min, max);
             if (EditorGUI.EndChangeCheck())
             {

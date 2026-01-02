@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ORL.ShaderInspector;
 using UnityEditor;
 
 namespace ORL.Drawers
@@ -10,7 +11,7 @@ namespace ORL.Drawers
         // These can be combined with other drawers but the order of execution is not guaranteed
         // If you want to add a new %DrawerFunction() you should use IDrawerFunc instead
         bool MatchDrawer(MaterialProperty property);
-        
+
         bool OnGUI(
             MaterialEditor editor,
             MaterialProperty[] properties,
@@ -18,7 +19,23 @@ namespace ORL.Drawers
             int index,
             ref Dictionary<string, object> uiState,
             Func<bool> next
-        );
+        )
+        {
+            return OnGUI(editor, properties, property, index, ref uiState, next, new Dictionary<string, LocalizationData.LocalizedPropData>());
+        }
+
+        bool OnGUI(
+            MaterialEditor editor,
+            MaterialProperty[] properties,
+            MaterialProperty property,
+            int index,
+            ref Dictionary<string, object> uiState,
+            Func<bool> next,
+            Dictionary<string, LocalizationData.LocalizedPropData> localizationData
+        )
+        {
+            return OnGUI(editor, properties, property, index, ref uiState, next);
+        }
 
         // You can define an array of string key prefixes to be put into the `uiState` that you want to be persisted on the material
         // This is useful for things like foldouts, toggles, etc.

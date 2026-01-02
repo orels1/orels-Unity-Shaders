@@ -21,7 +21,7 @@ namespace ORL.ShaderInspector
         // The still are able to stop any further drawers from rendering as an optional feature
         private List<IDrawer> _drawers;
 
-        // Functions are match in order of them being defined int he name
+        // Functions are match in order of them being defined in the name
         // Which allows you to chain things in order of priority
         // As functions can choose to call or not call `next`
         private Dictionary<string, IDrawerFunc> _drawerFuncs;
@@ -36,6 +36,7 @@ namespace ORL.ShaderInspector
 
         #region State Management
         private string[] _persistedKeys = new[] { "debugShown", "mapBakerShown" };
+        private Dictionary<string, LocalizationData.LocalizedPropData> _localizedPropData;
 
         private void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
@@ -134,25 +135,42 @@ namespace ORL.ShaderInspector
                     _uiState.Add(packerKey + "_blue_tex", prop.textureValue);
                     _uiState.Add(packerKey + "_green_tex", prop.textureValue);
                     _uiState.Add(packerKey + "_alpha_tex", prop.textureValue);
-
+                
                     _uiState.Add(packerKey + "_red_channel", 0);
                     _uiState.Add(packerKey + "_green_channel", 1);
                     _uiState.Add(packerKey + "_blue_channel", 2);
                     _uiState.Add(packerKey + "_alpha_channel", 0);
-
+                
                     _uiState.Add(packerKey + "_red_val", 1f);
                     _uiState.Add(packerKey + "_blue_val", 1f);
                     _uiState.Add(packerKey + "_green_val", 1f);
                     _uiState.Add(packerKey + "_alpha_val", 1f);
-
+                
                     _uiState.Add(packerKey + "_red_invert", false);
                     _uiState.Add(packerKey + "_blue_invert", false);
                     _uiState.Add(packerKey + "_green_invert", false);
                     _uiState.Add(packerKey + "_alpha_invert", false);
-
+                
                     _uiState.Add(packerKey + "_size", 2048);
                     _uiState.Add(packerKey + "_linear", false);
                     _uiState.Add(packerKey + "_name", materialEditor.target.name + "_" + Utils.StripInternalSymbols(prop.displayName).Trim() + "_packed");
+                }
+            }
+            
+            // Load localization cache
+            var locAssets = AssetDatabase.FindAssets("t:LocalizationData");
+            _localizedPropData = new Dictionary<string, LocalizationData.LocalizedPropData>();
+            foreach (var guid in locAssets)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var locAsset = AssetDatabase.LoadAssetAtPath<LocalizationData>(path);
+
+                for (var i = 0; i < locAsset.properties.Count; i++)
+                {
+                    if (!_localizedPropData.ContainsKey(locAsset.properties[i]))
+                    {
+                        _localizedPropData.Add(locAsset.properties[i], locAsset.data[i]);
+                    }
                 }
             }
 
@@ -173,47 +191,48 @@ namespace ORL.ShaderInspector
 
         private Dictionary<string, object> RestoreState(Material target)
         {
-            var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(target));
-            if (importer == null) return new Dictionary<string, object>();
-            var userData = new SerializedState();
-            if (!string.IsNullOrWhiteSpace(importer.userData))
-            {
-                EditorJsonUtility.FromJsonOverwrite(importer.userData, userData);
-                var restored = new Dictionary<string, object>();
-                for (int i = 0; i < userData.keys.Length; i++)
-                {
-                    switch (userData.types[i])
-                    {
-                        case "skip":
-                            restored.Add(userData.keys[i], null);
-                            break;
-                        case "int":
-                            restored.Add(userData.keys[i], int.Parse(userData.values[i]));
-                            break;
-                        case "float":
-                            restored.Add(userData.keys[i], float.Parse(userData.values[i]));
-                            break;
-                        case "bool":
-                            restored.Add(userData.keys[i], bool.Parse(userData.values[i]));
-                            break;
-                        case "string":
-                            restored.Add(userData.keys[i], userData.values[i]);
-                            break;
-                        case "gradient":
-                            var grad = new SavedGradient();
-                            EditorJsonUtility.FromJsonOverwrite(userData.values[i], grad);
-                            restored.Add(userData.keys[i], grad.value);
-                            break;
-                        default:
-                            restored.Add(userData.keys[i], null);
-                            break;
-                    }
-                }
-
-                return restored;
-            }
-
             return new Dictionary<string, object>();
+            // var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(target));
+            // if (importer == null) return new Dictionary<string, object>();
+            // var userData = new SerializedState();
+            // if (!string.IsNullOrWhiteSpace(importer.userData))
+            // {
+            //     EditorJsonUtility.FromJsonOverwrite(importer.userData, userData);
+            //     var restored = new Dictionary<string, object>();
+            //     for (int i = 0; i < userData.keys.Length; i++)
+            //     {
+            //         switch (userData.types[i])
+            //         {
+            //             case "skip":
+            //                 restored.Add(userData.keys[i], null);
+            //                 break;
+            //             case "int":
+            //                 restored.Add(userData.keys[i], int.Parse(userData.values[i]));
+            //                 break;
+            //             case "float":
+            //                 restored.Add(userData.keys[i], float.Parse(userData.values[i]));
+            //                 break;
+            //             case "bool":
+            //                 restored.Add(userData.keys[i], bool.Parse(userData.values[i]));
+            //                 break;
+            //             case "string":
+            //                 restored.Add(userData.keys[i], userData.values[i]);
+            //                 break;
+            //             case "gradient":
+            //                 var grad = new SavedGradient();
+            //                 EditorJsonUtility.FromJsonOverwrite(userData.values[i], grad);
+            //                 restored.Add(userData.keys[i], grad.value);
+            //                 break;
+            //             default:
+            //                 restored.Add(userData.keys[i], null);
+            //                 break;
+            //         }
+            //     }
+            //
+            //     return restored;
+            // }
+            //
+            // return new Dictionary<string, object>();
         }
 
         private void SaveState(Material target)
@@ -471,7 +490,7 @@ namespace ORL.ShaderInspector
             if (currDrawer.MatchDrawer(property))
             {
                 drawers.RemoveAt(0);
-                return currDrawer.OnGUI(editor, properties, property, index, ref _uiState, () => MatchDrawerStack(drawers, editor, properties, property, index));
+                return currDrawer.OnGUI(editor, properties, property, index, ref _uiState, () => MatchDrawerStack(drawers, editor, properties, property, index), _localizedPropData);
             }
 
             drawers.RemoveAt(0);
@@ -489,7 +508,7 @@ namespace ORL.ShaderInspector
             if (_drawerFuncs.ContainsKey(currDrawerFunc))
             {
                 funcs.RemoveAt(0);
-                return _drawerFuncs[currDrawerFunc].OnGUI(editor, properties, property, index, ref _uiState, () => MatchDrawerFuncStack(funcs, editor, properties, property, index));
+                return _drawerFuncs[currDrawerFunc].OnGUI(editor, properties, property, index, ref _uiState, () => MatchDrawerFuncStack(funcs, editor, properties, property, index), _localizedPropData);
             }
 
             funcs.RemoveAt(0);
@@ -570,6 +589,10 @@ namespace ORL.ShaderInspector
             {
                 tooltip = tooltip.Substring(tooltip.IndexOf("(") + 1);
                 tooltip = tooltip.Substring(0, tooltip.LastIndexOf(")"));
+            }
+            else if (_localizedPropData.ContainsKey(property.name))
+            {
+                tooltip = _localizedPropData[property.name].tooltip;
             }
 
             if (isSingleLine)

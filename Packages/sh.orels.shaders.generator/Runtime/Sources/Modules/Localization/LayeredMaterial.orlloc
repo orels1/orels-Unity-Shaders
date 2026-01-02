@@ -1,0 +1,22 @@
+propName;EN
+
+_LayeredMatLayersCount;The amount of layers used
+_LMMaskingType;Controls what is used for masking
+_LMMaskTex;This will be used to mask the layers by color
+_LMMaskTexUV;Selects the UV set used for sampling the Mask Texture
+_LMMaskDebugging;Displays the mask values on the mesh based on selected Mask Type
+_LMMaskDebuggingChannel;Controls which channel to display during debugging
+
+_LMLayerBaseColor;Main Tint Color
+_LMLayerBaseUV;Selects the UV set used for sampling all the Base Layer textures
+_LMLayerBaseMaskMap;Texture containing Metallic, Smoothness, and AO maps. Default channel layout is Red: Metallic, Green: AO, Alpha: Smoothness. Can be adjusted using a remapper below
+_LMLayerBaseMetalChannel;Selects a channel containing Metal values
+_LMLayerBaseAOChannel;Selects a channel containing AO values
+_LMLayerBaseSmoothChannel;Selects a channel containing Smoothness values
+_LMLayerBaseSmoothness;Controls global smoothness level, uses this value across the whole material
+_LMLayerBaseRoughnessMode;Flips the channel value. If your texture contains Roughness instead of Smoothness - you should use this option
+_LMLayerBaseMetallic;Controls global metalness level, uses this value across the whole material
+_LMLayerBaseMetallicRemap;Allows you to adjust the range of metalness values of the provided Metal map
+_LMLayerBaseSmoothnessRemap;Allows you to adjust the range of smoothness values of the provided Smoothness map
+_LMLayerBaseOcclusionStrength;Controls the strength of the provided Ambient Occlusion map
+_LMLayerBaseFlipBumpY;Flips the green channel of the normal map for DirectX-style normal maps, which are commonly found in something like Unreal Engine assets. If your normal map looks "upside-down" - you should try this option
