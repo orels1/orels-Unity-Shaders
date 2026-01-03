@@ -167,6 +167,25 @@ Parser.Default.ParseArguments<Options>(Args)
                     packageJSON["vpmDependencies"]["sh.orels.shaders.inspector"] = $"^{newVersion}";
                 }
             }
+            else if (o.Patch)
+            {
+                var parsed = new Version(version.ToString());
+                if (parsed.IsPreRelease)
+                {
+                    Console.WriteLine($"\nVersion {version} is a pre-release, cannot bump minor version");
+                    return;
+                }
+                var newVersion = $"{parsed.Major}.{parsed.Minor}.{parsed.Patch + 1}";
+                packageJSON["version"] = newVersion;
+                Console.WriteLine($" -> {newVersion}");
+
+                if (o.UpdateDependencies && packageJSON!["name"]!.ToString() == "sh.orels.shaders")
+                {
+                    Console.WriteLine($"Updating dependencies to {newVersion} as well");
+                    packageJSON["vpmDependencies"]["sh.orels.shaders.generator"] = $"^{newVersion}";
+                    packageJSON["vpmDependencies"]["sh.orels.shaders.inspector"] = $"^{newVersion}";
+                }
+            }
             File.WriteAllText(packagePath, packageJSON!.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         }
 

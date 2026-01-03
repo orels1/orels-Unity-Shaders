@@ -603,6 +603,7 @@ namespace ORL.ShaderInspector
                 // We can only repack 2D textures
                 if (property.textureDimension != TextureDimension.Tex2D) return;
                 var packerKey = property.name + "_packer";
+                _uiState.TryAdd(packerKey, false);
                 _uiState[packerKey] = TexturePacker.DrawPacker(buttonRect, (bool)_uiState[packerKey], ref _uiState, packerKey, editor.target as Material, property, editor);
 #if UNITY_2022_1_OR_NEWER
                 if (shouldRestore)
@@ -631,6 +632,7 @@ namespace ORL.ShaderInspector
                 // We can only repack 2D textures
                 if (property.textureDimension != TextureDimension.Tex2D) return;
                 var packerKey = property.name + "_packer";
+                _uiState.TryAdd(packerKey, false);
                 _uiState[packerKey] = TexturePacker.DrawPacker(buttonRect, (bool)_uiState[packerKey], ref _uiState, packerKey, editor.target as Material, property, editor);
 #if UNITY_2022_1_OR_NEWER
                 if (shouldRestore && EditorGUI.indentLevel != -1)
