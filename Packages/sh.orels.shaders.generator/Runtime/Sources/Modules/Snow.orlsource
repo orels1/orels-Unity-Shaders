@@ -1,0 +1,215 @@
+%Properties()
+{
+    UI_SnowHeader("# Snow", Int) = 1
+    _SnowLevel("Snow Level", Range(0, 1)) = 0.1
+    _SnowDirection("Snow Direction %Vector3(X,Y,Z)", Vector) = (0, 1, 0, 0)
+    _SnowLayerNormalStrength("Base Normal Strength", Range(0,1)) = 0.5
+    _SnowPower("Edge Nudge", Float) = 2.2
+    _SnowEdgeWidth("Edge Width", Range(0.001, 1.0)) = 0.1
+    _SnowEdgeOffset("Edge Offset", Float) = 1.0
+    _SnowEdgeMask("Edge Mask", 2D) = "white" {}
+    _SnowEdgeMaskRange("Mask Range", Range(0.001,1)) = 0.1
+    _SnowEdgeMaskContrast("Mask Contrast %RemapSlider(0,1)", Vector) = (0, 0.6, 0, 1)
+    [Toggle(SNOW_DEBUG)]_SnowDebug("Show Snow Mask", Int) = 0
+    UI_SnowHeightEffects("## Height Effects %ShowIf(_Height && PARALLAX)", Int) = 1
+    [ToggleUI]_SnowUseHeight("Use Height %ShowIf(_Height && PARALLAX)", Int) = 0
+    [ToggleUI]_SnowInvertHeightEffects("Invert Height Effects %ShowIf(_SnowUseHeight && _Height && PARALLAX)", Int) = 0
+    _SnowHeightSmoothing("Height Smoothing %ShowIf(_SnowUseHeight && _Height && PARALLAX)", Range(0, 1)) = 0.2
+    _SnowHeightStrength("Height Influence %ShowIf(_SnowUseHeight && _Height && PARALLAX)", Range(0,1)) = 1.0
+    UI_SnowSurface("## Snow Surface", Int) = 0
+    [Enum(Original UV, 0, Triplanar, 1)]_SnowUVMode("UV Mode", Int) = 0
+    _SnowTriplanarBlend("Triplanar Blend %ShowIf(_SnowUVMode == 1)", Float) = 1.0
+    _SnowTriplanarPower("Triplanar Power %ShowIf(_SnowUVMode == 1)", Float) = 1.0
+    _SnowAlbedo("Albedo", 2D) = "white" {}
+    _SnowSmoothness("Smoothness >", 2D) = "black" {}
+    _SnowSmoothnessLevel("Smoothness Level", Range(0,1)) = 0.0
+    [Normal]_SnowNormal("Normal >", 2D) = "bump" {}
+    _SnowNormalStrength("Normal Strength", Range(-1,1)) = 1.0
+}
+
+%Variables()
+{
+    half _SnowLevel;
+    float4 _SnowDirection;
+    float _SnowLayerNormalStrength;
+    half _SnowPower;
+    half _SnowEdgeWidth;
+    half _SnowEdgeOffset;
+    float4 _SnowEdgeMask_ST;
+    half _SnowEdgeMaskRange;
+    half4 _SnowEdgeMaskContrast;
+
+    half _SnowSmoothnessLevel;
+    float _SnowNormalStrength;
+
+    int _SnowUseHeight;
+    int _SnowInvertHeightEffects;
+    half _SnowHeightSmoothing;
+    half _SnowHeightStrength;
+
+    int _SnowUVMode;
+    float _SnowTriplanarBlend;
+    float _SnowTriplanarPower;
+    float4 _SnowAlbedo_ST;
+}
+
+%Textures()
+{
+    TEXTURE2D(_SnowEdgeMask);
+
+    TEXTURE2D(_SnowAlbedo);
+    TEXTURE2D(_SnowSmoothness);
+    TEXTURE2D(_SnowNormal);
+    SAMPLER(sampler_SnowAlbedo);
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment SNOW_DEBUG
+}
+
+%PassFunctions()
+{
+    struct Snow_ORL_TriplanarUV
+    {
+        float2 xyUV;
+        float4 xyDDXDDY;
+        float2 zyUV;
+        float4 zyDDXDDY;
+        float2 xzUV;
+        float4 xzDDXDDY;
+    };
+
+    Snow_ORL_TriplanarUV Snow_GetTriplanarUV(float3 position, float3 normal, float tiling)
+    {
+        float3 wsAligned = (position * tiling);
+
+        Snow_ORL_TriplanarUV uv = (Snow_ORL_TriplanarUV)0;
+        uv.xyUV = wsAligned.xy;
+        uv.zyUV = wsAligned.zy;
+        uv.xzUV = wsAligned.xz;
+
+        uv.xyDDXDDY = float4(ddx(wsAligned.xy), ddy(wsAligned.xy));
+        uv.zyDDXDDY = float4(ddx(wsAligned.zy), ddy(wsAligned.zy));
+        uv.xzDDXDDY = float4(ddx(wsAligned.xz), ddy(wsAligned.xz));
+
+        return uv;
+    }
+
+    float3 Snow_GetTriplanarWeights(float3 worldNormal, float blend, float power)
+    {
+        float3 normal = abs(worldNormal);
+        normal = saturate(normal  - (1 - blend));
+        normal = pow(normal, power);
+
+        return saturate(normal / (normal.x + normal.y + normal.z));
+    }
+
+    float4 Snow_GetTriplanarSample(Snow_ORL_TriplanarUV uv, float3 weights, TEXTURE2D_PARAM(tex, texsampler))
+    {
+        float4 xySample = SAMPLE_TEXTURE2D_GRAD(tex, texsampler, uv.xyUV, uv.xyDDXDDY.xy, uv.xyDDXDDY.zw);
+        float4 zySample = SAMPLE_TEXTURE2D_GRAD(tex, texsampler, uv.zyUV, uv.zyDDXDDY.xy, uv.zyDDXDDY.zw);
+        float4 xzSample = SAMPLE_TEXTURE2D_GRAD(tex, texsampler, uv.xzUV, uv.xzDDXDDY.xy, uv.xzDDXDDY.zw);
+
+        return lerp(lerp(lerp(0, xzSample, weights.y), zySample, weights.x), xySample, weights.z);
+    }
+}
+
+%Fragment("SnowFragment")
+{
+    void SnowFragment(MeshData d, inout SurfaceData o)
+    {
+        #if defined(SNOW_DEBUG)
+        return;
+        #endif
+
+        float3 worldNormal = Unity_SafeNormalize(lerp(d.worldNormal, mul(o.Normal, d.TBNMatrix), _SnowLayerNormalStrength));
+        _SnowLevel = 1.0 - _SnowLevel;
+        half snowMask = dot(worldNormal, _SnowDirection.xyz);
+        snowMask = (snowMask + 1.0) * 0.5;
+        snowMask = pow(snowMask, _SnowPower);
+        snowMask = smoothstep(_SnowLevel, _SnowLevel + _SnowEdgeWidth, saturate(snowMask * _SnowEdgeOffset));
+        snowMask = saturate(snowMask);
+
+        #if defined(PARALLAX)
+        if (GLOBAL_heightSet && _SnowUseHeight) {
+            half heightMask = _SnowInvertHeightEffects ? (1.0 - smoothstep(GLOBAL_height - _SnowHeightSmoothing, GLOBAL_height, _SnowLevel)) :
+                smoothstep(GLOBAL_height - _SnowHeightSmoothing, GLOBAL_height, 1.0 - _SnowLevel);
+            snowMask = lerp(snowMask, heightMask * snowMask, _SnowHeightStrength);
+        }
+        #endif
+
+        half edgeMask = SAMPLE_TEXTURE2D(_SnowEdgeMask, sampler_MainTex, d.uv0.xy * _SnowEdgeMask_ST.xy + _SnowEdgeMask_ST.zw).r;
+        edgeMask = saturate(remap(edgeMask, 0, 1, _SnowEdgeMaskContrast.x, _SnowEdgeMaskContrast.y));
+        snowMask = smoothstep(edgeMask, edgeMask + _SnowEdgeMaskRange, snowMask);
+
+        float2 uv = GLOBAL_uv * _SnowAlbedo_ST.xy + _SnowAlbedo_ST.zw;
+
+        half3 snowAlbedo = 1;
+        half snowSmooth = 0.0;
+        float3 snowNormal = float3(0,0,1.0);
+
+        if (_SnowUVMode == 1) {
+            Snow_ORL_TriplanarUV triUV = Snow_GetTriplanarUV(d.worldSpacePosition, d.worldNormal, _SnowAlbedo_ST.x);
+            float3 triWeights = Snow_GetTriplanarWeights(d.worldNormal, _SnowTriplanarBlend, _SnowTriplanarPower);
+
+            snowAlbedo = Snow_GetTriplanarSample(triUV, triWeights, TEXTURE2D_ARGS(_SnowAlbedo, sampler_SnowAlbedo)).rgb;
+            snowSmooth = Snow_GetTriplanarSample(triUV, triWeights, TEXTURE2D_ARGS(_SnowSmoothness, sampler_SnowAlbedo)).r;
+
+            float4 normalXTex = SAMPLE_TEXTURE2D_GRAD(_SnowNormal, sampler_SnowAlbedo, triUV.xyUV, triUV.xyDDXDDY.xy, triUV.xyDDXDDY.zw);
+            float4 normalYTex = SAMPLE_TEXTURE2D_GRAD(_SnowNormal, sampler_SnowAlbedo, triUV.zyUV, triUV.zyDDXDDY.xy, triUV.zyDDXDDY.zw);
+            float4 normalZTex = SAMPLE_TEXTURE2D_GRAD(_SnowNormal, sampler_SnowAlbedo, triUV.xzUV, triUV.xzDDXDDY.xy, triUV.xzDDXDDY.zw);
+
+            float3 unpackedNormalX = UnpackNormalScale(normalXTex, _SnowNormalStrength);
+            float3 unpackedNormalY = UnpackNormalScale(normalYTex, _SnowNormalStrength);
+            float3 unpackedNormalZ = UnpackNormalScale(normalZTex, _SnowNormalStrength);
+
+            snowNormal =  normalize(lerp(lerp(lerp(0, unpackedNormalZ, triWeights.y), unpackedNormalY, triWeights.x), unpackedNormalX, triWeights.z));;
+        } else {
+            snowAlbedo = SAMPLE_TEXTURE2D(_SnowAlbedo, sampler_SnowAlbedo, uv).rgb;
+            snowSmooth = SAMPLE_TEXTURE2D(_SnowSmoothness, sampler_SnowAlbedo, uv).r;
+
+            float4 packedNormal = SAMPLE_TEXTURE2D(_SnowNormal, sampler_SnowAlbedo, uv);
+            snowNormal = UnpackNormalScale(packedNormal, _SnowNormalStrength);
+        }
+
+
+        o.Albedo = lerp(o.Albedo, snowAlbedo, snowMask);
+        o.Smoothness = lerp(o.Smoothness, snowSmooth * _SnowSmoothnessLevel, snowMask);
+        o.Metallic = lerp(o.Metallic, 0.0, snowMask);
+        o.Occlusion = lerp(o.Occlusion, 1.0, snowMask);
+        o.Normal = normalize(lerp(o.Normal, snowNormal, saturate(remap(snowMask, 0, 0.4, 0, 1))));
+    }
+}
+
+%Color("SnowColor")
+{
+    void SnowColor(MeshData d, SurfaceData o, inout float4 FinalColor)
+    {
+        #if defined(SNOW_DEBUG)
+        {
+            float3 worldNormal = Unity_SafeNormalize(lerp(d.worldNormal, mul(o.Normal, d.TBNMatrix), _SnowLayerNormalStrength));
+            _SnowLevel = 1.0 - _SnowLevel;
+            half snowMask = dot(worldNormal, _SnowDirection.xyz);
+            snowMask = (snowMask + 1.0) * 0.5;
+            snowMask = pow(snowMask, _SnowPower);
+            snowMask = smoothstep(_SnowLevel, _SnowLevel + _SnowEdgeWidth, saturate(snowMask * _SnowEdgeOffset));
+            snowMask = saturate(snowMask);
+
+            #if defined(PARALLAX)
+            if (GLOBAL_heightSet && _SnowUseHeight) {
+                half heightMask = _SnowInvertHeightEffects ? (1.0 - smoothstep(GLOBAL_height - _SnowHeightSmoothing, GLOBAL_height, _SnowLevel)) :
+                    smoothstep(GLOBAL_height - _SnowHeightSmoothing, GLOBAL_height, 1.0 - _SnowLevel);
+                snowMask = lerp(snowMask, heightMask * snowMask, _SnowHeightStrength);
+            }
+            #endif
+
+            half edgeMask = SAMPLE_TEXTURE2D(_SnowEdgeMask, sampler_MainTex, d.uv0.xy * _SnowEdgeMask_ST.xy + _SnowEdgeMask_ST.zw).r;
+            edgeMask = saturate(remap(edgeMask, 0, 1, _SnowEdgeMaskContrast.x, _SnowEdgeMaskContrast.y));
+            snowMask = smoothstep(edgeMask, edgeMask + _SnowEdgeMaskRange, snowMask);
+
+            FinalColor.rgb = snowMask.rrr;
+        }
+        #endif
+    }
+}

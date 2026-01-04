@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 2d7036728a503424ea029a6f37dcece1
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 14030a0b230d45068f811d1ad116f246, type: 3}
+  debugBuild: 0
+  samplerCount: 0
+  textureCount: 0
+  featureCount: 0
+  Errors: []
+  ShaderName: '"orels1/Special/Snow Coverage"'
+  LightingModel: '@/LightingModels/PBR'
+  IncludedModules:
+  - Packages/sh.orels.shaders/Runtime/Shaders/ORL Standard.orlshader
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/Snow.orlsource
