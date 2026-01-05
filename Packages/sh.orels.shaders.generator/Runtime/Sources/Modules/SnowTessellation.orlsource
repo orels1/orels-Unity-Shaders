@@ -1,6 +1,6 @@
 %Properties()
 {
-    UI_SnowDisplacement("## Snow Displacement", Int) = 0
+    UI_SnowDisplacement("## Displacement", Int) = 0
     _SnowDisplacementMap("Displacement Map", 2D) = "black" {}
     _SnowDisplacementMapStrength("Map Strength", Range(0,1)) = 1
     _SnowDisplacementEdgeMaskStength("Edge Mask Strength", Range(0,1)) = 1
@@ -15,6 +15,7 @@
     half _SnowEdgeWidth;
     half _SnowEdgeOffset;
 
+    int _SnowUseEdgeMask;
     float4 _SnowEdgeMask_ST;
     half _SnowEdgeMaskRange;
     half4 _SnowEdgeMaskContrast;
@@ -105,7 +106,7 @@
         snowMask = pow(snowMask, _SnowPower);
         snowMask = smoothstep(_SnowLevel, _SnowLevel + max(0.1, _SnowEdgeWidth), saturate(snowMask * _SnowEdgeOffset));
 
-        if (_SnowDisplacementEdgeMaskStength > 0) {
+        if (_SnowDisplacementEdgeMaskStength > 0 && _SnowUseEdgeMask) {
             half edgeMask = SAMPLE_TEXTURE2D_LOD(_SnowEdgeMask, sampler_SnowDisplacementMap, v.uv0.xy * _SnowEdgeMask_ST.xy + _SnowEdgeMask_ST.zw, 0).r;
             edgeMask = saturate(remap(edgeMask, 0, 1, _SnowEdgeMaskContrast.x, _SnowEdgeMaskContrast.y));
             snowMask = lerp(snowMask, smoothstep(edgeMask, edgeMask + _SnowEdgeMaskRange, snowMask), _SnowDisplacementEdgeMaskStength);

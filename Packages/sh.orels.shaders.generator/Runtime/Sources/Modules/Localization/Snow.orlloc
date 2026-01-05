@@ -1,11 +1,12 @@
 propName;EN
 
-_SnowLevel;The level of snow coverage
-_SnowDirection;The world-space direction of where the snow is coming from. E.g. (0,1,0) will create a snow coverage from above (default value)
+_SnowLevel;Controls the level of snow coverage
+_SnowDirection;Controls the world-space direction of where the snow is coming from. E.g. (0,1,0) will create a snow coverage from above (default value)
 _SnowLayerNormalStrength;Controls how much the base layer Normal map affects the snow coverage
 _SnowPower;Adjusts the edge of the snow coverage
 _SnowEdgeWidth;Adjusts the width of the edge blend gradient for the snow coverage
 _SnowEdgeOffset;Flat coverage offset, higher numbers allow to coat the whole mesh in snow
+_SnowUseEdgeMask;Enables additional masking of the snow coverage edge
 _SnowEdgeMask;Additional mask that will be applied to the edge of the snow coverage. Useful for adding variation and breaking up a perfect coverage edge
 _SnowEdgeMaskRange;Adjusts how much of the snow coverage edge will be affected by the snow edge mask. Lower values make the final edge sharper
 _SnowEdgeMaskContrast;Adjusts the values of the snow coverage mask texture. Setting to minimum will eliminate the mask completely. Setting to full width will multiply the base gradient by the mask texture
