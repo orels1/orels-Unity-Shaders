@@ -156,7 +156,7 @@ Parser.Default.ParseArguments<Options>(Args)
                     Console.WriteLine($"\nVersion {version} is a pre-release, cannot bump minor version");
                     return;
                 }
-                var newVersion = $"{parsed.Major}.{parsed.Minor + 1}.{parsed.Patch}";
+                var newVersion = $"{parsed.Major}.{parsed.Minor + 1}.0";
                 packageJSON["version"] = newVersion;
                 Console.WriteLine($" -> {newVersion}");
 
