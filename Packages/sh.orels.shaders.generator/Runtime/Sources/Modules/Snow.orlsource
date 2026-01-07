@@ -26,6 +26,23 @@
     _SnowSmoothnessLevel("Smoothness Level", Range(0,1)) = 0.0
     [Normal]_SnowNormal("Normal >", 2D) = "bump" {}
     _SnowNormalStrength("Normal Strength", Range(-1,1)) = 1.0
+
+    [ToggleUI]UI_SnowGlitterHeader("## Glitter", Int) = 1
+    [Toggle(SNOW_GLITTER)]_SnowEnableGlitter("Enable Glitter", Int) = 0
+    [Normal]_SnowGlitter("Glitter Texture > %ShowIf(SNOW_GLITTER)", 2D) = "bump" {}
+    _SnowGlitterTiling("Tiling %ShowIf(SNOW_GLITTER)", Float) = 8
+    [HDR]_SnowGlitterColor("Color %ShowIf(SNOW_GLITTER)", Color) = (1,1,1,1)
+    _SnowGlitterThreshold("Threshold %ShowIf(SNOW_GLITTER)", Range(-1,1)) = 0.083
+    _SnowGlitterStrength("Strength %ShowIf(SNOW_GLITTER)", Range(0,1)) = 0.5
+    _SnowGlitterBoost("Boost %ShowIf(SNOW_GLITTER)", Float) = 100
+    _SnowGlitterAnisotropy("Anisotropy %ShowIf(SNOW_GLITTER)", Range(-1, 1)) = -0.92
+    _SnowGlitterSpread("Spread", Range(0.01,1)) = 0.01
+    _SnowGlitterRimMask("Mask Power %ShowIf(SNOW_GLITTER)", Float) = -10
+    _SnowGlitterRimStrength("Mask Strength %ShowIf(SNOW_GLITTER)", Range(0,1)) = 1.0
+
+    [ToggleUI]UI_SnowRimLight("## Rim Light" , Int) = 1
+    [HDR]_SnowRimColor("Color", Color) = (1,1,1,0)
+    _SnowRimPower("Power", Float) = 10.0
 }
 
 %Variables()
@@ -53,6 +70,23 @@
     float _SnowTriplanarBlend;
     float _SnowTriplanarPower;
     float4 _SnowAlbedo_ST;
+
+
+    #if defined(SNOW_GLITTER)
+    float _SnowGlitterTiling;
+    float4 _SnowGlitter_TexelSize;
+    float _SnowGlitterThreshold;
+    half4 _SnowGlitterColor;
+    half _SnowGlitterStrength;
+    float _SnowGlitterBoost;
+    float _SnowGlitterSpread;
+    float _SnowGlitterAnisotropy;
+    float _SnowGlitterRimMask;
+    float _SnowGlitterRimStrength;
+    #endif
+
+    half4 _SnowRimColor;
+    float _SnowRimPower;
 }
 
 %Textures()
@@ -62,12 +96,14 @@
     TEXTURE2D(_SnowAlbedo);
     TEXTURE2D(_SnowSmoothness);
     TEXTURE2D(_SnowNormal);
+    TEXTURE2D(_SnowGlitter);
     SAMPLER(sampler_SnowAlbedo);
 }
 
 %ShaderFeatures()
 {
     #pragma shader_feature_local_fragment SNOW_DEBUG
+    #pragma shader_feature_local_fragment SNOW_GLITTER
 }
 
 %PassFunctions()
@@ -115,11 +151,34 @@
 
         return lerp(lerp(lerp(0, xzSample, weights.y), zySample, weights.x), xySample, weights.z);
     }
+
+    float mipmapLevel(float2 textureCoordinate)
+    {
+      // Original source:
+      // The OpenGL Graphics System: A Specification 4.2
+      // - chapter 3.9.11, equation 3.21
+      float2 dx = ddx(textureCoordinate);
+      float2 dy = ddy(textureCoordinate);
+      float1 deltaMaxSqr = max(dot(dx, dx), dot(dy, dy));
+
+      return 0.5f * log2(deltaMaxSqr);
+    }
+    // function written by littleBugHunter 2020-01-10
+    // uvParams.xy are the uv coordinates and uvParams.zw contain the texture size in pixels
+    float4 SampleFold(TEXTURE2D_PARAM(s, samplerS), float2 uv, float2 texelSize, float tiling)
+    {
+      float mipGrad = mipmapLevel(uv * texelSize * tiling);
+      float mip = floor(mipGrad);
+      float mipLerp = frac(mipGrad);
+      fixed4 col1 = SAMPLE_TEXTURE2D_LOD(s, samplerS, float2(uv / (pow(2,mip))), 0);
+      fixed4 col2 = SAMPLE_TEXTURE2D_LOD(s, samplerS, float2(uv / (pow(2,mip) * 2)), 0);
+      return lerp(col1, col2, mipLerp);
+    }
 }
 
 %Fragment("SnowFragment")
 {
-    void SnowFragment(MeshData d, inout SurfaceData o)
+    void SnowFragment(FragmentData i, MeshData d, inout SurfaceData o)
     {
         #if defined(SNOW_DEBUG)
         return;
@@ -177,12 +236,65 @@
             snowNormal = UnpackNormalScale(packedNormal, _SnowNormalStrength);
         }
 
+        // Rim
+        if (_SnowRimColor.a > 0){
+            float NoV = dot(d.worldNormal, d.worldSpaceViewDir);
+            NoV = 1.0 - saturate(NoV);
+            NoV = pow(NoV, max(0.001, _SnowRimPower));
+            o.Emission += NoV * snowMask * _SnowRimColor.rgb * _SnowRimColor.a;
+        }
 
         o.Albedo = lerp(o.Albedo, snowAlbedo, snowMask);
         o.Smoothness = lerp(o.Smoothness, snowSmooth * _SnowSmoothnessLevel, snowMask);
         o.Metallic = lerp(o.Metallic, 0.0, snowMask);
         o.Occlusion = lerp(o.Occlusion, 1.0, snowMask);
         o.Normal = normalize(lerp(o.Normal, snowNormal, saturate(remap(snowMask, 0, 0.4, 0, 1))));
+
+        #if defined(SNOW_GLITTER) && defined(UNITY_PASS_FORWARDBASE)
+        {
+            float3 G = UnpackNormalScale(SampleFold(TEXTURE2D_ARGS(_SnowGlitter, sampler_SnowAlbedo), d.uv0.xy, _SnowGlitter_TexelSize.zw, 1.0 / _SnowGlitterTiling), 0.5);
+            G = Unity_SafeNormalize(mul(d.TBNMatrix, G));
+            float3 lightDir = _WorldSpaceLightPos0;
+            if (length(lightDir) < 0.001) {
+                lightDir = normalize(float3(0.1, 1, 0.1));
+            }
+            float3 R = reflect(lightDir, G);
+            float RoV = dot(normalize(R), d.worldSpaceViewDir);
+
+            if (RoV < _SnowGlitterThreshold) {
+
+                UNITY_LIGHT_ATTENUATION(lightAttenuation, i, d.worldSpacePosition);
+                float anisotropy = _SnowGlitterAnisotropy;
+                float3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
+                half lightLoH = dot(lightDir, lightHalfVector);
+
+                float at = max(_SnowGlitterSpread * (1.0 + anisotropy), 0.001);
+                float ab = max(_SnowGlitterSpread * (1.0 - anisotropy), 0.001);
+
+                // Recalculate tangent and bitangent for proper aniso specular
+                float3 originalWorldSpaceTangent = normalize(i.worldTangent.xyz);
+                float3 originalBitangent = cross(d.worldNormal, i.worldTangent.xyz) * (i.worldTangent.w > 0.0 ? 1.0 : - 1.0);
+
+                half NoH = max(0.1, saturate(dot(G, lightHalfVector)));
+                half lightNoL = dot(d.worldNormal, lightDir);
+                lightNoL = saturate(lightNoL);
+                float glitterNoV = dot(d.worldNormal, d.worldSpaceViewDir);
+
+                half3 F = F_Schlick(lightLoH, 0.16 * 0.5 * 0.5 + o.Albedo);
+                half V = V_SmithGGXCorrelated(glitterNoV, lightNoL, _SnowGlitterSpread);
+                float D = D_GGX_Anisotropic(1.0, lightHalfVector, originalWorldSpaceTangent, originalBitangent, at, ab);
+
+                if (_SnowGlitterRimMask < 0) {
+                    glitterNoV = pow(1.0 - saturate(glitterNoV), -_SnowGlitterRimMask);
+                } else {
+                    glitterNoV = pow(saturate(glitterNoV), _SnowGlitterRimMask);
+                }
+                float snowGlitter = (1.0 - max(0,RoV)) * D * V * F.x * lerp(1, glitterNoV, _SnowGlitterRimStrength);
+                snowGlitter = snowGlitter * max(0, _SnowGlitterBoost * 0.1);
+                o.Emission += (snowGlitter * _SnowGlitterColor * lightAttenuation) * _SnowGlitterStrength * snowMask;
+            }
+        }
+        #endif
     }
 }
 

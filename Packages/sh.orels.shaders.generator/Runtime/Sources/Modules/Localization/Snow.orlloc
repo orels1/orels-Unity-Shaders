@@ -23,3 +23,18 @@ _SnowDisplacementMap;A texture to adjust where snow piles show up on the mesh. T
 _SnowDisplacementMapStrength;Controls how much the Displacement Map affects the overall snow pile distribution. At 0 this will create snow coverage that perfectly copies the surfaces below it
 _SnowDisplacementEdgeMaskStength;Controls how much the Snow Edge Mask affects the snow piles displacement effects. Mainly for fine tuning and avoiding jagged edges coming from high frequency noise masks
 _SnowDisplacementLevel;Controls how much the surface will be displaced along the Snow Direction
+
+_SnowEnableGlitter;Turns on snow glitter effects
+_SnowGlitter;A glitter noise map. Preferably a normal map (Red + Green noise texture)
+_SnowGlitterTiling;Tiling amount for the noise map
+_SnowGlitterColor;Controls glitter sparkle tint color
+_SnowGlitterThreshold;Controls how much glitter is visible
+_SnowGlitterStrength;Controls the overall strength of the glitter
+_SnowGlitterBoost;Additionally boosts the glitter effect beyond 0-1 range
+_SnowGlitterAnisotropy;Controls the anisotropic highlight direction for the glitter effect. Effectively spreads the glitter horizontally or vertically across the surface
+_SnowGlitterSpread;Controls how wide the glitter highliught is
+_SnowGlitterRimMask;Controls the sharpness of the rim-based masking. Values below and above 0 will rim mask in different directions
+_SnowGlitterRimStrength;Controls how much the rim mask affects the glitter highlights
+
+_SnowRimColor;Controls the tint of a rim light effect
+_SnowRimPower;Controls the spread of the rim light effect
