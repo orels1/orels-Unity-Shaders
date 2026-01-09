@@ -29,16 +29,22 @@
 
     [ToggleUI]UI_SnowGlitterHeader("## Glitter", Int) = 1
     [Toggle(SNOW_GLITTER)]_SnowEnableGlitter("Enable Glitter", Int) = 0
-    [Normal]_SnowGlitter("Glitter Texture > %ShowIf(SNOW_GLITTER)", 2D) = "bump" {}
+    [KeywordEnum(Texture, Procedural)]Snow_Glitter_Mode("Glitter Mode", Int) = 0
+    [Normal]_SnowGlitter("Glitter Texture > %ShowIf(SNOW_GLITTER && SNOW_GLITTER_MODE_TEXTURE)", 2D) = "bump" {}
     _SnowGlitterTiling("Tiling %ShowIf(SNOW_GLITTER)", Float) = 8
     [HDR]_SnowGlitterColor("Color %ShowIf(SNOW_GLITTER)", Color) = (1,1,1,1)
-    _SnowGlitterThreshold("Threshold %ShowIf(SNOW_GLITTER)", Range(-1,1)) = 0.083
+    _SnowGlitterThreshold("Threshold %ShowIf(SNOW_GLITTER && SNOW_GLITTER_MODE_TEXTURE)", Range(-1,1)) = 0.083
     _SnowGlitterStrength("Strength %ShowIf(SNOW_GLITTER)", Range(0,1)) = 0.5
+    _SnowGlitterRandomLocation("Location Randomization %ShowIf(SNOW_GLITTER && SNOW_GLITTER_MODE_PROCEDURAL)", Float) = 1
+    _SnowGlitterRandomAngle("Angle Randomziation %ShowIf(SNOW_GLITTER && SNOW_GLITTER_MODE_PROCEDURAL)", Range(0, 90)) = 20
+    _SnowGlitterSize("Size Limits %Vector2(Min, Max)", Vector) = (0.05, 0.1, 0, 0)
+    _SnowGlitterContrast("Contrast", Range(0.001, 1000)) = 430
     _SnowGlitterBoost("Boost %ShowIf(SNOW_GLITTER)", Float) = 100
-    _SnowGlitterAnisotropy("Anisotropy %ShowIf(SNOW_GLITTER)", Range(-1, 1)) = -0.92
-    _SnowGlitterSpread("Spread", Range(0.01,1)) = 0.01
+    _SnowGlitterAnisotropy("Anisotropy %ShowIf(SNOW_GLITTER && SNOW_GLITTER_MODE_TEXTURE)", Range(-1, 1)) = -0.92
+    _SnowGlitterSpread("Spread %ShowIf(SNOW_GLITTER && SNOW_GLITTER_MODE_TEXTURE)", Range(0.01,1)) = 0.01
     _SnowGlitterRimMask("Mask Power %ShowIf(SNOW_GLITTER)", Float) = -10
     _SnowGlitterRimStrength("Mask Strength %ShowIf(SNOW_GLITTER)", Range(0,1)) = 1.0
+    _SnowGlitterDistanceFade("Distance Fade %Vector2(Start, End) %ShowIf(SNOW_GLITTER)", Vector) = (8, 4, 0, 0)
 
     [ToggleUI]UI_SnowRimLight("## Rim Light" , Int) = 1
     [HDR]_SnowRimColor("Color", Color) = (1,1,1,0)
@@ -78,6 +84,11 @@
     float _SnowGlitterThreshold;
     half4 _SnowGlitterColor;
     half _SnowGlitterStrength;
+    float _SnowGlitterRandomLocation;
+    float _SnowGlitterRandomAngle;
+    float4 _SnowGlitterSize;
+    float _SnowGlitterContrast;
+    float4 _SnowGlitterDistanceFade;
     float _SnowGlitterBoost;
     float _SnowGlitterSpread;
     float _SnowGlitterAnisotropy;
@@ -104,6 +115,7 @@
 {
     #pragma shader_feature_local_fragment SNOW_DEBUG
     #pragma shader_feature_local_fragment SNOW_GLITTER
+    #pragma shader_feature_local_fragment SNOW_GLITTER_MODE_TEXTURE SNOW_GLITTER_MODE_PROCEDURAL
 }
 
 %PassFunctions()
@@ -173,6 +185,165 @@
       fixed4 col1 = SAMPLE_TEXTURE2D_LOD(s, samplerS, float2(uv / (pow(2,mip))), 0);
       fixed4 col2 = SAMPLE_TEXTURE2D_LOD(s, samplerS, float2(uv / (pow(2,mip) * 2)), 0);
       return lerp(col1, col2, mipLerp);
+    }
+
+    // Glitter generation taken from Poiyomi Toon Shader
+    // https://github.com/poiyomi/PoiyomiToonShader/
+    // MIT License
+    //
+    // Copyright (c) 2025 Poiyomi Inc.
+    //
+    // Permission is hereby granted, free of charge, to any person obtaining a copy
+    // of this software and associated documentation files (the "Software"), to deal
+    // in the Software without restriction, including without limitation the rights
+    // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    // copies of the Software, and to permit persons to whom the Software is
+    // furnished to do so, subject to the following conditions:
+    //
+    // The above copyright notice and this permission notice shall be included in all
+    // copies or substantial portions of the Software.
+    //
+    // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    // SOFTWARE.
+
+	inline float poiRand(float2 co)
+	{
+		float3 p3 = frac(float3(co.xyx) * 0.1031);
+		p3 += dot(p3, p3.yzx + 33.33);
+		return frac((p3.x + p3.y) * p3.z);
+	}
+
+	inline float2 poiRand2(float2 seed)
+	{
+		float3 p3 = frac(float3(seed.xyx) * 0.1031);
+		p3 += dot(p3, p3.yzx + 33.33);
+		return frac((p3.xx + p3.yz) * p3.zy);
+	}
+
+	inline float3 poiRand3(float2 seed)
+	{
+		float3 p3 = frac(float3(seed.xyx) * 0.1031);
+		p3 += dot(p3, p3.yzx + 33.33);
+		return frac((p3.xxy + p3.yzz) * p3.zyx);
+	}
+
+	inline float3 poiRand3Range(float2 Seed, float Range)
+	{
+		float3 r = poiRand3(Seed);
+		return (r * 2.0 - 1.0) * Range;
+	}
+
+	float4x4 poiRotationMatrixFromAngles(float3 angles)
+	{
+		float angleX = radians(angles.x);
+		float c = cos(angleX);
+		float s = sin(angleX);
+		float4x4 rotateXMatrix = float4x4(1, 0, 0, 0,
+		0, c, -s, 0,
+		0, s, c, 0,
+		0, 0, 0, 1);
+
+		float angleY = radians(angles.y);
+		c = cos(angleY);
+		s = sin(angleY);
+		float4x4 rotateYMatrix = float4x4(c, 0, s, 0,
+		0, 1, 0, 0,
+		- s, 0, c, 0,
+		0, 0, 0, 1);
+
+		float angleZ = radians(angles.z);
+		c = cos(angleZ);
+		s = sin(angleZ);
+		float4x4 rotateZMatrix = float4x4(c, -s, 0, 0,
+		s, c, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1);
+
+		return mul(mul(rotateXMatrix, rotateYMatrix), rotateZMatrix);
+	}
+
+    half3 GetProceduralGlitter(MeshData d, float2 uv, float3 lightDir, float NoL, half3 lightColor)
+    {
+        #if defined(SNOW_GLITTER)
+        {
+
+            half3 accumulator = 0;
+            [loop]
+            for (uint glitterLayer = 0; glitterLayer < uint(2); glitterLayer++)
+            {
+                // Scale
+
+                float2 st = uv;
+
+                // Tile the space
+                float2 i_st = floor(st);
+                float2 f_st = frac(st);
+
+                float m_dist = 10.;  // minimun distance
+                float2 m_point = 0;        // minimum point
+                float2 randoPoint = 0;
+                float2 dank = 0;
+                for (int j = -1; j <= 1; j++)
+                {
+                   	for (int i = -1; i <= 1; i++)
+                   	{
+                  		float2 neighbor = float2(i, j);
+                  		float2 pos = poiRand2(i_st + neighbor + glitterLayer * 0.5141);
+                  		float2 rando = pos;
+                  		pos = pos * _SnowGlitterRandomLocation;
+                  		float2 diff = neighbor + pos - f_st;
+                  		float dist = length(diff);
+
+                  		if (dist < m_dist)
+                  		{
+                 			dank = diff;
+                 			m_dist = dist;
+                 			m_point = pos;
+                 			randoPoint = rando;
+                  		}
+                   	}
+                }
+
+                float randomFromPoint = poiRand(randoPoint);
+
+                float size = 0.1;
+
+                // Random size
+               	size = lerp(_SnowGlitterSize.x, _SnowGlitterSize.y, randomFromPoint);
+
+                // Draw cell center
+                half glitterAlpha = saturate((size - m_dist) / clamp(fwidth(m_dist), 0.0001, 1.0));
+                float3 finalGlitter = 0;
+
+                half3 glitterColor = 1.0;
+
+                float3 norm = d.worldNormal;
+                float3 randomRotation = poiRand3Range(randoPoint, _SnowGlitterRandomAngle);
+
+                float3 glitterLightReflectionDirection = normalize(mul(poiRotationMatrixFromAngles(randomRotation), norm));
+
+                glitterAlpha *= NoL;
+
+                float3 halfDir = normalize(lightDir + d.worldSpaceViewDir);
+                float specAngle = max(dot(halfDir, glitterLightReflectionDirection), 0.0);
+
+                finalGlitter = lerp(0, 0.1 * glitterAlpha, glitterAlpha) + max(pow(specAngle, _SnowGlitterContrast), 0);
+
+                glitterColor *= lightColor;
+                finalGlitter *= glitterAlpha;
+
+                // brightness
+                accumulator += finalGlitter * glitterColor;
+            }
+
+            return accumulator;
+        }
+        #endif
     }
 }
 
@@ -252,47 +423,81 @@
 
         #if defined(SNOW_GLITTER) && defined(UNITY_PASS_FORWARDBASE)
         {
-            float3 G = UnpackNormalScale(SampleFold(TEXTURE2D_ARGS(_SnowGlitter, sampler_SnowAlbedo), d.uv0.xy, _SnowGlitter_TexelSize.zw, 1.0 / _SnowGlitterTiling), 0.5);
-            G = Unity_SafeNormalize(mul(d.TBNMatrix, G));
-            float3 lightDir = _WorldSpaceLightPos0;
-            if (length(lightDir) < 0.001) {
-                lightDir = normalize(float3(0.1, 1, 0.1));
+            #if defined(SNOW_GLITTER_MODE_TEXTURE)
+            {
+                float3 G = UnpackNormalScale(SampleFold(TEXTURE2D_ARGS(_SnowGlitter, sampler_SnowAlbedo), d.uv0.xy, _SnowGlitter_TexelSize.zw, 1.0 / _SnowGlitterTiling), 0.5);
+                G = Unity_SafeNormalize(mul(d.TBNMatrix, G));
+                float3 lightDir = _WorldSpaceLightPos0;
+                if (length(lightDir) < 0.001) {
+                    lightDir = normalize(float3(0.1, 1, 0.1));
+                }
+                float3 R = reflect(lightDir, G);
+                float RoV = dot(normalize(R), d.worldSpaceViewDir);
+
+                if (RoV < _SnowGlitterThreshold) {
+
+                    UNITY_LIGHT_ATTENUATION(lightAttenuation, i, d.worldSpacePosition);
+                    float anisotropy = _SnowGlitterAnisotropy;
+                    float3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
+                    half lightLoH = dot(lightDir, lightHalfVector);
+
+                    float at = max(_SnowGlitterSpread * (1.0 + anisotropy), 0.001);
+                    float ab = max(_SnowGlitterSpread * (1.0 - anisotropy), 0.001);
+
+                    // Recalculate tangent and bitangent for proper aniso specular
+                    float3 originalWorldSpaceTangent = normalize(i.worldTangent.xyz);
+                    float3 originalBitangent = cross(d.worldNormal, i.worldTangent.xyz) * (i.worldTangent.w > 0.0 ? 1.0 : - 1.0);
+
+                    half NoH = max(0.1, saturate(dot(G, lightHalfVector)));
+                    half lightNoL = dot(d.worldNormal, lightDir);
+                    lightNoL = saturate(lightNoL);
+                    float glitterNoV = dot(d.worldNormal, d.worldSpaceViewDir);
+
+                    half3 F = F_Schlick(lightLoH, 0.16 * 0.5 * 0.5 + o.Albedo);
+                    half V = V_SmithGGXCorrelated(glitterNoV, lightNoL, _SnowGlitterSpread);
+                    float D = D_GGX_Anisotropic(1.0, lightHalfVector, originalWorldSpaceTangent, originalBitangent, at, ab);
+
+                    if (_SnowGlitterRimMask < 0) {
+                        glitterNoV = pow(1.0 - saturate(glitterNoV), -_SnowGlitterRimMask);
+                    } else {
+                        glitterNoV = pow(saturate(glitterNoV), _SnowGlitterRimMask);
+                    }
+                    float snowGlitter = (1.0 - max(0,RoV)) * D * V * F.x * lerp(1, glitterNoV, _SnowGlitterRimStrength);
+                    snowGlitter = snowGlitter * max(0, _SnowGlitterBoost * 0.1);
+                    float camDist = length(d.worldSpacePosition - _WorldSpaceCameraPos);
+                    float distanceFade = saturate(remap(camDist, _SnowGlitterDistanceFade.x, _SnowGlitterDistanceFade.y, 1, 0));
+                    o.Emission += (snowGlitter * _SnowGlitterColor * lightAttenuation) * _SnowGlitterStrength * snowMask * distanceFade;
+                }
             }
-            float3 R = reflect(lightDir, G);
-            float RoV = dot(normalize(R), d.worldSpaceViewDir);
-
-            if (RoV < _SnowGlitterThreshold) {
-
-                UNITY_LIGHT_ATTENUATION(lightAttenuation, i, d.worldSpacePosition);
-                float anisotropy = _SnowGlitterAnisotropy;
-                float3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
-                half lightLoH = dot(lightDir, lightHalfVector);
-
-                float at = max(_SnowGlitterSpread * (1.0 + anisotropy), 0.001);
-                float ab = max(_SnowGlitterSpread * (1.0 - anisotropy), 0.001);
-
-                // Recalculate tangent and bitangent for proper aniso specular
-                float3 originalWorldSpaceTangent = normalize(i.worldTangent.xyz);
-                float3 originalBitangent = cross(d.worldNormal, i.worldTangent.xyz) * (i.worldTangent.w > 0.0 ? 1.0 : - 1.0);
-
-                half NoH = max(0.1, saturate(dot(G, lightHalfVector)));
-                half lightNoL = dot(d.worldNormal, lightDir);
+            #elif defined(SNOW_GLITTER_MODE_PROCEDURAL)
+            {
+                float3 lightDir = _WorldSpaceLightPos0;
+                half3 lightColor = _LightColor0;
+                if (length(lightDir) < 0.001) {
+                    lightDir = normalize(float3(0.1, 1, 0.1));
+                    lightColor = 0.25;
+                }
+                float lightNoL = dot(d.worldNormal, lightDir);
                 lightNoL = saturate(lightNoL);
+
                 float glitterNoV = dot(d.worldNormal, d.worldSpaceViewDir);
-
-                half3 F = F_Schlick(lightLoH, 0.16 * 0.5 * 0.5 + o.Albedo);
-                half V = V_SmithGGXCorrelated(glitterNoV, lightNoL, _SnowGlitterSpread);
-                float D = D_GGX_Anisotropic(1.0, lightHalfVector, originalWorldSpaceTangent, originalBitangent, at, ab);
-
                 if (_SnowGlitterRimMask < 0) {
                     glitterNoV = pow(1.0 - saturate(glitterNoV), -_SnowGlitterRimMask);
                 } else {
                     glitterNoV = pow(saturate(glitterNoV), _SnowGlitterRimMask);
                 }
-                float snowGlitter = (1.0 - max(0,RoV)) * D * V * F.x * lerp(1, glitterNoV, _SnowGlitterRimStrength);
-                snowGlitter = snowGlitter * max(0, _SnowGlitterBoost * 0.1);
-                o.Emission += (snowGlitter * _SnowGlitterColor * lightAttenuation) * _SnowGlitterStrength * snowMask;
+
+                half3 glitterColor = GetProceduralGlitter(d, d.uv0.xy * _SnowGlitterTiling, lightDir, lightNoL, lightColor);
+                glitterColor *= _SnowGlitterColor;
+                glitterColor *= _SnowGlitterBoost * 0.1;
+                glitterColor *= lerp(1, glitterNoV, _SnowGlitterRimStrength);
+
+                float camDist = length(d.worldSpacePosition - _WorldSpaceCameraPos);
+                float distanceFade = saturate(remap(camDist, _SnowGlitterDistanceFade.x, _SnowGlitterDistanceFade.y, 1, 0));
+
+                o.Emission += glitterColor * distanceFade;
             }
+            #endif
         }
         #endif
     }
