@@ -29,12 +29,19 @@ namespace ORL.Drawers
             var label1 = groups[0].Value;
             var label2 = groups[1].Value;
 
-
             var baseRect = EditorGUILayout.GetControlRect();
-            var baseSize = baseRect.width / 2.0f;
+            var oldSize = EditorGUIUtility.labelWidth;
+            var baseSize = (baseRect.width - oldSize) / 2.0f;
+            
+            var labelRect = baseRect;
+            labelRect.width = oldSize;
+            EditorGUI.LabelField(labelRect, new GUIContent(Utils.StripInternalSymbols(property.displayName)));
+
+            EditorGUIUtility.labelWidth = baseSize - EditorGUIUtility.fieldWidth + 15f;
 
             baseRect.width = baseSize;
             baseRect.width -= _baseOffset;
+            baseRect.x += oldSize;
             var currentValue = property.vectorValue;
 
             currentValue.x = EditorGUI.FloatField(baseRect, new GUIContent(label1), currentValue.x);
