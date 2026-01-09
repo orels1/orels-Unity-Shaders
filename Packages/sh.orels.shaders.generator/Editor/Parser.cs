@@ -187,7 +187,7 @@ namespace ORL.ShaderGenerator
             var blocks = new List<ShaderBlock>();
             for (_lineNumber = 0; _lineNumber < _lines.Length; _lineNumber++)
             {
-                var line = _lines[_lineNumber];
+                var line = _lines[_lineNumber].Replace("\t", "   ");
                 _current = 0;
                 _start = 0;
                 _total = line.Length;
@@ -394,15 +394,16 @@ namespace ORL.ShaderGenerator
             foreach (var line in subset)
             {
                 var curr = 0;
-                while (curr + 1 <= line.Length)
+                var cleanLine = line.Replace("\t", "    ");
+                while (curr + 1 <= cleanLine.Length)
                 {
                     // Skip the rest of the line if encountered a comment
-                    if (line[curr] == '/' && curr + 1 < line.Length && line[curr + 1] == '/')
+                    if (cleanLine[curr] == '/' && curr + 1 < cleanLine.Length && cleanLine[curr + 1] == '/')
                     {
                         break;
                     }
 
-                    switch (line[curr])
+                    switch (cleanLine[curr])
                     {
                         case '{':
                             nestLevel++;
@@ -423,20 +424,20 @@ namespace ORL.ShaderGenerator
                 linesSkipped++;
                 if (linesSkipped == 1)
                 {
-                    offset = line.Length - line.TrimStart().Length;
+                    offset = cleanLine.Length - cleanLine.TrimStart().Length;
                 }
 
-                if (line.TrimStart().StartsWith("%"))
+                if (cleanLine.TrimStart().StartsWith("%"))
                 {
                     hookPoints.Add(new ShaderBlock.HookPoint
                     {
-                        Name = line.Trim().Substring(1),
+                        Name = cleanLine.Trim().Substring(1),
                         Line = linesSkipped - 1,
                         Indentation = offset
                     });
                 }
 
-                result.Add(line.Substring(string.IsNullOrWhiteSpace(line) ? 0 : offset));
+                result.Add(cleanLine.Substring(string.IsNullOrWhiteSpace(cleanLine) ? 0 : offset));
             }
 
             return null;
