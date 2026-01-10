@@ -30,7 +30,7 @@
     [ToggleUI]UI_SnowGlitterHeader("## Glitter", Int) = 1
     [Toggle(SNOW_GLITTER)]_SnowEnableGlitter("Enable Glitter", Int) = 0
     [KeywordEnum(Texture, Procedural)]Snow_Glitter_Mode("Glitter Mode", Int) = 0
-    [Normal]_SnowGlitter("Glitter Texture > %ShowIf(SNOW_GLITTER && SNOW_GLITTER_MODE_TEXTURE)", 2D) = "bump" {}
+    [Normal]_SnowGlitter("Glitter Texture > %RequiredTexture(@/snow_glitter_normal.png) %ShowIf(SNOW_GLITTER && SNOW_GLITTER_MODE_TEXTURE)", 2D) = "bump" {}
     _SnowGlitterTiling("Tiling %ShowIf(SNOW_GLITTER)", Float) = 8
     [HDR]_SnowGlitterColor("Color %ShowIf(SNOW_GLITTER)", Color) = (1,1,1,1)
     _SnowGlitterThreshold("Threshold %ShowIf(SNOW_GLITTER && SNOW_GLITTER_MODE_TEXTURE)", Range(-1,1)) = 0.083
