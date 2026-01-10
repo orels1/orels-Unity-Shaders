@@ -2,7 +2,7 @@
   "name": "sh.orels.shaders.generator",
   "displayName": "ORL Shader Generator",
   "description": "A template-based shader generator utilizing scripted importers",
-  "version": "7.2.0-dev.1",
+  "version": "7.2.0-dev.2",
   "unity": "2022.3",
   "author": {
     "name": "orels1",
