@@ -32,7 +32,7 @@ namespace ORL.Drawers
             var baseRect = EditorGUILayout.GetControlRect();
             var oldSize = EditorGUIUtility.labelWidth;
             var baseSize = (baseRect.width - oldSize) / 2.0f;
-            
+
             var labelRect = baseRect;
             labelRect.width = oldSize;
             EditorGUI.LabelField(labelRect, new GUIContent(Utils.StripInternalSymbols(property.displayName)));
@@ -49,6 +49,8 @@ namespace ORL.Drawers
             var newRect = baseRect;
             newRect.x += baseSize + _baseOffset;
             currentValue.y = EditorGUI.FloatField(newRect, new GUIContent(label2), currentValue.y);
+
+            EditorGUIUtility.labelWidth = oldSize;
 
             property.vectorValue = currentValue;
             return true;
