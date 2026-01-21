@@ -1,5 +1,5 @@
 ﻿%ShaderName("SHADER_NAME")
-%LightingModel("@/LightingModels/Toon")
+%LightingModel("@/LightingModels/Toon_v2")
 %CustomEditor("ORL.ShaderInspector.InspectorGUI")
 
 %Properties()
@@ -10,7 +10,7 @@
 
 %Includes()
 {
-    "@/Shaders/ORL Toon",
+    "@/Shaders/Toon/ORL Toon v2",
     "self"
 }
 
