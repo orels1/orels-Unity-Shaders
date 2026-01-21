@@ -111,6 +111,16 @@ namespace ORL.ShaderGenerator
             public string Name;
             public int Line;
             public int Indentation;
+
+            public static HookPoint Clone(HookPoint hookPoint)
+            {
+                return new HookPoint
+                {
+                    Name = hookPoint.Name,
+                    Line = hookPoint.Line,
+                    Indentation = hookPoint.Indentation,
+                };
+            }
         }
 
         public string Name;
