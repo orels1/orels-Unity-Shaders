@@ -6,7 +6,6 @@
 {
     _Color("Color", Color) = (1,1,1,1)
     _MainTex("Main Texture", 2D) = "white" {}
-    _Ramp("Ramp %Gradient()", 2D) = "grayscaleRamp" {}
 }
 
 %Variables()
@@ -28,5 +27,13 @@
         half2 uv = d.uv0 * _MainTex_ST.xy + _MainTex_ST.zw;
         half4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
         o.Albedo = color.rgb * _Color.rgb;
+    }
+}
+
+%ModuleLighting("LIGHTING_NAME")
+{
+    void LIGHTING_NAME(SurfaceData o, inout half3 mainLightDiffuse)
+    {
+        mainLightDiffuse += o.Albedo.rgb;
     }
 }

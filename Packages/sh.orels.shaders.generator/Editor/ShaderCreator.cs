@@ -10,43 +10,55 @@ namespace ORL.ShaderGenerator
 {
     public static class ShaderCreator
     {
-        [MenuItem("Assets/Create/Shader/orels1/VFX Shader", priority = 9)]
+        [MenuItem("Assets/Create/Shader/orels1/VFX", priority = 9)]
         private static void CreateVFXShader()
         {
             CreateShaderFromTemplate("VFX");
         }
 
-        [MenuItem("Assets/Create/Shader/orels1/Transparent VFX Shader", priority = 9)]
+        [MenuItem("Assets/Create/Shader/orels1/Transparent VFX", priority = 9)]
         private static void CreateTransparentVFXShader()
         {
             CreateShaderFromTemplate("TransparentVFX");
         }
 
-        [MenuItem("Assets/Create/Shader/orels1/PBR Shader", priority = 9)]
+        [MenuItem("Assets/Create/Shader/orels1/PBR", priority = 9)]
         private static void CreatePBRShader()
         {
             CreateShaderFromTemplate("PBR");
         }
 
-        [MenuItem("Assets/Create/Shader/orels1/Empty PBR Shader", priority = 9)]
+        [MenuItem("Assets/Create/Shader/orels1/Empty PBR", priority = 9)]
         private static void CreateEmptyPBRShader()
         {
             CreateShaderFromTemplate("EmptyPBR");
         }
 
-        [MenuItem("Assets/Create/Shader/orels1/Toon Shader", priority = 9)]
+        [MenuItem("Assets/Create/Shader/orels1/Toon", priority = 9)]
         private static void CreateToonShader()
         {
             CreateShaderFromTemplate("Toon");
         }
 
-        [MenuItem("Assets/Create/Shader/orels1/Empty Toon Shader", priority = 9)]
+        [MenuItem("Assets/Create/Shader/orels1/Toon Transparent", priority = 9)]
+        private static void CreateToonTransparentShader()
+        {
+            CreateShaderFromTemplate("ToonTransparent");
+        }
+
+        [MenuItem("Assets/Create/Shader/orels1/Toon Transparent PrePass", priority = 9)]
+        private static void CreateToonTransparentPrePassShader()
+        {
+            CreateShaderFromTemplate("ToonTransparentPrePass");
+        }
+
+        [MenuItem("Assets/Create/Shader/orels1/Empty Toon", priority = 9)]
         private static void CreateEmptyToonShader()
         {
             CreateShaderFromTemplate("EmptyToon");
         }
 
-        [MenuItem("Assets/Create/Shader/orels1/UI Shader", priority = 9)]
+        [MenuItem("Assets/Create/Shader/orels1/UI", priority = 9)]
         private static void CreateUIShader()
         {
             CreateShaderFromTemplate("UI");
@@ -88,7 +100,9 @@ namespace ORL.ShaderGenerator
                 var sanitizedName = name.Replace("/", "_").Replace(" ", "_");
                 shaderContent = shaderContent.Replace("SHADER_NAME", name);
                 shaderContent = shaderContent.Replace("FRAGMENT_NAME", sanitizedName + "Fragment");
+                shaderContent = shaderContent.Replace("LIGHTING_NAME", sanitizedName + "Lighting");
                 shaderContent = shaderContent.Replace("VERTEX_NAME", sanitizedName + "Vertex");
+                shaderContent = shaderContent.Replace("COLOR_NA<E", sanitizedName + "Color");
                 shaderContent = shaderContent.Replace("SECTION_NAME", sanitizedName);
 
                 File.WriteAllText(pathName, shaderContent);
