@@ -2,7 +2,7 @@
 {
     void VertexBase(inout VertexData v, inout FragmentData o)
     {
-        
+
         #if defined(UNITY_PASS_META) && !defined(UNITY_PASS_BAKERY_META)
         o.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
         #else
@@ -57,21 +57,15 @@
             #if defined(DYNAMICLIGHTMAP_ON)
             o.lightmapUv.zw = v.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
             #endif
-            
+
             UNITY_TRANSFER_LIGHTING(o, v.uv1.xy);
-        
-            #if !defined(UNITY_PASS_FORWARDADD)
-                // unity does some funky stuff for different platforms with these macros
-                #ifdef FOG_COMBINED_WITH_TSPACE
-                    UNITY_TRANSFER_FOG_COMBINED_WITH_TSPACE(o, o.pos);
-                #elif defined(FOG_COMBINED_WITH_WORLD_POS)
-                    UNITY_TRANSFER_FOG_COMBINED_WITH_WORLD_POS(o, o.pos);
-                #else
-                    UNITY_TRANSFER_FOG(o, o.pos);
-                #endif
-            #else
-                UNITY_TRANSFER_FOG(o, o.pos);
-            #endif
+
+            o.fogData.x = o.pos.z;
+			#if defined(FOG_EXP2)
+			o.fogData.y = 1;
+			#else
+			o.fogData.y = 0;
+			#endif
         #endif
     }
 }

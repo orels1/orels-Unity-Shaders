@@ -7,7 +7,7 @@
         #else
         float4 pos : SV_POSITION;
         #endif
-        
+
         float3 normal : RAW_NORMAL;
         float4 uv0 : TEXCOORD1;
         float4 uv1 : TEXCOORD2;
@@ -36,14 +36,14 @@
 
         #if !defined(UNITY_PASS_META)
         UNITY_LIGHTING_COORDS(9, 10)
-        UNITY_FOG_COORDS(11)
+        float2 fogData : FOG_DATA;
         #endif
 
         #if defined(EDITOR_VISUALIZATION)
         float2 vizUV : VIZ_UV;
         float4 lightCoord : LIGHT_COORD;
         #endif
-      
+
         #if defined(NEED_SCREEN_POS)
         float4 screenPos: SCREENPOS;
         #endif

@@ -19,7 +19,7 @@
 
 %ShaderFeatures()
 {
-    #pragma multi_compile _ VERTEXLIGHT_ON
+    #pragma multi_compile_fragment _ VERTEXLIGHT_ON
 }
 
 %ShaderModifiers()
@@ -67,12 +67,12 @@
 
         float3 probeLightDir = 0;
         bool probesAreBlack = false;
-        
+
         // Custom probes might want to override the probe light direction
         #if defined(_INTEGRATE_CUSTOMPROBES)
         {
             %CustomProbesSetupFunctions
-        }        
+        }
         #endif
         probeLightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
         probesAreBlack = length(unity_SHAr.w + unity_SHAg.w + unity_SHAb.w) < 0.01;
@@ -141,7 +141,7 @@
 
         half3 diffuseContributions = 0;
         diffuseContributions += mainLightDiffuse;
-        
+
         #if defined(UNITY_PASS_FORWARDBASE)
         diffuseContributions += indirectDiffuse;
         diffuseContributions += customGIDiffuse;

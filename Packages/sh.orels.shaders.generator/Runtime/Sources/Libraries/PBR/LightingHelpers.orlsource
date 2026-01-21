@@ -25,7 +25,7 @@
 
     half V_SmithGGXCorrelated(half NoV, half NoL, half roughness)
     {
-        half a2 = roughness * roughness;        
+        half a2 = roughness * roughness;
         half GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
         half GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
         return 0.5 / (GGXV + GGXL);
@@ -96,7 +96,7 @@
     }
 
     // These are taken from David M's improved box projection code https://github.com/frostbone25/Unity-Improved-Box-Projected-Reflections
-    //SOURCE - https://github.com/Unity-Technologies/Graphics/blob/504e639c4e07492f74716f36acf7aad0294af16e/Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl  
+    //SOURCE - https://github.com/Unity-Technologies/Graphics/blob/504e639c4e07492f74716f36acf7aad0294af16e/Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl
     //From Moving Frostbite to PBR document
     //This function fakes the roughness based integration of reflection probes by adjusting the roughness value
     //NOTE: Untouched from HDRP
@@ -122,7 +122,7 @@
         return min(min(rbminmax.x, rbminmax.y), rbminmax.z);
     }
 
-    //SOURCE - https://github.com/Unity-Technologies/Graphics/blob/504e639c4e07492f74716f36acf7aad0294af16e/Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl  
+    //SOURCE - https://github.com/Unity-Technologies/Graphics/blob/504e639c4e07492f74716f36acf7aad0294af16e/Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl
     //return projectionDistance, can be used in ComputeDistanceBaseRoughness formula
     //return in R the unormalized corrected direction which is used to fetch cubemap but also its length represent the distance of the capture point to the intersection
     //Length R can be reuse as a parameter of ComputeDistanceBaseRoughness for distIntersectionToProbeCenter
@@ -196,7 +196,7 @@
         float3 boxProjectedReflDir = reflDir;
         float projectionDistance = EvaluateLight_EnvIntersection(worldSpacePosition, boxProjectedReflDir, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
         float distanceBasedRoughness = ComputeDistanceBaseRoughness(projectionDistance, length(boxProjectedReflDir), roughness);
-        
+
         distanceBasedRoughness = lerp(roughness, distanceBasedRoughness, hardenStrength);
         float mipLevel = perceptualRoughnessToMipmapLevel(distanceBasedRoughness * (1.7 - 0.7 * distanceBasedRoughness));
 
@@ -218,7 +218,7 @@
                 distanceBasedRoughness = ComputeDistanceBaseRoughness(projectionDistance, length(boxProjectedReflDir), roughness);
                 distanceBasedRoughness = lerp(roughness, distanceBasedRoughness, hardenStrength);
             }
-            
+
             mipLevel = perceptualRoughnessToMipmapLevel(distanceBasedRoughness * (1.7 - 0.7 * distanceBasedRoughness));
             half4 probe1data = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube0, boxProjectedReflDir, mipLevel);
             half3 probe1 = DecodeHDR(probe1data, unity_SpecCube1_HDR);
@@ -402,7 +402,7 @@
         half NoH = saturate(dot(worldNormal, halfVector));
         half NoL = saturate(dot(worldNormal, lightDirection));
         half LoH = saturate(dot(lightDirection, halfVector));
-        
+
         half3 F = customSheen ? sheenColor : albedoSqrt;
         float D = D_Charlie(clampedRoughness, NoH);
         half V = V_Neubelt(NoV, NoL);
@@ -443,7 +443,7 @@
         }
         #else
         bakedCol = SAMPLE_TEXTURE2D(unity_DynamicLightmap, samplerunity_DynamicLightmap, realtimeUV);
-        #endif 
+        #endif
         half3 realtimeLightmap = DecodeRealtimeLightmap(bakedCol);
 
         // Sample directional lightmap
@@ -460,7 +460,7 @@
             }
             #else
             realtimeDirTex = SAMPLE_TEXTURE2D(unity_DynamicDirectionality, samplerunity_DynamicLightmap, realtimeUV);
-            #endif 
+            #endif
             realtimeLightmap += DecodeDirectionalLightmap(realtimeLightmap, realtimeDirTex, worldNormal);
         }
         #endif
@@ -597,7 +597,7 @@
         float4 atten2 = saturate(1 - (unity_4LightAtten0 * lengthSq / 25)); // Black magic
         atten = min(atten, atten2 * atten2); // more black magic
         atten *= usendl ? ndl : 1;
-        
+
         float4x4 retval = 0;
             retval[0] = unity_LightColor[0] * atten.x;
             retval[1] = unity_LightColor[1] * atten.y;
@@ -634,7 +634,7 @@
         atten *= usendl ? ndl : 1;
 
         attenuation = atten;
-        
+
         float4x4 retval = 0;
             retval[0] = unity_LightColor[0] * atten.x;
             retval[1] = unity_LightColor[1] * atten.y;
@@ -646,7 +646,7 @@
     float4 getVertexLightRanges()
     {
         float4 ranges = 5.0 * (1.0 / sqrt(unity_4LightAtten0.xyzw));
-        
+
         if (all(!isnan(ranges))) return ranges;
 
         return float4(
@@ -655,5 +655,59 @@
             isnan(ranges.z) ? 0.0 : ranges.z,
             isnan(ranges.w) ? 0.0 : ranges.w
         );
+    }
+
+    // Taken from Poiyomi Toon Shader
+    // https://github.com/poiyomi/PoiyomiToonShader
+    // MIT License
+
+    // Copyright (c) 2023 Poiyomi Inc.
+
+    // Permission is hereby granted, free of charge, to any person obtaining a copy
+    // of this software and associated documentation files (the "Software"), to deal
+    // in the Software without restriction, including without limitation the rights
+    // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    // copies of the Software, and to permit persons to whom the Software is
+    // furnished to do so, subject to the following conditions:
+
+    // The above copyright notice and this permission notice shall be included in all
+    // copies or substantial portions of the Software.
+
+    // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    // SOFTWARE.
+
+    void ApplyUnityFog(float2 fogData, inout half4 FinalColor)
+    {
+        float fogFactor = 1.0;
+        float depth = UNITY_Z_0_FAR_FROM_CLIPSPACE(fogData.x);
+
+        // Is Linear fog active?
+        if (unity_FogParams.z != unity_FogParams.w)
+        {
+            fogFactor = depth * unity_FogParams.z + unity_FogParams.w;
+        }
+        else if (fogData.y)
+        {
+            float exponent_val = unity_FogParams.x * depth;
+            fogFactor = exp2(-exponent_val * exponent_val);
+        }
+        else if (unity_FogParams.y != 0.0f)
+        {
+            float exponent = unity_FogParams.y * depth;
+            fogFactor = exp2(-exponent);
+        }
+
+        fixed3 appliedFogColor = unity_FogColor.rgb;
+
+        #if defined(UNITY_PASS_FORWARDADD)
+        appliedFogColor = fixed3(0, 0, 0);
+        #endif
+
+        FinalColor.rgb = lerp(appliedFogColor, FinalColor.rgb, saturate(fogFactor));
     }
 }

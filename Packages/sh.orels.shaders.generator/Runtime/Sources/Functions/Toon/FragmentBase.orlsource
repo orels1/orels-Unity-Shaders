@@ -19,7 +19,7 @@
 
 %ShaderFeatures()
 {
-    #pragma multi_compile _ VERTEXLIGHT_ON
+    #pragma multi_compile_fragment _ VERTEXLIGHT_ON
 }
 
 %ShaderModifiers()
@@ -145,7 +145,7 @@
             }
         }
         #endif
-        
+
         #if defined(REFLECTION_MODE_PBR) && defined(UNITY_PASS_FORWARDBASE)
         {
             half3 reflectionUV1 = getReflectionUV(reflDir, d.worldSpacePosition, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
@@ -297,13 +297,13 @@
             half sharp = o.ShadowSharpness * 0.5;
             lightAttenuation = smoothstep(sharp, 1 - sharp, lightAttenuation); //Converge at the center line
         #endif
-        
+
         half3 lightColor = _LightColor0.rgb;
-        
+
         half3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
         half lightNoL = dot(o.Normal, lightDir);
         half lightLoH = dot(lightDir, lightHalfVector);
-        
+
         half NoV = abs(dot(o.Normal, d.worldSpaceViewDir)) + 1e-5;
         half NoH = saturate(dot(o.Normal, lightHalfVector));
         half3 stereoViewDir = calcStereoViewDir(d.worldSpacePosition);
@@ -311,14 +311,14 @@
 
         // Aniso Refl
         half3 reflViewAniso = 0;
-        
+
         float3 anisotropicDirection = o.Anisotropy >= 0.0 ? d.bitangent : d.worldSpaceTangent.xyz;
         float3 anisotropicTangent = cross(anisotropicDirection, d.worldSpaceViewDir);
         float3 anisotropicNormal = cross(anisotropicTangent, anisotropicDirection);
         float bendFactor = abs(o.Anisotropy) * saturate(5.0 * perceptualRoughness);
         float3 bentNormal = normalize(lerp(o.Normal, anisotropicNormal, bendFactor));
         reflViewAniso = reflect(-d.worldSpaceViewDir, bentNormal);
-        
+
         // Indirect diffuse
         #if !defined(LIGHTMAP_ON)
             half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
@@ -335,13 +335,13 @@
             // Support basic directionality
             #if defined(DIRLIGHTMAP_COMBINED)
                 half4 lightMapDirection = tex2DFastBicubicSample(TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap), lightmapUV);
-                
+
                 // use lightmap direction if we can, realtim light is ignored in that case
                 lightDir.xyz = lightMapDirection.xyz - 0.5;
                 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
                 lightNoL = dot(o.Normal, lightDir);
                 lightLoH = dot(lightDir, lightHalfVector);
-                
+
                 lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, o.Normal);
 
                 lightColor = lightMap * 0.6;
@@ -425,7 +425,7 @@
         #if !defined(REFLECTION_MODE_OFF)
         indirectSpecular = calcIndirectSpecular(lightAttenuation, d, o, perceptualRoughness, reflViewAniso, indirectDiffuse, fresnel, ramp) * occlusion;
         #endif
-        
+
         #if defined(SPECULAR_ON)
         directSpecular = calcDirectSpecular(d, o, lightNoL, NoH, NoV, lightLoH, lightColor, lightHalfVector, o.SpecularAnisotropy);
         directSpecular *= lightNoL * occlusion * lightAttenuation;
@@ -441,14 +441,14 @@
         #endif
 
         FinalColor.rgb = diffuse.rgb * rimShadow.rgb;
-        
+
         #if !defined(REFLECTION_MODE_OFF)
         FinalColor.rgb = calcReflectionBlending(o, reflectance, FinalColor.rgb, indirectSpecular);
         #endif
 
         FinalColor.rgb += max(directSpecular.xyz, rimLight.rgb).rgb;
         FinalColor.rgb += calcEmission(o, lightAvg);
-        
+
         // Outline
         #if defined(PASS_OUTLINE)
             half3 outlineColor = 0;
