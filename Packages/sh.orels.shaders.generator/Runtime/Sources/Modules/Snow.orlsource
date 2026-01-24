@@ -44,7 +44,7 @@
     _SnowGlitterSpread("Spread %ShowIf(SNOW_GLITTER && SNOW_GLITTER_MODE_TEXTURE)", Range(0.01,1)) = 0.01
     _SnowGlitterRimMask("Mask Power %ShowIf(SNOW_GLITTER)", Float) = -10
     _SnowGlitterRimStrength("Mask Strength %ShowIf(SNOW_GLITTER)", Range(0,1)) = 1.0
-    _SnowGlitterDistanceFade("Distance Fade %Vector2(Start, End) %ShowIf(SNOW_GLITTER)", Vector) = (8, 4, 0, 0)
+    _SnowGlitterDistanceFade("Distance Fade %Vector2(Start, End) %ShowIf(SNOW_GLITTER)", Vector) = (0, 0, 0, 0)
 
     [ToggleUI]UI_SnowRimLight("## Rim Light" , Int) = 1
     [HDR]_SnowRimColor("Color", Color) = (1,1,1,0)
@@ -464,8 +464,11 @@
                     }
                     float snowGlitter = (1.0 - max(0,RoV)) * D * V * F.x * lerp(1, glitterNoV, _SnowGlitterRimStrength);
                     snowGlitter = snowGlitter * max(0, _SnowGlitterBoost * 0.1);
-                    float camDist = length(d.worldSpacePosition - _WorldSpaceCameraPos);
-                    float distanceFade = saturate(remap(camDist, _SnowGlitterDistanceFade.x, _SnowGlitterDistanceFade.y, 1, 0));
+                    float distanceFade = 1;
+                    if (_SnowGlitterDistanceFade.x > 0 && _SnowGlitterDistanceFade.y > 0) {
+                        float camDist = length(d.worldSpacePosition - _WorldSpaceCameraPos);
+                        distanceFade = saturate(remap(camDist, _SnowGlitterDistanceFade.x, _SnowGlitterDistanceFade.y, 1, 0));
+                    }
                     o.Emission += (snowGlitter * _SnowGlitterColor * lightAttenuation) * _SnowGlitterStrength * snowMask * distanceFade;
                 }
             }
@@ -492,8 +495,11 @@
                 glitterColor *= _SnowGlitterBoost * 0.1;
                 glitterColor *= lerp(1, glitterNoV, _SnowGlitterRimStrength);
 
-                float camDist = length(d.worldSpacePosition - _WorldSpaceCameraPos);
-                float distanceFade = saturate(remap(camDist, _SnowGlitterDistanceFade.x, _SnowGlitterDistanceFade.y, 1, 0));
+                float distanceFade = 1;
+                if (_SnowGlitterDistanceFade.x > 0 && _SnowGlitterDistanceFade.y > 0) {
+                    float camDist = length(d.worldSpacePosition - _WorldSpaceCameraPos);
+                    distanceFade = saturate(remap(camDist, _SnowGlitterDistanceFade.x, _SnowGlitterDistanceFade.y, 1, 0));
+                }
 
                 o.Emission += glitterColor * distanceFade;
             }

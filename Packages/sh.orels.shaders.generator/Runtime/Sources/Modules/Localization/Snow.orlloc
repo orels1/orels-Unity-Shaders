@@ -35,6 +35,7 @@ _SnowGlitterAnisotropy;Controls the anisotropic highlight direction for the glit
 _SnowGlitterSpread;Controls how wide the glitter highliught is
 _SnowGlitterRimMask;Controls the sharpness of the rim-based masking. Values below and above 0 will rim mask in different directions
 _SnowGlitterRimStrength;Controls how much the rim mask affects the glitter highlights
+_SnowGlitterDistanceFade;Controls the distance fade effect of glitter highlights. Set Start and End to 0 to disable the effect
 
 _SnowRimColor;Controls the tint of a rim light effect
 _SnowRimPower;Controls the spread of the rim light effect
