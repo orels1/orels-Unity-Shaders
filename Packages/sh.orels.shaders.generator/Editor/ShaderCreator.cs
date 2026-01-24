@@ -102,7 +102,7 @@ namespace ORL.ShaderGenerator
                 shaderContent = shaderContent.Replace("FRAGMENT_NAME", sanitizedName + "Fragment");
                 shaderContent = shaderContent.Replace("LIGHTING_NAME", sanitizedName + "Lighting");
                 shaderContent = shaderContent.Replace("VERTEX_NAME", sanitizedName + "Vertex");
-                shaderContent = shaderContent.Replace("COLOR_NA<E", sanitizedName + "Color");
+                shaderContent = shaderContent.Replace("COLOR_NAME", sanitizedName + "Color");
                 shaderContent = shaderContent.Replace("SECTION_NAME", sanitizedName);
 
                 File.WriteAllText(pathName, shaderContent);
