@@ -151,12 +151,12 @@ Parser.Default.ParseArguments<Options>(Args)
             else if (o.Minor)
             {
                 var parsed = new Version(version.ToString());
+                var newVersion = $"{parsed.Major}.{parsed.Minor + 1}.0";
                 if (parsed.IsPreRelease)
                 {
-                    Console.WriteLine($"\nVersion {version} is a pre-release, cannot bump minor version");
-                    return;
+                    newVersion = $"{parsed.Major}.{parsed.Minor}.0";
+                    Console.WriteLine($"\nVersion {version} is a pre-release, removing the pre-release tag");
                 }
-                var newVersion = $"{parsed.Major}.{parsed.Minor + 1}.0";
                 packageJSON["version"] = newVersion;
                 Console.WriteLine($" -> {newVersion}");
 
