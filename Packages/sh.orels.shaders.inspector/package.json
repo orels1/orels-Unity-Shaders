@@ -2,7 +2,7 @@
   "name": "sh.orels.shaders.inspector",
   "displayName": "ORL Shader Inspector",
   "description": "A simple property-based shader inspector with extension support",
-  "version": "7.2.0-dev.3",
+  "version": "7.2.0",
   "unity": "2022.3",
   "author": {
     "name": "orels1",
