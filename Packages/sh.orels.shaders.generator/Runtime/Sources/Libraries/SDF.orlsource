@@ -16,7 +16,7 @@
         return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x;
     }
 
-    float sdRhombus(float2 p, float2 b )
+    float SDFRhombus(float2 p, float2 b )
     {
         b.y = -b.y;
         p = abs(p);
