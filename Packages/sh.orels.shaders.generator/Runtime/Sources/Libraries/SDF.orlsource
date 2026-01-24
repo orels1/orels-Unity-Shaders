@@ -1,0 +1,55 @@
+%LibraryFunctions()
+{
+    // 2D SDF library
+    // https://iquilezles.org/articles/distfunctions2d/
+    // The MIT License
+    // Copyright © 2020 Inigo Quilez
+    // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+    // SDFBox and SDFCircle are already in the base utilities
+
+    float SDFRoundedBox(float2 p, float2 b, float4 r )
+    {
+        r.xy = (p.x>0.0)?r.xy : r.zw;
+        r.x  = (p.y>0.0)?r.x  : r.y;
+        float2 q = abs(p)-b+r.x;
+        return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x;
+    }
+
+    float SDFRhombus(float2 p, float2 b )
+    {
+        b.y = -b.y;
+        p = abs(p);
+        float h = clamp( (dot(b,p)+b.y*b.y)/dot(b,b), 0.0, 1.0 );
+        p -= b*float2(h,h-1.0);
+        return length(p)*sign(p.x);
+    }
+
+    float SDFMinExp(float a, float b, float k )
+    {
+        k *= 1.0;
+        float r = exp2(-a/k) + exp2(-b/k);
+        return -k*log2(r);
+    }
+
+    float SDFMinQuad(float a, float b, float k )
+    {
+        k *= 4.0;
+        float h = max( k-abs(a-b), 0.0 )/k;
+        return min(a,b) - h*h*k*(1.0/4.0);
+    }
+
+    float SDFMinCube(float a, float b, float k )
+    {
+        k *= 6.0;
+        float h = max( k-abs(a-b), 0.0 )/k;
+        return min(a,b) - h*h*h*k*(1.0/6.0);
+    }
+
+    float SDFMinQuart(float a, float b, float k )
+    {
+       k *= 16.0/3.0;
+       float h = max( k-abs(a-b), 0.0 )/k;
+       return min(a,b) - h*h*h*(4.0-h)*k*(1.0/16.0);
+    }
+}

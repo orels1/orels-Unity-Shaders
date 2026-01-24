@@ -1,0 +1,119 @@
+%Properties()
+{
+    UI_SnowDisplacement("## Displacement", Int) = 0
+    _SnowDisplacementMap("Displacement Map", 2D) = "black" {}
+    _SnowDisplacementMapStrength("Map Strength", Range(0,1)) = 1
+    _SnowDisplacementEdgeMaskStength("Edge Mask Strength", Range(0,1)) = 1
+    _SnowDisplacementLevel("Extrusion Level", Float) = 0
+}
+
+%Variables()
+{
+    float _SnowLevel;
+    float4 _SnowDirection;
+    half _SnowPower;
+    half _SnowEdgeWidth;
+    half _SnowEdgeOffset;
+
+    int _SnowUseEdgeMask;
+    float4 _SnowEdgeMask_ST;
+    half _SnowEdgeMaskRange;
+    half4 _SnowEdgeMaskContrast;
+
+    float4 _SnowDisplacementMap_ST;
+    float _SnowDisplacementMapStrength;
+    float _SnowDisplacementEdgeMaskStength;
+    float _SnowDisplacementLevel;
+}
+
+%Textures()
+{
+    TEXTURE2D(_SnowEdgeMask);
+    TEXTURE2D(_SnowDisplacementMap);
+    SAMPLER(sampler_SnowDisplacementMap);
+}
+
+%ShaderDefines()
+{
+    #define CUSTOM_TESS_FACTORS_FUNC
+}
+
+%Includes()
+{
+    "self",
+    "@/Modules/Tessellation",
+}
+
+%PassFunctions()
+{
+
+    float4 CustomTessFactorsFunc(InputPatch<TessVertexData, 3> patch)
+    {
+        if (_SnowLevel < 0.3)
+        {
+            return 1;
+        }
+
+        float remappedLevel = saturate(remap(_SnowLevel, 0.3, 0.5, 0, 1));
+
+        #if defined(TESS_MODE_DISTANCEBASED)
+        {
+            float4 tessFactors = UnityDistanceBasedTess(
+                patch[0].vertex,
+                patch[1].vertex,
+                patch[2].vertex,
+                _TessMinDist,
+                _TessMaxDist,
+                _TessFactor
+            );
+            return max(tessFactors * remappedLevel, 1.0);
+        }
+        #elif defined(TESS_MODE_EDGELENGTH)
+        {
+            float4 tessFactors = UnityEdgeLengthBasedTessCull(
+                patch[0].vertex,
+                patch[1].vertex,
+                patch[2].vertex,
+                _TessEdgeLength,
+                _TessMaxDisplacement
+            );
+            return max(tessFactors * remappedLevel, 1.0);
+        }
+        #elif defined(TESS_MODE_STATIC)
+        {
+            return max(_TessFactor.xxxx * remappedLevel, 1.0);
+        }
+        #endif
+    }
+}
+
+%Vertex("SnowVertex")
+{
+    void SnowVertex(inout VertexData v)
+    {
+        float2 maskUV = TransformObjectToWorld(v.vertex.xyz).xz;
+        maskUV = maskUV * _SnowDisplacementMap_ST.xy + _SnowDisplacementMap_ST.zw;
+
+        float mask = SAMPLE_TEXTURE2D_LOD(_SnowDisplacementMap, sampler_SnowDisplacementMap, maskUV, 0);
+        mask = lerp(1, mask, _SnowDisplacementMapStrength);
+
+        float3 worldNormal = TransformObjectToWorldNormal(v.normal);
+        _SnowLevel = 1.0 - _SnowLevel;
+        _SnowLevel = saturate(_SnowLevel + 0.5);
+
+        float snowMask = dot(worldNormal, _SnowDirection.xyz);
+        snowMask = (snowMask + 1.0) * 0.5;
+        snowMask = pow(snowMask, _SnowPower);
+        snowMask = smoothstep(_SnowLevel, _SnowLevel + max(0.1, _SnowEdgeWidth), saturate(snowMask * _SnowEdgeOffset));
+
+        if (_SnowDisplacementEdgeMaskStength > 0 && _SnowUseEdgeMask) {
+            half edgeMask = SAMPLE_TEXTURE2D_LOD(_SnowEdgeMask, sampler_SnowDisplacementMap, v.uv0.xy * _SnowEdgeMask_ST.xy + _SnowEdgeMask_ST.zw, 0).r;
+            edgeMask = saturate(remap(edgeMask, 0, 1, _SnowEdgeMaskContrast.x, _SnowEdgeMaskContrast.y));
+            snowMask = lerp(snowMask, smoothstep(edgeMask, edgeMask + _SnowEdgeMaskRange, snowMask), _SnowDisplacementEdgeMaskStength);
+        }
+
+        snowMask = saturate(snowMask - 0.5);
+
+        v.vertex.xyz += TransformWorldToObjectDir(_SnowDirection) * _SnowDisplacementLevel * mask * snowMask * (1.0 / max(0.001, GetObjectScale()));
+    }
+}

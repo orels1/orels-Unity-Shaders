@@ -189,6 +189,12 @@ namespace ORL.ShaderGenerator
             var fullPath = ResolveORLAsset(path, true, remaps);
             return File.ReadAllLines(fullPath);
         }
+        
+        public static string[] GetORLSource(string path, List<ModuleRemap> remaps, out string fullPath)
+        {
+            fullPath = ResolveORLAsset(path, true, remaps);
+            return File.ReadAllLines(fullPath);
+        }
 
         public static string[] GetAssetSource(string path, string basePath)
         {
@@ -198,6 +204,12 @@ namespace ORL.ShaderGenerator
         public static string[] GetAssetSource(string path, string basePath, List<ModuleRemap> remaps)
         {
             return File.ReadAllLines(ResolveORLAsset(path, path.StartsWith("@/"), remaps, basePath));
+        }
+        
+        public static string[] GetAssetSource(string path, string basePath, List<ModuleRemap> remaps, out string fullPath)
+        {
+            fullPath = ResolveORLAsset(path, path.StartsWith("@/"), remaps, basePath);
+            return File.ReadAllLines(fullPath);
         }
 
         public static Texture2D GetNonModifiableTexture(Shader shader, string name)
@@ -229,7 +241,8 @@ namespace ORL.ShaderGenerator
             var parser = new Parser();
             foreach (var source in sourceList)
             {
-                var blocks = parser.Parse(GetAssetSource(source, basePath, remaps));
+                var sourceContents = GetAssetSource(source, basePath, remaps, out var fullPath);
+                var blocks = parser.Parse(sourceContents, fullPath);
                 var includesBlockIndex = blocks.FindIndex(b => b.CoreBlockType == ShaderBlock.BlockType.Includes);
                 if (includesBlockIndex == -1)
                 {

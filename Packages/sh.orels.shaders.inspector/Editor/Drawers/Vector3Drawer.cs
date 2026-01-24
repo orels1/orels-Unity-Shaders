@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using ORL.ShaderInspector;
 using UnityEditor;
 using UnityEngine;
 
@@ -30,14 +31,18 @@ namespace ORL.Drawers
             var label2 = groups[1].Value;
             var label3 = groups[2].Value;
 
-
             var baseRect = EditorGUILayout.GetControlRect();
-            var baseSize = baseRect.width / 3.0f - 2f;
             var oldSize = EditorGUIUtility.labelWidth;
-            EditorGUIUtility.labelWidth = baseSize - EditorGUIUtility.fieldWidth;
+            var baseSize = (baseRect.width - oldSize) / 3.0f - 2f;
+            var labelRect = baseRect;
+            labelRect.width = oldSize;
+            EditorGUI.LabelField(labelRect, new GUIContent(Utils.StripInternalSymbols(property.displayName)));
+
+            EditorGUIUtility.labelWidth = baseSize - EditorGUIUtility.fieldWidth + 15f;
 
             baseRect.width = baseSize;
             baseRect.width -= _baseOffset;
+            baseRect.x += oldSize;
             var currentValue = property.vectorValue;
 
             currentValue.x = EditorGUI.FloatField(baseRect, new GUIContent(label1), currentValue.x);

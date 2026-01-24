@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: 972d196176395a444b026ee5a5a4be54
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 14030a0b230d45068f811d1ad116f246, type: 3}
+  debugBuild: 0
+  samplerCount: 0
+  textureCount: 0
+  featureCount: 0
+  Errors: []
+  ShaderName: '"orels1/Special/Snow Coverage Tessellated"'
+  LightingModel: '@/LightingModels/PBR'
+  IncludedModules:
+  - Packages/sh.orels.shaders/Runtime/Shaders/ORL Standard.orlshader
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/Snow.orlsource
+  - Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/SnowTessellation.orlsource

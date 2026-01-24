@@ -9,7 +9,7 @@ Pass
     #pragma target 4.5
     #pragma multi_compile_instancing
     #pragma multi_compile_fwdbase
-    #pragma multi_compile_fog
+    #pragma multi_compile_vertex _ FOG_EXP2
     #pragma vertex Vertex
     #pragma fragment Fragment
     %ShaderFeatures
@@ -78,13 +78,6 @@ Pass
         #endif
         UNITY_SETUP_INSTANCE_ID(i);
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-        #ifdef FOG_COMBINED_WITH_TSPACE
-            UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-        #elif defined(FOG_COMBINED_WITH_WORLD_POS)
-            UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
-        #else
-            UNITY_EXTRACT_FOG(i);
-        #endif
 
         SurfaceData o = CreateSurfaceData();
         MeshData d = CreateMeshData(i, facing);
@@ -96,8 +89,8 @@ Pass
         // ExtraPass FragmentBase
         %FragmentBase
 
-        UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
-        
+        ApplyUnityFog(i.fogData, FinalColor);
+
         // ExtraPass Color Chain
         %ColorFunctions
 

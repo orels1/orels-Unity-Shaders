@@ -7,7 +7,7 @@ Shader %ShaderName
     SubShader
     {
         Tags { "VRCFallback"="Standard" %ShaderTags }
-        
+
         %ShaderModifiers
 
 
@@ -42,7 +42,7 @@ Shader %ShaderName
                 #pragma target 4.5
                 #pragma multi_compile_instancing
                 #pragma multi_compile_fwdbase
-                #pragma multi_compile_fog
+                #pragma multi_compile_vertex _ FOG_EXP2
                 #pragma vertex Vertex
                 #pragma fragment Fragment
                 %ShaderFeatures
@@ -65,7 +65,7 @@ Shader %ShaderName
                 %DataStructs
                 // GlobalVariables
                 %GlobalVariables
-                
+
                 // Variables
                 %Variables
 
@@ -109,13 +109,6 @@ Shader %ShaderName
                 {
                     UNITY_SETUP_INSTANCE_ID(i);
                     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                    #ifdef FOG_COMBINED_WITH_TSPACE
-                        UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-                    #elif defined(FOG_COMBINED_WITH_WORLD_POS)
-                        UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
-                    #elif !defined(FOG_DISABLED)
-                        UNITY_EXTRACT_FOG(i);
-                    #endif
 
                     half4 FinalColor = 1;
                     #if defined(NEED_FRAGMENT_IN_PREPASS)
@@ -129,9 +122,9 @@ Shader %ShaderName
                     %FragmentBase
 
                     #if !defined(FOG_DISABLED)
-                    UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+                    ApplyUnityFog(i.fogData, FinalColor);
                     #endif
-                    
+
                     // ForwardBase Depth Prepass Color Chain
                     %ColorFunctions
                     #endif
@@ -162,7 +155,7 @@ Shader %ShaderName
             #pragma target 4.5
             #pragma multi_compile_instancing
             #pragma multi_compile_fwdbase
-            #pragma multi_compile_fog
+            #pragma multi_compile_vertex _ FOG_EXP2
             #pragma vertex Vertex
             #pragma fragment Fragment
             %ShaderFeatures
@@ -225,13 +218,6 @@ Shader %ShaderName
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                #ifdef FOG_COMBINED_WITH_TSPACE
-                    UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-                #elif defined(FOG_COMBINED_WITH_WORLD_POS)
-                    UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
-                #elif !defined(FOG_DISABLED)
-                    UNITY_EXTRACT_FOG(i);
-                #endif
 
                 SurfaceData o = CreateSurfaceData();
                 MeshData d = CreateMeshData(i, facing);
@@ -244,9 +230,9 @@ Shader %ShaderName
                 %FragmentBase
 
                 #if !defined(FOG_DISABLED)
-                UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+                ApplyUnityFog(i.fogData, FinalColor);
                 #endif
-                
+
                 // ForwardBase Color Chain
                 %ColorFunctions
 
@@ -269,7 +255,7 @@ Shader %ShaderName
             #pragma target 4.5
             #pragma multi_compile_instancing
             #pragma multi_compile_fwdadd_fullshadows
-            #pragma multi_compile_fog
+            #pragma multi_compile_vertex _ FOG_EXP2
             #pragma vertex Vertex
             #pragma fragment Fragment
             %ShaderFeatures
@@ -329,13 +315,6 @@ Shader %ShaderName
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                #ifdef FOG_COMBINED_WITH_TSPACE
-                    UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-                #elif defined(FOG_COMBINED_WITH_WORLD_POS)
-                    UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
-                #elif !defined(FOG_DISABLED)
-                    UNITY_EXTRACT_FOG(i);
-                #endif
 
                 SurfaceData o = CreateSurfaceData();
                 MeshData d = CreateMeshData(i, facing);
@@ -354,7 +333,7 @@ Shader %ShaderName
                 %PostVertexFunctions
 
                 #if !defined(FOG_DISABLED)
-                UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+                ApplyUnityFog(i.fogData, FinalColor);
                 #endif
 
                 return FinalColor;
@@ -593,7 +572,7 @@ Shader %ShaderName
             #pragma target 4.5
             #pragma multi_compile_instancing
             #pragma multi_compile_fwdbase
-            #pragma multi_compile_fog
+            #pragma multi_compile_vertex _ FOG_EXP2
             #pragma vertex Vertex
             #pragma fragment Fragment
             %ShaderFeatures
@@ -637,7 +616,7 @@ Shader %ShaderName
                 UNITY_INITIALIZE_OUTPUT(FragmentData, o);
                 UNITY_TRANSFER_INSTANCE_ID(v, o);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                
+
                 #if defined(OUTLINE_ENABLED)
 
                 // Outline Vertex Chain
@@ -652,7 +631,7 @@ Shader %ShaderName
                 return o;
 
                 #else
-                
+
                 o.pos = asfloat(-1);
                 return o;
 
@@ -667,13 +646,6 @@ Shader %ShaderName
 
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-                #ifdef FOG_COMBINED_WITH_TSPACE
-                    UNITY_EXTRACT_FOG_FROM_TSPACE(i);
-                #elif defined(FOG_COMBINED_WITH_WORLD_POS)
-                    UNITY_EXTRACT_FOG_FROM_WORLD_POS(i);
-                #elif !defined(FOG_DISABLED)
-                    UNITY_EXTRACT_FOG(i);
-                #endif
 
                 SurfaceData o = CreateSurfaceData();
                 MeshData d = CreateMeshData(i, facing);
@@ -686,9 +658,9 @@ Shader %ShaderName
                 %FragmentBase
 
                 #if !defined(FOG_DISABLED)
-                UNITY_APPLY_FOG(_unity_fogCoord, FinalColor);
+                ApplyUnityFog(i.fogData, FinalColor);
                 #endif
-                
+
                 // Outline Color Chain
                 %ColorFunctions
 
@@ -713,4 +685,3 @@ Shader %ShaderName
     }
     CustomEditor "%CustomEditor"
 }
-

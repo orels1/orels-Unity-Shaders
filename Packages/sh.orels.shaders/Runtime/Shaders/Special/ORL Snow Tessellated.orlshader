@@ -1,0 +1,9 @@
+%ShaderName("orels1/Special/Snow Coverage Tessellated")
+
+%Includes()
+{
+    "@/Shaders/ORL Standard",
+    "@/Modules/Snow",
+    "@/Modules/SnowTessellation",
+    "self"
+}

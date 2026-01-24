@@ -1,0 +1,41 @@
+propName;EN
+
+_SnowLevel;Controls the level of snow coverage
+_SnowDirection;Controls the world-space direction of where the snow is coming from. E.g. (0,1,0) will create a snow coverage from above (default value)
+_SnowLayerNormalStrength;Controls how much the base layer Normal map affects the snow coverage
+_SnowPower;Adjusts the edge of the snow coverage
+_SnowEdgeWidth;Adjusts the width of the edge blend gradient for the snow coverage
+_SnowEdgeOffset;Flat coverage offset, higher numbers allow to coat the whole mesh in snow
+_SnowUseEdgeMask;Enables additional masking of the snow coverage edge
+_SnowEdgeMask;Additional mask that will be applied to the edge of the snow coverage. Useful for adding variation and breaking up a perfect coverage edge
+_SnowEdgeMaskRange;Adjusts how much of the snow coverage edge will be affected by the snow edge mask. Lower values make the final edge sharper
+_SnowEdgeMaskContrast;Adjusts the values of the snow coverage mask texture. Setting to minimum will eliminate the mask completely. Setting to full width will multiply the base gradient by the mask texture
+_SnowDebug;Enables debug visualization for the snow level
+_SnowUseHeight;Enables height-based effects for improved blending
+_SnowInvertHeightEffects;Inverts the height effects. Enabling this will change whether the snow will accumulate on the height map peaks or in the valleys first
+_SnowHeightSmoothing;Smooths out the height map effects. Higher values will allow the snow to cover more of the surface
+_SnowHeightStrength;Controls the overall strength of the height effects. At 0 the height will be ignored, as if "Use Height" is off
+_SnowUVMode;Controls how snow texture UVs are calculated
+_SnowTriplanarBlend;Controls the triplanar blend between different world axis
+_SnowTriplanarPower;Controls the sharpness of the triplanar blend edge between different world axis
+
+_SnowDisplacementMap;A texture to adjust where snow piles show up on the mesh. This uses world-space XZ coordinates to map to the surface
+_SnowDisplacementMapStrength;Controls how much the Displacement Map affects the overall snow pile distribution. At 0 this will create snow coverage that perfectly copies the surfaces below it
+_SnowDisplacementEdgeMaskStength;Controls how much the Snow Edge Mask affects the snow piles displacement effects. Mainly for fine tuning and avoiding jagged edges coming from high frequency noise masks
+_SnowDisplacementLevel;Controls how much the surface will be displaced along the Snow Direction
+
+_SnowEnableGlitter;Turns on snow glitter effects
+_SnowGlitter;A glitter noise map. Preferably a normal map (Red + Green noise texture)
+_SnowGlitterTiling;Tiling amount for the noise map
+_SnowGlitterColor;Controls glitter sparkle tint color
+_SnowGlitterThreshold;Controls how much glitter is visible
+_SnowGlitterStrength;Controls the overall strength of the glitter
+_SnowGlitterBoost;Additionally boosts the glitter effect beyond 0-1 range
+_SnowGlitterAnisotropy;Controls the anisotropic highlight direction for the glitter effect. Effectively spreads the glitter horizontally or vertically across the surface
+_SnowGlitterSpread;Controls how wide the glitter highliught is
+_SnowGlitterRimMask;Controls the sharpness of the rim-based masking. Values below and above 0 will rim mask in different directions
+_SnowGlitterRimStrength;Controls how much the rim mask affects the glitter highlights
+_SnowGlitterDistanceFade;Controls the distance fade effect of glitter highlights. Set Start and End to 0 to disable the effect
+
+_SnowRimColor;Controls the tint of a rim light effect
+_SnowRimPower;Controls the spread of the rim light effect

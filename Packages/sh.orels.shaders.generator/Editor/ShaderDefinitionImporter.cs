@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using NUnit.Framework;
 using UnityEditor;
 #if UNITY_2022_3_OR_NEWER
 using UnityEditor.AssetImporters;
@@ -31,6 +32,9 @@ namespace ORL.ShaderGenerator
 
         // Cached version of the debug flag to avoid constant asset pinging
         private bool _isDebugBuild;
+        
+        // cached version of the current importer
+        private AssetImportContext _ctx;
 
         public int samplerCount;
         public int textureCount;
@@ -101,8 +105,8 @@ namespace ORL.ShaderGenerator
                     try
                     {
                         var parser = new Parser();
-                        var sourceStrings = Utils.GetORLSource(block, _userModuleRemaps);
-                        var blockSource = parser.Parse(sourceStrings);
+                        var sourceStrings = Utils.GetORLSource(block, _userModuleRemaps, out var path);
+                        var blockSource = parser.Parse(sourceStrings, path);
                         blocks.AddRange(blockSource);
                     }
                     catch (Exception ex)
@@ -169,29 +173,30 @@ namespace ORL.ShaderGenerator
             _isDebugBuild = DebugBuild;
             // Cache remaps
             _userModuleRemaps = UserModuleRemaps;
+            // Cache context
+            _ctx = ctx;
 
             var parser = new Parser();
             List<ShaderBlock> blocks = new List<ShaderBlock>();
 
-            // We built-in imports first, otherwise the order of imports will be incorrect
-            // Collecting and registering all the dependency objects
-            var depList = new List<string>();
-            depList.AddRange(AlwaysIncludedBlockSources);
-            RegisterDependencies(depList, ctx);
-
-            // Adding all the dependencies to the list of blocks
-            blocks.AddRange(AlwaysIncludedBlocks);
+            // Add and register always inlcuded blocks
+            AddAlwaysIncludedBlocks(ctx, ref blocks);
 
             // Load all the direct blocks from the source
             try
             {
-                blocks.AddRange(parser.Parse(textContent));
+                blocks.AddRange(parser.Parse(textContent, ctx.assetPath));
             }
             catch (Exception ex)
             {
                 ctx.LogImportError(ex.ToString());
                 ctx.LogImportError($"Failed to process the shader definition file {ctx.assetPath}");
                 return;
+            }
+
+            if (_isDebugBuild)
+            {
+                Log($"Added {blocks.Count} direct blocks\n{PrintBlocksListWithPaths(blocks)}");
             }
 
             IncludedModules.Clear();
@@ -210,6 +215,11 @@ namespace ORL.ShaderGenerator
                 return;
             }
 
+            if (_isDebugBuild)
+            {
+                Log($"Target shader name: {shaderName}");
+            }
+
             // Recursively get all the blocks
             try
             {
@@ -220,6 +230,11 @@ namespace ORL.ShaderGenerator
                 ctx.LogImportError(ex.ToString());
                 ctx.LogImportError($"Failed to process the shader definition file {ctx.assetPath}");
                 throw;
+            }
+
+            if (_isDebugBuild)
+            {
+                Log($"Block count after recursive resolve: {blocks.Count} \n{string.Join("\n", blocks.OrderBy(b => b.Path).Select(b => $"[{b.Path}]: {b.Name}"))}");
             }
 
             // Find and load the lighting model
@@ -240,6 +255,11 @@ namespace ORL.ShaderGenerator
 
             LightingModel = lightingModelName;
 
+            if (_isDebugBuild)
+            {
+                Log($"Selected lighting model: {LightingModel}");
+            }
+
             // Recursively get all the lighting model blocks
             try
             {
@@ -250,6 +270,11 @@ namespace ORL.ShaderGenerator
                 ctx.LogImportError(ex.ToString());
                 ctx.LogImportError($"Failed to load Lighting Model in {ctx.assetPath}", this);
                 throw;
+            }
+            
+            if (_isDebugBuild)
+            {
+                Log($"Block count after Lighting Model load: {blocks.Count} \n{PrintBlocksListWithPaths(blocks)}");
             }
 
             // Find and load the template file
@@ -266,6 +291,11 @@ namespace ORL.ShaderGenerator
                 throw;
             }
 
+            if (_isDebugBuild)
+            {
+                Log($"Selected template; {templateName}");
+            }
+
             // Find and toggle template features
             try
             {
@@ -277,7 +307,7 @@ namespace ORL.ShaderGenerator
                 ctx.LogImportError($"Failed to toggle Template Features in {ctx.assetPath}", this);
                 throw;
             }
-
+            
             // Collapse non-function blocks together and de-dupe things where makes sense
             blocks = OptimizeBlocks(blocks);
 
@@ -299,8 +329,17 @@ namespace ORL.ShaderGenerator
                 }
             }
 
+            if (_isDebugBuild)
+            {
+                Log($"Extra passes: Requested - {extraPasses.Count}, Generated - {generatedExtraPasses.Count}");
+            }
+
             // Insert blocks at hook points
             var hookPointBlocks = blocks.FindAll(b => (b.HookPoints?.Count ?? 0) > 0).ToList();
+            if (_isDebugBuild)
+            {
+                Log($"Discovered blocks with hook points: {hookPointBlocks.Count}\n{PrintBlocksListWithPaths(hookPointBlocks)}");
+            }
             try
             {
                 InjectBlocksIntoHookPoints(blocks, hookPointBlocks);
@@ -318,6 +357,11 @@ namespace ORL.ShaderGenerator
             // save function blocks to a separate list as they need special handling
             var functionBlocks = blocks.Where(b => b.IsFunction).Reverse().ToList();
 
+            if (_isDebugBuild)
+            {
+                Log($"Discovered function blocks: {functionBlocks.Count}\n{PrintBlocksListWithPaths(functionBlocks)}");
+            }
+
             // Re-hydrate function blocks, we allow nesting of up to 1 level deep
             functionBlocks = functionBlocks.Select(b =>
             {
@@ -326,6 +370,12 @@ namespace ORL.ShaderGenerator
                     .Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None).ToList();
                 return b;
             }).ToList();
+
+            if (_isDebugBuild)
+            {
+                Log(
+                    $"Final blocks feeding into generation post-dedupe: {blocks.Count}\n{PrintBlocksListWithPaths(blocks)}");
+            }
 
             // Assemble the final shader with all the source and pre-hydrated blocks
             var finalShader = new StringBuilder();
@@ -366,8 +416,39 @@ namespace ORL.ShaderGenerator
             ctx.AddObjectToAsset("Shader Source", textAsset);
         }
 
-        #region Generator Steps
+        private void Log(object message)
+        {
+            var shaderName = Path.GetFileNameWithoutExtension(_ctx.assetPath);
+            Debug.Log($"[ORL][{shaderName}]: {message}");
+        }
 
+        private string PrintBlocksListWithPaths(IEnumerable<ShaderBlock> blocks)
+        {
+            return string.Join("\n", blocks.OrderBy(b => b.Path).Select(b => $"[{b.Path}]: {b.Name}"));
+        }
+
+        #region Generator Steps
+        
+        /// <summary>
+        /// Add always included blocks to the `blocks` list and register asset dependencies
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// /// <param name="blocks"></param>
+        private void AddAlwaysIncludedBlocks(AssetImportContext ctx, ref List<ShaderBlock> blocks)
+        {
+            var depList = new List<string>();
+            depList.AddRange(AlwaysIncludedBlockSources);
+            // Registering asset dependencies, so the shader regenerates with them
+            RegisterDependencies(depList, ctx);
+            // Adding all the dependencies to the list of blocks
+            blocks.AddRange(AlwaysIncludedBlocks);
+            if (_isDebugBuild)
+            {
+                Log($"Added {depList.Count} always included blocks: {string.Join("\n", depList)}");
+            }
+        }
+
+        
         private static string GetShaderName(List<ShaderBlock> blocks)
         {
             string shaderName;
@@ -385,7 +466,7 @@ namespace ORL.ShaderGenerator
 
             return shaderName;
         }
-
+        
         private List<ShaderBlock> RecursivelyGetDirectDependencies(AssetImportContext ctx, string workingFolder,
             List<ShaderBlock> blocks)
         {
@@ -426,8 +507,10 @@ namespace ORL.ShaderGenerator
                     foreach (var deepDep in deepDeps)
                     {
                         // since we already have the deps flattened, we can safely strip all the dependencies here
+                        var deepDepSource = Utils.GetAssetSource(deepDep, workingFolder, _userModuleRemaps,
+                            out var deepDepPath);
                         deepBlocks.AddRange(blockParser
-                            .Parse(Utils.GetAssetSource(deepDep, workingFolder, _userModuleRemaps))
+                            .Parse(deepDepSource, deepDepPath)
                             .Where(b => b.CoreBlockType != BlockType.Includes));
                     }
 
@@ -451,7 +534,8 @@ namespace ORL.ShaderGenerator
             lightingModelPath = Utils.ResolveORLAsset(lightingModelName, lightingModelName.StartsWith("@/"),
                 _userModuleRemaps, workingFolder);
             var lmParser = new Parser();
-            lightingModel = lmParser.Parse(Utils.GetAssetSource(lightingModelName, workingFolder, _userModuleRemaps));
+            var lmSource = Utils.GetAssetSource(lightingModelName, workingFolder, _userModuleRemaps, out var lmPath);
+            lightingModel = lmParser.Parse(lmSource, lmPath);
             if (!string.IsNullOrEmpty(lightingModelPath))
             {
                 ctx.DependsOnSourceAsset(lightingModelPath);
@@ -491,8 +575,9 @@ namespace ORL.ShaderGenerator
                 foreach (var deepDep in deepDeps)
                 {
                     // since we already have the deps flattened, we can safely strip all the dependencies here
+                    var deepDepSource = Utils.GetAssetSource(deepDep, lmWorkingFolder, _userModuleRemaps, out var deepDepPath);
                     deepBlocks.AddRange(blockParser
-                        .Parse(Utils.GetAssetSource(deepDep, lmWorkingFolder, _userModuleRemaps))
+                        .Parse(deepDepSource, deepDepPath)
                         .Where(b => b.CoreBlockType != BlockType.Includes));
                 }
 
@@ -626,7 +711,7 @@ namespace ORL.ShaderGenerator
             var extraPassType = extraPass.TypedParams?[1] as ShaderBlock.ExtraPassType? ??
                                 ShaderBlock.ExtraPassType.PostPass;
             var extraPassParser = new Parser();
-            var extraPassBlocksList = extraPassParser.Parse(extraPass.Contents.ToArray());
+            var extraPassBlocksList = extraPassParser.Parse(extraPass.Contents.ToArray(), extraPass.Path);
             extraPassBlocksList.Add(new ShaderBlock
             {
                 Name = "%PassName",
@@ -729,10 +814,29 @@ namespace ORL.ShaderGenerator
                         }
 
                         {
+                            if (_isDebugBuild)
+                            {
+                                Log($"[HookPoints] Injecting [{block.Path}] {block.Name} at {hookPointBlocks[i].HookPoints[j].Line}, with content:\n{string.Join("\n", block.Contents)}");
+                                Log($"[HookPoints] Current {hookPointBlocks[i].Name} contents:\n{string.Join("\n", hookPointBlocks[i].Contents)}");
+                            }
                             var toInsert = IndentContentsList(block.Contents,
                                 hookPointBlocks[i].HookPoints[j].Indentation);
                             hookPointBlocks[i].Contents.InsertRange(hookPointBlocks[i].HookPoints[j].Line, toInsert);
                             insertedLines += toInsert.Count;
+                            if (_isDebugBuild)
+                            {
+                                Log($"[HookPoints] new block contents for {hookPointBlocks[i].Name} (+{insertedLines}):\n{string.Join("\n", hookPointBlocks[i].Contents)}");
+                            }
+                            
+                            // find and offset every hook point after the current one to account for the offset changes
+                            for (var k = j + 1; k < hookPointBlocks[i].HookPoints.Count; k++)
+                            {
+                                var newHookPoints = new List<ShaderBlock.HookPoint>(hookPointBlocks[i].HookPoints);
+                                var adjustedHookPoint = ShaderBlock.HookPoint.Clone(hookPointBlocks[i].HookPoints[k]);
+                                adjustedHookPoint.Line += insertedLines - 1;
+                                newHookPoints[k] = adjustedHookPoint;
+                                hookPointBlocks[i].HookPoints = newHookPoints;
+                            }
                         }
                     }
 
@@ -1007,6 +1111,11 @@ namespace ORL.ShaderGenerator
             filteredBlocks.RemoveAll(b => sortedBlocks.ContainsKey(b.CoreBlockType));
             filteredBlocks.AddRange(sortedBlocks.Values.SelectMany(b => b));
 
+            if (_isDebugBuild)
+            {
+                Log($"[OptimizeBlocks]: Filtered blocks - {filteredBlocks.Count}\n{PrintBlocksListWithPaths(filteredBlocks)}");
+            }
+
             // First pass - collapse blocks with the same name
             foreach (var block in filteredBlocks)
             {
@@ -1032,6 +1141,11 @@ namespace ORL.ShaderGenerator
                 }
 
                 var index = keySet[block.Name];
+                if (_isDebugBuild)
+                {
+                    Log($"[OptimizeBlocks]: Inserting [{block.Path}] {block.Name}");
+                    Log($"[OptimizeBlocks]: Current contents for {collapsedBlocks[index].Name}:\n{string.Join("\n", collapsedBlocks[index].Contents)}");
+                }
                 collapsedBlocks[index].Contents.Add("");
                 if (block.HookPoints != null)
                 {
@@ -1042,12 +1156,20 @@ namespace ORL.ShaderGenerator
 
                     collapsedBlocks[index].HookPoints.AddRange(block.HookPoints.Select(h =>
                     {
+                        if (_isDebugBuild)
+                        {
+                            Log($"[OptimizeBlocks] Inserting hook point {h.Name} ({h.Line} [+{collapsedBlocks[index].Contents.Count}]) from [{block.Path}] {block.Name} into [{collapsedBlocks[index].Path}] {collapsedBlocks[index].Name}");
+                        }
                         h.Line += collapsedBlocks[index].Contents.Count;
                         return h;
                     }));
                 }
 
                 collapsedBlocks[index].Contents.AddRange(block.Contents);
+                if (_isDebugBuild)
+                {
+                    Log($"[OptimizeBlocks]: new block contents for {collapsedBlocks[index].Name}:\n{string.Join("\n", collapsedBlocks[index].Contents)}");
+                }
             }
 
             // Second pass - deduplicate things where it makes sense
@@ -1609,8 +1731,9 @@ namespace ORL.ShaderGenerator
 
             return textSource;
         }
+        
+        #endregion
     }
 
-    #endregion
 }
 

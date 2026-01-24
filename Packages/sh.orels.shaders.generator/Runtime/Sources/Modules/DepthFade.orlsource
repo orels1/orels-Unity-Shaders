@@ -46,17 +46,17 @@
     }
 }
 
-%Fragment("DepthFadeFragment")
+%Color("DepthFadeColor")
 {
-    void DepthFadeFragment(MeshData d, inout SurfaceData o)
+    void DepthFadeColor(MeshData d, inout half4 FinalColor)
     {
         #if defined(DEPTH_FADE)
         float sceneZ = LinearEyeDepth(SampleSceneDepth(d.depthFadeParams.xy / d.depthFadeParams.w));
         float softParticleInvFade = 1.0 / (_DepthParticlesFarFadeDistance - _DepthParticlesNearFadeDistance);
         float fade = saturate(softParticleInvFade * ((sceneZ - _DepthParticlesNearFadeDistance) - d.depthFadeParams.z));
-        o.Alpha *= fade;
+        FinalColor.a *= fade;
         if (_DepthFadePremultiply) {
-            o.Albedo *= fade;
+            FinalColor.rgb *= fade;
         }
         #endif
     }
