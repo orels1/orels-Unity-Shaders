@@ -34,26 +34,32 @@
 
 %PassModifiers()
 {
+    BlendOp Add, Max
+    Blend One Zero, One One
     AlphaToMask [_AlphaToMask]
 }
 
 %Variables()
 {
     half _Cutoff;
+    float _VRChatMirrorMode;
 }
 
 %Fragment("CutoutFragment")
 {
     void CutoutFragment(inout SurfaceData o) {
         #if defined(_NATIVE_A2C) && defined(UNITY_PASS_FORWARDBASE)
-        
+
         half antiAliased = o.Alpha - 0.5;
         antiAliased /= max(0.0001, fwidth(o.Alpha));
         antiAliased += 0.5;
         o.Alpha = saturate(antiAliased);
+        if (o.Alpha > (_Cutoff + 0.1) && _VRChatMirrorMode > 0) {
+            o.Alpha == 1;
+        }
 
         #endif
-        
+
         #if !defined(_NATIVE_A2C) || !defined(UNITY_PASS_FORWARDBASE)
         if (o.Alpha < _Cutoff)  {
             clip(-1);
