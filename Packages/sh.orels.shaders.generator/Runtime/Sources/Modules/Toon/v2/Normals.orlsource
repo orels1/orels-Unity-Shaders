@@ -123,7 +123,6 @@
 
     #if defined(DETAIL_NORMALS_MASK_SET)
     TEXTURE2D(_DetailNormalsMask);
-    SAMPLER(sampler_DetailNormalsMask);
     #endif
 
     #if defined(DETAIL_NORMALS_0)
@@ -141,28 +140,6 @@
     #if defined(DETAIL_NORMALS_3)
     TEXTURE2D(_DetailNormals3Map);
     #endif
-
-    // Define correct samplers in case some are not defined
-    // This allows to always reuse the earlier sampler if it was available
-    #if defined(DETAIL_NORMALS_0)
-    SAMPLER(sampler_DetailNormals0Map);
-    #define DetailsLayerSampler sampler_DetailNormals0Map
-    #endif
-
-    #if !defined(DETAIL_NORMALS_0) && defined(DETAIL_NORMALS_1)
-    SAMPLER(sampler_DetailNormals1Map);
-    #define DetailsLayerSampler sampler_DetailNormals1Map
-    #endif
-
-    #if !defined(DETAIL_NORMALS_0) && !defined(DETAIL_NORMALS_1) && defined(DETAIL_NORMALS_2)
-    SAMPLER(sampler_DetailNormals2Map);
-    #define DetailsLayerSampler sampler_DetailNormals2Map
-    #endif
-
-    #if !defined(DETAIL_NORMALS_0) && !defined(DETAIL_NORMALS_1) && !defined(DETAIL_NORMALS_2) && defined(DETAIL_NORMALS_3)
-    SAMPLER(sampler_DetailNormals3Map);
-    #define DetailsLayerSampler sampler_DetailNormals3Map
-    #endif    
 }
 
 
@@ -208,10 +185,10 @@
                 case 3: detailMaskUV = d.uv3; break;
             }
             detailMaskUV = detailMaskUV * _DetailNormalsMask_ST.xy + _DetailNormalsMask_ST.zw;
-            detailMask = SAMPLE_TEXTURE2D(_DetailNormalsMask, sampler_DetailNormalsMask, detailMaskUV);
+            detailMask = SAMPLE_TEXTURE2D(_DetailNormalsMask, sampler_BumpMap, detailMaskUV);
         }
         #endif
-        
+
         // Details Layer 1
         #if defined(DETAIL_NORMALS_0)
         {
@@ -223,11 +200,11 @@
                 case 3: detailUV = d.uv3; break;
             }
             detailUV = detailUV * _DetailNormals0Map_ST.xy + _DetailNormals0Map_ST.zw;
-            half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals0Map, DetailsLayerSampler, detailUV);
+            half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals0Map, sampler_BumpMap, detailUV);
             if (_FlipDetailNormals0Y)
             {
                 detailNormalsTex.y = 1 - detailNormalsTex.y;
-            }   
+            }
             half3 detailNormal = UnpackNormalScale(detailNormalsTex, _DetailNormals0Scale);
             o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), lerp(1, detailMask[_DetailNormals0MaskChannel], _DetailNormals0MaskStrength));
         }
@@ -243,15 +220,15 @@
                 case 3: detailUV = d.uv3; break;
             }
             detailUV = detailUV * _DetailNormals1Map_ST.xy + _DetailNormals1Map_ST.zw;
-            half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals1Map, DetailsLayerSampler, detailUV);
+            half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals1Map, sampler_BumpMap, detailUV);
             if (_FlipDetailNormals1Y)
             {
                 detailNormalsTex.y = 1 - detailNormalsTex.y;
-            }   
+            }
             half3 detailNormal = UnpackNormalScale(detailNormalsTex, _DetailNormals1Scale);
             o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), lerp(1, detailMask[_DetailNormals1MaskChannel], _DetailNormals1MaskStrength));
         }
-        #endif 
+        #endif
 
         #if defined(DETAIL_NORMALS_2)
         {
@@ -267,7 +244,7 @@
             if (_FlipDetailNormals2Y)
             {
                 detailNormalsTex.y = 1 - detailNormalsTex.y;
-            }   
+            }
             half3 detailNormal = UnpackNormalScale(detailNormalsTex, _DetailNormals2Scale);
             o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), lerp(1, detailMask[_DetailNormals2MaskChannel], _DetailNormals2MaskStrength));
         }
@@ -287,24 +264,10 @@
             if (_FlipDetailNormals3Y)
             {
                 detailNormalsTex.y = 1 - detailNormalsTex.y;
-            }   
+            }
             half3 detailNormal = UnpackNormalScale(detailNormalsTex, _DetailNormals3Scale);
             o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), lerp(1, detailMask[_DetailNormals3MaskChannel], _DetailNormals3MaskStrength));
         }
         #endif
-
-        // #if defined(NORMALS_SET) || defined(DETAIL_NORMALS_SET)
-
-        // // half3 properNormal = normalize(mul(o.Normal, d.TBNMatrix));
-        // // d.worldSpaceTangent.xyz = cross(d.bitangent.xyz, properNormal);
-        // // d.bitangent.xyz = cross(properNormal, d.worldSpaceTangent.xyz);
-        // // d.TBNMatrix = float3x3(normalize(d.worldSpaceTangent.xyz), d.bitangent, d.worldNormal);
-        // // GLOBAL_pixelNormal = properNormal;
-
-        // #else
-
-        // // GLOBAL_pixelNormal = normalize(mul(o.Normal, d.TBNMatrix));
-
-        // #endif
     }
 }

@@ -53,7 +53,7 @@
     _Decal1RimFadePower("Rim Fade Power %ShowIf(DECAL_1 && _Decal1RimFade)", Float) = 6
     [ToggleUI]_Decal1RimFadeInvert("Invert Rim Fade %ShowIf(DECAL_1 && _Decal1RimFade)", Int) = 0
     _Decal1RimFadeUnderlay("Rim Fade Underlay %ShowIf(DECAL_1 && _Decal1RimFade)", Color) = (0,0,0,1)
-    
+
     UI_Decal1MaskingHeader("### Masking %ShowIf(DECAL_1)", Int) = 0
     [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_Decal1MaskChannel("Mask Channel %ShowIf(DECAL_1)", Int) = 0
     _Decal1MaskStrength("Mask Strength %ShowIf(DECAL_1)", Range(0, 1)) = 1
@@ -73,7 +73,7 @@
     _Decal2Rotation("Rotation %ShowIf(DECAL_2)", Range(0, 360)) = 0
     [ToggleUI]_Decal2Tile("Tile Decal %ShowIf(_Decal2Map && DECAL_2)", Int) = 0
     _Decal2Tiling("Tiling %ShowIf(_Decal2Map && DECAL_2 && _Decal2Tile) %Vector2(Tiling X, Y)", Vector) = (1,1,0,0)
-    
+
     UI_Decal2ColorsHeader("### Colors %ShowIf(DECAL_2)", Int) = 0
     _Decal2Tint("Tint %ShowIf(DECAL_2)", Color) = (1,1,1,1)
     _Decal2MultiplyByAlbedo("Multiply By Albedo %ShowIf(DECAL_2)", Range(0, 1)) = 0
@@ -83,7 +83,7 @@
     _Decal2RimFadePower("Rim Fade Power %ShowIf(DECAL_2 && _Decal2RimFade)", Float) = 6
     [ToggleUI]_Decal2RimFadeInvert("Invert Rim Fade %ShowIf(DECAL_2 && _Decal2RimFade)", Int) = 0
     _Decal2RimFadeUnderlay("Rim Fade Underlay %ShowIf(DECAL_2 && _Decal2RimFade)", Color) = (0,0,0,1)
-    
+
     UI_Decal2MaskingHeader("### Masking %ShowIf(DECAL_2)", Int) = 0
     [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_Decal2MaskChannel("Mask Channel %ShowIf(DECAL_2)", Int) = 0
     _Decal2MaskStrength("Mask Strength %ShowIf(DECAL_2)", Range(0, 1)) = 1
@@ -103,7 +103,7 @@
     _Decal3Rotation("Rotation %ShowIf(DECAL_3)", Range(0, 360)) = 0
     [ToggleUI]_Decal3Tile("Tile Decal %ShowIf(_Decal3Map && DECAL_3)", Int) = 0
     _Decal3Tiling("Tiling %ShowIf(_Decal3Map && DECAL_3 && _Decal3Tile) %Vector2(Tiling X, Y)", Vector) = (1,1,0,0)
-    
+
     UI_Decal3ColorsHeader("### Colors %ShowIf(DECAL_3)", Int) = 0
     _Decal3Tint("Tint %ShowIf(DECAL_3)", Color) = (1,1,1,1)
     _Decal3MultiplyByAlbedo("Multiply By Albedo %ShowIf(DECAL_3)", Range(0, 1)) = 0
@@ -113,7 +113,7 @@
     _Decal3RimFadePower("Rim Fade Power %ShowIf(DECAL_3 && _Decal3RimFade)", Float) = 6
     [ToggleUI]_Decal3RimFadeInvert("Invert Rim Fade %ShowIf(DECAL_3 && _Decal3RimFade)", Int) = 0
     _Decal3RimFadeUnderlay("Rim Fade Underlay %ShowIf(DECAL_3 && _Decal3RimFade)", Color) = (0,0,0,1)
-    
+
     UI_Decal3MaskingHeader("### Masking %ShowIf(DECAL_3)", Int) = 0
     [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_Decal3MaskChannel("Mask Channel %ShowIf(DECAL_3)", Int) = 0
     _Decal3MaskStrength("Mask Strength %ShowIf(DECAL_3)", Range(0, 1)) = 1
@@ -190,7 +190,7 @@
     half _Decal1ClipFalloff;
     #endif
 
-    #if defined(DECAL_2)    
+    #if defined(DECAL_2)
     int _Decal2UVSet;
     float _Decal2Scale;
     float2 _Decal2Offset;
@@ -231,7 +231,7 @@
     half _Decal3RimFadePower;
     int _Decal3RimFadeInvert;
     half4 _Decal3RimFadeUnderlay;
-    
+
     int _Decal3MaskChannel;
     half _Decal3MaskStrength;
     int _Decal3Clip;
@@ -245,7 +245,6 @@
 {
     #if defined(DECALS_MASK_SET)
     TEXTURE2D(_DecalsMask);
-    SAMPLER(sampler_DecalsMask);
     #endif
 
     #if defined(DECAL_0)
@@ -262,28 +261,6 @@
 
     #if defined(DECAL_3)
     TEXTURE2D(_Decal3Map);
-    #endif
-
-    // Define correct samplers in case some are not defined
-    // This allows to always reuse the earlier sampler if it was available
-    #if defined(DECAL_0)
-    SAMPLER(sampler_Decal0Map);
-    #define DecalSampler sampler_Decal0Map
-    #endif
-
-    #if !defined(DECAL_0) && defined(DECAL_1)
-    SAMPLER(sampler_Decal1Map);
-    #define DecalSampler sampler_Decal1Map
-    #endif
-
-    #if !defined(DECAL_0) && !defined(DECAL_1) && defined(DECAL_2)
-    SAMPLER(sampler_Decal2Map);
-    #define DecalSampler sampler_Decal2Map
-    #endif
-
-    #if !defined(DECAL_0) && !defined(DECAL_1) && !defined(DECAL_2) && defined(DECAL_3)
-    SAMPLER(sampler_Decal3Map);
-    #define DecalSampler sampler_Decal3Map
     #endif
 }
 
@@ -316,7 +293,7 @@
         {
             decalUV = RotateAroundCenter2D(decalUV, rotation);
         }
-        half4 decalTexData = SAMPLE_TEXTURE2D_GRAD(decalTexture, sampler_decalTexture, decalUV, ddx(derivUV), ddy(derivUV));
+        half4 decalTexData = SAMPLE_TEXTURE2D_GRAD(decalTexture, sampler_MainTex, decalUV, ddx(derivUV), ddy(derivUV));
         decalTexData *= tint;
         return decalTexData;
     }
@@ -355,7 +332,7 @@
         #if defined(DECALS_MASK_SET)
         {
             float2 decalsMaskUV = GetUVChannel(uvData, _DecalsMaskUVSet, _DecalsMask_ST);
-            decalsMask = SAMPLE_TEXTURE2D(_DecalsMask, sampler_DecalsMask, decalsMaskUV);
+            decalsMask = SAMPLE_TEXTURE2D(_DecalsMask, sampler_MainTex, decalsMaskUV);
         }
         #endif
 
@@ -367,11 +344,11 @@
         #if defined(DECAL_0)
         {
             float2 decalUV = 0;
-            half4 decalTexture = GetDecalTexture(d, _Decal0UVSet, _Decal0Scale, _Decal0Tile, _Decal0Tiling, _Decal0Offset, _Decal0Rotation, TEXTURE2D_ARGS(_Decal0Map, DecalSampler), _Decal0Tint, decalUV);
+            half4 decalTexture = GetDecalTexture(d, _Decal0UVSet, _Decal0Scale, _Decal0Tile, _Decal0Tiling, _Decal0Offset, _Decal0Rotation, TEXTURE2D_ARGS(_Decal0Map, sampler_MainTex), _Decal0Tint, decalUV);
             decalTexture = GetDecalRimFade(decalTexture, _Decal0RimFade, _Decal0RimFadeInvert, NoV, _Decal0RimFadePower, _Decal0RimFadeUnderlay);
             decalTexture = GetDecalClip(decalTexture, decalUV, _Decal0Clip, _Decal0ClipCirlce, _Decal0ClipSize, _Decal0ClipFalloff);
             CompositeDecal(o, decalTexture, decalsMask, _Decal0MaskChannel, _Decal0MaskStrength, _Decal0UseEmission, _Decal0EmissionStrength, _Decal0MultiplyByAlbedo);
-            
+
         }
         #endif
 
@@ -379,18 +356,18 @@
         #if defined(DECAL_1)
         {
             float2 decalUV = 0;
-            half4 decalTexture = GetDecalTexture(d, _Decal1UVSet, _Decal1Scale, _Decal1Tile, _Decal1Tiling, _Decal1Offset, _Decal1Rotation, TEXTURE2D_ARGS(_Decal1Map, DecalSampler), _Decal1Tint, decalUV);
+            half4 decalTexture = GetDecalTexture(d, _Decal1UVSet, _Decal1Scale, _Decal1Tile, _Decal1Tiling, _Decal1Offset, _Decal1Rotation, TEXTURE2D_ARGS(_Decal1Map, sampler_MainTex), _Decal1Tint, decalUV);
             decalTexture = GetDecalRimFade(decalTexture, _Decal1RimFade, _Decal1RimFadeInvert, NoV, _Decal1RimFadePower, _Decal1RimFadeUnderlay);
             decalTexture = GetDecalClip(decalTexture, decalUV, _Decal1Clip, _Decal1ClipCirlce, _Decal1ClipSize, _Decal1ClipFalloff);
             CompositeDecal(o, decalTexture, decalsMask, _Decal1MaskChannel, _Decal1MaskStrength, _Decal1UseEmission, _Decal1EmissionStrength, _Decal1MultiplyByAlbedo);
-        }        
+        }
         #endif
 
         // Decal 3
         #if defined(DECAL_2)
         {
             float2 decalUV = 0;
-            half4 decalTexture = GetDecalTexture(d, _Decal2UVSet, _Decal2Scale, _Decal2Tile, _Decal2Tiling, _Decal2Offset, _Decal2Rotation, TEXTURE2D_ARGS(_Decal2Map, DecalSampler), _Decal2Tint, decalUV);
+            half4 decalTexture = GetDecalTexture(d, _Decal2UVSet, _Decal2Scale, _Decal2Tile, _Decal2Tiling, _Decal2Offset, _Decal2Rotation, TEXTURE2D_ARGS(_Decal2Map, sampler_MainTex), _Decal2Tint, decalUV);
             decalTexture = GetDecalRimFade(decalTexture, _Decal2RimFade, _Decal2RimFadeInvert, NoV, _Decal2RimFadePower, _Decal2RimFadeUnderlay);
             decalTexture = GetDecalClip(decalTexture, decalUV, _Decal2Clip, _Decal2ClipCirlce, _Decal2ClipSize, _Decal2ClipFalloff);
             CompositeDecal(o, decalTexture, decalsMask, _Decal2MaskChannel, _Decal2MaskStrength, _Decal2UseEmission, _Decal2EmissionStrength, _Decal2MultiplyByAlbedo);
@@ -401,7 +378,7 @@
         #if defined(DECAL_3)
         {
             float2 decalUV = 0;
-            half4 decalTexture = GetDecalTexture(d, _Decal3UVSet, _Decal3Scale, _Decal3Tile, _Decal3Tiling, _Decal3Offset, _Decal3Rotation, TEXTURE2D_ARGS(_Decal3Map, DecalSampler), _Decal3Tint, decalUV);
+            half4 decalTexture = GetDecalTexture(d, _Decal3UVSet, _Decal3Scale, _Decal3Tile, _Decal3Tiling, _Decal3Offset, _Decal3Rotation, TEXTURE2D_ARGS(_Decal3Map, sampler_MainTex), _Decal3Tint, decalUV);
             decalTexture = GetDecalRimFade(decalTexture, _Decal3RimFade, _Decal3RimFadeInvert, NoV, _Decal3RimFadePower, _Decal3RimFadeUnderlay);
             decalTexture = GetDecalClip(decalTexture, decalUV, _Decal3Clip, _Decal3ClipCirlce, _Decal3ClipSize, _Decal3ClipFalloff);
             CompositeDecal(o, decalTexture, decalsMask, _Decal3MaskChannel, _Decal3MaskStrength, _Decal3UseEmission, _Decal3EmissionStrength, _Decal3MultiplyByAlbedo);
