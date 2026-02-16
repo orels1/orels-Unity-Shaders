@@ -114,8 +114,8 @@
     _LMLayer3Smoothness("Smoothness %ShowIf(!_LMLayer3MaskMap && _LayeredMatLayersCount > 2)", Range(0, 1)) = 0.5
     [ToggleUI]_LMLayer3RoughnessMode("Roughness Mode %ShowIf(_LMLayer3MaskMap && _LayeredMatLayersCount > 2)", Int) = 0
     _LMLayer3Metallic("Metallic %ShowIf(!_LMLayer3MaskMap && _LayeredMatLayersCount > 2)", Range(0, 1)) = 0
-    [HideInInspector]_LMLayer3MetallicRemap("Metallic Remap %ShowIf(_LMLayer3MaskMap && _LayeredMatLayersCount > 2) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
-    [HideInInspector]_LMLayer3SmoothnessRemap("Smoothness Remap %ShowIf(_LMLayer3MaskMap && _LayeredMatLayersCount > 2) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
+    _LMLayer3MetallicRemap("Metallic Remap %ShowIf(_LMLayer3MaskMap && _LayeredMatLayersCount > 2) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
+    _LMLayer3SmoothnessRemap("Smoothness Remap %ShowIf(_LMLayer3MaskMap && _LayeredMatLayersCount > 2) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
     _LMLayer3OcclusionStrength("AO Strength %ShowIf(_LayeredMatLayersCount > 2)", Range(0, 1)) = 1
     [NoScaleOffset]_LMLayer3BumpMap("Normal Map > %ShowIf(_LayeredMatLayersCount > 2)", 2D) = "bump" { }
     _LMLayer3BumpScale("Normal Map Scale %ShowIf(_LMLayer3BumpMap && _LayeredMatLayersCount > 2)", Range(-1, 1)) = 1
