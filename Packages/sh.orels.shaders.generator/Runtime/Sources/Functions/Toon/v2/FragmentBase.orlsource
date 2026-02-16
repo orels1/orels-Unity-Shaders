@@ -42,6 +42,19 @@
     #endif
 
     #define NEED_SCREEN_POS
+
+    #if defined(NEED_UV4)
+        #define UV_CHANNEL_COUNT 5
+    #elif defined(NEED_UV5)
+        #define UV_CHANNEL_COUNT 6
+    #elif defined(NEED_UV6)
+        #define UV_CHANNEL_COUNT 7
+    #elif defined(NEED_UV7)
+        #define UV_CHANNEL_COUNT 8
+    #else
+        #define UV_CHANNEL_COUNT 4
+    #endif
+
 }
 
 %Variables()
@@ -49,6 +62,34 @@
     int _IgnoreLightprobeNormal;
     int _MinLight;
     half _MonochromeLighting;
+
+    #if !defined(NEED_FLOAT4_UV)
+    float2 GLOBAL_uvArray[UV_CHANNEL_COUNT];
+    #else
+    float4 GLOBAL_uvArray[UV_CHANNEL_COUNT];
+    #endif
+}
+
+%Fragment("ToonFragmentSetup", -99999)
+{
+    void ToonFragmentSetup(MeshData d)
+    {
+        // Populate UVs for easier access
+        GLOBAL_uvArray[0] = d.uv0;
+        GLOBAL_uvArray[1] = d.uv1;
+        GLOBAL_uvArray[2] = d.uv2;
+        GLOBAL_uvArray[3] = d.uv3;
+
+        #if defined(NEED_UV4)
+            GLOBAL_uvArray[4] = d.uv4;
+        #elif defined(NEED_UV5)
+            GLOBAL_uvArray[5] = d.uv5;
+        #elif defined(NEED_UV6)
+            GLOBAL_uvArray[6] = d.uv6;
+        #elif defined(NEED_UV7)
+            GLOBAL_uvArray[7] = d.uv7;
+        #endif
+    }
 }
 
 %FragmentBase("ToonFragmentBaseV2")

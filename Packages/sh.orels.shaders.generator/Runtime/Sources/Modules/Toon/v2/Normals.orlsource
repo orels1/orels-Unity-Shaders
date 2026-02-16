@@ -177,13 +177,7 @@
         half4 detailMask = 1;
         #if defined(DETAIL_NORMALS_MASK_SET)
         {
-            float2 detailMaskUV = 0;
-            switch (_DetailNormalsMaskUVSet) {
-                case 0: detailMaskUV = d.uv0; break;
-                case 1: detailMaskUV = d.uv1; break;
-                case 2: detailMaskUV = d.uv2; break;
-                case 3: detailMaskUV = d.uv3; break;
-            }
+            float2 detailMaskUV = GLOBAL_uvArray[_DetailNormalsMaskUVSet].xy;
             detailMaskUV = detailMaskUV * _DetailNormalsMask_ST.xy + _DetailNormalsMask_ST.zw;
             detailMask = SAMPLE_TEXTURE2D(_DetailNormalsMask, sampler_BumpMap, detailMaskUV);
         }
@@ -192,13 +186,7 @@
         // Details Layer 1
         #if defined(DETAIL_NORMALS_0)
         {
-            float2 detailUV = 0;
-            switch (_DetailNormals0UVSet) {
-                case 0: detailUV = d.uv0; break;
-                case 1: detailUV = d.uv1; break;
-                case 2: detailUV = d.uv2; break;
-                case 3: detailUV = d.uv3; break;
-            }
+            float2 detailUV = GLOBAL_uvArray[_DetailNormals0UVSet].xy;
             detailUV = detailUV * _DetailNormals0Map_ST.xy + _DetailNormals0Map_ST.zw;
             half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals0Map, sampler_BumpMap, detailUV);
             if (_FlipDetailNormals0Y)
@@ -212,13 +200,7 @@
 
         #if defined(DETAIL_NORMALS_1)
         {
-            float2 detailUV = 0;
-            switch (_DetailNormals1UVSet) {
-                case 0: detailUV = d.uv0; break;
-                case 1: detailUV = d.uv1; break;
-                case 2: detailUV = d.uv2; break;
-                case 3: detailUV = d.uv3; break;
-            }
+            float2 detailUV = GLOBAL_uvArray[_DetailNormals1UVSet].xy;
             detailUV = detailUV * _DetailNormals1Map_ST.xy + _DetailNormals1Map_ST.zw;
             half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals1Map, sampler_BumpMap, detailUV);
             if (_FlipDetailNormals1Y)
@@ -232,15 +214,9 @@
 
         #if defined(DETAIL_NORMALS_2)
         {
-            float2 detailUV = 0;
-            switch (_DetailNormals2UVSet) {
-                case 0: detailUV = d.uv0; break;
-                case 1: detailUV = d.uv1; break;
-                case 2: detailUV = d.uv2; break;
-                case 3: detailUV = d.uv3; break;
-            }
+            float2 detailUV = GLOBAL_uvArray[_DetailNormals2UVSet].xy;
             detailUV = detailUV * _DetailNormals2Map_ST.xy + _DetailNormals2Map_ST.zw;
-            half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals2Map, DetailsLayerSampler, detailUV);
+            half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals2Map, sampler_BumpMap, detailUV);
             if (_FlipDetailNormals2Y)
             {
                 detailNormalsTex.y = 1 - detailNormalsTex.y;
@@ -252,15 +228,9 @@
 
         #if defined(DETAIL_NORMALS_3)
         {
-            float2 detailUV = 0;
-            switch (_DetailNormals3UVSet) {
-                case 0: detailUV = d.uv0; break;
-                case 1: detailUV = d.uv1; break;
-                case 2: detailUV = d.uv2; break;
-                case 3: detailUV = d.uv3; break;
-            }
+            float2 detailUV = GLOBAL_uvArray[_DetailNormals3UVSet].xy;
             detailUV = detailUV * _DetailNormals3Map_ST.xy + _DetailNormals3Map_ST.zw;
-            half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals3Map, DetailsLayerSampler, detailUV);
+            half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals3Map, sampler_BumpMap, detailUV);
             if (_FlipDetailNormals3Y)
             {
                 detailNormalsTex.y = 1 - detailNormalsTex.y;

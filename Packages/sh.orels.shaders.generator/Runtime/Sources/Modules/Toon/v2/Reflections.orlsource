@@ -2,7 +2,7 @@
 {
     UI_ReflectionsHeader("# Reflections", Int) = 0
     [Toggle(REFLECTIONS_ON)]_ReflectionsOn("Enable Reflections", Int) = 0
-    
+
     _MetallicGlossMap("Metallic Smoothness %ShowIf(REFLECTIONS_ON)", 2D) = "white" {}
     UI_MetallicNote("> R - Metallic, A - Smoothness %ShowIf(REFLECTIONS_ON)", Int) = 0
     _Smoothness ("Smoothness %ShowIf(!_MetallicGlossMap && (REFLECTIONS_ON))", Range(0, 1)) = 0.5
@@ -113,12 +113,12 @@
         reflectionMaskUv = reflectionMaskUv * _ReflectionMask_ST.xy + _ReflectionMask_ST.zw;
         half mask = SAMPLE_TEXTURE2D(_ReflectionMask, sampler_MainTex, reflectionMaskUv)[_ReflectionMaskChannel];
         mask = _ReflectionStrength * lerp(1, mask, _ReflectionMaskStrength);
-            
+
         half4 metalSmooth = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MainTex, d.uv0.xy * _MetallicGlossMap_ST.xy + _MetallicGlossMap_ST.zw);
         int hasMetallicSmooth = _MetallicGlossMap_TexelSize.z > 8;
         half metal = metalSmooth.r;
         half smooth = metalSmooth.a;
-        
+
         if (_RoughnessMode)
         {
             smooth = 1 - smooth;
