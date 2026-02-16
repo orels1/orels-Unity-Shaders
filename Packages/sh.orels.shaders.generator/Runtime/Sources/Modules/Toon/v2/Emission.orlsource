@@ -1,9 +1,10 @@
 %Properties()
 {
     UI_EmissionHeader("# Emission", Int) = 0
-    [NoScaleOffset]_EmissionMap("Emission Map > %SetKeyword(_EmissionMap, _EMISSION)", 2D) = "white" {}
+    [NoScaleOffset]_EmissionMap("Emission Map >", 2D) = "white" {}
     [Enum(RGB, 0, R, 1, G, 2, B, 3, A, 4)]_EmissionMapChannel("Emission Map Channel", Int) = 0
     [HDR]_EmissionColor("Color", Color) = (0,0,0,1)
+    [Enum(Off, 0, First, 1, Second, 2, Third, 3, Fourth, 4)]_EmissionMaskByUVTile("Mask By UV Tile", Int) = 0
     _EmissionHue("Hue", Range(0,1)) = 0
     _EmissionSaturation("Saturation", Range(-1,1)) = 0
     _EmissionValue("Value", Range(-1,1)) = 0
@@ -13,15 +14,12 @@
     _EmissionScaleWithLightSensitivity("Scaling Sensitivity %ShowIf(_EmissionScaleWithLight == 1)", Range(0,1)) = 1
 }
 
-%ShaderFeatures()
-{
-    #pragma shader_feature_local_fragment _EMISSION
-}
-
 %Variables()
 {
+    float4 _EmissionMap_TexelSize;
     int _EmissionMapChannel;
     half4 _EmissionColor;
+    int _EmissionMaskByUVTile;
     half _EmissionHue;
     half _EmissionSaturation;
     half _EmissionValue;
@@ -47,22 +45,28 @@
 
 %Fragment("ToonEmissionFragment")
 {
-    void ToonEmissionFragment(inout SurfaceData o) {
-        #if defined(_EMISSION)
-        half4 emissionMap = SAMPLE_TEXTURE2D(_EmissionMap, sampler_MainTex, GLOBAL_uv);
+    void ToonEmissionFragment(MeshData d, inout SurfaceData o) {
+        if (_EmissionMap_TexelSize.w > 16) {
+            half4 emissionMap = SAMPLE_TEXTURE2D(_EmissionMap, sampler_MainTex, GLOBAL_uv);
 
-        half3 emission = emissionMap.rgb;
-        if (_EmissionMapChannel > 0) {
-            emission = emission[_EmissionMapChannel - 1].rrr;
+            half3 emission = emissionMap.rgb;
+            if (_EmissionMapChannel > 0) {
+                emission = emission[_EmissionMapChannel - 1].rrr;
+            }
+            if (_EmissionMaskByUVTile > 0) {
+                float xOffset = _EmissionMaskByUVTile - 1;
+                half mask = SDFBox(GLOBAL_uv - float2(xOffset + 0.5, 0.5), 0.5.xx);
+                mask = 1.0 - smoothstep(0, 0.001, mask);
+                emission *= mask;
+            }
+            emission *= _EmissionColor.rgb;
+            o.Emission.rgb += emission.rgb;
         }
-        emission *= _EmissionColor.rgb;
-        o.Emission.rgb += emission.rgb;
-        #endif
 
         o.EmissionHue = _EmissionHue;
         o.EmissionSaturation = _EmissionSaturation;
         o.EmissionValue = _EmissionValue;
-        
+
         o.EmissionTintToDiffuse = _EmissionTintToDiffuse;
         o.EmissionScaleWithLight = _EmissionScaleWithLight;
         o.EmissionScaleWithLightSensitivity = _EmissionScaleWithLightSensitivity;
@@ -87,7 +91,7 @@
         emission.rgb = HSV2RGB(emissionHSV) * intensity;
 
         half3 scaledEmission = emission * saturate(smoothstep(1 - o.EmissionScaleWithLightSensitivity, 1 + o.EmissionScaleWithLightSensitivity, 1 - lightAvg));
-        
+
         emission = o.EmissionScaleWithLight ? scaledEmission : emission;
     }
 }
