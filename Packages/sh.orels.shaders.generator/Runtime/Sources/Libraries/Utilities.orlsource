@@ -484,10 +484,17 @@
 
     struct ORL_UVChannelData
     {
+        #if !defined(NEED_FLOAT4_UV)
+        float2 uv0;
+        float2 uv1;
+        float2 uv2;
+        float2 uv3;
+        #else
         float4 uv0;
         float4 uv1;
         float4 uv2;
         float4 uv3;
+        #endif
     };
 
     #define SetupChannelData(d) (ORL_UVChannelData)0; \
