@@ -497,25 +497,6 @@
         #endif
     };
 
-    #define SetupChannelData(d) (ORL_UVChannelData)0; \
-                                uvData.uv0 = d.uv0; \
-                                uvData.uv1 = d.uv1; \
-                                uvData.uv2 = d.uv2; \
-                                uvData.uv3 = d.uv3
-
-    float2 GetUVChannel(ORL_UVChannelData d, int channel, float4 ST)
-    {
-        float2 UV = 0;
-        switch (channel) {
-            case 0: UV = d.uv0; break;
-            case 1: UV = d.uv1; break;
-            case 2: UV = d.uv2; break;
-            case 3: UV = d.uv3; break;
-        }
-        UV = UV * ST.xy + ST.zw;
-        return UV;
-    }
-
     float2 RotateAroundCenter2D(float2 source, float angle)
     {
         angle = radians(angle);
@@ -527,7 +508,6 @@
         source += 0.5;
         return source;
     }
-
 
     float GLSLMod(float x, float y)
     {

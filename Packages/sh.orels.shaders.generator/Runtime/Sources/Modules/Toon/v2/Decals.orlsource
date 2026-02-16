@@ -321,11 +321,11 @@
     }
 
     void ToonDecalsFragment(MeshData d, inout SurfaceData o) {
-        ORL_UVChannelData uvData = SetupChannelData(d);
         half4 decalsMask = 1;
         #if defined(DECALS_MASK_SET)
         {
-            float2 decalsMaskUV = GetUVChannel(uvData, _DecalsMaskUVSet, _DecalsMask_ST);
+            float2 decalsMaskUV = GLOBAL_uvArray[_DecalsMaskUVSet].xy;
+            decalsMaskUV = decalsMaskUV * _DecalsMask_ST.xy + _DecalsMask_ST.zw;
             decalsMask = SAMPLE_TEXTURE2D(_DecalsMask, sampler_MainTex, decalsMaskUV);
         }
         #endif
