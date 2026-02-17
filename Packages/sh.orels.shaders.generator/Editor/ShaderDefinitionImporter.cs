@@ -1623,8 +1623,13 @@ namespace ORL.ShaderGenerator
                     var texMatch = _texRegex.Match(line);
                     if (texMatch.Success)
                     {
+                        var texType = "Texture2D<float4>";
+                        if (texMatch.Value.Contains("TEXTURE3D"))
+                        {
+                            texType = "Texture3D<float4>";
+                        }
                         var newLine = line.Replace(texMatch.Value,
-                            $"Texture2D<float4> {texMatch.Groups["identifier"].Value}");
+                            $"{texType} {texMatch.Groups["identifier"].Value}");
                         processedSource.AppendLine(newLine);
                         continue;
                     }
