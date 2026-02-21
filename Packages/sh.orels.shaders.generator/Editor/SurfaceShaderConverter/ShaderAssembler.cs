@@ -13,9 +13,10 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
     {
         public List<VariableDeclarationStatementNode> Textures { get; set; }
         public List<VariableDeclarationStatementNode> Variables { get; set; }
-        public FunctionDefinitionNode SurfaceFunction;
-        public FunctionDefinitionNode VertexFunction;
-        public StructTypeNode SurfaceInputStruct;
+        public FunctionDefinitionNode SurfaceFunction { get; set; }
+        public FunctionDefinitionNode VertexFunction { get; set; }
+        public StructTypeNode SurfaceInputStruct { get; set; }
+        public SurfaceShaderConverter.PragmaInfo PragmaInfo { get; set; }
         public string SurfaceInputName;
         public ShaderNode ShaderNode { get; set; }
         public string LightingModel { get; set; }
@@ -75,6 +76,12 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             
             sb.AppendLine();
 
+            if (data.PragmaInfo.ShaderFeatures.Count > 0 || data.PragmaInfo.MultiCompiles.Count > 0)
+            {
+                InjectShaderBlock(sb, data, "ShaderFeatures", CreateShaderFeatures);
+                sb.AppendLine();
+            }
+
             if (data.SurfaceFunction != null)
             {
                 var fnName = $"SurfaceFn_{data.SurfaceFunction.Name.GetName()}_Fragment";
@@ -92,6 +99,23 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             Debug.Log($"Assembled Shader: {sb}");
 
             return sb.ToString();
+        }
+
+        private static void CreateShaderFeatures(StringBuilder target, ShaderAssemblerData data)
+        {
+            foreach (var feature in data.PragmaInfo.ShaderFeatures)
+            {
+                target.Append("    ");
+                target.Append("#pragma ");
+                target.AppendLine(feature);
+            }
+
+            foreach (var multiCompile in data.PragmaInfo.MultiCompiles)
+            {
+                target.Append("    ");
+                target.Append("#pragma ");
+                target.AppendLine(multiCompile);
+            }
         }
 
         private static void CreateVertex(StringBuilder target, ShaderAssemblerData data, string fnName)
@@ -207,7 +231,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             {
                 target.Append("    ");
                 // paste the variable declaration as-is
-                target.AppendLine(variable.GetPrettyPrintedCode());
+                target.AppendLine(variable.GetPrettyPrintedCode().Trim());
             }
         }
 
@@ -227,7 +251,41 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             foreach (var prop in data.ShaderNode.Properties)
             {
                 target.Append("    ");
-                target.AppendLine(prop.GetPrettyPrintedCode());
+                target.AppendLine(RewriteThryPropertyDrawers(prop.GetPrettyPrintedCode().Trim()));
+            }
+        }
+
+        private static string RewriteThryPropertyDrawers(string source)
+        {
+            var drawerStart = source.IndexOf("--{");
+            
+            // perform simple rewrites
+            if (drawerStart == -1)
+            {
+                return source
+                    .Replace("[ThryToggle]", "[ToggleUI]")
+                    .Replace("[ThryToggle()]", "[ToggleUI]")
+                    .Replace("ThryWideEnum", "Enum")
+                    .Replace("[hdr]", "[HDR]");
+            }
+            
+            var drawerEnd = drawerStart + 3 + source[(drawerStart + 3)..].IndexOf("}", StringComparison.Ordinal);
+            var condition = source[(drawerStart + 3)..drawerEnd].Split(':');
+
+            switch (condition[0])
+            {
+                case "condition_show":
+                {
+                    var sb = new StringBuilder();
+                    sb.Append(source[..drawerStart]);
+                    sb.Append(" %ShowIf(");
+                    sb.Append(condition[1][1..^1]);
+                    sb.Append(")");
+                    sb.Append(source[(drawerEnd + 1)..]);
+                    return sb.ToString();
+                }
+                default:
+                    return source;
             }
         }
     }

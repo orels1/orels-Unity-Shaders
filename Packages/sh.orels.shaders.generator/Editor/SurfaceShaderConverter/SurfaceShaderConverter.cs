@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Editor.SurfaceShaderConverter;
 using ORL.ShaderGenerator.Tools.SurfaceShaders;
 using Unity.Properties;
 using UnityEditor;
@@ -44,6 +43,8 @@ namespace ORL.ShaderGenerator.Tools
             public string SurfaceFnName;
             public string VertexFnName;
             public string LightingModel;
+            public List<string> ShaderFeatures;
+            public List<string> MultiCompiles;
         }
 
         private void ConvertShader(Shader source)
@@ -55,10 +56,14 @@ namespace ORL.ShaderGenerator.Tools
                 {
                     Path.Combine(UnityEditor.EditorApplication.applicationContentsPath, "CGIncludes")
                 }),
-                PreProcessorMode = PreProcessorMode.ExpandAll,
+                PreProcessorMode = PreProcessorMode.ExpandMacroInvocationsAndPragmas,
                 Defines = new Dictionary<string, string>
                 {
-                    {"SHADER_API_D3D11", "1"}
+                    {"SHADER_API_D3D11", "1"},
+                    { "INTERNAL_DATA", "" },
+                    {"UNITY_VERTEX_OUTPUT_STEREO", ""},
+                    {"UNITY_INSTANCING_BUFFER_START(Props)", ""},
+                    {"UNITY_INSTANCING_BUFFER_END(Props)", ""}
                 }
             };
 
@@ -107,6 +112,7 @@ namespace ORL.ShaderGenerator.Tools
                 var assemblerData = new ShaderAssemblerData
                 {
                     ShaderNode = parser,
+                    PragmaInfo = pragmaInfo,
                     Textures = visitor.textures,
                     Variables = visitor.variables,
                     SurfaceFunction = visitor.surfaceFunction,
@@ -130,7 +136,9 @@ namespace ORL.ShaderGenerator.Tools
             var surfacePragma = pragmas.Find(p => p.StartsWith("surface"));
             var splitPragma = surfacePragma.Split(" ", StringSplitOptions.RemoveEmptyEntries);
             var surfaceFunctionName = splitPragma[1];
+            
             var lightingModel = splitPragma[2];
+            
             var vertexFunctionIndex = Array.IndexOf(splitPragma, "vertex");
             string vertexFunctionName = null;
             if (vertexFunctionIndex != -1 && splitPragma[vertexFunctionIndex + 1] == ":")
@@ -138,11 +146,29 @@ namespace ORL.ShaderGenerator.Tools
                 vertexFunctionName = splitPragma[vertexFunctionIndex + 2];
             }
 
+            var shaderFeatures = new List<string>();
+            var multiCompiles = new List<string>();
+            foreach (var pragma in pragmas)
+            {
+                if (pragma.StartsWith("shader_feature"))
+                {
+                    shaderFeatures.Add(pragma);
+                    continue;
+                }
+
+                if (pragma.StartsWith("multi_compile"))
+                {
+                    multiCompiles.Add(pragma);
+                }
+            }
+
             return new PragmaInfo
             {
                 SurfaceFnName = surfaceFunctionName,
                 VertexFnName = vertexFunctionName,
-                LightingModel = lightingModel
+                LightingModel = lightingModel,
+                ShaderFeatures =  shaderFeatures,
+                MultiCompiles = multiCompiles,
             };
         }
         

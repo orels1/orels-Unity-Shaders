@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Editor.SurfaceShaderConverter
+namespace ORL.ShaderGenerator.Tools.SurfaceShaders
 {
     public class SurfaceShaderMappings
     {
