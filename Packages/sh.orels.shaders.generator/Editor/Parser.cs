@@ -135,6 +135,11 @@ namespace ORL.ShaderGenerator
         public int Line;
         public int Indentation;
 
+        public static string ConstructCallSign(FunctionNode node)
+        {
+            return $"{node.Name.GetName()}({string.Join(", ", node.Parameters.Select(p => p.Declarator.Name))});";
+        }
+
         public List<HookPoint> HookPoints;
 
         private List<HLSLSyntaxNode> _nodes;
@@ -447,7 +452,7 @@ namespace ORL.ShaderGenerator
                     });
                 }
 
-                result.Add(cleanLine.Substring(string.IsNullOrWhiteSpace(cleanLine) ? 0 : offset));
+                result.Add(cleanLine.Substring(string.IsNullOrWhiteSpace(cleanLine) ? 0 : (int)MathF.Min(cleanLine.Length - 1, offset)));
             }
 
             return null;
