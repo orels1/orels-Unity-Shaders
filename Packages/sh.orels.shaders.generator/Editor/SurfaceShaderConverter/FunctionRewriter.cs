@@ -18,17 +18,46 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             {
                 FieldAccess,
                 TextureCalls,
+                Identifiers,
             }
 
             private readonly FunctionType _functionType = FunctionType.Surface;
             private readonly RewriteType _rewriteType = RewriteType.TextureCalls;
             private readonly ShaderAssemblerData _data;
+
+            private string _surfaceInputStructType;
             
             public FunctionRewriter(FunctionType functionType, RewriteType rewriteType, ShaderAssemblerData data, string source, List<Token<TokenKind>> tokens) : base(source, tokens)
             {
                 _functionType = functionType;
                 _rewriteType = rewriteType;
                 _data = data;
+                _surfaceInputStructType =
+                    (data.SurfaceInputStruct.Parent as StructDefinitionNode).StructType.Name.GetName();
+            }
+
+            public override void VisitIdentifierNode(IdentifierNode node)
+            {
+                if (_rewriteType != RewriteType.Identifiers)
+                {
+                    base.VisitIdentifierNode(node);
+                    return;
+                }
+
+                // this handles cases like `o = (StructName)0;`
+                if (_functionType == FunctionType.Vertex)
+                {
+                    if (node.Identifier == _surfaceInputStructType)
+                    {
+                        Edit(node, "FragmentData");
+                    }
+                }
+                
+                if (node.Identifier == _data.SurfaceInputName)
+                {
+                    Edit(node, "d");
+                    base.VisitIdentifierNode(node);
+                }
             }
 
             public override void VisitFieldAccessExpressionNode(FieldAccessExpressionNode node)
@@ -53,6 +82,17 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                                 var mappedName = _data.SurfaceInputMappings.TryGetValue(node.Name.Identifier, out var mapping) ? mapping : node.Name.Identifier;
                                 Edit(node, "d." + mappedName);
                             }
+
+                            if (node.Name.Identifier.StartsWith("uv_"))
+                            {
+                                var sb = new StringBuilder();
+                                sb.Append("d.uv0.xy * ");
+                                sb.Append(node.Name.Identifier[3..]);
+                                sb.Append("_ST + ");
+                                sb.Append(node.Name.Identifier[3..]);
+                                sb.Append("_ST.zw");
+                                Edit(node, sb.ToString());
+                            }
                         }
 
                         if (identifier.Name.Identifier == "o")
@@ -68,6 +108,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
 
                     if (_functionType == FunctionType.Vertex)
                     {
+                        //TODO: This needs to match the input struct types, otherwise the channels might be wrong
                         if (identifier.Name.Identifier == "v")
                         {
                             var mappedName = _data.VertexInputMappings.TryGetValue(node.Name.Identifier, out var mapping) ? mapping : node.Name.Identifier;
@@ -76,6 +117,18 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                     }
                 }
                 base.VisitFieldAccessExpressionNode(node);
+            }
+
+            public override void VisitFunctionDefinitionNode(FunctionDefinitionNode node)
+            {
+                foreach (var param in node.Parameters)
+                {
+                    if (param.Declarator.Name.Identifier == _data.SurfaceInputName)
+                    {
+                        Edit(param, "MeshData d");
+                    }
+                }
+                base.VisitFunctionDefinitionNode(node);
             }
 
             public override void VisitFunctionCallExpressionNode(FunctionCallExpressionNode node)
@@ -90,29 +143,6 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                 {
                     var sb = new StringBuilder();
                     var textureName = (node.Arguments[0] as IdentifierExpressionNode).Name.Identifier;
-                    var uvString = new StringBuilder();
-                    // if this is referencing to the input struct variable - convert it to the correct value
-                    if (node.Arguments[1] is FieldAccessExpressionNode uvFieldAccess)
-                    {
-                        var uvName = uvFieldAccess.Name.Identifier;
-                        if (uvName.StartsWith("uv_"))
-                        {
-                            uvString.Append("d.uv0.xy * "); 
-                        } else if (uvName.StartsWith("uv2_"))
-                        {
-                            uvString.Append("d.uv1.xy * ");
-                        }
-                        var texName = uvName[uvName.IndexOf('_')..]; 
-                        uvString.Append(texName);
-                        uvString.Append("_ST.xy + ");
-                        uvString.Append(texName);
-                        uvString.Append("_ST.zw");
-                    }
-                    // if this is just a variable - simply use it as-is
-                    else if (node.Arguments[1] is IdentifierExpressionNode uvIdentifier)
-                    {
-                        uvString.Append(uvIdentifier.Name.Identifier);
-                    }
                 
                     sb.Append("SAMPLE_TEXTURE2D(");
                     sb.Append(node.Arguments[0].GetPrettyPrintedCode());
@@ -120,7 +150,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                     sb.Append("sampler");
                     sb.Append(textureName);
                     sb.Append(", ");
-                    sb.Append(uvString.ToString());
+                    sb.Append(node.Arguments[1].GetPrettyPrintedCode());
                     sb.Append(")");
                 
                     Edit(node, sb.ToString());
@@ -181,8 +211,9 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                 {
                     var sb = new StringBuilder();
                     var target = node.Arguments[1].GetPrettyPrintedCode();
-                    sb.Append("mul(d.TBNMatrix, ");
+                    sb.Append("mul(");
                     sb.Append(target);
+                    sb.Append(", d.TBNMatrix");
                     sb.Append(")");
                     Edit(node, sb.ToString());
                 }
