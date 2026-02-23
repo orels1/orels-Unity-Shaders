@@ -111,7 +111,15 @@ namespace ORL.ShaderGenerator.Tools
                     var vertexStructTypeName = (visitor.vertexFunction.Parameters
                         .Find(p => p.Modifiers[0] == BindingModifier.Inout).ParamType as NamedTypeNode)
                         .Name.Identifier;
-                    visitor.vertexInputStruct = visitor.structs.Find(s => s.Name.GetName() == vertexStructTypeName);
+                    // built-in struct
+                    if (vertexStructTypeName == "appdata_full")
+                    {
+                        visitor.vertexInputStruct = null;
+                    }
+                    else
+                    {
+                        visitor.vertexInputStruct = visitor.structs.Find(s => s.Name.GetName() == vertexStructTypeName);
+                    }
                 }
                 
                 var surfaceOutputStructNode =
@@ -143,6 +151,7 @@ namespace ORL.ShaderGenerator.Tools
                     SurfaceInputMappings = SurfaceShaderMappings.SurfaceInputMappings,
                     SurfaceOutputMappings = SurfaceShaderMappings.OutputMappings[surfaceOutputStructType],
                     VertexInputMappings = SurfaceShaderMappings.VertexInputMappings,
+                    FallbackVertexInputMappings = SurfaceShaderMappings.VertexInputBuiltInMappins,
                     Source = sourceText
                 };
                 var result = ShaderAssembler.AssembleORLShader(assemblerData);

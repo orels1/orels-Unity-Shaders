@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityShaderParser.Common;
 using UnityShaderParser.HLSL;
@@ -24,13 +25,15 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             private readonly FunctionType _functionType = FunctionType.Surface;
             private readonly RewriteType _rewriteType = RewriteType.TextureCalls;
             private readonly ShaderAssemblerData _data;
+            private readonly FunctionDefinitionNode _functionDefinitionNode;
 
             private string _surfaceInputStructType;
             
-            public FunctionRewriter(FunctionType functionType, RewriteType rewriteType, ShaderAssemblerData data, string source, List<Token<TokenKind>> tokens) : base(source, tokens)
+            public FunctionRewriter(FunctionType functionType, RewriteType rewriteType, FunctionDefinitionNode functionDefinitionNode, ShaderAssemblerData data, string source, List<Token<TokenKind>> tokens) : base(source, tokens)
             {
                 _functionType = functionType;
                 _rewriteType = rewriteType;
+                _functionDefinitionNode = functionDefinitionNode;
                 _data = data;
                 _surfaceInputStructType =
                     (data.SurfaceInputStruct.Parent as StructDefinitionNode).StructType.Name.GetName();
@@ -73,26 +76,42 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                     // if we're targeting MeshData - rewrite it here
                     if (_functionType == FunctionType.Surface)
                     {
-                        if (identifier.Name.Identifier == _data.SurfaceInputName)
+                        // Only rewrite if it is actually an input parameter
+                        if (identifier.Name.Identifier == _data.SurfaceInputName && _functionDefinitionNode.Parameters.Any(p => p.Declarator.Name.Identifier == _data.SurfaceInputName))
                         {
                             // avoid editing `uv_` accessors, as they're handled at the callsite directly
                             // uv_texcoord is a special amplify-ism
-                            if (!node.Name.Identifier.StartsWith("uv_") || node.Name.Identifier.Equals("uv_texcoord"))
+                            if (
+                                !node.Name.Identifier.StartsWith("uv_")
+                                || node.Name.Identifier.Equals("uv_texcoord")
+                                || node.Name.Identifier.Equals("uv2_texcoord2")
+                            )
                             {
                                 var mappedName = _data.SurfaceInputMappings.TryGetValue(node.Name.Identifier, out var mapping) ? mapping : node.Name.Identifier;
                                 Edit(node, "d." + mappedName);
                             }
-
-                            if (node.Name.Identifier.StartsWith("uv_"))
+                            else
                             {
                                 var sb = new StringBuilder();
-                                sb.Append("d.uv0.xy * ");
-                                sb.Append(node.Name.Identifier[3..]);
+                                sb.Append("d.");
+                                var offset = 3;
+                                if (node.Name.Identifier.StartsWith("uv_"))
+                                {
+                                    sb.Append("d.uv0.xy * ");
+                                }
+
+                                if (node.Name.Identifier.StartsWith("uv2_"))
+                                {
+                                    sb.Append("d.uv1.xy * ");
+                                    offset = 4;
+                                }
+                                sb.Append(node.Name.Identifier[offset..]);
                                 sb.Append("_ST + ");
-                                sb.Append(node.Name.Identifier[3..]);
+                                sb.Append(node.Name.Identifier[offset..]);
                                 sb.Append("_ST.zw");
                                 Edit(node, sb.ToString());
                             }
+
                         }
 
                         if (identifier.Name.Identifier == "o")
@@ -108,13 +127,22 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
 
                     if (_functionType == FunctionType.Vertex)
                     {
-                        //TODO: This needs to match the input struct types, otherwise the channels might be wrong
                         if (identifier.Name.Identifier == "v")
                         {
-                            var vertDataType =
-                                (_data.VertexInputStruct.Fields.Find(f => (f.Declarators[0].Name.Identifier == node.Name.Identifier))
-                                    .Declarators[0].Qualifiers[0] as SemanticNode).Name.Identifier;
-                            var mappedName = _data.VertexInputMappings.TryGetValue(vertDataType, out var mapping) ? mapping : node.Name.Identifier;
+                            // use fallback mappings or same name if no struct is provided
+                            // usually means a built-in struct is used
+                            string mappedName;
+                            if (_data.VertexInputStruct == null)
+                            {
+                                mappedName = _data.FallbackVertexInputMappings.TryGetValue(node.Name.Identifier, out var mapping) ? mapping : node.Name.Identifier;
+                            }
+                            else
+                            {
+                                var vertDataType =
+                                    (_data.VertexInputStruct.Fields.Find(f => (f.Declarators[0].Name.Identifier == node.Name.Identifier))
+                                        .Declarators[0].Qualifiers[0] as SemanticNode).Name.Identifier;
+                                mappedName = _data.VertexInputMappings.TryGetValue(vertDataType, out var mapping) ? mapping : node.Name.Identifier;
+                            }
                             Edit(node, "v." + mappedName);
                         }
                     }
@@ -164,27 +192,12 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                     var sb = new StringBuilder();
                     var textureName = (node.Arguments[0] as IdentifierExpressionNode).Name.Identifier;
                     
-                    // Convert `float4(uvs, 0, lod)` to `uvs`/`float2(uv.x, uv.y)`
                     var samplerParams = (node.Arguments[1] as NumericConstructorCallExpressionNode).Arguments;
                     var uvXYSeparate = samplerParams.Count == 4;
                     var uvParam = new StringBuilder();
                     if (!uvXYSeparate)
                     {
-                        var uvName =
-                            ((samplerParams[0] as FieldAccessExpressionNode).Target as FieldAccessExpressionNode).Name.Identifier;
-                        var texName = uvName[uvName.IndexOf('_')..]; 
-                        if (uvName.StartsWith("uv2_"))
-                        {
-                            uvParam.Append("d.uv1.xy * ");
-                        }
-                        else
-                        {
-                            uvParam.Append("d.uv0.xy * "); 
-                        }
-                        uvParam.Append(texName);
-                        uvParam.Append("_ST.xy + ");
-                        uvParam.Append(texName);
-                        uvParam.Append("_ST.zw");
+                        uvParam.Append(samplerParams[0].GetPrettyPrintedCode());
                     }
                     else
                     {

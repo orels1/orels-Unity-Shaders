@@ -36,7 +36,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             { "worldNormal", "worldNormal" },
             { "viewDir", "tangentSpaceViewDir" },
             { "uv_texcoord", "uv0.xy" }, // Amplify uses this for uv0
-            { "uv2_texcoord", "uv1.xy"} // Amplify uses this for uv1
+            { "uv2_texcoord2", "uv1.xy"} // Amplify uses this for uv1
         };
 
         public static readonly Dictionary<string, string> VertexInputMappings = new()
@@ -53,6 +53,14 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             { "TEXCOORD5", "uv5" },
             { "TEXCOORD6", "uv6" },
             { "TEXCOORD7", "uv7" }
+        };
+        
+        public static readonly Dictionary<string, string> VertexInputBuiltInMappins = new()
+        {
+            {"texcoord", "uv0" },
+            {"texcoord1", "uv1" },
+            {"texcoord2", "uv2" },
+            {"texcoord3", "uv3" },
         };
     }
 }

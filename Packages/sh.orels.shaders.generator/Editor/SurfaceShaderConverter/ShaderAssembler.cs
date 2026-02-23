@@ -28,7 +28,9 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
         public string LightingModel { get; set; }
         public string Source { get; set; }
         public Dictionary<string, string> VertexInputMappings { get; set; }
-        public Dictionary<string, string> SurfaceInputMappings { get; set; }
+        public Dictionary<string, string> FallbackVertexInputMappings { get; set; }
+
+    public Dictionary<string, string> SurfaceInputMappings { get; set; }
         public Dictionary<string, string> SurfaceOutputMappings { get; set; }
     }
     
@@ -179,13 +181,18 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
         {
             foreach (var fn in data.PassFunctions)
             {
+                var config = new HLSLParserConfig
+                {
+                    PreProcessorMode = PreProcessorMode.ExpandMacroInvocationsAndPragmas,
+                };
                 // First pass - rewrite texture sampling
                 var functionSource = fn.GetPrettyPrintedCode();
-                var functionTokens = ShaderParser.ParseTopLevelDeclarations(functionSource, new HLSLParserConfig(), out _, out _);
+                var functionTokens = ShaderParser.ParseTopLevelDeclarations(functionSource, config, out _, out _);
             
                 var functionEditor = new FunctionRewriter(
                     FunctionRewriter.FunctionType.Surface, 
                     FunctionRewriter.RewriteType.TextureCalls,
+                    fn,
                     data,
                     functionSource,
                     functionTokens.SelectMany(x => x.Tokens).ToList()
@@ -193,10 +200,11 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                 var edited = functionEditor.ApplyEdits(functionTokens);
                     
                 // Second pass - rewrite field access
-                functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, new HLSLParserConfig(), out _, out _);
+                functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, config, out _, out _);
                 functionEditor = new FunctionRewriter(
                     FunctionRewriter.FunctionType.Surface,
                     FunctionRewriter.RewriteType.FieldAccess,
+                    fn,
                     data,
                     edited,
                     functionTokens.SelectMany(x => x.Tokens).ToList()
@@ -304,6 +312,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             var functionEditor = new FunctionRewriter(
                 FunctionRewriter.FunctionType.Vertex,
                 FunctionRewriter.RewriteType.TextureCalls,
+                data.VertexFunction,
                 data,
                 functionSource,
                 functionTokens.SelectMany(x => x.Tokens).ToList()
@@ -315,6 +324,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             functionEditor = new FunctionRewriter(
                 FunctionRewriter.FunctionType.Vertex,
                 FunctionRewriter.RewriteType.FieldAccess,
+                data.VertexFunction,
                 data,
                 edited,
                 functionTokens.SelectMany(x => x.Tokens).ToList()
@@ -326,6 +336,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             functionEditor = new FunctionRewriter(
                 FunctionRewriter.FunctionType.Vertex,
                 FunctionRewriter.RewriteType.Identifiers,
+                data.VertexFunction,
                 data,
                 edited,
                 functionTokens.SelectMany(x => x.Tokens).ToList()
@@ -357,6 +368,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             var functionEditor = new FunctionRewriter(
                 FunctionRewriter.FunctionType.Surface, 
                 FunctionRewriter.RewriteType.TextureCalls,
+                data.SurfaceFunction,
                 data,
                 functionSource,
                 functionTokens.SelectMany(x => x.Tokens).ToList()
@@ -368,6 +380,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             functionEditor = new FunctionRewriter(
                 FunctionRewriter.FunctionType.Surface,
                 FunctionRewriter.RewriteType.FieldAccess,
+                data.SurfaceFunction,
                 data,
                 edited,
                 functionTokens.SelectMany(x => x.Tokens).ToList()
@@ -379,6 +392,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             functionEditor = new FunctionRewriter(
                 FunctionRewriter.FunctionType.Surface,
                 FunctionRewriter.RewriteType.Identifiers,
+                data.SurfaceFunction,
                 data,
                 edited,
                 functionTokens.SelectMany(x => x.Tokens).ToList()
@@ -453,8 +467,42 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             foreach (var prop in data.ShaderNode.Properties)
             {
                 target.Append("    ");
-                target.AppendLine(RewriteThryPropertyDrawers(prop.GetPrettyPrintedCode().Trim()));
+                var rewritten = prop.GetPrettyPrintedCode().Trim();
+                rewritten = RewriteThryPropertyDrawers(rewritten);
+                rewritten = RewriteBuiltInPropertyDrawers(rewritten, target);
+                target.AppendLine(rewritten);
             }
+        }
+
+        private static string RewriteBuiltInPropertyDrawers(string source, StringBuilder target)
+        {
+            var parsed = ShaderParser.ParseUnityShaderProperty(source);
+            if (parsed.Attributes.Count == 0) return source;
+
+            var copy = new List<string>(parsed.Attributes);
+            foreach (var attribute in copy)
+            {
+                if (attribute.ToLowerInvariant().Contains("singlelinetexture"))
+                {
+                    parsed.Attributes = new List<string>(copy.Where(a => a != attribute));
+                    parsed.Name += " > ";
+                    return parsed.GetPrettyPrintedCode().Trim();
+                }
+
+                if (attribute.ToLowerInvariant().StartsWith("header"))
+                {
+                    parsed.Attributes = new List<string>(copy.Where(a => a != attribute));
+                    target.Append("UI");
+                    target.Append(parsed.Uniform);
+                    target.Append("Header(\"## ");
+                    target.Append(attribute[(attribute.IndexOf("(") + 1)..attribute.IndexOf(")")]);
+                    target.AppendLine("\", Int) = 0");
+                    target.Append("    ");
+                    return parsed.GetPrettyPrintedCode().Trim();
+                }
+            }
+
+            return source;
         }
 
         private static string RewriteThryPropertyDrawers(string source)
