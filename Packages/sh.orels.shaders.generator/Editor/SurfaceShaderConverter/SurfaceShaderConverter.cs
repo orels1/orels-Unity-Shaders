@@ -63,7 +63,7 @@ namespace ORL.ShaderGenerator.Tools
                     { "INTERNAL_DATA", "" },
                     {"UNITY_VERTEX_OUTPUT_STEREO", ""},
                     {"UNITY_INSTANCING_BUFFER_START(Props)", ""},
-                    {"UNITY_INSTANCING_BUFFER_END(Props)", ""}
+                    {"UNITY_INSTANCING_BUFFER_END(Props)", ""},
                 }
             };
 
@@ -109,6 +109,13 @@ namespace ORL.ShaderGenerator.Tools
                     visitor.surfaceFunction.Parameters.Find(p => p.Modifiers.Count > 0 && p.Modifiers[0] == BindingModifier.Inout);
                 var surfaceOutputStructType = (surfaceOutputStructNode.ParamType as NamedTypeNode).Name.Identifier;
 
+                var passFunctions = new List<FunctionDefinitionNode>();
+                foreach (var fn in visitor.functions)
+                {
+                    if (fn == visitor.surfaceFunction || fn == visitor.vertexFunction) continue;
+                    passFunctions.Add(fn);
+                }
+
                 var assemblerData = new ShaderAssemblerData
                 {
                     ShaderNode = parser,
@@ -117,6 +124,9 @@ namespace ORL.ShaderGenerator.Tools
                     Variables = visitor.variables,
                     SurfaceFunction = visitor.surfaceFunction,
                     VertexFunction = visitor.vertexFunction,
+                    PassFunctions = passFunctions,
+                    Includes = visitor.includes,
+                    Defines = visitor.defines,
                     SurfaceInputStruct = visitor.surfaceInputStruct,
                     SurfaceInputName = visitor.surfaceInputName,
                     LightingModel = SurfaceShaderMappings.LightingModelMappings[pragmaInfo.LightingModel],

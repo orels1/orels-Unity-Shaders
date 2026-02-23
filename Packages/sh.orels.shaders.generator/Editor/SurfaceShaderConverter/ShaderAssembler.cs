@@ -16,6 +16,9 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
         public FunctionDefinitionNode SurfaceFunction { get; set; }
         public FunctionDefinitionNode VertexFunction { get; set; }
         public StructTypeNode SurfaceInputStruct { get; set; }
+        public List<FunctionDefinitionNode> PassFunctions { get; set; }
+        public List<IncludeDirectiveNode> Includes { get; set; }
+        public List<string> Defines { get; set; }
         public SurfaceShaderConverter.PragmaInfo PragmaInfo { get; set; }
         public string SurfaceInputName;
         public ShaderNode ShaderNode { get; set; }
@@ -68,6 +71,66 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             
             sb.AppendLine();
             
+            if (data.Includes?.Count > 0)
+            {
+                var nativeIncludes = new List<IncludeDirectiveNode>();
+                var rawIncludes = new List<IncludeDirectiveNode>();
+                foreach (var inc in data.Includes)
+                {
+                    // we skip this one for obvious reasons
+                    if (inc.Path == "UnityCG.cginc") continue;
+                    if (inc.Path.Trim().EndsWith("AudioLink.cginc"))
+                    {
+                        nativeIncludes.Add(inc);
+                        continue;
+                    }
+                    rawIncludes.Add(inc);
+                }
+                
+                InjectShaderBlock(sb, data, "Includes", (builder, _) =>
+                {
+                    foreach (var inc in nativeIncludes)
+                    {
+                        if (inc.Path.Trim().EndsWith("AudioLink.cginc"))
+                        {
+                            builder.Append("    ");
+                            builder.AppendLine("\"@/Modules/AudioLink\",");
+                        }
+                    }
+                    
+                    builder.Append("    ");
+                    builder.AppendLine("\"self\"");
+                });
+                
+                sb.AppendLine();
+
+                if (rawIncludes.Count > 0)
+                {
+                    InjectShaderBlock(sb, data, "ShaderDefines", (builder, _) =>
+                    {
+                        foreach (var inc in rawIncludes)
+                        {
+                            builder.Append("    ");
+                            builder.AppendLine(inc.GetPrettyPrintedCode().Trim());
+                        }
+                    });
+                    sb.AppendLine();
+                }
+            }
+
+            if (data.Defines?.Count > 0)
+            {
+                InjectShaderBlock(sb, data, "ShaderDefines", (builder, _) =>
+                {
+                    foreach (var define in data.Defines)
+                    {
+                        builder.Append("    ");
+                        builder.AppendLine(define);
+                    }
+                });
+                sb.AppendLine();
+            }
+            
             InjectShaderBlock(sb, data, "Textures", CreateTextures);
 
             sb.AppendLine();
@@ -75,6 +138,14 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             InjectShaderBlock(sb, data, "Variables", CreateVariables);
             
             sb.AppendLine();
+
+            HandleInputStruct(sb, data);
+
+            if (data.PassFunctions?.Count > 0)
+            {
+                InjectShaderBlock(sb, data, "PassFunctions", CreatePassFunctions);
+                sb.AppendLine();
+            }
 
             if (data.PragmaInfo.ShaderFeatures.Count > 0 || data.PragmaInfo.MultiCompiles.Count > 0)
             {
@@ -99,6 +170,102 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             Debug.Log($"Assembled Shader: {sb}");
 
             return sb.ToString();
+        }
+
+        private static void CreatePassFunctions(StringBuilder target, ShaderAssemblerData data)
+        {
+            foreach (var fn in data.PassFunctions)
+            {
+                // First pass - rewrite texture sampling
+                var functionSource = fn.GetPrettyPrintedCode();
+                var functionTokens = ShaderParser.ParseTopLevelDeclarations(functionSource, new HLSLParserConfig(), out _, out _);
+            
+                var functionEditor = new FunctionRewriter(
+                    FunctionRewriter.FunctionType.Surface, 
+                    FunctionRewriter.RewriteType.TextureCalls,
+                    data,
+                    functionSource,
+                    functionTokens.SelectMany(x => x.Tokens).ToList()
+                );
+                var edited = functionEditor.ApplyEdits(functionTokens);
+                    
+                // Second pass - rewrite field access
+                functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, new HLSLParserConfig(), out _, out _);
+                functionEditor = new FunctionRewriter(
+                    FunctionRewriter.FunctionType.Surface,
+                    FunctionRewriter.RewriteType.FieldAccess,
+                    data,
+                    edited,
+                    functionTokens.SelectMany(x => x.Tokens).ToList()
+                );
+                edited = functionEditor.ApplyEdits(functionTokens);
+                    
+                var split = edited.Split(Environment.NewLine);
+                //target.AppendLine(edited);
+                InsertIndentedContents(target, split, 0, 0, 0);
+            }
+        }
+
+        private static void HandleInputStruct(StringBuilder target, ShaderAssemblerData data)
+        {
+            var extraV2FFields = new List<VariableDeclarationStatementNode>();
+            foreach (var field in data.SurfaceInputStruct.Fields)
+            {
+                // if we can map to the built-in structs - leave as is
+                if (SurfaceShaderMappings.SurfaceInputMappings.ContainsKey(field.Declarators[0].Name.Identifier))
+                {
+                    continue;
+                }
+                
+                // Otherwise - collect those fields to be passed through v2f
+                extraV2FFields.Add(field);
+            }
+
+            if (extraV2FFields.Count == 0) return;
+            
+            InjectShaderBlock(target, data, "AdditionalFragmentData", (builder, _) =>
+            {
+                foreach (var field in extraV2FFields)
+                {
+                    builder.Append("    ");
+                    builder.Append(field.Kind.GetPrettyPrintedCode().Trim());
+                    builder.Append(" ");
+                    builder.Append(field.Declarators[0].Name.Identifier);
+                    builder.Append(" : ");
+                    // Prefix everything to avoid any conflicts
+                    builder.Append("ORL_C_");
+                    builder.Append(field.Declarators[0].Name.Identifier.ToUpperInvariant());
+                    builder.AppendLine(";");
+                }
+            });
+            
+            target.AppendLine();
+            
+            InjectShaderBlock(target, data, "AdditionalMeshData", (builder, _) =>
+            {
+                foreach (var field in extraV2FFields)
+                {
+                    builder.Append("    ");
+                    builder.AppendLine(field.GetPrettyPrintedCode().Trim());
+                }
+            });
+            
+            target.AppendLine();
+            
+            InjectShaderBlock(target, data, "AdditionalMeshDataCreator", (builder, _) =>
+            {
+                foreach (var field in extraV2FFields)
+                {
+                    builder.Append("    ");
+                    builder.Append("d.");
+                    builder.Append(field.Declarators[0].Name.Identifier);
+                    builder.Append(" = i.");
+                    builder.Append(field.Declarators[0].Name.Identifier);
+                    builder.AppendLine(";");
+                }
+            });
+
+            target.AppendLine();
         }
 
         private static void CreateShaderFeatures(StringBuilder target, ShaderAssemblerData data)
@@ -146,11 +313,28 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                 functionTokens.SelectMany(x => x.Tokens).ToList()
             );
             edited = functionEditor.ApplyEdits(functionTokens);
-                
+            
+            // Third pass - rewrite raw identifiers
+            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, new HLSLParserConfig(), out _, out _);
+            functionEditor = new FunctionRewriter(
+                FunctionRewriter.FunctionType.Vertex,
+                FunctionRewriter.RewriteType.Identifiers,
+                data,
+                edited,
+                functionTokens.SelectMany(x => x.Tokens).ToList()
+            );
+            edited = functionEditor.ApplyEdits(functionTokens);
+            
             var split = edited.Split(Environment.NewLine);
             var startIndex = split[1].Trim().StartsWith("{") ? 2 : 1;
-            InsertIndentedContents(target, split, 2, startIndex);
-                
+            var endIndex = 1;
+            for (var i = split.Length - 1; i >= 0; i--)
+            {
+                if (split[i].Trim() == "}") break;
+                endIndex++;
+            }
+            InsertIndentedContents(target, split, 2, startIndex, endIndex);
+            
             target.AppendLine("    }");
         }
 
@@ -158,7 +342,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
         {
             target.Append("    ");
             InsertFragmentFn(target, fnName);
-            target.AppendLine("    {");
+            // target.AppendLine("    {");
 
             // First pass - rewrite texture sampling
             var functionSource = data.SurfaceFunction.GetPrettyPrintedCode();
@@ -183,11 +367,23 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                 functionTokens.SelectMany(x => x.Tokens).ToList()
             );
             edited = functionEditor.ApplyEdits(functionTokens);
+            
+            // Third pass - rewrite raw identifiers
+            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, new HLSLParserConfig(), out _, out _);
+            functionEditor = new FunctionRewriter(
+                FunctionRewriter.FunctionType.Surface,
+                FunctionRewriter.RewriteType.Identifiers,
+                data,
+                edited,
+                functionTokens.SelectMany(x => x.Tokens).ToList()
+            );
+            edited = functionEditor.ApplyEdits(functionTokens);
                     
             var split = edited.Split(Environment.NewLine);
-            InsertIndentedContents(target, split);
-            
-            target.AppendLine("    }");
+            // InsertIndentedContents(target, split);
+            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, new HLSLParserConfig(), out _, out _);
+            target.AppendLine((functionTokens[0] as FunctionDefinitionNode).Body.GetPrettyPrintedCode().Replace("\t", "    "));
+            // target.AppendLine("    }");
         }
 
         private static void InsertIndentedContents(StringBuilder target, string[] split, int indentationLevel = 2, int startOffset = 1, int endOffset = 1)
@@ -206,7 +402,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
         {
             target.Append("void ");
             target.Append(fnName);
-            target.AppendLine("(inout VertexData v)");
+            target.AppendLine("(inout VertexData v, inout FragmentData o)");
         }
 
         private static void InsertFragmentFn(StringBuilder target, string fnName)

@@ -33,6 +33,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
         public static readonly Dictionary<string, string> SurfaceInputMappings = new()
         {
             { "worldPos", "worldSpacePosition" },
+            { "worldNormal", "worldNormal" },
             { "viewDir", "tangentSpaceViewDir" },
             { "uv_texcoord", "uv0.xy" }, // Amplify uses this for uv0
             { "uv2_texcoord", "uv1.xy"} // Amplify uses this for uv1
@@ -40,6 +41,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
 
         public static readonly Dictionary<string, string> VertexInputMappings = new()
         {
+            { "uv", "uv0" },
             { "texcoord", "uv0" },
             { "texcoord1", "uv1" },
             { "texcoord2", "uv2" },
