@@ -41,11 +41,18 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
 
         public static readonly Dictionary<string, string> VertexInputMappings = new()
         {
-            { "uv", "uv0" },
-            { "texcoord", "uv0" },
-            { "texcoord1", "uv1" },
-            { "texcoord2", "uv2" },
-            { "texcoord3", "uv3" },
+            { "POSITION", "vertex"},
+            {"NORMAL", "normal"},
+            {"TANGENT", "tangent"},
+            {"COLOR", "color"},
+            { "TEXCOORD0", "uv0" },
+            { "TEXCOORD1", "uv1" },
+            { "TEXCOORD2", "uv2" },
+            { "TEXCOORD3", "uv3" },
+            { "TEXCOORD4", "uv4" },
+            { "TEXCOORD5", "uv5" },
+            { "TEXCOORD6", "uv6" },
+            { "TEXCOORD7", "uv7" }
         };
     }
 }

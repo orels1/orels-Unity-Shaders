@@ -111,7 +111,10 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                         //TODO: This needs to match the input struct types, otherwise the channels might be wrong
                         if (identifier.Name.Identifier == "v")
                         {
-                            var mappedName = _data.VertexInputMappings.TryGetValue(node.Name.Identifier, out var mapping) ? mapping : node.Name.Identifier;
+                            var vertDataType =
+                                (_data.VertexInputStruct.Fields.Find(f => (f.Declarators[0].Name.Identifier == node.Name.Identifier))
+                                    .Declarators[0].Qualifiers[0] as SemanticNode).Name.Identifier;
+                            var mappedName = _data.VertexInputMappings.TryGetValue(vertDataType, out var mapping) ? mapping : node.Name.Identifier;
                             Edit(node, "v." + mappedName);
                         }
                     }

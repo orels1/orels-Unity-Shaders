@@ -9,6 +9,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
         public FunctionDefinitionNode surfaceFunction;
         public FunctionDefinitionNode vertexFunction;
         public StructTypeNode surfaceInputStruct;
+        public StructTypeNode vertexInputStruct;
         public string surfaceInputName;
         public List<VariableDeclarationStatementNode> textures = new();
         public List<VariableDeclarationStatementNode> variables = new();

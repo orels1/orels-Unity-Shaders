@@ -62,6 +62,7 @@ namespace ORL.ShaderGenerator.Tools
                     {"SHADER_API_D3D11", "1"},
                     { "INTERNAL_DATA", "" },
                     {"UNITY_VERTEX_OUTPUT_STEREO", ""},
+                    {"UNITY_VERTEX_INPUT_INSTANCE_ID", ""},
                     {"UNITY_INSTANCING_BUFFER_START(Props)", ""},
                     {"UNITY_INSTANCING_BUFFER_END(Props)", ""},
                 }
@@ -102,7 +103,15 @@ namespace ORL.ShaderGenerator.Tools
                         .Identifier;
                     visitor.surfaceInputStruct = visitor.structs.Find(s => s.Name.GetName() == "Input");
                     visitor.surfaceInputName = surfInName;
+                }
 
+                if (visitor.vertexFunction != null)
+                {
+                    // The variable name used for the surface input
+                    var vertexStructTypeName = (visitor.vertexFunction.Parameters
+                        .Find(p => p.Modifiers[0] == BindingModifier.Inout).ParamType as NamedTypeNode)
+                        .Name.Identifier;
+                    visitor.vertexInputStruct = visitor.structs.Find(s => s.Name.GetName() == vertexStructTypeName);
                 }
                 
                 var surfaceOutputStructNode =
@@ -128,6 +137,7 @@ namespace ORL.ShaderGenerator.Tools
                     Includes = visitor.includes,
                     Defines = visitor.defines,
                     SurfaceInputStruct = visitor.surfaceInputStruct,
+                    VertexInputStruct = visitor.vertexInputStruct,
                     SurfaceInputName = visitor.surfaceInputName,
                     LightingModel = SurfaceShaderMappings.LightingModelMappings[pragmaInfo.LightingModel],
                     SurfaceInputMappings = SurfaceShaderMappings.SurfaceInputMappings,

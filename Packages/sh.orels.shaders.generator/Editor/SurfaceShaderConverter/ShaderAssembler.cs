@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NUnit;
 using UnityEngine;
 using UnityShaderParser.Common;
 using UnityShaderParser.HLSL;
+using UnityShaderParser.HLSL.PreProcessor;
 using UnityShaderParser.ShaderLab;
 
 namespace ORL.ShaderGenerator.Tools.SurfaceShaders
@@ -16,6 +18,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
         public FunctionDefinitionNode SurfaceFunction { get; set; }
         public FunctionDefinitionNode VertexFunction { get; set; }
         public StructTypeNode SurfaceInputStruct { get; set; }
+        public StructTypeNode VertexInputStruct { get; set; }
         public List<FunctionDefinitionNode> PassFunctions { get; set; }
         public List<IncludeDirectiveNode> Includes { get; set; }
         public List<string> Defines { get; set; }
@@ -152,6 +155,13 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                 InjectShaderBlock(sb, data, "ShaderFeatures", CreateShaderFeatures);
                 sb.AppendLine();
             }
+            
+            if (data.VertexFunction != null)
+            {
+                var fnName = $"VertexFn_{data.VertexFunction.Name.GetName()}_Vertex";
+                InjectShaderBlock(sb, data, "Vertex", (target, data) => { CreateVertex(target, data, fnName); }, $"\"{fnName}\"");
+                sb.AppendLine();
+            }
 
             if (data.SurfaceFunction != null)
             {
@@ -159,15 +169,8 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                 InjectShaderBlock(sb, data, "Fragment", (target, data) => { CreateFragment(target, data, fnName); }, $"\"{fnName}\"");
                 sb.AppendLine();
             }
-
-            if (data.VertexFunction != null)
-            {
-                var fnName = $"VertexFn_{data.VertexFunction.Name.GetName()}_Vertex";
-                InjectShaderBlock(sb, data, "Vertex", (target, data) => { CreateVertex(target, data, fnName); }, $"\"{fnName}\"");
-                sb.AppendLine();
-            }
             
-            Debug.Log($"Assembled Shader: {sb}");
+            // Debug.Log($"Assembled Shader: {sb}");
 
             return sb.ToString();
         }
@@ -289,11 +292,15 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
         {
             target.Append("    ");
             InsertVertexFn(target, fnName);
-            target.AppendLine("    {");
+
+            var config = new HLSLParserConfig
+            {
+                PreProcessorMode = PreProcessorMode.ExpandMacroInvocationsAndPragmas,
+            };
 
             // First pass - rewrite texture sampling
             var functionSource = data.VertexFunction.GetPrettyPrintedCode();
-            var functionTokens = ShaderParser.ParseTopLevelDeclarations(functionSource, new HLSLParserConfig(), out _, out _);
+            var functionTokens = ShaderParser.ParseTopLevelDeclarations(functionSource, config, out _, out _);
             var functionEditor = new FunctionRewriter(
                 FunctionRewriter.FunctionType.Vertex,
                 FunctionRewriter.RewriteType.TextureCalls,
@@ -304,7 +311,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             var edited = functionEditor.ApplyEdits(functionTokens);
                 
             // Second pass - rewrite field access
-            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, new HLSLParserConfig(), out _, out _);
+            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, config, out _, out _);
             functionEditor = new FunctionRewriter(
                 FunctionRewriter.FunctionType.Vertex,
                 FunctionRewriter.RewriteType.FieldAccess,
@@ -315,7 +322,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             edited = functionEditor.ApplyEdits(functionTokens);
             
             // Third pass - rewrite raw identifiers
-            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, new HLSLParserConfig(), out _, out _);
+            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, config, out _, out _);
             functionEditor = new FunctionRewriter(
                 FunctionRewriter.FunctionType.Vertex,
                 FunctionRewriter.RewriteType.Identifiers,
@@ -325,17 +332,11 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             );
             edited = functionEditor.ApplyEdits(functionTokens);
             
-            var split = edited.Split(Environment.NewLine);
-            var startIndex = split[1].Trim().StartsWith("{") ? 2 : 1;
-            var endIndex = 1;
-            for (var i = split.Length - 1; i >= 0; i--)
-            {
-                if (split[i].Trim() == "}") break;
-                endIndex++;
-            }
-            InsertIndentedContents(target, split, 2, startIndex, endIndex);
-            
-            target.AppendLine("    }");
+            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, config, out _, out _);
+            var pretty = (functionTokens[0] as FunctionDefinitionNode).Body.GetPrettyPrintedCode();
+            pretty = string.Join(Environment.NewLine, pretty.Split(Environment.NewLine).Select(l => l.PadLeft(4)));
+            target.Append(" ");
+            target.AppendLine(pretty);
         }
 
         private static void CreateFragment(StringBuilder target, ShaderAssemblerData data, string fnName)
@@ -343,10 +344,15 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             target.Append("    ");
             InsertFragmentFn(target, fnName);
             // target.AppendLine("    {");
+            
+            var config = new HLSLParserConfig
+            {
+                PreProcessorMode = PreProcessorMode.ExpandMacroInvocationsAndPragmas,
+            };
 
             // First pass - rewrite texture sampling
             var functionSource = data.SurfaceFunction.GetPrettyPrintedCode();
-            var functionTokens = ShaderParser.ParseTopLevelDeclarations(functionSource, new HLSLParserConfig(), out _, out _);
+            var functionTokens = ShaderParser.ParseTopLevelDeclarations(functionSource, config, out _, out _);
             
             var functionEditor = new FunctionRewriter(
                 FunctionRewriter.FunctionType.Surface, 
@@ -358,7 +364,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             var edited = functionEditor.ApplyEdits(functionTokens);
                     
             // Second pass - rewrite field access
-            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, new HLSLParserConfig(), out _, out _);
+            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, config, out _, out _);
             functionEditor = new FunctionRewriter(
                 FunctionRewriter.FunctionType.Surface,
                 FunctionRewriter.RewriteType.FieldAccess,
@@ -369,7 +375,7 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
             edited = functionEditor.ApplyEdits(functionTokens);
             
             // Third pass - rewrite raw identifiers
-            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, new HLSLParserConfig(), out _, out _);
+            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, config, out _, out _);
             functionEditor = new FunctionRewriter(
                 FunctionRewriter.FunctionType.Surface,
                 FunctionRewriter.RewriteType.Identifiers,
@@ -378,12 +384,12 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
                 functionTokens.SelectMany(x => x.Tokens).ToList()
             );
             edited = functionEditor.ApplyEdits(functionTokens);
-                    
-            var split = edited.Split(Environment.NewLine);
-            // InsertIndentedContents(target, split);
-            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, new HLSLParserConfig(), out _, out _);
-            target.AppendLine((functionTokens[0] as FunctionDefinitionNode).Body.GetPrettyPrintedCode().Replace("\t", "    "));
-            // target.AppendLine("    }");
+            
+            functionTokens = ShaderParser.ParseTopLevelDeclarations(edited, config, out _, out _);
+            var pretty = (functionTokens[0] as FunctionDefinitionNode).Body.GetPrettyPrintedCode();
+            pretty = string.Join(Environment.NewLine, pretty.Split(Environment.NewLine).Select(l => l.PadLeft(4)));
+            target.Append(" ");
+            target.AppendLine(pretty);
         }
 
         private static void InsertIndentedContents(StringBuilder target, string[] split, int indentationLevel = 2, int startOffset = 1, int endOffset = 1)
