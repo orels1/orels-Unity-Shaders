@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityShaderParser.HLSL;
 
 namespace ORL.ShaderGenerator.Tools.SurfaceShaders
@@ -11,7 +12,8 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
         public string surfaceInputName;
         public List<VariableDeclarationStatementNode> textures = new();
         public List<VariableDeclarationStatementNode> variables = new();
-
+        public List<IncludeDirectiveNode> includes = new();
+        public List<string> defines = new();
         public List<VariableDeclarationStatementNode> uniforms = new();
         public List<StructTypeNode> structs = new();
         public List<FunctionDefinitionNode> functions = new();
@@ -45,6 +47,22 @@ namespace ORL.ShaderGenerator.Tools.SurfaceShaders
 
             functions.Add(node);
             base.VisitFunctionDefinitionNode(node);
+        }
+
+        public override void VisitIncludeDirectiveNode(IncludeDirectiveNode node)
+        {
+            includes.Add(node);
+            base.VisitIncludeDirectiveNode(node);
+        }
+
+        public override void VisitFunctionLikeMacroNode(FunctionLikeMacroNode node)
+        {
+            var macro = node.GetPrettyPrintedCode().Trim();
+            if (macro.StartsWith("#define"))
+            {
+                defines.Add(macro);
+            }
+            base.VisitFunctionLikeMacroNode(node);
         }
 
         public override void VisitVariableDeclarationStatementNode(VariableDeclarationStatementNode node)
