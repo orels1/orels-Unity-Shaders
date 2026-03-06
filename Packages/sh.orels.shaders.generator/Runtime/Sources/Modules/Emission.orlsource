@@ -1,0 +1,57 @@
+%Properties()
+{
+    UI_EmissionHeader("# Emission", Int) = 0
+    [HDR]_EmissionColor("Emission Color", Color) = (0, 0, 0, 1)
+    _EmissionMap("Emission Map", 2D) = "white" { }
+    UI_EmissionUVSetParallaxNote("> Parallax is enabled, in this case the emission map UV is locked to parallaxed UV.\nOtherwise parallax will not work %ShowIf(PARALLAX)", Int) = 0
+    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_EmissionUVSet("UV Set %ShowIf(_EmissionMap && !PARALLAX)", Int) = 0
+    [Enum(RGB, 0, R, 1, G, 2, B, 3, A, 4)][_EmissionMap]_EmissionChannel("Emission Channel %ShowIf(_EmissionMap)", Int) = 0
+}
+
+%Textures()
+{
+    TEXTURE2D(_EmissionMap);
+    SAMPLER(sampler_EmissionMap);
+}
+
+%Variables()
+{
+    half4 _EmissionColor;
+    int _EmissionChannel;
+    float4 _EmissionMap_ST;
+    int _EmissionUVSet;
+
+    float2 GLOBAL_parallaxUv;
+    int GLOBAL_heightSet;
+}
+
+%Fragment("EmissionFragment")
+{
+    void EmissionFragment(MeshData d, inout SurfaceData o)
+    {
+        float2 uv = d.uv0.xy;
+        switch (_EmissionUVSet)
+        {
+            case 1: uv = d.uv1.xy; break;
+            case 2: uv = d.uv2.xy; break;
+            case 3: uv = d.uv3.xy; break;
+        }
+
+        uv = uv * _EmissionMap_ST.xy + _EmissionMap_ST.zw;
+
+        #if defined(PARALLAX)
+        {
+            uv = GLOBAL_parallaxUv;
+        }
+        #endif
+
+        half4 emissionMap = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, uv);
+
+        if (_EmissionChannel == 0) {
+            o.Emission = emissionMap.rgb * _EmissionColor.rgb;
+            return;
+        }
+
+        o.Emission.rgb = emissionMap[_EmissionChannel - 1] * _EmissionColor.rgb;
+    }
+}

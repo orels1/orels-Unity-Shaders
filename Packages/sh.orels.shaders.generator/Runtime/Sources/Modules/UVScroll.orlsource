@@ -1,0 +1,51 @@
+%Properties()
+{
+    UI_UVScrollHeader("# UV Scrolling", Int) = 0
+    _UVSGlobalSpeedModifier("Speed Modifier", Int) = 1
+    UI_UVSGlobalSpeedModifierNote("> This multiplies every single speed parameter below for easy global stop/go adjustment", Int) = 0
+    UI_UVSShiftHeader("## Shift", Int) = 0
+    [ToggleUI]_UVSShiftEnabled("Enable UV Shift", Int) = 0
+    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, All, 4)]_UVSShiftChannels("Target Channels %ShowIf(_UVSShiftEnabled)", Int) = 0
+    _UVSShiftSpeed("Speed %ShowIf(_UVSShiftEnabled) %Vector3(X,Y,Z)", Vector) = (0,0,0,0)
+}
+
+%Variables()
+{
+    float _UVSGlobalSpeedModifier;
+    int _UVSShiftEnabled;
+    int _UVSShiftChannels;
+    float4 _UVSShiftSpeed;
+}
+
+%Vertex("UVScrollVertex", -100)
+{
+    void UVShift(float time, inout VertexData v)
+    {
+        float2 shift = time * _UVSShiftSpeed.xy;
+        switch (_UVSShiftChannels)
+        {
+            case 0: v.uv0.xy += shift; return;
+            case 1: v.uv1.xy += shift; return;
+            case 2: v.uv2.xy += shift; return;
+            case 3: v.uv3.xy += shift; return;
+            case 4:
+                v.uv0.xy += shift;
+                v.uv1.xy += shift;
+                v.uv2.xy += shift;
+                v.uv3.xy += shift;
+                return;
+        }
+    }
+
+    void UVScrollVertex(inout VertexData v)
+    {
+        float time = _Time.y;
+        time *= _UVSGlobalSpeedModifier;
+        time %= 10000.0;
+
+        if (_UVSShiftEnabled)
+        {
+            UVShift(time, v);
+        }
+    }
+}
