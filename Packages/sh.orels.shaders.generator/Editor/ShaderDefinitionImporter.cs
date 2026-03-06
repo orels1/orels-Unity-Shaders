@@ -179,9 +179,6 @@ namespace ORL.ShaderGenerator
             var parser = new Parser();
             List<ShaderBlock> blocks = new List<ShaderBlock>();
 
-            // Add and register always inlcuded blocks
-            AddAlwaysIncludedBlocks(ctx, ref blocks);
-
             // Load all the direct blocks from the source
             try
             {
@@ -236,6 +233,9 @@ namespace ORL.ShaderGenerator
             {
                 Log($"Block count after recursive resolve: {blocks.Count} \n{string.Join("\n", blocks.OrderBy(b => b.Path).Select(b => $"[{b.Path}]: {b.Name}"))}");
             }
+            
+            // Add and register always included blocks
+            AddAlwaysIncludedBlocks(ctx, ref blocks);
 
             // Find and load the lighting model
             List<ShaderBlock> lightingModel;
@@ -436,12 +436,15 @@ namespace ORL.ShaderGenerator
         /// /// <param name="blocks"></param>
         private void AddAlwaysIncludedBlocks(AssetImportContext ctx, ref List<ShaderBlock> blocks)
         {
+            var shouldSkip = blocks.Find(b => b.CoreBlockType == BlockType.SkipAlwaysIncludedBlocks);
+            if (shouldSkip != null) return;
+            
             var depList = new List<string>();
             depList.AddRange(AlwaysIncludedBlockSources);
             // Registering asset dependencies, so the shader regenerates with them
             RegisterDependencies(depList, ctx);
             // Adding all the dependencies to the list of blocks
-            blocks.AddRange(AlwaysIncludedBlocks);
+            blocks.InsertRange(0, AlwaysIncludedBlocks);
             if (_isDebugBuild)
             {
                 Log($"Added {depList.Count} always included blocks: {string.Join("\n", depList)}");

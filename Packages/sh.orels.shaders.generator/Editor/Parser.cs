@@ -34,6 +34,7 @@ namespace ORL.ShaderGenerator
             VertexBase,
             FragmentBase,
             ExtraPass,
+            SkipAlwaysIncludedBlocks,
             Custom
         }
 
@@ -99,6 +100,8 @@ namespace ORL.ShaderGenerator
                     return BlockType.FragmentBase;
                 case "%ExtraPass":
                     return BlockType.ExtraPass;
+                case "%SkipAlwaysIncludedBlocks":
+                    return BlockType.SkipAlwaysIncludedBlocks;
                 case "%Custom":
                     return BlockType.Custom;
                 default:
