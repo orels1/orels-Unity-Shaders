@@ -482,6 +482,7 @@ namespace ORL.ShaderGenerator
                 foreach (var include in blocks[includesIndex].Contents)
                 {
                     var stripped = include.Replace("\"", "").Replace(",", "");
+                    if (string.IsNullOrWhiteSpace(stripped)) continue;
                     // We inject the already parsed blocks in place of "self"
                     if (stripped == "self")
                     {
@@ -553,6 +554,7 @@ namespace ORL.ShaderGenerator
             foreach (var lmInclude in lightingModel.Find(b => b.CoreBlockType == BlockType.Includes).Contents)
             {
                 var stripped = lmInclude.Replace("\"", "").Replace(",", "");
+                if (string.IsNullOrWhiteSpace(stripped)) continue;
                 if (stripped == "target")
                 {
                     updatedBlocks.AddRange(blocks);

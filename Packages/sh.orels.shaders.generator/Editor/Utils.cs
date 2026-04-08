@@ -250,7 +250,7 @@ namespace ORL.ShaderGenerator
                     continue;
                 }
                 var cleanDepPaths = blocks[includesBlockIndex].Contents
-                    .Select(l => l.Replace("\"", "").Replace(",", "").Trim()).ToList();
+                    .Select(l => l.Replace("\"", "").Replace(",", "").Trim()).Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
                 foreach (var depPath in cleanDepPaths)
                 {
                     if (depPath == "self")
