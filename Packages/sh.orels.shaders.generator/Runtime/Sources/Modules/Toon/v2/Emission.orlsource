@@ -9,6 +9,8 @@
     _EmissionSaturation("Saturation", Range(-1,1)) = 0
     _EmissionValue("Value", Range(-1,1)) = 0
     _EmissionTintToDiffuse("Tint To Diffuse", Range(0,1)) = 0
+    _EmissionPower("Power", Float) = 1
+    _EmissionRimMasking("Rim Masking", Float) = 0
     [Enum(No,0,Yes,1)]_EmissionScaleWithLight("Scale w/ Light", Int) = 0
     UI_EmissionScaleWithLightNote("> Hides emission unless light is weaker than Scaling Sensitivity", Int) = 0
     _EmissionScaleWithLightSensitivity("Scaling Sensitivity %ShowIf(_EmissionScaleWithLight == 1)", Range(0,1)) = 1
@@ -24,6 +26,8 @@
     half _EmissionSaturation;
     half _EmissionValue;
     half _EmissionTintToDiffuse;
+    half _EmissionPower;
+    half _EmissionRimMasking;
     int _EmissionScaleWithLight;
     half _EmissionScaleWithLightSensitivity;
 }
@@ -35,6 +39,7 @@
     half EmissionValue;
     half EmissionTintToDiffuse;
     int EmissionScaleWithLight;
+    half EmissionMask;
     half EmissionScaleWithLightSensitivity;
 }
 
@@ -59,6 +64,7 @@
                 mask = 1.0 - smoothstep(0, 0.001, mask);
                 emission *= mask;
             }
+            emission = pow(emission, _EmissionPower);
             emission *= _EmissionColor.rgb;
             o.Emission.rgb += emission.rgb;
         }
@@ -70,6 +76,13 @@
         o.EmissionTintToDiffuse = _EmissionTintToDiffuse;
         o.EmissionScaleWithLight = _EmissionScaleWithLight;
         o.EmissionScaleWithLightSensitivity = _EmissionScaleWithLightSensitivity;
+        o.EmissionMask = 1;
+
+        if (abs(_EmissionRimMasking) > 0.0001) {
+            half NoV = dot(d.worldNormal, d.worldSpaceViewDir);
+            NoV = _EmissionRimMasking < 0 ? pow(saturate(1.0 - NoV), -_EmissionRimMasking) : pow(saturate(NoV), _EmissionRimMasking);
+            o.EmissionMask = NoV;
+        }
     }
 }
 
@@ -93,5 +106,6 @@
         half3 scaledEmission = emission * saturate(smoothstep(1 - o.EmissionScaleWithLightSensitivity, 1 + o.EmissionScaleWithLightSensitivity, 1 - lightAvg));
 
         emission = o.EmissionScaleWithLight ? scaledEmission : emission;
+        emission *= o.EmissionMask;
     }
 }
