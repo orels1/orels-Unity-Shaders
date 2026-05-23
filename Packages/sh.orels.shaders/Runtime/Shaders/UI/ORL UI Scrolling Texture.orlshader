@@ -33,13 +33,19 @@
     half _EdgeFadeRounding;
 }
 
+%GlobalVariables()
+{
+    float2 GLOBAL_uv_offset;
+    float2 GLOBAL_uv_scale;
+}
+
 %ShaderDefines()
 {
     #define GLOBAL_UV_OFFSET
     #define GLOBAL_UV_SCALE
 }
 
-%Fragment("UI_ScrollerFragment")
+%Fragment("UI_ScrollerFragment", -1)
 {
     half RoundedBox(half2 pos, half2 bounds, half radius)
     {
