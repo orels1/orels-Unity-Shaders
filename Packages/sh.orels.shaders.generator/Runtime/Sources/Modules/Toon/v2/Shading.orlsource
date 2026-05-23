@@ -29,6 +29,11 @@
     #endif
 }
 
+%Variables()
+{
+    int _MinLight;
+}
+
 %Textures()
 {
     TEXTURE2D(_Ramp);
@@ -107,7 +112,7 @@
             indirectDiffuse += SHEvalLinearL2(float4(normal, 1));
         }
         #endif
-        
+
         if (!_OffsetRampByOcclusion)
         {
             indirectDiffuse *= o.Occlusion;
@@ -127,6 +132,11 @@
         {
             lightColor = indirectDiffuse * 0.6;
             indirectDiffuse = indirectDiffuse * 0.4;
+
+            if (_MinLight) {
+                lightColor = max(lightColor, 0.03);
+                indirectDiffuse = max(indirectDiffuse, 0.02);
+            }
         }
 
         mainLightDiffuse = lightColor * adjustedAttenuation * o.Ramp;
