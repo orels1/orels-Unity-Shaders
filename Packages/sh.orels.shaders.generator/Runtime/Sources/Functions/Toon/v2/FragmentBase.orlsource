@@ -29,6 +29,15 @@
     Cull [_CullMode]
 }
 
+%PassModifiers()
+{
+    Stencil {
+        Ref 69
+        Comp Always
+        Pass [_StencilBasePass]
+    }
+}
+
 %ShaderDefines()
 {
     #define ORL_LIGHTING_MODEL_TOON_V2
@@ -145,6 +154,11 @@
                 lightAttenuation = 1.0;
             }
         }
+
+        if (_MinLight) {
+            lightAttenuation = 1.0;
+            lightColor = max(lightColor, 0.05);
+        }
         #endif
 
         float3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
@@ -193,9 +207,6 @@
 
         diffuseContributions *= diffuseModifier;
 
-        #if defined(UNITY_PASS_FORWARDBASE)
-        diffuseContributions = lerp(diffuseContributions, max(diffuseContributions, 0.05), _MinLight);
-        #endif
         diffuseContributions = lerp(diffuseContributions, dot(diffuseContributions, float3(0.299, 0.587, 0.114)), _MonochromeLighting);
 
         half3 specularContributions = 0;
