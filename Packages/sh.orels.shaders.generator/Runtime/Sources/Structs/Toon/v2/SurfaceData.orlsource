@@ -8,7 +8,7 @@
         half Occlusion;
         float3 Normal;
         float3 WorldNormal;
-    
+
         // Additional Surface Data
         %AdditionalSurfaceData
         // Additional Surface Data End
