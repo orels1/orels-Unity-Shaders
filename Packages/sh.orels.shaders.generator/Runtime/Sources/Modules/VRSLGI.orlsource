@@ -5,7 +5,7 @@
     [Toggle(_VRSL_GI)]useVRSLGI("Integrate VRSL GI", Float) = 0.0
     UI_VRSLGIDownload("[Make sure to download VRSLGI Shader Pack before enabling this option](https://github.com/AcChosen/VR-Stage-Lighting-GI-ShaderPack/releases)", Int) = 0
     _VRSLGIStrength("VRSL GI Strength %ShowIf(_VRSL_GI)", Float) = 2
-    _VRSLDiffuseMix("VRSL Diffuse Mix %ShowIf(_VRSL_GI)", Range(0, 1)) = 0.25
+    _VRSLDiffuseMix("VRSL Diffuse Mix %ShowIf(_VRSL_GI)", Range(0, 1)) = 1.0
     _VRSLRoughnessModifier("Roughness Modifier %ShowIf(_VRSL_GI)", Range(-1,1)) = 0
     [TpggleUI]_VRSLAlphaPremultiply("Alpha Premultiply %ShowIf(_VRSL_GI)", Float) = 0
     [Toggle(_VRSL_GI_SPECULARHIGHLIGHTS)]useVRSLGISpecular("Use VRSL GI Specular %ShowIf(_VRSL_GI)", Float) = 1.0
