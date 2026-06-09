@@ -176,6 +176,8 @@
     #else
         #define UV_CHANNEL_COUNT 4
     #endif
+
+    #define GLOBAL_UVS_PRESENT
 }
 
 %ShaderModifiers()
