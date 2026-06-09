@@ -12,6 +12,7 @@
     UI_RimThresholdNote("> Controls how much the rim light will be offset by the light direction. 1 Will only show up in the areas hit by the light, 0 will show up everywhere %ShowIf(RIMLIGHT_ON)", Int) = 0
     _RimAttenuation("Attenuation %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 1
     UI_RimAttenuationNote("> Controls how much the rimlight will be visible in shadowed areas. 0 always visible %ShowIf(RIMLIGHT_ON)", Int) = 0
+    _RimNormalStrength("Normal Map Influence", Range(0, 1)) = 1
 }
 
 %ShaderFeatures()
@@ -31,6 +32,7 @@
     half RimSharpness;
     half RimLightThreshold;
     half RimLightAttenuation;
+    half RimNormalStrength;
     #endif
 }
 
@@ -46,6 +48,7 @@
     half _RimSpread;
     half _RimThreshold;
     half _RimSharpness;
+    half _RimNormalStrength;
     #endif
 }
 
@@ -53,7 +56,7 @@
 {
     void ToonRimLightFragment(MeshData d, inout SurfaceData o) {
         #if defined(RIMLIGHT_ON)
-        
+
         // This module is almost fully passthrough
         // This allows other modules to vary the parameters
         // While the final calculations are done in the lighting module
@@ -65,29 +68,32 @@
         o.RimSharpness = 1.0 - _RimSharpness;
         o.RimLightThreshold = _RimThreshold;
         o.RimLightAttenuation = _RimAttenuation;
-        
+        o.RimNormalStrength = _RimNormalStrength;
+
         #endif
     }
 }
 
 %ModuleLighting("ToonRimLightLighting")
 {
-    void ToonRimLightLighting(SurfaceData o, MeshData d, half lightNoL, half3 lightColor, half lightAttenuation, half3 indirectDiffuse, inout half3 mainLightMixedSpecular)
+    void ToonRimLightLighting(SurfaceData o, MeshData d, float3 lightDir, half3 lightColor, half lightAttenuation, half3 indirectDiffuse, inout half3 mainLightMixedSpecular)
     {
         #if defined(RIMLIGHT_ON)
-        half SVDNoN = abs(dot(d.svdn, o.WorldNormal));
+        float3 worldNormal = Unity_SafeNormalize(lerp(d.worldNormal, o.WorldNormal, o.RimNormalStrength));
+        half lightNoL = dot(worldNormal, lightDir);
+        half SVDNoN = abs(dot(d.svdn, worldNormal));
 
         // Rim Light Env Tint
         half3 env = 0;
         #if defined(UNITY_PASS_FORWARDBASE)
-            env = getEnvReflection(d.worldSpaceViewDir.xyz, d.worldSpacePosition.xyz, o.WorldNormal, 0.5, 5);
+            env = getEnvReflection(d.worldSpaceViewDir.xyz, d.worldSpacePosition.xyz, worldNormal, 0.5, 5);
         #endif
 
         half lightThreshold = o.RimLightThreshold < 0.0001 ? 1 : saturate(pow(saturate(lightNoL), o.RimLightThreshold));
 
         half rimIntensity = saturate((1 - SVDNoN)) * lightThreshold;
         rimIntensity = smoothstep(o.RimSpread - o.RimSharpness, o.RimSpread + o.RimSharpness, rimIntensity);
-        
+
         half3 rim = rimIntensity * o.RimIntensity;
         rim *= o.RimTint;
         rim *= lerp(1, o.Albedo.rgb, o.RimAlbedoTint);
