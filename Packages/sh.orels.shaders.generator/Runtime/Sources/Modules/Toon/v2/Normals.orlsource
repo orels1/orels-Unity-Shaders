@@ -173,6 +173,7 @@
         }
         #endif
 
+        #if defined(NORMALS_SET)
         // Detail normals, tiling expected, RGBA masking
         half4 detailMask = 1;
         #if defined(DETAIL_NORMALS_MASK_SET)
@@ -238,6 +239,8 @@
             half3 detailNormal = UnpackNormalScale(detailNormalsTex, _DetailNormals3Scale);
             o.Normal = lerp(o.Normal, BlendNormals(o.Normal, detailNormal), lerp(1, detailMask[_DetailNormals3MaskChannel], _DetailNormals3MaskStrength));
         }
+        #endif
+
         #endif
     }
 }
