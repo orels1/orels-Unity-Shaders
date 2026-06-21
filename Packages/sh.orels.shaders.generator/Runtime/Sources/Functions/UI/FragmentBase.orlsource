@@ -46,9 +46,9 @@
     float4 _ClipRect;
 
     #if !defined(NEED_FLOAT4_UV)
-    float2 GLOBAL_uvArray[UV_CHANNEL_COUNT];
+    float2 GLOBAL_uvArray[8];
     #else
-    float4 GLOBAL_uvArray[UV_CHANNEL_COUNT];
+    float4 GLOBAL_uvArray[8];
     #endif
 }
 
@@ -68,18 +68,6 @@
       #ifdef PLAT_QUEST
         #undef PLAT_QUEST
       #endif
-    #endif
-
-    #if defined(NEED_UV4)
-        #define UV_CHANNEL_COUNT 5
-    #elif defined(NEED_UV5)
-        #define UV_CHANNEL_COUNT 6
-    #elif defined(NEED_UV6)
-        #define UV_CHANNEL_COUNT 7
-    #elif defined(NEED_UV7)
-        #define UV_CHANNEL_COUNT 8
-    #else
-        #define UV_CHANNEL_COUNT 4
     #endif
 
     #define GLOBAL_UVS_PRESENT

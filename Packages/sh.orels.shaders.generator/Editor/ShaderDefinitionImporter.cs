@@ -1261,7 +1261,7 @@ namespace ORL.ShaderGenerator
                                 {
                                     int.TryParse(match.Groups["priority"].Value, out newPriority);
                                 }
-                                
+
                                 var originalIndex = deduped.FindIndex(p => p.Contains(node.Uniform));
                                 var original = deduped[originalIndex];
                                 var originalPriorityMatch = _priorityRegex.Match(original);
@@ -1278,7 +1278,7 @@ namespace ORL.ShaderGenerator
                                     deduped.RemoveAt(originalIndex);
                                     deduped.Add(node.GetCodeInSourceText(combined));
                                 }
-                                
+
                                 continue;
                             }
 
@@ -1405,7 +1405,12 @@ namespace ORL.ShaderGenerator
 
                 var identifier = matcher.Match(item).Groups.Cast<Group>().Skip(1).ToList()
                     .Find(m => !string.IsNullOrEmpty(m.Value)).Value;
-                if (keySet.Contains(identifier))
+                var isInsideIfDef = deduped.Count > 0 && (
+                    deduped[deduped.Count - 1].Trim().StartsWith("#if defined")
+                    || deduped[deduped.Count - 1].Trim().StartsWith("#elif")
+                    || deduped[deduped.Count - 1].Trim().StartsWith("#else")
+                );
+                if (keySet.Contains(identifier) && !isInsideIfDef)
                 {
                     if (_isDebugBuild)
                     {
