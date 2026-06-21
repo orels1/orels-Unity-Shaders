@@ -7,6 +7,13 @@
       "dependencies": {},
       "hash": "01079b99d35c08ee91dfe778016d607f5bf657eb"
     },
+    "com.emdl.scene-view-msaa": {
+      "version": "https://github.com/Error-mdl/UnitySceneViewMSAAPatch.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "ffd0e5a164a914c2f8c8bc135166c19d894ce428"
+    },
     "com.llealloo.audiolink": {
       "version": "file:com.llealloo.audiolink",
       "depth": 0,
@@ -93,6 +100,13 @@
         "com.unity.burst": "1.6.6",
         "com.unity.test-framework": "1.1.31"
       },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.editorcoroutines": {
+      "version": "1.0.0",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.ext.nunit": {
