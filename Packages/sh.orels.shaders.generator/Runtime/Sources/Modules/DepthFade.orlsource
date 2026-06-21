@@ -52,6 +52,10 @@
     {
         #if defined(DEPTH_FADE)
         float sceneZ = LinearEyeDepth(SampleSceneDepth(d.depthFadeParams.xy / d.depthFadeParams.w));
+        if (!DepthPresent())
+        {
+            return;
+        }
         float softParticleInvFade = 1.0 / (_DepthParticlesFarFadeDistance - _DepthParticlesNearFadeDistance);
         float fade = saturate(softParticleInvFade * ((sceneZ - _DepthParticlesNearFadeDistance) - d.depthFadeParams.z));
         FinalColor.a *= fade;
