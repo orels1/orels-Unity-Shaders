@@ -504,6 +504,21 @@
         return dot(depthRG, float2(1.0, 1/255.0));
     }
 
+    bool DepthPresent()
+    {
+        int width;
+        int height;
+        int elements;
+
+        #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+        _CameraDepthTexture.GetDimensions(width, height, elements);
+        #else
+        _CameraDepthTexture.GetDimensions(width, height);
+        #endif
+
+        return width > 16;
+    }
+
     float4 ComputeClipSpacePosition(float2 positionNDC, float deviceDepth)
     {
         float4 positionCS = float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
