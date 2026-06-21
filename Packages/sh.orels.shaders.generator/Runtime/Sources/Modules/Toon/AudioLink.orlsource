@@ -3,6 +3,7 @@
     UI_AudioLink("# AudioLink", Int) = 0
     [KeywordEnum(None, Single Channel, Packed Map, UV Based)]AL_MODE("Audio Link Mode", Int) = 0
     [NoScaleOffset]_ALMap("Audio Link Map > %ShowIf(!AL_MODE_NONE)", 2D) = "white" {}
+    [Enum(RGB,0,R,1,G,2,B,3,A,4)]_ALMapChannel("Mask Channel %ShowIf(!AL_MODE_NONE && !AL_MODE_PACKED_MAP)", Int) = 0
     [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ALMapUVSet("UV Set %ShowIf(!AL_MODE_NONE)", Int) = 0
     [Enum(R,0,G,1,B,2,A,3)]_ALMapPackedChannelBass("Bass %ShowIf(AL_MODE_PACKED_MAP) %CombineWith(_ALMapPackedChannelMid, _ALMapPackedChannelHigh)", Int) = 0
     [HideInInspector][Enum(R,0,G,1,B,2,A,3)]_ALMapPackedChannelMid("Mids", Int) = 1
@@ -50,6 +51,7 @@
 %Variables()
 {
     int _ALBand;
+    int _ALMapChannel;
     half4 _ALEmissionColor;
 
     int _ALEmissionDotMask;
@@ -117,6 +119,12 @@
             }
             half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, alUV);
 
+            #if !defined(AL_MODE_PACKED_MAP)
+            if (_ALMapChannel > 0) {
+                alMask = alMask[_ALMapChannel - 1].rrrr;
+            }
+            #endif
+
             #if defined(AL_MODE_SINGLE_CHANNEL)
 
             half sampledAL = 0;
@@ -158,7 +166,7 @@
             audioDataMids *= _ALPackedGreenBoost;
             audioDataHighs *= _ALPackedBlueBoost;
 
-            half alphaMask = _ALMapPackedMaskChannel < 4 ? alMask[_ALMapPackedMaskChannel] : 1;
+            half alphaMask = _ALMapPackedMaskChannel < 4 ? alMask[clamp(_ALMapPackedMaskChannel, 0, 3)] : 1;
             half tLow = smoothstep((1-audioDataBass), (1-audioDataBass) + 0.01, bassMask) * alphaMask;
             half tMid = smoothstep((1-audioDataMids), (1-audioDataMids) + 0.01, midsMask) * alphaMask;
             half tHigh = smoothstep((1-audioDataHighs), (1-audioDataHighs) + 0.01, highsMask) * alphaMask;
