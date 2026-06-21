@@ -150,3 +150,6 @@ Assets/Shaders.meta
 
 ProjectSettings/lilToonSetting.json
 .vsconfig
+
+Profiling/
+imgui.ini
