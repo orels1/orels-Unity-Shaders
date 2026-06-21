@@ -23,6 +23,9 @@
 
 %OutlinePassModifiers()
 {
+    BlendOp Add, Max
+    Blend One Zero, One One
+
     Cull Front
     Stencil {
         Ref 69
