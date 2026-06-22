@@ -5,9 +5,11 @@
     [Toggle(SSR)]_SSREnabled("Enable SSR %ForceRenderType(Custom,2501,Transparent,Fade) %EnablePass(GrabPass)", Int) = 0
     _SSRStrength("Strength %ShowIf(SSR)", Range(0,1)) = 1
     [IntRange]_SSRMaxSteps("Maximum Steps %ShowIf(SSR)", Range(1,50)) = 50
-    _SSRStep("Step Size %ShowIf(SSR)", Float) = 0.09 
+    _SSRStep("Step Size %ShowIf(SSR)", Float) = 0.09
     _SSREdgeFade("Edge Fade %ShowIf(SSR)", Range(0,1)) = 0.1
     _SSRBakedReflectionStrength("Baked Reflection Strength %ShowIf(SSR)", Range(0, 1)) = 1
+    _SSRSurfacePushoff("Surface Pushoff", Float) = 1
+    UI_SSRSurfacePushoffNote("> When using on non-transparent queues (2500 and less) and ZWrite On - you might encounter a see-through effect. Use the Surface Pushoff value to work around the issue. In most cases - the SSR material should be on the queue 2501", Int) = 0
     UI_SSRInternalsHeader("## Internals", Int) = 0
     _SSRLRad("Intersection (L) %ShowIf(SSR)", Float) = 0.02
     _SSRSRad("Intersection (R) %ShowIf(SSR)", Float) = 0.02
@@ -26,6 +28,7 @@
     float _SSRSRad;
     half _SSREdgeFade;
     half _SSRBakedReflectionStrength;
+    float _SSRSurfacePushoff;
 }
 
 %Textures()
@@ -43,11 +46,12 @@
 
 %PrePasses()
 {
-    GrabPass { 
+    GrabPass {
         Tags { "LightMode" = "GrabPass"}
         "_ORLGrabTexture"
     }
 }
+
 
 %ShaderDefines()
 {
@@ -78,7 +82,7 @@
     }
 
     float4 ReflectRay(float3 reflectedRay, float3 rayDir, float lRad, float sRad, float step, float noise, const int maxIterations){
-        
+
         #if UNITY_SINGLE_PASS_STEREO
             half x_min = 0.5 * unity_StereoEyeIndex;
             half x_max = 0.5 + 0.5 * unity_StereoEyeIndex;
@@ -86,7 +90,7 @@
             half x_min = 0.0;
             half x_max = 1.0;
         #endif
-        
+
         reflectedRay = TransformWorldToView(reflectedRay);
         rayDir = TransformWorldToViewDir(rayDir);
         int totalIterations = 0;
@@ -109,7 +113,7 @@
             float realDepth = linearDepth * _ProjectionParams.z;
             float depthDifference = abs(sampleDepth - realDepth);
 
-            if (depthDifference < lRad){ 
+            if (depthDifference < lRad){
                 if (direction == 1){
                     if(sampleDepth > (realDepth - sRad)){
                         if(sampleDepth < (realDepth + sRad)){
@@ -148,12 +152,12 @@
         else {
 
             float4 noiseUvs = screenPos;
-            noiseUvs.xy = (noiseUvs.xy * _ORLGrabTexture_TexelSize.zw) / (_SSRNoiseTexture_TexelSize.zw * noiseUvs.w);	
+            noiseUvs.xy = (noiseUvs.xy * _ORLGrabTexture_TexelSize.zw) / (_SSRNoiseTexture_TexelSize.zw * noiseUvs.w);
             float4 noiseRGBA = SAMPLE_TEXTURE2D_LOD(_SSRNoiseTexture, sampler_SSRNoiseTexture, noiseUvs.xy,0);
             float noise = noiseRGBA.r;
-            
-            float3 reflectedRay = worldPos.xyz + (_SSRLRad*_SSRStep/NoR + noise*_SSRStep)*reflDir;
-            
+
+            float3 reflectedRay = worldPos.xyz + worldNormal * (_SSRSurfacePushoff * 0.01) + (_SSRLRad*_SSRStep/NoR + noise*_SSRStep)*reflDir;
+
             float scatterMult = 0.2;
             float4 scatter = float4(0.5 - noiseRGBA.rgb,0);
             reflDir = normalize(reflDir + scatterMult*scatter*(1-smoothness)*sqrt(NoR));
@@ -164,7 +168,7 @@
 
             if (!any(finalPos.xyz))
                 return 0;
-            
+
             float4 uvs = GetGrabScreenPosition(TransformWViewToHClip(finalPos));
             uvs.xy = uvs.xy / uvs.w;
 
@@ -175,12 +179,12 @@
             #endif
             float yfade = smoothstep(0, _SSREdgeFade, uvs.y)*smoothstep(1, 1-_SSREdgeFade, uvs.y); //Same for y
             float lengthFade = smoothstep(1, 0, 2*(totalSteps / _SSRMaxSteps)-1);
-        
+
             float fade = xfade * yfade * lengthFade;
 
             float blurFac = max(1,min(12, 12 * (-2)*(smoothness-1)));
             float4 reflection = float4(GetBlurredGP(_ORLGrabTexture_TexelSize.zw, uvs.xy, blurFac),1);
-            
+
             reflection.rgb = lerp(reflection.rgb, reflection.rgb*albedo.rgb, metallic);
 
             float RdotV = dot(reflDir, viewDir);
