@@ -34,7 +34,7 @@ Afterwards - add ORL Shaders package to your project
 
 [There are more in-depth instructions and explanations on the docs!](https://shaders.orels.sh)
 
-Having issues? [Hop by the discord](https://discord.gg/orels1)
+Having issues? [Hop by the discord](https://discord.orels.one)
 
 ## Demo World
 
