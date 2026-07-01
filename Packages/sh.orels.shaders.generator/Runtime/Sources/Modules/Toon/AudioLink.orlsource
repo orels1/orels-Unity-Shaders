@@ -2,10 +2,12 @@
 {
     UI_AudioLink("# AudioLink", Int) = 0
     [KeywordEnum(None, Single Channel, Packed Map, UV Based)]AL_MODE("Audio Link Mode", Int) = 0
+    [ToggleUI]_MuteALEffects("Mute AudioLink Effects", Int) = 0
     [NoScaleOffset]_ALMap("Audio Link Map > %ShowIf(!AL_MODE_NONE)", 2D) = "white" {}
     [Enum(RGB,0,R,1,G,2,B,3,A,4)]_ALMapChannel("Mask Channel %ShowIf(!AL_MODE_NONE && !AL_MODE_PACKED_MAP)", Int) = 0
-    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ALMapUVSet("UV Set %ShowIf(!AL_MODE_NONE)", Int) = 0
+    [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_ALMapUVSet("Mask UV Set %ShowIf(!AL_MODE_NONE)", Int) = 0
     [Enum(R,0,G,1,B,2,A,3)]_ALMapPackedChannelBass("Bass %ShowIf(AL_MODE_PACKED_MAP) %CombineWith(_ALMapPackedChannelMid, _ALMapPackedChannelHigh)", Int) = 0
+    [Enum(Match Mask UV, 0, UV1, 1, UV2, 2, UV3, 3, UV4, 4)]_ALEffectUV("Effect UV Set %ShowIf(!AL_MODE_NONE && !AL_MODE_PACKED_MAP", Int) = 0
     [HideInInspector][Enum(R,0,G,1,B,2,A,3)]_ALMapPackedChannelMid("Mids", Int) = 1
     [HideInInspector][Enum(R,0,G,1,B,2,A,3)]_ALMapPackedChannelHigh("Highs", Int) = 2
     [Enum(R,0,G,1,B,2,A,3,None,4)]_ALMapPackedMaskChannel("Mask Channel %ShowIf(AL_MODE_PACKED_MAP)", Int) = 3
@@ -50,6 +52,7 @@
 
 %Variables()
 {
+    int _MuteALEffects;
     int _ALBand;
     int _ALMapChannel;
     half4 _ALEmissionColor;
@@ -61,6 +64,7 @@
     int _ALSmoothingLevel;
     int _ALUVWidth;
     int _ALMapUVSet;
+    int _ALEffectUV;
 
     #if defined(AL_MODE_PACKED_MAP)
     int _ALGradientOnRed;
@@ -100,10 +104,12 @@
             return;
         #else
 
-        if(AudioLinkIsAvailable()) {
-            half2 alUV = 0;
+        if (_MuteALEffects) return;
 
-            half2 globalUv = 0;
+        if(AudioLinkIsAvailable()) {
+            float2 alUV = 0;
+
+            float2 globalUv = 0;
 
             #if defined(GLOBAL_UV_SET)
             globalUv = GLOBAL_uv;
@@ -117,6 +123,16 @@
                 case 2: alUV = d.uv2; break;
                 case 3: alUV = d.uv3; break;
             }
+
+            float2 alEffectUv = alUV;
+
+            if (_ALEffectUV > 0)
+            {
+                #if defined(GLOBAL_UVS_PRESENT)
+                alEffectUv = GLOBAL_uvArray[clamp(_ALEffectUV - 1, 0, 3)].xy;
+                #endif
+            }
+
             half4 alMask = SAMPLE_TEXTURE2D(_ALMap, sampler_ALMap, alUV);
 
             #if !defined(AL_MODE_PACKED_MAP)
@@ -178,8 +194,8 @@
 
             #elif defined(AL_MODE_UV_BASED)
 
-            half2 aluv;
-            aluv = half2(alUV.x * _ALUVWidth, alUV.y);
+            float2 aluv;
+            aluv = float2(alEffectUv.x * _ALUVWidth, alEffectUv.y);
             half sampledAL = AudioLinkLerp(aluv).x;
             half3 em = alMask.rgb * _ALEmissionColor.rgb * sampledAL;
 
