@@ -10,7 +10,7 @@
     [Toggle(SEPARATE_ALPHA)]_SeparateAlpha("Separate Transparency Texture", Int) = 0
     _AlphaTex("Transparency %ShowIf(_SeparateAlpha)", 2D) = "white" {}
     [ToggleUI]_AlphaBicubic("Use Bicubic Sampling %ShowIf(_SeparateAlpha)", Int) = 0
-    _AlphaScale("Alpha Scale %ShowIf(_MainTex || SEPARATE_ALPHA)", Range(-2,2)) = 1
+    _AlphaScale("Alpha Scale %ShowIf(_MainTex || SEPARATE_ALPHA)", Range(-4,4)) = 1
     [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_MainTexUVSet("UV Set", Int) = 0
     _Hue("Hue", Range(0,1)) = 0
     _Saturation("Saturation", Range(-1,1)) = 0
