@@ -50,4 +50,4 @@ https://orels1.github.io/orels-Unity-Shaders/index.json
 
 Afterwards - add ORL Shader Generator package to your project
 
-Having issues? [Hop by the discord](https://discord.gg/orels1)
+Having issues? [Hop by the discord](https://discord.orels.one)

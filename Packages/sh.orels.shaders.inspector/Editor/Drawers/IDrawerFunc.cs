@@ -10,6 +10,7 @@ namespace ORL.Drawers
         // All the functions use the same syntax %FnName()
         // Functions can be combined with other drawers
         string FunctionName { get; }
+        bool InvokeAfterDraw => false;
 
         bool OnGUI(MaterialEditor editor,
             MaterialProperty[] properties,

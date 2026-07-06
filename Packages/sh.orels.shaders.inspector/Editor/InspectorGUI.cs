@@ -453,7 +453,12 @@ namespace ORL.ShaderInspector
                     propIndex++;
                     continue;
                 }
+                
                 DrawRegularProp(materialEditor, properties, property, propIndex);
+
+                // do post draw match as well
+                // this invokes all drawer funcs with `InvokeAfterDraw => true;`
+                DrawUIProp(materialEditor, properties, property, propIndex, postDraw: true);
                 propIndex++;
             }
 
@@ -497,7 +502,7 @@ namespace ORL.ShaderInspector
             return MatchDrawerStack(drawers, editor, properties, property, index);
         }
 
-        private bool MatchDrawerFuncStack(List<string> funcs, MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index)
+        private bool MatchDrawerFuncStack(List<string> funcs, MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, bool postDraw = false)
         {
             if (funcs.Count == 0)
             {
@@ -507,17 +512,22 @@ namespace ORL.ShaderInspector
             var currDrawerFunc = funcs.First();
             if (_drawerFuncs.ContainsKey(currDrawerFunc))
             {
-                funcs.RemoveAt(0);
-                return _drawerFuncs[currDrawerFunc].OnGUI(editor, properties, property, index, ref _uiState, () => MatchDrawerFuncStack(funcs, editor, properties, property, index), _localizedPropData);
+                if (
+                    (_drawerFuncs[currDrawerFunc].InvokeAfterDraw && postDraw)
+                    || (!_drawerFuncs[currDrawerFunc].InvokeAfterDraw && !postDraw))
+                {
+                    funcs.RemoveAt(0);
+                    return _drawerFuncs[currDrawerFunc].OnGUI(editor, properties, property, index, ref _uiState, () => MatchDrawerFuncStack(funcs, editor, properties, property, index), _localizedPropData);
+                }
             }
 
             funcs.RemoveAt(0);
-            return MatchDrawerFuncStack(funcs, editor, properties, property, index);
+            return MatchDrawerFuncStack(funcs, editor, properties, property, index, postDraw);
         }
 
         private readonly static Regex _drawerFuncMatcher = new Regex(@"(?:%)([a-zA-Z0-9]+)(?=\(.*\))");
 
-        private bool DrawUIProp(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index)
+        private bool DrawUIProp(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, bool postDraw = false)
         {
             var drawerStack = new List<IDrawer>(_drawers);
             var drawn = false;
@@ -536,7 +546,7 @@ namespace ORL.ShaderInspector
                 var shouldRestore = oldIndentLevel != -1;
                 EditorGUI.indentLevel = oldIndentLevel != -1 ? Mathf.Max(0, EditorGUI.indentLevel - 1) : oldIndentLevel;
 #endif
-                drawn = MatchDrawerFuncStack(groups, editor, properties, property, index);
+                drawn = MatchDrawerFuncStack(groups, editor, properties, property, index, postDraw);
 #if UNITY_2022_1_OR_NEWER
                 if (shouldRestore && EditorGUI.indentLevel != -1)
                 {

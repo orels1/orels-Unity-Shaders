@@ -6,6 +6,7 @@
     [Enum(Vertex Color, 0, Texture, 1)]_LMMaskingType("Mask Type", Int) = 0
     _LMMaskTex("Mask Texture > %ShowIf(_LMMaskingType == 1)", 2D) = "white" {}
     [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_LMMaskTexUV("UV Set %ShowIf(_LMMaskingType == 1)", Int) = 0
+    [ToggleUI]_LMMaskBicubic("Use Bicubic Sampling %ShowIf(_LMMaskingType == 1 && _LMMaskTex)", Int) = 0
     [Toggle(MASK_DEBUGGING)]_LMMaskDebugging("Mask Debugging", Int) = 0
     [Enum(All, 0, Black, 1, Red, 2, Green, 3, Blue, 4, White, 5, Alpha, 6)]_LMMaskDebuggingChannel("Debug Channel %ShowIf(MASK_DEBUGGING)", Int) = 0
 
@@ -114,8 +115,8 @@
     _LMLayer3Smoothness("Smoothness %ShowIf(!_LMLayer3MaskMap && _LayeredMatLayersCount > 2)", Range(0, 1)) = 0.5
     [ToggleUI]_LMLayer3RoughnessMode("Roughness Mode %ShowIf(_LMLayer3MaskMap && _LayeredMatLayersCount > 2)", Int) = 0
     _LMLayer3Metallic("Metallic %ShowIf(!_LMLayer3MaskMap && _LayeredMatLayersCount > 2)", Range(0, 1)) = 0
-    [HideInInspector]_LMLayer3MetallicRemap("Metallic Remap %ShowIf(_LMLayer3MaskMap && _LayeredMatLayersCount > 2) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
-    [HideInInspector]_LMLayer3SmoothnessRemap("Smoothness Remap %ShowIf(_LMLayer3MaskMap && _LayeredMatLayersCount > 2) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
+    _LMLayer3MetallicRemap("Metallic Remap %ShowIf(_LMLayer3MaskMap && _LayeredMatLayersCount > 2) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
+    _LMLayer3SmoothnessRemap("Smoothness Remap %ShowIf(_LMLayer3MaskMap && _LayeredMatLayersCount > 2) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
     _LMLayer3OcclusionStrength("AO Strength %ShowIf(_LayeredMatLayersCount > 2)", Range(0, 1)) = 1
     [NoScaleOffset]_LMLayer3BumpMap("Normal Map > %ShowIf(_LayeredMatLayersCount > 2)", 2D) = "bump" { }
     _LMLayer3BumpScale("Normal Map Scale %ShowIf(_LMLayer3BumpMap && _LayeredMatLayersCount > 2)", Range(-1, 1)) = 1
@@ -167,6 +168,7 @@
     int _LayeredMatLayersCount;
     int _LMMaskingType;
     int _LMMaskTexUV;
+    int _LMMaskBicubic;
 
     #if defined(MASK_DEBUGGING)
     int _LMMaskDebuggingChannel;
@@ -600,7 +602,17 @@
             case 2: layerMaskUv = d.uv2.xy; break;
             case 3: layerMaskUv = d.uv3.xy; break;
         }
-        half4 layerMask = _LMMaskingType == 0 ? d.vertexColor : SAMPLE_TEXTURE2D(_LMMaskTex, sampler_LMMaskTex, layerMaskUv);
+        half4 layerMask = d.vertexColor;
+
+        [branch]
+        if (_LMMaskingType == 1) {
+            [branch]
+            if (_LMMaskBicubic) {
+                layerMask = tex2DFastBicubicSampleNoChecks(_LMMaskTex, sampler_LMMaskTex, layerMaskUv);
+            } else {
+                layerMask = SAMPLE_TEXTURE2D(_LMMaskTex, sampler_LMMaskTex, layerMaskUv);
+            }
+        }
 
         // Layer 1
         SetupLayerInputs(1);

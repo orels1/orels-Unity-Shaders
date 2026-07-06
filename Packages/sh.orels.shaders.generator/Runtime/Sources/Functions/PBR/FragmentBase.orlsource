@@ -12,7 +12,7 @@
     _ClothSheenColor("Sheen Color %ShowIf(SHADING_MODE_CLOTH && _ClothHasCustomSheen)", Color) = (0.04,0.04,0.04,1)
     [ToggleUI]_ClothHasSubsurface("Add Subsurface Color %ShowIf(SHADING_MODE_CLOTH)", Int) = 0
     _ClothSubsurfaceColor("Subsurface Color %ShowIf(SHADING_MODE_CLOTH && _ClothHasSubsurface)", Color) = (1,1,1,1)
-    
+
     UI_AdvancedSettingsHeader("# Advanced Settings", Int) = 1
     [Enum(UnityEngine.Rendering.CullMode)]_CullMode("Culling Mode", Int) = 2
     _RenderType("Render Type %RenderType(_BlendOp, _SrcBlend, _DstBlend, _BlendOpAlpha, _SrcBlendAlpha, _DstBlendAlpha, _ZWrite)", Float) = -1
@@ -29,7 +29,7 @@
     UI_AdvancedSettingsDepthHeader("## Depth", Int) = 1
     [Enum(Off, 0, On, 1)]_ZWrite("Depth Write", Int) = 1
     [Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("Depth Test", Int) = 4
-    
+
     UI_GSAAHeader("## GSAA", Float) = 0
     [Toggle(GSAA)]_EnableGSAA("GSAA Enabled", Int) = 1
     UI_GSAANote("> GSAA dramatically reduces specular aliasing", Int) = 0
@@ -46,7 +46,7 @@
     _ColorCorrLift("Lift %ShowIf(_ApplyColorCorrection)", Range(0, 2)) = 1
     _ColorCorrGamma("Gamma %ShowIf(_ApplyColorCorrection)", Range(0,2)) = 1.1
     _ColorCorrGain("Gain %ShowIf(_ApplyColorCorrection)", Range(0, 2)) = 1.4
-    
+
     UI_LightmappingHeader("# Lightmapping", Int) = 1
     UI_LightmappingDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#lightmapping)", Int) = 0
     [Toggle(NONLINEAR_SH)]_NonlinearSH("Non-Linear Lightprobe SH", Int) = 0
@@ -59,7 +59,7 @@
     _SpecularRoughnessMod("Specular Roughness Mod %ShowIf(BAKED_SPECULAR)", Range(0, 1)) = 1
     _BakedSpecularOcclusion("Baked Specular Occlusion %ShowIf(BAKED_SPECULAR)", Range(0, 1)) = 0.75
     UI_BakedSpecularOcclusionNote("?> If the object is lightmapped: this will adjust the intensity of the lightmap specular derived from the Directional lightmap.\nIf the object is not lightmapped: this will adjust the intensity of the specular derived from lightprobes %ShowIf(BAKED_SPECULAR)", Int) = 0
-    
+
     UI_GITweaksHeader("## Global Illumination Tweaks", Int) = 0
     [ToggleUI]_BoxProjectionContactHardening("Box Projection Contact Hardening", Int) = 0
     _BoxProjectionContactHardeningStrength("Hardening Strength %ShowIf(_BoxProjectionContactHardening)", Range(0, 1)) = 1
@@ -68,7 +68,7 @@
     [ToggleUI]_IgnoreRealtimeGI("Ignore Relatime GI", Int) = 0
     UI_IgnoreRealtimeGINote("?> This will make the material ignore Unity Realtime GI system. It does not affect custom RTGI systems like LTCGI", Int) = 0
     [ToggleUI]_RealtimeGIDisableBicubic("Disable Bicubic for RTGI %ShowIf(BICUBIC_LIGHTMAP)", Int) = 0
-    
+
     UI_BakeryHeader("## Bakery Features", Int) = 0
     [Toggle(BAKERY_ENABLED)]_BakeryEnabled("Enable Bakery Features", Int) = 0
     [KeywordEnum(None, MONOSH, SH, RNM)]BAKERY("Bakery Mode %ShowIf(BAKERY_ENABLED)", Int) = 0
@@ -86,7 +86,7 @@
     [Enum(UnityEngine.Rendering.StencilOp)]_StencilPassOp("Pass Operation", Float) = 0
     [Enum(UnityEngine.Rendering.StencilOp)]_StencilFailOp("Fail Operation", Float) = 0
     [Enum(UnityEngine.Rendering.StencilOp)]_StencilZFailOp("ZFail Operation", Float) = 0
-    
+
     UI_InternalHeader("# Internal", Int) = 0
     [HideInInspector]INTERNAL_ShaderVersion("Shader Version", Int) = 700
     [HideInInspector]INTERNAL_MaterialShaderVersion("Material Shader Version", Int) = 0
@@ -115,7 +115,7 @@
     #pragma shader_feature_local_fragment SHADE_VERTEXLIGHTS
     #pragma shader_feature_local_fragment SHADING_MODE_DEFAULT SHADING_MODE_CLOTH
     #pragma shader_feature_local_fragment CLEARCOAT
-    
+
     // PC Only Features
     #if !defined(UNITY_PBS_USE_BRDF2) && !defined(SHADER_API_MOBILE)
         #pragma shader_feature_local_fragment BICUBIC_LIGHTMAP
@@ -140,7 +140,7 @@
 %ShaderDefines()
 {
     #define ORL_LIGHTING_MODEL_PBR
-    
+
     #if defined(UNITY_PBS_USE_BRDF2) || defined(SHADER_API_MOBILE)
         #define PLAT_QUEST
     #else
@@ -162,6 +162,10 @@
     #if !defined(NEED_FRAGMENT_IN_SHADOW)
         #define NEED_FRAGMENT_IN_SHADOW
     #endif
+
+    #define NEED_SCREEN_POS
+
+    #define GLOBAL_UVS_PRESENT
 }
 
 %ShaderModifiers()
@@ -174,7 +178,7 @@
         Fail [_StencilFailOp]
         ZFail [_StencilZFailOp]
     }
-    
+
     ZTest[_ZTest]
     ZWrite[_ZWrite]
     Cull[_CullMode]
@@ -225,6 +229,12 @@
 
     int _RenderType;
     half _Cutoff;
+
+    #if !defined(NEED_FLOAT4_UV)
+    float2 GLOBAL_uvArray[8];
+    #else
+    float4 GLOBAL_uvArray[8];
+    #endif
 }
 
 %Textures()
@@ -241,6 +251,29 @@
     "self"
 }
 
+%Fragment("PBRFragmentSetup", -99999)
+{
+    void PBRFragmentSetup(MeshData d)
+    {
+        // Populate UVs for easier access
+        GLOBAL_uvArray[0] = d.uv0;
+        GLOBAL_uvArray[1] = d.uv1;
+        GLOBAL_uvArray[2] = d.uv2;
+        GLOBAL_uvArray[3] = d.uv3;
+
+        #if defined(NEED_UV4)
+            GLOBAL_uvArray[4] = d.uv4;
+        #elif defined(NEED_UV5)
+            GLOBAL_uvArray[5] = d.uv5;
+        #elif defined(NEED_UV6)
+            GLOBAL_uvArray[6] = d.uv6;
+        #elif defined(NEED_UV7)
+            GLOBAL_uvArray[7] = d.uv7;
+        #endif
+    }
+}
+
+
 %FragmentBase("FragmentBase")
 {
     void FragmentBase(MeshData d, FragmentData i, SurfaceData o, inout half4 FinalColor)
@@ -255,7 +288,7 @@
 
         half3 indirectDiffuse = 0;
         half3 indirectSpecular = 0;
-        
+
         half occlusion = o.Occlusion;
 
         half perceptualRoughness = 1 - o.Smoothness;
@@ -265,7 +298,7 @@
         #if defined(SHADING_MODE_CLOTH)
         half3 albedoSqrt = sqrt(o.Albedo);
         #endif
-        
+
         o.Normal = Unity_SafeNormalize(mul(o.Normal, d.TBNMatrix));
 
         #ifndef USING_DIRECTIONAL_LIGHT
@@ -387,10 +420,10 @@
                 _GlobalVolumeRY = _Udon_GlobalVolumeRY;
                 #endif
             }
-            
+
             bool isGlobalVolume = _VolumeInvSize.x > 1000000; // ~inf
             volumeData.viewDir = Unity_SafeNormalize(d.worldSpaceViewDir);
-            
+
             // Runtime volume rotation
             // Requires a special adapter to work in VRChat
             #if defined(BAKERY_VOLROTATION)
@@ -400,7 +433,7 @@
 
                 volumeData.normal = mul((float3x3)volMatrix, o.Normal);
                 volumeData.normal = Unity_SafeNormalize(volumeData.normal);
-                
+
                 #if defined(BAKED_SPECULAR)
                     volumeData.viewDir = mul((float3x3)volMatrix, volumeData.viewDir);
                 #endif
@@ -425,7 +458,7 @@
             }
             #endif
 
-        #endif    
+        #endif
 
         // READ THE LIGHTMAP
         // Can be Baked, Realtime, both or either
@@ -436,7 +469,7 @@
 
             // explicitly checking for lightmap on because we can be in rtgi only mode
             #if defined(LIGHTMAP_ON)
-            
+
             // UNITY LIGHTMAPPING
             #if !defined(BAKERYLM_ENABLED) || !defined(BAKERY_ENABLED)
                 lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
@@ -447,7 +480,7 @@
                 float3 rnm0 = DecodeLightmap(BakeryTex2D(_RNM0, sampler_RNM0, lightmapUV, _RNM0_TexelSize));
                 float3 rnm1 = DecodeLightmap(BakeryTex2D(_RNM1, sampler_RNM0, lightmapUV, _RNM0_TexelSize));
                 float3 rnm2 = DecodeLightmap(BakeryTex2D(_RNM2, sampler_RNM0, lightmapUV, _RNM0_TexelSize));
-                
+
                 lightMap = saturate(dot(rnmBasis0, tangentNormal)) * rnm0 +
                 saturate(dot(rnmBasis1, tangentNormal)) * rnm1 +
                 saturate(dot(rnmBasis2, tangentNormal)) * rnm2;
@@ -456,14 +489,14 @@
             // BAKERY SH MODE (these are also used for the specular)
             #if defined(BAKERY_SH) && defined(BAKERY_ENABLED)
                 half3 L0 = DecodeLightmap(BakeryTex2D(unity_Lightmap, samplerunity_Lightmap, lightmapUV, _RNM0_TexelSize));
-                
+
                 half3 nL1x = BakeryTex2D(_RNM0, sampler_RNM0, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
                 half3 nL1y = BakeryTex2D(_RNM1, sampler_RNM0, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
                 half3 nL1z = BakeryTex2D(_RNM2, sampler_RNM0, lightmapUV, _RNM0_TexelSize) * 2.0 - 1.0;
                 half3 L1x = nL1x * L0 * 2.0;
                 half3 L1y = nL1y * L0 * 2.0;
                 half3 L1z = nL1z * L0 * 2.0;
-                
+
                 // Non-Linear mode
                 #if defined(BAKERY_SHNONLINEAR)
                 half lumaL0 = dot(L0, half(1));
@@ -471,7 +504,7 @@
                 half lumaL1y = dot(L1y, half(1));
                 half lumaL1z = dot(L1z, half(1));
                 half lumaSH = shEvaluateDiffuseL1Geomerics(lumaL0, half3(lumaL1x, lumaL1y, lumaL1z), o.Normal);
-                
+
                 lightMap = L0 + o.Normal.x * L1x + o.Normal.y * L1y + o.Normal.z * L1z;
                 half regularLumaSH = dot(lightMap, 1.0);
                 lightMap *= lerp(1.0, lumaSH / regularLumaSH, saturate(regularLumaSH * 16.0));
@@ -556,7 +589,7 @@
             volumeData = GetBakeryVolumeTextureData(volumeData);
             // Sample using Geomerics approach, similar to lightprobes and LPPVs
             indirectDiffuse = max(0, GetNonLinearSH(
-                volumeData.L0, 
+                volumeData.L0,
                 float3(volumeData.L1x.r, volumeData.L1y.r, volumeData.L1z.r),
                 float3(volumeData.L1x.g, volumeData.L1y.g, volumeData.L1z.g),
                 float3(volumeData.L1x.b, volumeData.L1y.b, volumeData.L1z.b),
@@ -597,7 +630,7 @@
                         }
                         #else
                         {
-                            indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
+                            indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
                         }
                         #endif
                     }
@@ -623,7 +656,7 @@
                     }
                     #else
                     {
-                        indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));   
+                        indirectDiffuse = max(0, ShadeSH9(half4(o.Normal, 1)));
                     }
                     #endif
                 }
@@ -904,7 +937,7 @@
 
         half computedSpecularOcclusion = computeSpecularAO(NoV, o.Occlusion * indirectSpecularOcclusion, clampedRoughness);
         computedSpecularOcclusion *= energyCompensation;
-        
+
         #if defined(BAKED_SPECULAR)
         {
             bakedDirectSpecular *= saturate(lerp(1, computedSpecularOcclusion, _BakedSpecularOcclusion));
@@ -1009,7 +1042,7 @@
         {
             FinalColor.a = o.Alpha;
         }
-        
+
         #if defined(UNITY_PASS_FORWARDBASE)
         FinalColor.rgb += o.Emission;
         #endif
@@ -1041,7 +1074,7 @@
 {
     void FragmentBaseColorCorr(inout half4 FinalColor) {
         #if defined(APPLY_COLOR_CORRECTION) && defined(PLAT_QUEST)
-        
+
         #if defined(MOBILE_TONEMAP_ACES)
         FinalColor.rgb = Tonemap_ACES(FinalColor.rgb);
         #elif defined(MOBILE_TONEMAP_UNREAL)

@@ -137,6 +137,19 @@ Assets/Mochie
 Assets/Mochie.meta
 Assets/Silent
 Assets/Silent.meta
+Assets/Zekk
+Assets/Zekk.meta
+
+Assets/3D_Assets
+Assets/3D_Assets.meta
+Assets/3D_Plants
+Assets/3D_Plants.meta
+
+Assets/Shaders
+Assets/Shaders.meta
 
 ProjectSettings/lilToonSetting.json
 .vsconfig
+
+Profiling/
+imgui.ini

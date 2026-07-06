@@ -143,11 +143,6 @@ Shader %ShaderName
         Pass
         {
             Tags { "LightMode" = "ForwardBase" %PassTags }
-            Stencil {
-                Ref 69
-                Comp Always
-                Pass [_StencilBasePass]
-            }
             %PassModifiers
 
             // ForwardBase Pass Start
@@ -430,7 +425,7 @@ Shader %ShaderName
                 // Meta Fragment Chain
                 %FragmentFunctions
 
-                FinalColor = 1;
+                FinalColor.rgb = half4(o.Albedo, o.Alpha);
 
                 // Meta Color Chain
                 %ColorFunctions
@@ -558,13 +553,6 @@ Shader %ShaderName
         {
             Name "Outline"
             Tags { "LightMode" = "ForwardBase" %PassTags }
-            Cull Front
-            Stencil {
-                Ref 69
-                Comp [_StencilOutlineComp]
-                Pass Zero
-                Fail Zero
-            }
             %OutlinePassModifiers
 
             // Outline Pass Start

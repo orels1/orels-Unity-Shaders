@@ -2,6 +2,7 @@
 {
     UI_OcclusionHeader("# Occlusion", Int) = 1
     _OcclusionMap("Occlusion >", 2D) = "white" {}
+    [Enum(R,0,G,1,B,2,A,3)]_OcclusionChannel("Channel", Int) = 0
     _OcclusionStrength("Occlusion Strength %ShowIf(_OcclusionMap)", Range(0,1)) = 0
     [Enum(Synced With Albedo, 0, Independent, 1)]_OcclusionTilingMode("Tiling Mode %ShowIf(_OcclusionMap)", Int) = 0
     _OcclusionTiling("Tiling %ShowIf(_OcclusionMap)", Float) = 1
@@ -10,6 +11,7 @@
 
     [ToggleUI]_OcclusionDetailEnabled("Occlusion Detail Enabled", Int) = 0
     _OcclusionDetail("Occlusion Detail > %ShowIf(_OcclusionDetailEnabled)", 2D) = "white" {}
+    [Enum(R,0,G,1,B,2,A,3)]_OcclusionDetailChannel("Channel %ShowIf(_OcclusionDetailEnabled)", Int) = 0
     _OcclusionDetailStrength("Occlusion Detail Strength %ShowIf(_OcclusionDetail && _OcclusionDetailEnabled)", Range(0,1)) = 1
     [Enum(Synced With Albedo, 0, Independent, 1)]_OcclusionDetailTilingMode("Tiling Mode %ShowIf(_OcclusionDetail)", Int) = 0
     _OcclusionDetailTiling("Tiling %ShowIf(_OcclusionDetail)", Float) = 1
@@ -24,11 +26,13 @@
 
 %Variables()
 {
+    int _OcclusionChannel;
     half _OcclusionStrength;
     int _OcclusionTilingMode;
     half _OcclusionTiling;
 
     int _OcclusionDetailEnabled;
+    int _OcclusionDetailChannel;
     half _OcclusionDetailStrength;
     int _OcclusionDetailTilingMode;
     half _OcclusionDetailTiling;
@@ -60,7 +64,7 @@
     {
         float3 p3 = frac(p * float3(.1031, .1030, .0973));
         p3 += dot(p3, p3.yzx+33.33);
-        return frac((p3.xxy+p3.yzz)*p3.zyx); 
+        return frac((p3.xxy+p3.yzz)*p3.zyx);
     }
 
     void ToonOcclusionFragment(MeshData d, inout SurfaceData o) {
@@ -72,11 +76,11 @@
         globalUv = d.uv0;
         #endif
 
-        half occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_MainTex, lerp(globalUv * _OcclusionTiling, d.uv0 * _OcclusionTiling, _OcclusionTilingMode)).r;
+        half occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_MainTex, lerp(globalUv * _OcclusionTiling, d.uv0 * _OcclusionTiling, _OcclusionTilingMode))[_OcclusionChannel];
         o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
-        
+
         if (_OcclusionDetailEnabled) {
-            half occlusionDetail = SAMPLE_TEXTURE2D(_OcclusionDetail, sampler_MainTex, lerp(globalUv * _OcclusionDetailTiling, d.uv0 * _OcclusionDetailTiling, _OcclusionDetailTilingMode)).r;
+            half occlusionDetail = SAMPLE_TEXTURE2D(_OcclusionDetail, sampler_MainTex, lerp(globalUv * _OcclusionDetailTiling, d.uv0 * _OcclusionDetailTiling, _OcclusionDetailTilingMode))[_OcclusionDetailChannel];
             o.Occlusion *= lerp(1, occlusionDetail, _OcclusionDetailStrength);
         }
     }

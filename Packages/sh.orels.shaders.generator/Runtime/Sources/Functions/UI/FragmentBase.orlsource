@@ -44,6 +44,12 @@
     half4 _Color;
     fixed4 _TextureSampleAdd;
     float4 _ClipRect;
+
+    #if !defined(NEED_FLOAT4_UV)
+    float2 GLOBAL_uvArray[8];
+    #else
+    float4 GLOBAL_uvArray[8];
+    #endif
 }
 
 %ShaderFeatures()
@@ -64,7 +70,31 @@
       #endif
     #endif
 
+    #define GLOBAL_UVS_PRESENT
+
     #include "UnityUI.cginc"
+}
+
+%Fragment("UIFragmentSetup", -99999)
+{
+    void UIFragmentSetup(MeshData d)
+    {
+        // Populate UVs for easier access
+        GLOBAL_uvArray[0] = d.uv0;
+        GLOBAL_uvArray[1] = d.uv1;
+        GLOBAL_uvArray[2] = d.uv2;
+        GLOBAL_uvArray[3] = d.uv3;
+
+        #if defined(NEED_UV4)
+            GLOBAL_uvArray[4] = d.uv4;
+        #elif defined(NEED_UV5)
+            GLOBAL_uvArray[5] = d.uv5;
+        #elif defined(NEED_UV6)
+            GLOBAL_uvArray[6] = d.uv6;
+        #elif defined(NEED_UV7)
+            GLOBAL_uvArray[7] = d.uv7;
+        #endif
+    }
 }
 
 %FragmentBase("FragmentBase")

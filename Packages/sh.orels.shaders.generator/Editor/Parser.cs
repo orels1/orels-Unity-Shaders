@@ -34,6 +34,7 @@ namespace ORL.ShaderGenerator
             VertexBase,
             FragmentBase,
             ExtraPass,
+            SkipAlwaysIncludedBlocks,
             Custom
         }
 
@@ -99,6 +100,8 @@ namespace ORL.ShaderGenerator
                     return BlockType.FragmentBase;
                 case "%ExtraPass":
                     return BlockType.ExtraPass;
+                case "%SkipAlwaysIncludedBlocks":
+                    return BlockType.SkipAlwaysIncludedBlocks;
                 case "%Custom":
                     return BlockType.Custom;
                 default:
@@ -246,7 +249,7 @@ namespace ORL.ShaderGenerator
 
                                 var blockIndentation = _current;
                                 _start = _current + 1;
-                                var paramsString = ConsumeUntil(')');
+                                var paramsString = ConsumeParameters();
                                 var paramsList = new List<string>();
                                 if (!string.IsNullOrEmpty(paramsString))
                                 {
@@ -448,6 +451,37 @@ namespace ORL.ShaderGenerator
                 }
 
                 result.Add(cleanLine.Substring(string.IsNullOrWhiteSpace(cleanLine) ? 0 : offset));
+            }
+
+            return null;
+        }
+
+        private string ConsumeParameters()
+        {
+            var initial = _current;
+            var depth = 0;
+            while (_current < _total)
+            {
+                if (_current + 1 > _total)
+                {
+                    return null;
+                }
+
+                if (_currentLine[_current] == '(')
+                {
+                    depth++;
+                }
+                else if (_currentLine[_current] == ')')
+                {
+                    depth--;
+                }
+
+                if (_current != initial && depth == 0)
+                {
+                    return _currentLine.Substring(_start, _current - _start);
+                }
+                
+                _current++;
             }
 
             return null;

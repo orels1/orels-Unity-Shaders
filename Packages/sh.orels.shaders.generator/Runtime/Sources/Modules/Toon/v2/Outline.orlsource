@@ -21,6 +21,20 @@
     #pragma shader_feature_local OUTLINE_ENABLED
 }
 
+%OutlinePassModifiers()
+{
+    BlendOp Add, Max
+    Blend One Zero, One One
+
+    Cull Front
+    Stencil {
+        Ref 69
+        Comp [_StencilOutlineComp]
+        Pass Zero
+        Fail Zero
+    }
+}
+
 %Variables()
 {
     #if defined(OUTLINE_ENABLED) && defined(PASS_OUTLINE)

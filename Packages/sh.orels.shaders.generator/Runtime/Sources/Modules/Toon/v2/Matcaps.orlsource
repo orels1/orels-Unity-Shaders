@@ -29,7 +29,7 @@
     _Matcap1Strength("Strength %ShowIf(MATCAP_1)", Range(0, 1)) = 1
     [Enum(Red, 0, Green, 1, Blue, 2, Alpha, 3)]_Matcap1MaskChannel("Mask Channel %ShowIf(MATCAP_1)", Int) = 0
     _Matcap1MaskStrength("Mask Strength %ShowIf(MATCAP_1)", Range(0, 1)) = 1
-    
+
     UI_Matcap2Header("## Layer 3", Int) = 0
     [Toggle(MATCAP_2)]_Matcap2Enabled("Enable Layer 3", Int) = 0
     _Matcap2Tex("Matcap > %ShowIf(MATCAP_2)", 2D) = "white" {}
@@ -153,7 +153,6 @@
 {
     #if defined(MATCAPS_MASK_SET)
     TEXTURE2D(_MatcapsMask);
-    SAMPLER(sampler_MatcapsMask);
     #endif
 
     #if defined(MATCAP_0)
@@ -171,28 +170,6 @@
     #if defined(MATCAP_3)
     TEXTURE2D(_Matcap3Tex);
     #endif
-
-    // Define correct samplers in case some are not defined
-    // This allows to always reuse the earlier sampler if it was available
-    #if defined(MATCAP_0)
-    SAMPLER(sampler_Matcap0Tex);
-    #define MatcapSampler sampler_Matcap0Tex
-    #endif
-
-    #if !defined(MATCAP_0) && defined(MATCAP_1)
-    SAMPLER(sampler_Matcap1Tex);
-    #define MatcapSampler sampler_Matcap1Tex
-    #endif
-
-    #if !defined(MATCAP_0) && !defined(MATCAP_1) && defined(MATCAP_2)
-    SAMPLER(sampler_Matcap2Tex);
-    #define MatcapSampler sampler_Matcap2Tex
-    #endif
-
-    #if !defined(MATCAP_0) && !defined(MATCAP_1) && !defined(MATCAP_2) && defined(MATCAP_3)
-    SAMPLER(sampler_Matcap3Tex);
-    #define MatcapSampler sampler_Matcap3Tex
-    #endif    
 }
 
 %PassFunctions()
@@ -232,11 +209,11 @@
                 float3 viewSpaceViewDir = TransformWorldToViewDir(viewDir);
                 float3 viewBasedDirection = viewSpaceViewDir * float3(-1, -1, 1) + float3(0, 0, 1);
                 float3 noSknewViewNormal = viewBasedDirection * dot(viewBasedDirection, normalBasedDirection) / viewBasedDirection.b - normalBasedDirection;
-                
+
                 matcapUV = noSknewViewNormal.rg * border + 0.5;
                 break;
             }
-            
+
             // Top Pinch
             case 1:
             {
@@ -266,15 +243,9 @@
         half4 matcapMask = 1;
         #if defined(MATCAPS_MASK_SET)
         {
-            float2 matcapMaskUV = 0;
-            switch (_MatcapsMaskUVSet) {
-                case 0: matcapMaskUV = d.uv0; break;
-                case 1: matcapMaskUV = d.uv1; break;
-                case 2: matcapMaskUV = d.uv2; break;
-                case 3: matcapMaskUV = d.uv3; break;
-            }
+            float2 matcapMaskUV = GLOBAL_uvArray[_MatcapsMaskUVSet].xy;
             matcapMaskUV = matcapMaskUV * _MatcapsMask_ST.xy + _MatcapsMask_ST.zw;
-            matcapMask = SAMPLE_TEXTURE2D(_MatcapsMask, sampler_MatcapsMask, matcapMaskUV);
+            matcapMask = SAMPLE_TEXTURE2D(_MatcapsMask, sampler_MainTex, matcapMaskUV);
         }
         #endif
 
@@ -282,10 +253,10 @@
         #if defined(MATCAP_0)
         {
             half2 matcapUv = GetMatcapUV(_Matcap0UVMode, worldNormal, d.worldSpaceViewDir, _Matcap0Border);
-            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap0Tex, MatcapSampler, matcapUv, _Matcap0Blur * 9).rgb;
+            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap0Tex, sampler_MainTex, matcapUv, _Matcap0Blur * 9).rgb;
             matcap *= lerp(1, o.Albedo, _Matcap0TintToDiffuse);
             matcap *= _Matcap0Tint;
-            
+
             o.Matcap0 = matcap;
             o.Matcap0BlendMode = _Matcap0BlendMode;
             o.Matcap0Mask = lerp(1, matcapMask[_Matcap0MaskChannel], _Matcap0MaskStrength) * _Matcap0Strength;
@@ -295,10 +266,10 @@
         #if defined(MATCAP_1)
         {
             half2 matcapUv = GetMatcapUV(_Matcap1UVMode, worldNormal, d.worldSpaceViewDir, _Matcap1Border);
-            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap1Tex, MatcapSampler, matcapUv, _Matcap1Blur * 9).rgb;
+            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap1Tex, sampler_MainTex, matcapUv, _Matcap1Blur * 9).rgb;
             matcap *= lerp(1, o.Albedo, _Matcap1TintToDiffuse);
             matcap *= _Matcap1Tint;
-            
+
             o.Matcap1 = matcap;
             o.Matcap1BlendMode = _Matcap1BlendMode;
             o.Matcap1Mask = lerp(1, matcapMask[_Matcap1MaskChannel], _Matcap1MaskStrength) * _Matcap1Strength;
@@ -308,10 +279,10 @@
         #if defined(MATCAP_2)
         {
             half2 matcapUv = GetMatcapUV(_Matcap2UVMode, worldNormal, d.worldSpaceViewDir, _Matcap2Border);
-            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap2Tex, MatcapSampler, matcapUv, _Matcap2Blur * 9).rgb;
+            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap2Tex, sampler_MainTex, matcapUv, _Matcap2Blur * 9).rgb;
             matcap *= lerp(1, o.Albedo, _Matcap2TintToDiffuse);
             matcap *= _Matcap2Tint;
-            
+
             o.Matcap2 = matcap;
             o.Matcap2BlendMode = _Matcap2BlendMode;
             o.Matcap2Mask = lerp(1, matcapMask[_Matcap2MaskChannel], _Matcap2MaskStrength) * _Matcap2Strength;
@@ -321,10 +292,10 @@
         #if defined(MATCAP_3)
         {
             half2 matcapUv = GetMatcapUV(_Matcap3UVMode, worldNormal, d.worldSpaceViewDir, _Matcap3Border);
-            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap3Tex, MatcapSampler, matcapUv, _Matcap3Blur * 9).rgb;
+            half3 matcap = SAMPLE_TEXTURE2D_LOD(_Matcap3Tex, sampler_MainTex, matcapUv, _Matcap3Blur * 9).rgb;
             matcap *= lerp(1, o.Albedo, _Matcap3TintToDiffuse);
             matcap *= _Matcap3Tint;
-            
+
             o.Matcap3 = matcap;
             o.Matcap3BlendMode = _Matcap3BlendMode;
             o.Matcap3Mask = lerp(1, matcapMask[_Matcap3MaskChannel], _Matcap3MaskStrength) * _Matcap3Strength;
@@ -397,7 +368,7 @@
         #if defined(MATCAP_3)
         {
             half3 matcapBlended = o.Matcap3 * (indirectDiffuse + lightColor * lightAttenuation * 0.5);
-            // Pre-blend based on mastcap blend mode            
+            // Pre-blend based on mastcap blend mode
             half3 matcap = lerp(matcapBlended, lerp(o.Matcap3, matcapBlended, saturate(o.Matcap3BlendMode - 1)), o.Matcap3BlendMode);
 
             // Blend with final color

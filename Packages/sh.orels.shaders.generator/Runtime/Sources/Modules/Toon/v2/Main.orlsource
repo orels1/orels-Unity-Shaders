@@ -9,7 +9,8 @@
     _MainTex("Albedo", 2D) = "white" {}
     [Toggle(SEPARATE_ALPHA)]_SeparateAlpha("Separate Transparency Texture", Int) = 0
     _AlphaTex("Transparency %ShowIf(_SeparateAlpha)", 2D) = "white" {}
-    _AlphaScale("Alpha Scale %ShowIf(_MainTex || SEPARATE_ALPHA)", Range(0,2)) = 1
+    [ToggleUI]_AlphaBicubic("Use Bicubic Sampling %ShowIf(_SeparateAlpha)", Int) = 0
+    _AlphaScale("Alpha Scale %ShowIf(_MainTex || SEPARATE_ALPHA)", Range(-4,4)) = 1
     [Enum(UV1, 0, UV2, 1, UV3, 2, UV4, 3)]_MainTexUVSet("UV Set", Int) = 0
     _Hue("Hue", Range(0,1)) = 0
     _Saturation("Saturation", Range(-1,1)) = 0
@@ -39,6 +40,7 @@
     half4 _BackfaceColor;
     half _BackfaceAlbedoTint;
     half _AlphaScale;
+    int _AlphaBicubic;
     half _Hue;
     half _Saturation;
     half _Value;
@@ -60,13 +62,7 @@
 {
     void ToonMainFragment(MeshData d, inout SurfaceData o, bool facing)
     {
-        float2 uv = 0;
-        switch (_MainTexUVSet) {
-            case 0: uv = d.uv0; break;
-            case 1: uv = d.uv1; break;
-            case 2: uv = d.uv2; break;
-            case 3: uv = d.uv3; break;
-        }
+        float2 uv = GLOBAL_uvArray[_MainTexUVSet].xy;
         uv = uv * _MainTex_ST.xy + _MainTex_ST.zw;
         GLOBAL_uv = uv;
         half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
@@ -81,15 +77,25 @@
         albedoHSV.y = saturate(albedoHSV.y + _Saturation);
         albedoHSV.z = saturate(albedoHSV.z + _Value);
         albedo.rgb = HSV2RGB(albedoHSV);
-        
+
         if (_TintByVertexColor) {
             albedo.rgb *= d.vertexColor.rgb;
         }
         o.Albedo = albedo.rgb;
         #if defined(NEED_ALBEDO_ALPHA)
         {
-            #if defined(SEPARATE_ALPHA) 
-            o.Alpha = saturate(SAMPLE_TEXTURE2D(_AlphaTex, sampler_MainTex, GLOBAL_uv).r * _AlphaScale);
+            #if defined(SEPARATE_ALPHA)
+            half alpha = 1;
+
+            [branch]
+            if (_AlphaBicubic) {
+                alpha = saturate(tex2DFastBicubicSampleNoChecks(_AlphaTex, sampler_MainTex, GLOBAL_uv).r);
+            } else {
+                alpha = saturate(SAMPLE_TEXTURE2D(_AlphaTex, sampler_MainTex, GLOBAL_uv).r);
+            }
+            alpha = _AlphaScale < 0 ? (1.0 - alpha * (-_AlphaScale)) : alpha * _AlphaScale;
+            alpha = saturate(alpha);
+            o.Alpha = alpha;
             #else
             o.Alpha = saturate(albedo.a * _AlphaScale);
             #endif

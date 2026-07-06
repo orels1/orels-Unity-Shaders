@@ -51,7 +51,7 @@
     [HideInInspector][Enum(X, 0, Y, 1, Z, 2)] _ExtrusionMaskPlanarAxisY("Y Axis %ShowIf(_ExtrusionMaskMappingSpace > 0)", Int) = 02
     [Enum(R, 0, G, 1, B, 2, A, 3)]_ExtrusionMaskChannel("Mask Channel %ShowIf(_ExtrusionMaskMode > 0)", Int) = 0
     _ExtrusionMaskStrentgh("Mask Strength %ShowIf(_ExtrusionMaskMode > 0)", Range(0, 1)) = 1
-   
+
 
     UI_Level1Header("## Level 1", Int) = 0
     _L1NoiseScale("Noise Scale", Float) = 1.7
@@ -192,6 +192,7 @@
         float4 uv1 : TEXCOORD1;
         float4 uv2 : TEXCOORD2;
         float4 uv3 : TEXCOORD3;
+        uint vertexID : SV_VertexID;
         UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 
@@ -211,7 +212,7 @@
     )
     {
         float3 wPos = noiseSpace ? vertexPos : TransformObjectToWorld(vertexPos);
-        float3 pos = wPos.xyz / 100;        
+        float3 pos = wPos.xyz / 100;
 
         float3 vertOffset = 0;
 
@@ -222,7 +223,7 @@
             if (maskingParams.maskMode == 1)
             {
                 float2 maskUv = v.uv0.xy;
-                
+
                 if (maskingParams.mappingSpace == 0)
                 {
                     switch (maskingParams.maskUVChannel)
@@ -321,7 +322,7 @@
             noiseL3.noiseScale = _L3NoiseScale;
             noiseL3.noiseDirection = _L3NoiseDirection;
             noiseL3.noiseStrength = _L3NoiseStrength;
-            
+
             float3 vertOffset = CloudExtrusion(v, v.vertex, wNormal, exDir, TEXTURE2D_ARGS(_BakedNoiseTex, sampler_BakedNoiseTex), _BakedNoiseTex_TexelSize, _NoiseSpace, TEXTURE2D_ARGS(_ExtrusionMask, sampler_ExtrusionMask), maskingParams, noiseL1, noiseL2, noiseL3);
             v.vertex.xyz += vertOffset;
         }
@@ -360,7 +361,7 @@
         noiseL3.noiseScale = _L3NoiseScale;
         noiseL3.noiseDirection = _L3NoiseDirection;
         noiseL3.noiseStrength = _L3NoiseStrength;
-        
+
         #if defined(RECALCULATE_NORMALS) && defined(APPLY_SHADING)
         {
             float3 vertOffset = CloudExtrusion(
@@ -370,9 +371,9 @@
                 maskingParams, noiseL1, noiseL2, noiseL3
             );
             float3 newVertPos = v.vertex.xyz + vertOffset;
-            
+
             float3 bitangent = cross(v.normal.xyz, v.tangent.xyz);
-            
+
             float3 newTangent = v.vertex.xyz + v.tangent.xyz * _NormalPrecision;
             newTangent = (newTangent
                 + CloudExtrusion(
@@ -392,7 +393,7 @@
                     maskingParams, noiseL1, noiseL2, noiseL3
                 )
             ) - newVertPos;
-            
+
             v.normal.xyz = cross(newTangent, newBitangent);
             v.tangent.xyz = newTangent;
             v.vertex.xyz = newVertPos;
@@ -415,7 +416,7 @@
     void CloudsFragment(MeshData d, inout SurfaceData o, FragmentData i)
     {
         float sceneZ = LinearEyeDepth(SampleSceneDepth(d.extraV2F0.xy / d.extraV2F0.w));
-        float depth = sceneZ - d.extraV2F0.z;   
+        float depth = sceneZ - d.extraV2F0.z;
         depth = saturate(invLerp(0, _DepthTransp, depth));
         depth = lerp(1, depth, _EnableDepthBlending);
         o.Alpha = depth;
@@ -464,20 +465,20 @@
                 zyUV = zyUV.yx;
                 xzUV = xzUV.yx;
             }
-            
+
             half4 xySample = SAMPLE_TEXTURE2D(_DetailTexture, sampler_DetailTexture, xyUV);
             half4 zySample = SAMPLE_TEXTURE2D(_DetailTexture, sampler_DetailTexture, zyUV);
             half4 xzSample = SAMPLE_TEXTURE2D(_DetailTexture, sampler_DetailTexture, xzUV);
-            
+
             float3 worldNormal = abs(d.worldNormal);
             worldNormal = saturate(worldNormal - (1 - _DetailTriplanarBlend));
-            
+
             half xNormalMask = saturate(lerp(-1, 1, worldNormal.x));
             half yNormalMask = saturate(lerp(-1, 1, worldNormal.y));
             half zNormalMask = saturate(lerp(-1, 1, worldNormal.z));
-            
+
             half4 detail = lerp(lerp(lerp(0, xzSample, yNormalMask), zySample, xNormalMask), xySample, zNormalMask);
-            
+
 
             o.Albedo = lerp(o.Albedo, o.Albedo * detail.rgb * _DetailTextureTint.rgb, detail.a * _DetailTextureTint.a * _DetailTextureStrength);
         }

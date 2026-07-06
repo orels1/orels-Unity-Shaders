@@ -32,7 +32,7 @@ namespace ORL.ShaderGenerator
 
         // Cached version of the debug flag to avoid constant asset pinging
         private bool _isDebugBuild;
-        
+
         // cached version of the current importer
         private AssetImportContext _ctx;
 
@@ -179,9 +179,6 @@ namespace ORL.ShaderGenerator
             var parser = new Parser();
             List<ShaderBlock> blocks = new List<ShaderBlock>();
 
-            // Add and register always inlcuded blocks
-            AddAlwaysIncludedBlocks(ctx, ref blocks);
-
             // Load all the direct blocks from the source
             try
             {
@@ -237,6 +234,9 @@ namespace ORL.ShaderGenerator
                 Log($"Block count after recursive resolve: {blocks.Count} \n{string.Join("\n", blocks.OrderBy(b => b.Path).Select(b => $"[{b.Path}]: {b.Name}"))}");
             }
 
+            // Add and register always included blocks
+            AddAlwaysIncludedBlocks(ctx, ref blocks);
+
             // Find and load the lighting model
             List<ShaderBlock> lightingModel;
             var lightingModelName = DefaultLightingModel;
@@ -271,7 +271,7 @@ namespace ORL.ShaderGenerator
                 ctx.LogImportError($"Failed to load Lighting Model in {ctx.assetPath}", this);
                 throw;
             }
-            
+
             if (_isDebugBuild)
             {
                 Log($"Block count after Lighting Model load: {blocks.Count} \n{PrintBlocksListWithPaths(blocks)}");
@@ -307,7 +307,7 @@ namespace ORL.ShaderGenerator
                 ctx.LogImportError($"Failed to toggle Template Features in {ctx.assetPath}", this);
                 throw;
             }
-            
+
             // Collapse non-function blocks together and de-dupe things where makes sense
             blocks = OptimizeBlocks(blocks);
 
@@ -428,7 +428,7 @@ namespace ORL.ShaderGenerator
         }
 
         #region Generator Steps
-        
+
         /// <summary>
         /// Add always included blocks to the `blocks` list and register asset dependencies
         /// </summary>
@@ -436,19 +436,22 @@ namespace ORL.ShaderGenerator
         /// /// <param name="blocks"></param>
         private void AddAlwaysIncludedBlocks(AssetImportContext ctx, ref List<ShaderBlock> blocks)
         {
+            var shouldSkip = blocks.Find(b => b.CoreBlockType == BlockType.SkipAlwaysIncludedBlocks);
+            if (shouldSkip != null) return;
+
             var depList = new List<string>();
             depList.AddRange(AlwaysIncludedBlockSources);
             // Registering asset dependencies, so the shader regenerates with them
             RegisterDependencies(depList, ctx);
             // Adding all the dependencies to the list of blocks
-            blocks.AddRange(AlwaysIncludedBlocks);
+            blocks.InsertRange(0, AlwaysIncludedBlocks);
             if (_isDebugBuild)
             {
                 Log($"Added {depList.Count} always included blocks: {string.Join("\n", depList)}");
             }
         }
 
-        
+
         private static string GetShaderName(List<ShaderBlock> blocks)
         {
             string shaderName;
@@ -466,7 +469,7 @@ namespace ORL.ShaderGenerator
 
             return shaderName;
         }
-        
+
         private List<ShaderBlock> RecursivelyGetDirectDependencies(AssetImportContext ctx, string workingFolder,
             List<ShaderBlock> blocks)
         {
@@ -479,6 +482,7 @@ namespace ORL.ShaderGenerator
                 foreach (var include in blocks[includesIndex].Contents)
                 {
                     var stripped = include.Replace("\"", "").Replace(",", "");
+                    if (string.IsNullOrWhiteSpace(stripped)) continue;
                     // We inject the already parsed blocks in place of "self"
                     if (stripped == "self")
                     {
@@ -550,6 +554,7 @@ namespace ORL.ShaderGenerator
             foreach (var lmInclude in lightingModel.Find(b => b.CoreBlockType == BlockType.Includes).Contents)
             {
                 var stripped = lmInclude.Replace("\"", "").Replace(",", "");
+                if (string.IsNullOrWhiteSpace(stripped)) continue;
                 if (stripped == "target")
                 {
                     updatedBlocks.AddRange(blocks);
@@ -827,7 +832,7 @@ namespace ORL.ShaderGenerator
                             {
                                 Log($"[HookPoints] new block contents for {hookPointBlocks[i].Name} (+{insertedLines}):\n{string.Join("\n", hookPointBlocks[i].Contents)}");
                             }
-                            
+
                             // find and offset every hook point after the current one to account for the offset changes
                             for (var k = j + 1; k < hookPointBlocks[i].HookPoints.Count; k++)
                             {
@@ -1214,10 +1219,10 @@ namespace ORL.ShaderGenerator
 
         // Matches SAMPLER()
         private Regex _samplerRegex = new Regex(@"(?:SAMPLER)(?:_CMP)?\((?<identifier>[\w]+)\)");
-        
+
         // Matches TEXTURE2D_PARAM()
         private Regex _texParamRegex = new Regex(@"TEXTURE2D_PARAM\((?<identifier>[\w]+),\s*(?<sampler>[\w]+)\)");
-        
+
         // Matches TEXTURE2D_ARGS()
         private Regex _texArgsRegex = new Regex(@"TEXTURE2D_ARGS\((?<identifier>[\w]+),\s?(?<sampler>[\w]+)\)");
 
@@ -1228,6 +1233,8 @@ namespace ORL.ShaderGenerator
             Modifiers,
         }
 
+        // We have to store this directly in the generator as we can't import the Inspector code due to cyclic dependency
+        private Regex _priorityRegex = new Regex(@"%Priority\((?<priority>[-\d]+){1}\)");
         private List<string> DeDuplicateByParser(List<string> source, DeDupeType type)
         {
             var keySet = new HashSet<string>();
@@ -1246,6 +1253,30 @@ namespace ORL.ShaderGenerator
                                 if (_isDebugBuild)
                                 {
                                     Debug.LogWarning("Found duplicate item, skipping: " + node.Uniform);
+                                }
+                                // if we have a priority field - we might overwrite the existing entry
+                                var match = _priorityRegex.Match(node.Name);
+                                var newPriority = 0;
+                                if (match.Success)
+                                {
+                                    int.TryParse(match.Groups["priority"].Value, out newPriority);
+                                }
+
+                                var originalIndex = deduped.FindIndex(p => p.Contains(node.Uniform));
+                                var original = deduped[originalIndex];
+                                var originalPriorityMatch = _priorityRegex.Match(original);
+                                // if original property has no priority, treat as priority 0
+                                var originalPriority = 0;
+                                if (originalPriorityMatch.Success)
+                                {
+                                    int.TryParse(originalPriorityMatch.Groups["priority"].Value, out originalPriority);
+                                }
+
+                                // If new priority is higher - remove the original and add the new one
+                                if (newPriority > originalPriority)
+                                {
+                                    deduped.RemoveAt(originalIndex);
+                                    deduped.Add(node.GetCodeInSourceText(combined));
                                 }
 
                                 continue;
@@ -1374,7 +1405,12 @@ namespace ORL.ShaderGenerator
 
                 var identifier = matcher.Match(item).Groups.Cast<Group>().Skip(1).ToList()
                     .Find(m => !string.IsNullOrEmpty(m.Value)).Value;
-                if (keySet.Contains(identifier))
+                var isInsideIfDef = deduped.Count > 0 && (
+                    deduped[deduped.Count - 1].Trim().StartsWith("#if defined")
+                    || deduped[deduped.Count - 1].Trim().StartsWith("#elif")
+                    || deduped[deduped.Count - 1].Trim().StartsWith("#else")
+                );
+                if (keySet.Contains(identifier) && !isInsideIfDef)
                 {
                     if (_isDebugBuild)
                     {
@@ -1623,8 +1659,13 @@ namespace ORL.ShaderGenerator
                     var texMatch = _texRegex.Match(line);
                     if (texMatch.Success)
                     {
+                        var texType = "Texture2D<float4>";
+                        if (texMatch.Value.Contains("TEXTURE3D"))
+                        {
+                            texType = "Texture3D<float4>";
+                        }
                         var newLine = line.Replace(texMatch.Value,
-                            $"Texture2D<float4> {texMatch.Groups["identifier"].Value}");
+                            $"{texType} {texMatch.Groups["identifier"].Value}");
                         processedSource.AppendLine(newLine);
                         continue;
                     }
@@ -1646,7 +1687,7 @@ namespace ORL.ShaderGenerator
                         processedSource.AppendLine(newLine);
                         continue;
                     }
-                    
+
                     var argsMatch = _texArgsRegex.Match(line);
                     if (argsMatch.Success)
                     {
@@ -1686,14 +1727,14 @@ namespace ORL.ShaderGenerator
                         processedSource.AppendLine(newLine);
                         continue;
                     }
-                    
+
                     if (line.Contains("SAMPLE_TEXTURE2D_LOD"))
                     {
                         var newLine = line.Replace("SAMPLE_TEXTURE2D_LOD", "UNITY_SAMPLE_TEX2D_SAMPLER_LOD").Replace("sampler", "");
                         processedSource.AppendLine(newLine);
                         continue;
                     }
-                    
+
                     // Special Handling for ScreenSpace textures
                     if (line.Contains("SAMPLE_TEXTURE2D_X"))
                     {
@@ -1731,9 +1772,8 @@ namespace ORL.ShaderGenerator
 
             return textSource;
         }
-        
+
         #endregion
     }
 
 }
-

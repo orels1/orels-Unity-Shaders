@@ -2,6 +2,29 @@
 {
     struct MeshData
     {
+        #if !defined(NEED_FLOAT4_UV)
+        // by default all UVs are float 2s
+        float2 uv0;
+        float2 uv1;
+        float2 uv2;
+        float2 uv3;
+        #if defined(NEED_UV4)
+        float2 uv4;
+        #endif
+        #if defined(NEED_UV5)
+        float2 uv5;
+        #endif
+        #if defined(NEED_UV6)
+        float2 uv6;
+        #endif
+        #if defined(NEED_UV7)
+        float2 uv7;
+        #endif
+
+        #else // #if !defined(NEED_FLOAT4_UV)
+
+        // Shaders can request to get float4 UVs using
+        // #define NEED_FLOAT4_UV
         float4 uv0;
         float4 uv1;
         float4 uv2;
@@ -18,6 +41,9 @@
         #if defined(NEED_UV7)
         float4 uv7;
         #endif
+
+        #endif // #if !defined(NEED_FLOAT4_UV)
+
         #if !defined(UNITY_PASS_SHADOWCASTER)
         half4 lightmapUv;
         #endif

@@ -3,7 +3,7 @@
     UI_ParallaxHeader("# Parallax", Int) = 0
     UI_ParallaxDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/base-shader#parallax)", Int) = 0
     [Toggle(PARALLAX)]_EnableParallax("Enable Parallax", Int) = 0
-    [NoScaleOffset]_Height("Height > %ShowIf(PARALLAX)", 2D) = "black" {}
+    [NoScaleOffset]_Height("Height > %ShowIf(PARALLAX) %Linear()", 2D) = "black" {}
     _HeightScale("Height Scale %ShowIf(PARALLAX)", Range(0, 0.1)) = 0.006
     _HeightRefPlane("Height Ref Plane %ShowIf(PARALLAX)", Range(-1, 1)) = 0.5
     [KeywordEnum(Eight, Sixteen,ThirtyTwo, SixtyFour)]_ParallaxSteps("Steps %ShowIf(PARALLAX)", Int) = 0
@@ -24,14 +24,14 @@
     half _HeightRefPlane;
     int _ParallaxScaleBasedOnAngle;
     #endif
-    
+
     float2 GLOBAL_parallaxUv;
 
     half GLOBAL_heightMask;
     half GLOBAL_heightMaskSmoothing;
-    
+
     int GLOBAL_heightSet;
-    half GLOBAL_height; 
+    half GLOBAL_height;
 }
 
 %Textures()

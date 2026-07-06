@@ -22,6 +22,7 @@
         #if defined(NEED_UV7)
         float4 uv7 : TEXCOORD7;
         #endif
+        uint vertexID : SV_VertexID;
         UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 }

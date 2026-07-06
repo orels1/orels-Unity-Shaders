@@ -52,4 +52,55 @@
        float h = max( k-abs(a-b), 0.0 )/k;
        return min(a,b) - h*h*h*(4.0-h)*k*(1.0/16.0);
     }
+
+    float SDFTriangle(float2 p, float2 q )
+    {
+        p.x = abs(p.x);
+        float2 a = p - q*clamp( dot(p,q)/dot(q,q), 0.0, 1.0 );
+        float2 b = p - q*float2( clamp( p.x/q.x, 0.0, 1.0 ), 1.0 );
+        float s = -sign( q.y );
+        float2 d = min( float2( dot(a,a), s*(p.x*q.y-p.y*q.x) ),
+                      float2( dot(b,b), s*(p.y-q.y)  ));
+        return -sqrt(d.x)*sign(d.y);
+    }
+
+    float SDFEqualTriangle(float2 p, float r )
+    {
+        const float k = sqrt(3.0);
+        p.x = abs(p.x) - r;
+        p.y = p.y + r/k;
+        if( p.x+k*p.y>0.0 ) p = float2(p.x-k*p.y,-k*p.x-p.y)/2.0;
+        p.x -= clamp( p.x, -2.0*r, 0.0 );
+        return -length(p)*sign(p.y);
+    }
+
+    float SDFUnion(float a, float b)
+    {
+        return min(a, b);
+    }
+
+    float SDFSubtraction(float a, float b)
+    {
+        return max(-a, b);
+    }
+
+    float SDFIntersection(float a, float b)
+    {
+        return max(a, b);
+    }
+
+    float SDFXor(float a, float b)
+    {
+        return max(min(a,b), -max(a,b));
+    }
+
+
+    float SDFCross(float2 p ,float2 b, float r )
+    {
+        p = abs(p); p = (p.y>p.x) ? p.yx : p.xy;
+        float2  q = p - b;
+        float k = max(q.y,q.x);
+        float2  w = (k>0.0) ? q : float2(b.y-p.x,-k);
+        return sign(k)*length(max(w,0.0)) + r;
+    }
 }
