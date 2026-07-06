@@ -12,7 +12,7 @@
     UI_RimThresholdNote("> Controls how much the rim light will be offset by the light direction. 1 Will only show up in the areas hit by the light, 0 will show up everywhere %ShowIf(RIMLIGHT_ON)", Int) = 0
     _RimAttenuation("Attenuation %ShowIf(RIMLIGHT_ON)", Range(0,1)) = 1
     UI_RimAttenuationNote("> Controls how much the rimlight will be visible in shadowed areas. 0 always visible %ShowIf(RIMLIGHT_ON)", Int) = 0
-    _RimNormalStrength("Normal Map Influence", Range(0, 1)) = 1
+    _RimNormalStrength("Normal Map Influence %ShowIf(RIMLIGHT_ON)", Range(0, 1)) = 1
 }
 
 %ShaderFeatures()
