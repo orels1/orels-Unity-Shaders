@@ -373,6 +373,8 @@
         half3 vertexLightSpecular = 0;
         half3 clearCoatVertexLightSpecular = 0;
 
+        %CustomLightingData
+
         [unroll(4)]
         for (int i = 0; i < 4; i++)
         {
@@ -774,16 +776,22 @@
             #endif
             #endif
 
-            bakedDominantDirection = normalize(bakedDominantDirection);
-            #if defined(SHADING_MODE_DEFAULT)
+            // Things like VRCLightVolumes can handle their specular completely on their own
+            #if !defined(SKIP_NATIVE_SPECULAR)
             {
-                bakedDirectSpecular = GetSpecularHighlights(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
-            }
-            #elif defined(SHADING_MODE_CLOTH)
-            {
-                bakedDirectSpecular = GetSpecularHighlightsCloth(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, albedoSqrt, _ClothHasCustomSheen, _ClothSheenColor);
+                bakedDominantDirection = normalize(bakedDominantDirection);
+                #if defined(SHADING_MODE_DEFAULT)
+                {
+                    bakedDirectSpecular = GetSpecularHighlights(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, energyCompensation);
+                }
+                #elif defined(SHADING_MODE_CLOTH)
+                {
+                    bakedDirectSpecular = GetSpecularHighlightsCloth(o.Normal, bakedSpecularColor, bakedDominantDirection, f0, d.worldSpaceViewDir, lerp(1, clampedRoughness, _SpecularRoughnessMod), NoV, albedoSqrt, _ClothHasCustomSheen, _ClothSheenColor);
+                }
+                #endif
             }
             #endif
+
         }
         #endif
 

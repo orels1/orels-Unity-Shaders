@@ -15,8 +15,20 @@ namespace ORL.Tools
 {
     public class VRCLVImporter
     {
+        [MenuItem("Tools/orels1/Import and Parse VRC Light Volumes v2")]
+        public static void ImportAndParseV2()
+        {
+            ImportAndParse(2);
+        }
+
+        [MenuItem("Tools/orels1/Import and Parse VRC Light Volumes v3")]
+        public static void ImportAndParseV3()
+        {
+            ImportAndParse(3);
+        }
+
         [MenuItem("Tools/orels1/Import and Parse VRC Light Volumes")]
-        public static void ImportAndParse()
+        public static void ImportAndParse(int version)
         {
             var projectPath = Application.dataPath.Replace("/Assets", "");
             if (!Directory.Exists(Path.Combine(projectPath, "Temp", "VRCLV")))
@@ -29,10 +41,11 @@ namespace ORL.Tools
             if (!File.Exists(Path.Combine(projectPath, "Temp", "VRCLV", "LightVolumes.cginc")))
             {
                 Debug.Log("No VRCLightVolumes include found, downloading...");
+                var branch = version == 3 ? "lv-3" : "main";
+                var url = $"https://github.com/REDSIM/VRCLightVolumes/raw/refs/heads/{branch}/Packages/red.sim.lightvolumes/Shaders/LightVolumes.cginc";
                 var client = new System.Net.Http.HttpClient();
                 var response =
-                    client.GetAsync(
-                        "https://github.com/REDSIM/VRCLightVolumes/raw/refs/heads/main/Packages/red.sim.lightvolumes/Shaders/LightVolumes.cginc");
+                    client.GetAsync(url);
                 response.Wait(5000);
                 if (response.IsCompletedSuccessfully)
                 {
@@ -100,6 +113,12 @@ namespace ORL.Tools
                 texturesBlock.AppendLine($"    {sampler};");
             }
             texturesBlock.AppendLine("    #define LV_SAMPLE(tex, uvw) tex.SampleLevel(sampler_UdonLightVolume, uvw, 0)");
+            if (version == 3)
+            {
+                texturesBlock.AppendLine("    #define LV_SAMPLE_POINT(uvw) _UdonPointLightVolumeTexture.SampleLevel(sampler_UdonPointLightVolumeTexture, uvw, 0)");
+                texturesBlock.AppendLine("    #define LV_SAMPLE_POINT_LOD(uvw, lod) _UdonPointLightVolumeTexture.SampleLevel(sampler_UdonPointLightVolumeTexture, uvw, lod)");
+                texturesBlock.AppendLine("    #define LV_SAMPLE_SHADOW(uvw) _UdonPointLightVolumeShadowTexture.SampleLevel(sampler_UdonPointLightVolumeShadowTexture, uvw, 0)");
+            }
             texturesBlock.AppendLine("    #endif");
             texturesBlock.AppendLine("}");
 
