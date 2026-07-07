@@ -1,6 +1,7 @@
 ﻿%Properties()
 {
     UI_ShadingModeHeader("# Shading Mode", Int) = 0
+    [ToggleUI]_SpecularMode("Specular Mode", Int) = 0
     [KeywordEnum(Default, Cloth)]SHADING_MODE("Shading Mode", Int) = 0
     [Toggle(CLEARCOAT)]_ClearCoat("Add Clear Coat %ShowIf(SHADING_MODE_DEFAULT)", Int) = 0
     _ClearCoatStrength("Clear Coat Strength %ShowIf(SHADING_MODE_DEFAULT && CLEARCOAT)", Range(0,1)) = 1
@@ -188,6 +189,8 @@
 
 %Variables()
 {
+    int _SpecularMode;
+
     #if defined(GSAA)
     half _GSAAVariance;
     half _GSAAThreshold;
@@ -283,8 +286,12 @@
         #else
 
         half reflectance = 0.5;
-        float oneMinusReflectivity = 1.0 - 0.04 - o.Metallic * (1.0 - 0.04);
-        half3 f0 = 0.16 * reflectance * reflectance * oneMinusReflectivity + o.Albedo * o.Metallic;
+
+        // If in specular mode - we use specular map luminance to drive diffuse vs specular Contributions
+        // Values >0.5 are essentially metallic, and values below 0.5 are dielectric
+        // f0 is also simply directly done via specular map
+        float oneMinusReflectivity = _SpecularMode ? (1.0 - max(max(o.Specular.r, o.Specular.g), o.Specular.b)) : (1.0 - 0.04 - o.Metallic * (1.0 - 0.04));
+        half3 f0 = _SpecularMode ? (o.Specular) : (0.16 * reflectance * reflectance * oneMinusReflectivity + o.Albedo * o.Metallic);
 
         half3 indirectDiffuse = 0;
         half3 indirectSpecular = 0;
@@ -359,7 +366,6 @@
         #else
         mainLightDiffuse *= lightColor * lightNoL;
         #endif
-
 
         // Collect Vertex Light Data and calculate direct diffuse
         #if defined(SHADE_VERTEXLIGHTS) &&defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)

@@ -11,6 +11,10 @@
     [Enum(UV, 0, Local Space, 1, World Space, 2, Triplanar, 3)]_MappingSpace("Mapping Space", Int) = 0
     [Enum(X, 0, Y, 1, Z, 2)]_PlanarAxisX("X Axis %ShowIf(_MappingSpace > 0 && _MappingSpace < 3) %CombineWith(_PlanarAxisY)", Int) = 0
     [HideInInspector][Enum(X, 0, Y, 1, Z, 2)]_PlanarAxisY("Y Axis %ShowIf(_MappingSpace > 0 && _MappingSpace < 3)", Int) = 2
+    [ToggleUI]_SpecularMode("Specular Mode %Priority(100)", Int) = 0
+    [NoScaleOffset]_SpecularMap("Specular > %ShowIf(_SpecularMode) %Priority(100)", 2D) = "white" { }
+    _SpecularColor("Specular Color %ShowIf(_SpecularMode && !_SpecularMap)", Color) = (1,1,1,1)
+    [Enum(Masks Map Smoothness, 0, Specular Map Alpha, 1)]_GlossSource("Gloss Source %ShowIf(_SpecularMode) %Priority(100)", Int) = 0
     [NoScaleOffset]_MaskMap("Masks >", 2D) = "white" { }
     [Enum(R, 0, G, 1, B, 2, A, 3)]_MetalChannel("Metal %ShowIf(_MaskMap) %CombineWith(_AOChannel, _DetailMaskChannel, _SmoothChannel)", Int) = 0
     [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)]_AOChannel("AO", Int) = 1
@@ -65,6 +69,10 @@
     int _PlanarAxisX;
     int _PlanarAxisY;
 
+    int _SpecularMode;
+    int _GlossSource;
+    half4 _SpecularColor;
+    half4 _SpecularMap_TexelSize;
     int _MetalChannel;
     int _AOChannel;
     int _DetailMaskChannel;
@@ -91,6 +99,7 @@
 {
     TEXTURE2D(_MainTex);
     SAMPLER(sampler_MainTex);
+    TEXTURE2D(_SpecularMap);
     TEXTURE2D(_MaskMap);
     SAMPLER(sampler_MaskMap);
     TEXTURE2D(_BumpMap);
@@ -137,6 +146,11 @@
         {
             albedo.rgb = albedo[_AlbedoChannel - 1].xxx;
         }
+        half4 specular = half4(1,1,1,0);
+        if (_SpecularMode) {
+            specular = SAMPLE_TEXTURE2D(_SpecularMap, sampler_MainTex, GLOBAL_uv);
+            o.Specular = _SpecularMap_TexelSize.z > 8 ? specular.rgb : _SpecularColor.rgb;
+        }
         half4 masks = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, GLOBAL_uv);
         float4 normalTex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, GLOBAL_uv);
         if (_FlipBumpY)
@@ -154,6 +168,11 @@
         int hasMasks = _MaskMap_TexelSize.z > 8;
         half metal = masks[_MetalChannel];
         half smooth = masks[_SmoothChannel];
+
+        if (_SpecularMode && _GlossSource) {
+            smooth = specular.a;
+        }
+
         if (_RoughnessMode)
         {
             smooth = 1 - smooth;
@@ -164,7 +183,7 @@
         smooth = remap(smooth, 0, 1, _SmoothnessRemap.x, _SmoothnessRemap.y);
         GLOBAL_maskMap = half4(metal, occlusion, detailMask, smooth);
         o.Metallic = lerp(_Metallic, metal, hasMasks);
-        o.Smoothness = lerp(_Smoothness, smooth, hasMasks);
+        o.Smoothness = lerp(_Smoothness, smooth, hasMasks || (_SpecularMode && _GlossSource));
         o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
         o.Normal = normal;
         if (!_DetailAsTintMask)

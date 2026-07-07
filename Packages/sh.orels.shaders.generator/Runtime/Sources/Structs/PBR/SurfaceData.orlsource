@@ -9,6 +9,7 @@
         half Occlusion;
         float3 Normal;
         half Alpha;
+        half3 Specular;
 
         // Additional Surface Data
         %AdditionalSurfaceData
@@ -23,6 +24,7 @@
         o.Normal = float3(0, 0, 1);
         o.Smoothness = 0.5;
         o.Alpha = 1;
+        o.Specular = 1;
         return o;
     }
 }
