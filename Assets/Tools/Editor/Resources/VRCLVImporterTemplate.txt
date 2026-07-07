@@ -51,8 +51,19 @@
     #if !defined(DISABLE_VRCLIGHTVOLUMES) && defined(VRCLIGHTVOLUMES)
         #define INTEGRATE_VRCLIGHTVOLUMES
 
+        // For PBR shaders on non-baked objects - we skip built-in specular and instead simply use the one provided by VRCLV
         #if !defined(LIGHTMAP_ON)
             #define SKIP_NATIVE_SPECULAR
+        #endif
+
+        // Toon Specular uses a custom specular calculation function so we need to
+        // 1. Tell the Specular Module to skip its built-in specular calculations (forwardbase only, add pass lights are still handled directly)
+        // 2. Tell VRCLV to use a custom specular accumulation
+        // 3. Tell Toon fragment base to expose its final Mesh and Surface data structs globally
+        #if defined(ORL_LIGHTING_MODEL_TOON_V2) && defined(SPECULAR_ON) && defined(UNITY_PASS_FORWARDBASE)
+            #define _INTEGRATE_CUSTOMSPECULAR
+            #define LV_CUSTOM_SPECULAR_BRDF
+            #define EXPOSE_GLOBAL_DATA
         #endif
 
         #define LV_PI 3.141592653589793f
@@ -97,12 +108,32 @@
             worldNormal = o.Normal;
             #endif
 
-            #if defined(ORL_LIGHTING_MODEL_PBR)
             float3 specular = 0;
-            LightVolumeSHSpecular(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b, specular, o.Albedo, o.Smoothness, o.Metallic, worldNormal, d.worldSpaceViewDir);
-            o.VRCLV_Specular = specular;
+            // PBR Specular handling
+            #if defined(ORL_LIGHTING_MODEL_PBR)
+            {
+                LightVolumeSHSpecular(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b, specular, o.Albedo, o.Smoothness, o.Metallic, worldNormal, d.worldSpaceViewDir);
+                o.VRCLV_Specular = specular;
+            }
+            // Toon Specular Setup requires extra steps
+            #elif defined(ORL_LIGHTING_MODEL_TOON_V2) && defined(SPECULAR_ON)
+            {
+                // Recalculate tangent and bitangent for proper aniso specular
+                d.worldSpaceTangent.xyz = cross(d.bitangent.xyz, o.WorldNormal);
+                d.bitangent.xyz = cross(o.WorldNormal, d.worldSpaceTangent.xyz);
+
+                #if defined(EXPOSE_GLOBAL_DATA)
+                GLOBAL_MeshData = d;
+                #endif
+
+                LightVolumeSHSpecular(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b, specular, o.Albedo, 1.0 - o.SpecularRoughness, o.SpecularAlbedoTint, worldNormal, d.worldSpaceViewDir);
+                o.VRCLV_Specular = specular;
+            }
+            // All other models (UI/VFX) do not use special LV Specular
             #else
-            LightVolumeSH(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b, 0, worldNormal);
+            {
+                LightVolumeSH(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b, 0, worldNormal);
+            }
             #endif
             o.VRCLV_L0 = L0;
             o.VRCLV_L1r = L1r;
@@ -222,6 +253,70 @@
         #endif
 
     }
+}
+
+%CustomSpecular("VRCLightVolumesCustomSpecularToon")
+{
+    void VRCLightVolumesCustomSpecularToon(inout half3 finalSpecular, SurfaceData o)
+    {
+        #if defined(INTEGRATE_VRCLIGHTVOLUMES)
+        {
+            // Only Toon v2 Uses this at the moment
+            #if defined(ORL_LIGHTING_MODEL_TOON_V2)
+            {
+                finalSpecular += o.VRCLV_Specular;
+            }
+            #endif
+        }
+        #endif
+    }
+}
+
+%PassFunctions()
+{
+    #if defined(INTEGRATE_VRCLIGHTVOLUMES) && defined(LV_CUSTOM_SPECULAR_BRDF) && defined(ORL_LIGHTING_MODEL_TOON_V2) && defined(SPECULAR_ON) && defined(EXPOSE_GLOBAL_DATA)
+
+    float3 LV_Custom_SpecularBRDFDirection(float3 f0, float roughness, float roughnessSq, float NoV, float3 worldNormal, float3 viewDir, float3 l0, float3 lightDirNormal, float lightSpreadSq) {
+        float centerNoL = dot(worldNormal, lightDirNormal);
+        float lightSpread = saturate(sqrt(lightSpreadSq));
+        float NoL = saturate((centerNoL + lightSpread) * rcp(1.0 + lightSpread));
+        float3 specular = float3(0.0, 0.0, 0.0);
+        [branch] if (NoL > 0) {
+            float3 lightHalfVector = Unity_SafeNormalize(lightDirNormal + viewDir);
+            half NoH = saturate(dot(worldNormal, lightHalfVector));
+            half lightLoH = dot(lightDirNormal, lightHalfVector);
+            half perceptualRoughness = max(0.01, GLOBAL_SurfaceData.SpecularRoughness);
+            perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+            half anisotropy = GLOBAL_SurfaceData.SpecularAnisotropy * saturate(5.0 * perceptualRoughness);
+
+            perceptualRoughness *= perceptualRoughness;
+            perceptualRoughness = max(perceptualRoughness, 0.0045);
+            float at = max(perceptualRoughness * (1.0 + anisotropy), 0.001);
+            float ab = max(perceptualRoughness * (1.0 - anisotropy), 0.001);
+
+            // Calculate f0 in place with Metallic = 0
+            half3 F = F_Schlick(lightLoH, 0.16 * 0.5 * 0.5 + lerp(1, GLOBAL_SurfaceData.Albedo, GLOBAL_SurfaceData.SpecularAlbedoTint));
+
+            float D = D_GGX(NoH, perceptualRoughness);
+            half V = V_SmithGGXCorrelated(NoV, NoL, perceptualRoughness);
+            half3 isotropicSpecular = max(0, D * V * F);
+
+            D = D_GGX_Anisotropic(NoH, lightHalfVector, GLOBAL_MeshData.worldSpaceTangent, GLOBAL_MeshData.bitangent, at, ab);
+            half3 anisotropicSpecular = max(0, D * V * F);
+
+            specular = lerp(isotropicSpecular, anisotropicSpecular, saturate(abs(anisotropy * 100)));
+            specular = lerp(specular, smoothstep(0.5, 0.51, specular), GLOBAL_SurfaceData.SpecularSharpness);
+            specular *= UNITY_PI;
+            specular *= l0;
+            specular *= GLOBAL_SurfaceData.SpecularIntensity;
+            specular *= GLOBAL_SurfaceData.SpecularTint;
+            specular = clamp(specular, 0, GLOBAL_SurfaceData.SpecularIntensity);
+            specular *= NoL;
+        }
+        return specular;
+    }
+
+    #endif
 }
 
 %%FUNCTIONS

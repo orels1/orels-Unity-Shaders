@@ -126,16 +126,6 @@
         perceptualRoughness *= perceptualRoughness;
         perceptualRoughness = max(perceptualRoughness, 0.0045);
 
-        lightNoL = saturate(lightNoL);
-
-        half NoH = saturate(dot(o.WorldNormal, lightHalfVector));
-        // Calculate f0 in place with Metallic = 0
-        half3 F = F_Schlick(lightLoH, 0.16 * 0.5 * 0.5 + lerp(1, o.Albedo, o.SpecularAlbedoTint));
-
-        float D = D_GGX(NoH, perceptualRoughness);
-        half V = V_SmithGGXCorrelated(NoV, lightNoL, perceptualRoughness);
-        half3 isotropicSpecular = max(0, D * V * F);
-
         float at = max(perceptualRoughness * (1.0 + anisotropy), 0.001);
         float ab = max(perceptualRoughness * (1.0 - anisotropy), 0.001);
 
@@ -143,19 +133,39 @@
         d.worldSpaceTangent.xyz = cross(d.bitangent.xyz, o.WorldNormal);
         d.bitangent.xyz = cross(o.WorldNormal, d.worldSpaceTangent.xyz);
 
-        D = D_GGX_Anisotropic(NoH, lightHalfVector, d.worldSpaceTangent, d.bitangent, at, ab);
-        half3 anisotropicSpecular = max(0, D * V * F);
+        half3 finalSpecular = 0;
+        #if !defined(_INTEGRATE_CUSTOMSPECULAR)
+        {
 
-        half3 finalSpecular = lerp(isotropicSpecular, anisotropicSpecular, saturate(abs(anisotropy * 100)));
-        // Apply sharpness modifier by focusing in the center
-        finalSpecular = lerp(finalSpecular, smoothstep(0.5, 0.51, finalSpecular), o.SpecularSharpness);
-        finalSpecular *= UNITY_PI; // Multiply by PI to bring up to brightness of standard
-        finalSpecular *= lightColor;
-        finalSpecular *= o.SpecularIntensity;
-        finalSpecular *= o.SpecularTint;
-        finalSpecular = clamp(finalSpecular, 0, o.SpecularIntensity);
+            lightNoL = saturate(lightNoL);
 
-        finalSpecular *= lightNoL * lightAttenuation;
+            half NoH = saturate(dot(o.WorldNormal, lightHalfVector));
+            // Calculate f0 in place with Metallic = 0
+            half3 F = F_Schlick(lightLoH, 0.16 * 0.5 * 0.5 + lerp(1, o.Albedo, o.SpecularAlbedoTint));
+
+            float D = D_GGX(NoH, perceptualRoughness);
+            half V = V_SmithGGXCorrelated(NoV, lightNoL, perceptualRoughness);
+            half3 isotropicSpecular = max(0, D * V * F);
+
+            D = D_GGX_Anisotropic(NoH, lightHalfVector, d.worldSpaceTangent, d.bitangent, at, ab);
+            half3 anisotropicSpecular = max(0, D * V * F);
+
+            finalSpecular = lerp(isotropicSpecular, anisotropicSpecular, saturate(abs(anisotropy * 100)));
+            // Apply sharpness modifier by focusing in the center
+            finalSpecular = lerp(finalSpecular, smoothstep(0.5, 0.51, finalSpecular), o.SpecularSharpness);
+            finalSpecular *= UNITY_PI; // Multiply by PI to bring up to brightness of standard
+            finalSpecular *= lightColor;
+            finalSpecular *= o.SpecularIntensity;
+            finalSpecular *= o.SpecularTint;
+            finalSpecular = clamp(finalSpecular, 0, o.SpecularIntensity);
+
+            finalSpecular *= lightNoL * lightAttenuation;
+        }
+        #else
+        {
+            %CustomSpecularFunctions
+        }
+        #endif
 
         #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
         [unroll(4)]

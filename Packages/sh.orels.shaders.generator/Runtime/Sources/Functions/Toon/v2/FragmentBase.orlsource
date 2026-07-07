@@ -38,7 +38,7 @@
     }
 }
 
-%ShaderDefines()
+%ShaderDefines(-100)
 {
     #define ORL_LIGHTING_MODEL_TOON_V2
 
@@ -60,11 +60,20 @@
     int _IgnoreLightprobeNormal;
     int _MinLight;
     half _MonochromeLighting;
+}
 
+%GlobalVariables()
+{
     #if !defined(NEED_FLOAT4_UV)
     float2 GLOBAL_uvArray[8];
     #else
     float4 GLOBAL_uvArray[8];
+    #endif
+
+    // This is copied once at the start of the FragmentBase, generally not advised, but can be useful where passing things around isnt possible
+    #if defined(EXPOSE_GLOBAL_DATA)
+    static SurfaceData GLOBAL_SurfaceData;
+    static MeshData GLOBAL_MeshData;
     #endif
 }
 
@@ -94,6 +103,11 @@
 {
     void ToonFragmentBaseV2(MeshData d, FragmentData i, SurfaceData o, inout half4 FinalColor)
     {
+        #if defined(EXPOSE_GLOBAL_DATA)
+        GLOBAL_SurfaceData = o;
+        GLOBAL_MeshData = d;
+        #endif
+
         o.WorldNormal = Unity_SafeNormalize(mul(o.Normal, d.TBNMatrix));
         half3 f0 = 0.16 * 0.5 * 0.5 + o.Albedo;
 

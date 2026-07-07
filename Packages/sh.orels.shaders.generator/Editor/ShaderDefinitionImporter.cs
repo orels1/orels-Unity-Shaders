@@ -1076,7 +1076,8 @@ namespace ORL.ShaderGenerator
         {
             BlockType.DataStructs,
             BlockType.LibraryFunctions,
-            BlockType.PassModifiers
+            BlockType.PassModifiers,
+            BlockType.ShaderDefines
         };
 
         /// <summary>

@@ -51,8 +51,19 @@
     #if !defined(DISABLE_VRCLIGHTVOLUMES) && defined(VRCLIGHTVOLUMES)
         #define INTEGRATE_VRCLIGHTVOLUMES
 
+        // For PBR shaders on non-baked objects - we skip built-in specular and instead simply use the one provided by VRCLV
         #if !defined(LIGHTMAP_ON)
             #define SKIP_NATIVE_SPECULAR
+        #endif
+
+        // Toon Specular uses a custom specular calculation function so we need to
+        // 1. Tell the Specular Module to skip its built-in specular calculations (forwardbase only, add pass lights are still handled directly)
+        // 2. Tell VRCLV to use a custom specular accumulation
+        // 3. Tell Toon fragment base to expose its final Mesh and Surface data structs globally
+        #if defined(ORL_LIGHTING_MODEL_TOON_V2) && defined(SPECULAR_ON) && defined(UNITY_PASS_FORWARDBASE)
+            #define _INTEGRATE_CUSTOMSPECULAR
+            #define LV_CUSTOM_SPECULAR_BRDF
+            #define EXPOSE_GLOBAL_DATA
         #endif
 
         #define LV_PI 3.141592653589793f
@@ -179,12 +190,32 @@
             worldNormal = o.Normal;
             #endif
 
-            #if defined(ORL_LIGHTING_MODEL_PBR)
             float3 specular = 0;
-            LightVolumeSHSpecular(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b, specular, o.Albedo, o.Smoothness, o.Metallic, worldNormal, d.worldSpaceViewDir);
-            o.VRCLV_Specular = specular;
+            // PBR Specular handling
+            #if defined(ORL_LIGHTING_MODEL_PBR)
+            {
+                LightVolumeSHSpecular(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b, specular, o.Albedo, o.Smoothness, o.Metallic, worldNormal, d.worldSpaceViewDir);
+                o.VRCLV_Specular = specular;
+            }
+            // Toon Specular Setup requires extra steps
+            #elif defined(ORL_LIGHTING_MODEL_TOON_V2) && defined(SPECULAR_ON)
+            {
+                // Recalculate tangent and bitangent for proper aniso specular
+                d.worldSpaceTangent.xyz = cross(d.bitangent.xyz, o.WorldNormal);
+                d.bitangent.xyz = cross(o.WorldNormal, d.worldSpaceTangent.xyz);
+
+                #if defined(EXPOSE_GLOBAL_DATA)
+                GLOBAL_MeshData = d;
+                #endif
+
+                LightVolumeSHSpecular(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b, specular, o.Albedo, 1.0 - o.SpecularRoughness, o.SpecularAlbedoTint, worldNormal, d.worldSpaceViewDir);
+                o.VRCLV_Specular = specular;
+            }
+            // All other models (UI/VFX) do not use special LV Specular
             #else
-            LightVolumeSH(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b, 0, worldNormal);
+            {
+                LightVolumeSH(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b, 0, worldNormal);
+            }
             #endif
             o.VRCLV_L0 = L0;
             o.VRCLV_L1r = L1r;
@@ -306,6 +337,72 @@
     }
 }
 
+%CustomSpecular("VRCLightVolumesCustomSpecularToon")
+{
+    void VRCLightVolumesCustomSpecularToon(inout half3 finalSpecular, SurfaceData o)
+    {
+        #if defined(INTEGRATE_VRCLIGHTVOLUMES)
+        {
+            // Only Toon v2 Uses this at the moment
+            #if defined(ORL_LIGHTING_MODEL_TOON_V2)
+            {
+                finalSpecular += o.VRCLV_Specular;
+            }
+            #endif
+        }
+        #endif
+    }
+}
+
+%PassFunctions()
+{
+    #if defined(INTEGRATE_VRCLIGHTVOLUMES) && defined(LV_CUSTOM_SPECULAR_BRDF) && defined(ORL_LIGHTING_MODEL_TOON_V2) && defined(SPECULAR_ON) && defined(EXPOSE_GLOBAL_DATA)
+
+    float3 LV_Custom_SpecularBRDFDirection(float3 f0, float roughness, float roughnessSq, float NoV, float3 worldNormal, float3 viewDir, float3 l0, float3 lightDirNormal, float lightSpreadSq) {
+        float centerNoL = dot(worldNormal, lightDirNormal);
+        float lightSpread = saturate(sqrt(lightSpreadSq));
+        float NoL = saturate((centerNoL + lightSpread) * rcp(1.0 + lightSpread));
+        float3 specular = float3(0.0, 0.0, 0.0);
+        [branch] if (NoL > 0) {
+
+            float3 lightHalfVector = Unity_SafeNormalize(lightDirNormal + viewDir);
+            half NoH = saturate(dot(worldNormal, lightHalfVector));
+            half lightLoH = dot(lightDirNormal, lightHalfVector);
+            half perceptualRoughness = max(0.01, GLOBAL_SurfaceData.SpecularRoughness);
+            perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+            half anisotropy = GLOBAL_SurfaceData.SpecularAnisotropy * saturate(5.0 * perceptualRoughness);
+
+            perceptualRoughness *= perceptualRoughness;
+            perceptualRoughness = max(perceptualRoughness, 0.0045);
+            float at = max(perceptualRoughness * (1.0 + anisotropy), 0.001);
+            float ab = max(perceptualRoughness * (1.0 - anisotropy), 0.001);
+
+            // Calculate f0 in place with Metallic = 0
+            half3 F = F_Schlick(lightLoH, 0.16 * 0.5 * 0.5 + lerp(1, GLOBAL_SurfaceData.Albedo, GLOBAL_SurfaceData.SpecularAlbedoTint));
+
+            float D = D_GGX(NoH, perceptualRoughness);
+            half V = V_SmithGGXCorrelated(NoV, NoL, perceptualRoughness);
+            half3 isotropicSpecular = max(0, D * V * F);
+
+            D = D_GGX_Anisotropic(NoH, lightHalfVector, GLOBAL_MeshData.worldSpaceTangent, GLOBAL_MeshData.bitangent, at, ab);
+            half3 anisotropicSpecular = max(0, D * V * F);
+
+            specular = lerp(isotropicSpecular, anisotropicSpecular, saturate(abs(anisotropy * 100)));
+            specular = lerp(specular, smoothstep(0.5, 0.51, specular), GLOBAL_SurfaceData.SpecularSharpness);
+            specular *= UNITY_PI;
+            specular *= l0;
+            specular *= GLOBAL_SurfaceData.SpecularIntensity;
+            specular *= GLOBAL_SurfaceData.SpecularTint;
+            specular = clamp(specular, 0, GLOBAL_SurfaceData.SpecularIntensity);
+            specular *= NoL;
+        }
+        return specular;
+    }
+
+    #endif
+}
+
+
 %PassFunctions()
 {
     #if defined(INTEGRATE_VRCLIGHTVOLUMES)
@@ -416,7 +513,7 @@
         float2 warpedDepth = exp2(evsmExponents * float2(shadowDepth, -shadowDepth) * 1.4426950408889634f) * float2(1.0f, -1.0f);
         float varianceBias = max(_UdonPointLightVolumeShadowMinVariance, 0.0f) * 0.01f;
         float bleedReduction = saturate(_UdonPointLightVolumeShadowBleedReduction);
-    
+
         // Evaluate both positive and negative EVSM Chebyshev bounds together, including light bleeding reduction.
         float2 momentMean = moments.xy;
         float2 momentSq = moments.zw;
@@ -441,7 +538,7 @@
         float lightDistance = sqDistanceToLight * invDistanceToLight;
         float3 sampleDir = isSingleShadow ? 0.0f : lightDir;
         float distanceToShadowCenter = isSingleShadow ? 0.0f : lightDistance;
-    
+
         [branch] if (shadowIdData < 0) { // Local-space shadow
             distanceToShadowCenter = lightDistance;
             sampleDir = LV_MultiplyVectorByQuaternion(lightDir * shadowDirSign, shadowRotationData);
@@ -454,7 +551,7 @@
                 sampleDir = LV_MultiplyVectorByQuaternion(bakeDir * invBakeLen, shadowRotationData);
             }
         }
-    
+
         float attenuation = 1;
         float3 shadowUVW = 0;
         bool hasShadowSample = false;
@@ -471,7 +568,7 @@
             shadowUVW = float3(uvFace.xy, shadowId * 6 + (uint)uvFace.z);
             hasShadowSample = true;
         }
-    
+
         [branch] if (hasShadowSample) {
             attenuation = LV_ShadowEVSM(LV_SAMPLE_SHADOW(shadowUVW), distanceToShadowCenter, shadowNearClip, shadowFarClip);
         }
@@ -482,22 +579,22 @@
         float2 halfSize = size * 0.5;
         float area = max(size.x * size.y, 1e-6);
         float extentSq = max(dot(halfSize, halfSize), 1e-6);
-    
+
         float2 closestXY = clamp(localPos.xy, -halfSize, halfSize);
         float2 rectDelta = localPos.xy - closestXY;
         float rectDeltaSq = dot(rectDelta, rectDelta);
         float planeRectSq = rectDeltaSq + localPos.z * localPos.z;
         float closestSqDist = max(planeRectSq, 1e-6);
         float centerSqDist = max(dot(localPos, localPos), 1e-6);
-    
+
         float distanceBlend = planeRectSq * rcp(planeRectSq + extentSq);
         float solidSqDist = lerp(closestSqDist, centerSqDist, distanceBlend);
         float invSolidDist = rsqrt(solidSqDist);
         float invExtendedDist = rsqrt(solidSqDist + extentSq);
-    
+
         float solidAngle = LV_FastAtanPositive(area * localPos.z * invSolidDist * invSolidDist * invExtendedDist * 0.25);
         float l0 = solidAngle * LV_INV_PI;
-    
+
         float2 representativeXY = lerp(closestXY, 0, distanceBlend);
         float3 dir = xAxis * representativeXY.x + yAxis * representativeXY.y - lightToWorldPos;
         dir *= rsqrt(max(dot(dir, dir), 1e-6));
@@ -538,17 +635,17 @@
         float texelsCovered = max(filterArea * textureTexelCount * invLightArea, 1.0);
         float shapeBlend = saturate(sqrt(filterArea * invLightArea));
         float2 representativeXY = closestXY * (1.0 - shapeBlend);
-    
+
         float2 edgeUv = abs(representativeXY) * (2.0 * rcp(safeSize));
         float edgeBlend = LV_Smoothstep01(saturate((max(edgeUv.x, edgeUv.y) - 0.65) * 2.8571429));
         float grazingBlend = saturate(1 - abs(localPos.z) * rsqrt(max(dot(localPos, localPos), 0.000001)));
         float mip = 0.5 * LV_FastLog2Positive(texelsCovered) + edgeBlend * grazingBlend * (1.0 - shapeBlend) * 2.0;
         float maxMip = max(_UdonPointLightVolumeTextureMaxMip, 0.0);
         mip = min(mip, maxMip);
-    
+
         float2 uv = representativeXY * rcp(safeSize) + 0.5;
         uv.x = 1.0 - uv.x;
-    
+
         // Making 4 samples with different mip offsets and weights for the smoother result. All the values were tuned by hand.
         float mipRange = max(maxMip - mip, 0.0);
         float tap2Mip = mip + mipRange * 0.3;
@@ -578,12 +675,12 @@
             [flatten] if (shadowIdAbs < 10000) { // Abs >= 10000 disables both normal shading and baked shadow sampling
                 float shadingStrength = 1 - frac(shadowIdAbs);
                 float normalAttenuation = 1;
-    
+
                 [flatten] if (pointLightShadingBias >= 0) { // Apply surface-normal shading before strength blending
                     normalAttenuation = LV_PointLightShading(pointLightShadingNormal, pointLightShadingBias, normalMaskLightDir);
                     shadowVisible = normalAttenuation > 0 || shadingStrength < 1;
                 }
-    
+
                 float shadowAttenuation = 1;
                 [branch] if (shadowVisible && shadowIdAbs >= 1) { // Baked shadow
                     uint shadowIndex = (uint)shadowIdAbs - 1; // Integer part stores shadow index + 1. Fraction stores inverted shading strength
@@ -598,26 +695,26 @@
     }
 
     bool LV_PointLightVolumeContribution(uint id, float3 worldPos, float3 pointLightShadingNormal, float pointLightShadingBias, out float3 l0, out float3 l1, out float3 lightDirNormal, out float specularSpreadSq, out float shadow) {
-    
+
         l0 = 0; l1 = 0; lightDirNormal = 0; specularSpreadSq = 0; shadow = 1;
         bool counted = false;
-    
+
         // IDs and range data
         float4 pos = _UdonPointLightVolumePosition[id]; // Light position and squared source size or range data
         float3 dir = pos.xyz - worldPos;
         float distSq = max(dot(dir, dir), 1e-6);
         float4 customID_data = _UdonPointLightVolumeCustomID[id];
         float rangeSq = customID_data.z; // Squared culling distance
-    
+
         [branch] if (distSq <= rangeSq) { // In-range light. Out-of-range lights keep zero outputs and do not consume an overdraw slot
             int customId = (int) customID_data.x; // Custom Texture ID
             float4 color = _UdonPointLightVolumeColor[id]; // Color, angle
-    
+
             [branch] if (pos.w >= 0 && color.w <= 1.5) { // Point light. Non-negative pos.w selects point-light sign, and color.w <= 1.5 excludes area lights
                 float invDist = rsqrt(distSq);
                 float3 lightDir = dir * invDist;
                 float sourceSpreadSq = customId <= 0 ? pos.w * invDist * invDist : 0;
-    
+
                 // Point light is not fully culled by surface-normal shading or shadow visibility
                 [branch] if (LV_PointLightVolumeShadowMask(id, customID_data.y, customID_data.w, worldPos, lightDir, lightDir, distSq, invDist, pointLightShadingNormal, pointLightShadingBias, shadow)) {
                     counted = true;
@@ -645,7 +742,7 @@
                 }
             } else { // Non-point light. Split into spot lights and area lights
                 [branch] if (pos.w < 0) { // Spot light. Negative pos.w selects spot-light sign, magnitude is source size or LUT inverse range
-    
+
                     float invDist = rsqrt(distSq);
                     float3 lightDir = dir * invDist;
                     float angle = color.w;
@@ -653,7 +750,7 @@
                     float spotConeFalloff = 0;
                     float2 cookieUv = 0;
                     bool spotVisible = true;
-    
+
                     [branch] if (customId >= 0) { // Parametric or LUT spot light. Direction vector and cone falloff are stored directly
                         float4 directionData = _UdonPointLightVolumeDirection[id]; // Dir + falloff
                         spotMask = dot(directionData.xyz, -lightDir) - angle;
@@ -665,14 +762,14 @@
                         cookieUv.y *= max(_UdonPointLightVolumeExtraData[id].x, 0.001);
                         spotVisible = all(abs(cookieUv) <= 1);
                     }
-    
+
                     [branch] if (spotVisible) { // Spot receiver is inside the parametric cone or inside the projected cookie rectangle
                         float sourceSpreadSq = customId <= 0 ? -pos.w * invDist * invDist : 0;
-    
+
                         // Spot light is not fully culled by surface-normal shading or shadow visibility
                         [branch] if (LV_PointLightVolumeShadowMask(id, customID_data.y, customID_data.w, worldPos, lightDir, lightDir, distSq, invDist, pointLightShadingNormal, pointLightShadingBias, shadow)) {
                             counted = true;
-    
+
                             [branch] if (customId > 0) { // Spot light with Attenuation LUT. LUT already includes cone attenuation
                                 float dirRadius = distSq * -pos.w;
                                 float spot = 1 - saturate(spotMask * rcp(1 - angle));
@@ -705,28 +802,28 @@
                     float2 areaSize = float2(pos.w, color.w - 2);
                     LV_QuaternionAxes(areaRotation, areaXAxis, areaYAxis, areaNormal);
                     float3 areaLocalPos = float3(dot(lightToWorldPos, areaXAxis), dot(lightToWorldPos, areaYAxis), dot(lightToWorldPos, areaNormal));
-    
+
                     [branch] if (areaLocalPos.z > 0) { // Receiver is in front of the area emitter plane
                         float3 areaPointLightShadingDir;
                         float sourceSpreadSq = dot(areaSize, areaSize) * (0.25 * rcp(distSq));
                         float4 areaLightSH = LV_ProjectFastQuadLightIrradianceSH(lightToWorldPos, areaLocalPos, areaXAxis, areaYAxis, areaSize, areaPointLightShadingDir);
                         float areaAttenuation = saturate((rangeSq - distSq) * rcp(rangeSq));
-    
+
                         [branch] if (areaLightSH.w > 0 && areaAttenuation > 0) { // Area projection has non-zero solid angle and remains inside its culling range
                             float4 cookie = 1;
                             bool areaVisible = true;
-    
+
                             [branch] if (customId < 0) { // Textured area light
                                 uint textureId = (uint) _UdonPointLightVolumeCubeCount * 5 - customId - 1;
                                 cookie = LV_AreaLightCookie(areaLocalPos, areaSize, textureId);
                                 color.rgb = _UdonPointLightVolumeExtraData[id].rgb;
                                 areaVisible = min(cookie.a, max(max(cookie.r, cookie.g), cookie.b)) > 0;
                             }
-    
+
                             [branch] if (areaVisible) { // Area light is either untextured or has a non-black/non-transparent cookie sample
                                 float invDist = rsqrt(distSq);
                                 float3 lightDir = dir * invDist;
-    
+
                                 // Area light is not fully culled by surface-normal shading or shadow visibility
                                 [branch] if (LV_PointLightVolumeShadowMask(id, customID_data.y, customID_data.w, worldPos, lightDir, areaPointLightShadingDir, distSq, invDist, pointLightShadingNormal, pointLightShadingBias, shadow)) {
                                     counted = true;
@@ -774,7 +871,7 @@
         float4 uvwPos1 = _UdonLightVolumeUvwScale[uvwID + 1];
         float4 uvwPos2 = _UdonLightVolumeUvwScale[uvwID + 2];
         float3 uvwScale = float3(uvwPos0.w, uvwPos1.w, uvwPos2.w);
-    
+
         float3 uvwScaled = saturate(localUVW + 0.5) * uvwScale;
         uvw0 = uvwPos0.xyz + uvwScaled;
         uvw1 = uvwPos1.xyz + uvwScaled;
@@ -782,22 +879,22 @@
     }
 
     void LV_SampleVolume(uint id, float3 localUVW, inout float3 L0, inout float3 L1r, inout float3 L1g, inout float3 L1b) {
-    
+
         // Additive UVW
         float3 uvw0, uvw1, uvw2;
         LV_VolumeAtlasUVW(id, localUVW, uvw0, uvw1, uvw2);
-    
+
         // Sample additive
         float3 l0, l1r, l1g, l1b;
         LV_SampleLightVolumeTex(uvw0, uvw1, uvw2, l0, l1r, l1g, l1b);
-    
+
         // Color correction
         float4 color = _UdonLightVolumeColor[id];
         L0 += l0 * color.rgb;
         l1r *= color.r;
         l1g *= color.g;
         l1b *= color.b;
-    
+
         // Rotate if needed
         [branch] if (color.a != 0) {
             uint rotationID = id * 2;
@@ -812,7 +909,7 @@
             L1g += l1g;
             L1b += l1b;
         }
-    
+
     }
 
     float3 LV_Specular(float3 f0, float smoothness, float3 worldNormal, float3 viewDir, float3 l0, float3 l1) {
@@ -851,7 +948,7 @@
         float3 l1rNormal = LV_NormalizeSafe(L1r);
         float3 l1gNormal = LV_NormalizeSafe(L1g);
         float3 l1bNormal = LV_NormalizeSafe(L1b);
-    
+
         // Algebraic form of dot(N, normalize(L + V)) for the three SH dominant directions.
         float NoV = dot(worldNormal, viewDir);
         float3 NoL = float3(dot(worldNormal, l1rNormal), dot(worldNormal, l1gNormal), dot(worldNormal, l1bNormal));
@@ -866,7 +963,7 @@
     void LV_PointLightVolumeSHSpecular(float3 worldPos, float3 worldNormal, float3 specularViewDir, float smoothness, float3 f0, float pointLightShading, inout float3 L0, inout float3 L1r, inout float3 L1g, inout float3 L1b, inout float3 specular) {
         uint pointCount = min((uint) _UdonPointLightVolumeCount, VRCLV_MAX_LIGHTS_COUNT);
         [branch] if (pointCount == 0) return;
-    
+
         float pointLightShadingScale = pointLightShading * 0.5; // Half-strength scale for the normal-shading ramp
         float3 pointLightShadingNormal = worldNormal * pointLightShadingScale; // Pre-scaled normal for point-light shading
         float pointLightShadingBias = pointLightShading > 0 ? 0.5 + 0.5 * saturate(1 - pointLightShading) : -1; // Bias for normal-shading ramp, -1 disables it
@@ -876,7 +973,7 @@
         float specularNoV = max(dot(worldNormal, specularViewDir), VRCLV_MIN_N_DOT_V); // Clamped NdotV for specular visibility
         uint maxOverdraw = min((uint) _UdonLightVolumeAdditiveMaxOverdraw, VRCLV_MAX_LIGHTS_COUNT); // Max point lights to accumulate
         uint pcount = 0; // Accumulated point-light count
-    
+
         [loop] for (uint pid = 0; pid < pointCount && pcount < maxOverdraw; pid++) {
             float3 l0, l1, lightDirNormal;
             float specularSpreadSq, shadow;
@@ -887,7 +984,11 @@
                     L1r += l1 * l0.r;
                     L1g += l1 * l0.g;
                     L1b += l1 * l0.b;
+                    #if defined(LV_CUSTOM_SPECULAR_BRDF)
+                    specular += LV_Custom_SpecularBRDFDirection(f0, specularRoughness, specularRoughnessSq, specularNoV, worldNormal, specularViewDir, l0, lightDirNormal, specularSpreadSq);
+                    #else
                     specular += LV_SpecularBRDFDirection(f0, specularRoughness, specularRoughnessSq, specularNoV, worldNormal, specularViewDir, l0, lightDirNormal, specularSpreadSq);
+                    #endif
                 }
                 pcount += 1;
             }
@@ -897,13 +998,13 @@
     void LV_PointLightVolumeSH(float3 worldPos, float3 worldNormal, float pointLightShading, inout float3 L0, inout float3 L1r, inout float3 L1g, inout float3 L1b) {
         uint pointCount = min((uint) _UdonPointLightVolumeCount, VRCLV_MAX_LIGHTS_COUNT);
         [branch] if (pointCount == 0) return;
-    
+
         float pointLightShadingScale = pointLightShading * 0.5; // Half-strength scale for the normal-shading ramp
         float3 pointLightShadingNormal = worldNormal * pointLightShadingScale; // Pre-scaled normal for point-light shading
         float pointLightShadingBias = pointLightShading > 0 ? 0.5 + 0.5 * saturate(1 - pointLightShading) : -1; // Bias for normal-shading ramp, -1 disables it
         uint maxOverdraw = min((uint) _UdonLightVolumeAdditiveMaxOverdraw, VRCLV_MAX_LIGHTS_COUNT); // Max point lights to accumulate
         uint pcount = 0; // Accumulated point-light count
-    
+
         [loop] for (uint pid = 0; pid < pointCount && pcount < maxOverdraw; pid++) {
             float3 l0, l1, unused_lightDirNormal;
             float unused_specularSpreadSq, shadow;
@@ -916,35 +1017,35 @@
                 pcount += 1;
             }
         }
-    
+
     }
 
     void LV_LightVolumeRegularSH(float3 worldPos, inout float3 L0, inout float3 L1r, inout float3 L1g, inout float3 L1b) {
-        
+
         // Clamping global iteration counts
         uint volumesCount = min((uint) _UdonLightVolumeCount, VRCLV_MAX_VOLUMES_COUNT);
         [branch] if (volumesCount == 0) {
             LV_SampleLightProbe(L0, L1r, L1g, L1b);
             return;
         }
-    
+
         uint additiveCount = min((uint) _UdonLightVolumeAdditiveCount, volumesCount);
-    
+
         [branch] if (volumesCount <= additiveCount) {
             LV_SampleLightProbe(L0, L1r, L1g, L1b);
             return;
         }
-    
+
         uint volumeID_A = -1; // Main, dominant volume ID
         uint volumeID_B = -1; // Secondary volume ID to blend main with
-    
+
         float3 localUVW = 0; // Last local UVW to use in disabled Light Probes mode
         float3 localUVW_A = 0; // Main local UVW
         float3 localUVW_B = 0; // Secondary local UVW
-    
+
         // Are A and B volumes NOT found?
         bool isNoA = true, isNoB = true;
-    
+
         // Iterating through regular light volumes with simplified algorithm requiring Light Volumes to be sorted by weight in descending order
         [loop] for (uint id = additiveCount; id < volumesCount; id++) {
             localUVW = LV_LocalFromVolume(id, worldPos);
@@ -961,38 +1062,38 @@
                 }
             }
         }
-    
+
         // If no volumes found, using Light Probes as fallback
         [branch] if (isNoA) {
             [branch] if (_UdonLightVolumeProbesBlend) {
                 LV_SampleLightProbe(L0, L1r, L1g, L1b);
                 return;
             }
-    
+
             // Fallback to the lowest weight light volume if outside every volume
             LV_SampleVolume(volumesCount - 1, localUVW, L0, L1r, L1g, L1b);
             return;
         }
-    
+
         // Volume A SH components and mask to blend volume sides
         float3 L0_A = 0, L1r_A = 0, L1g_A = 0, L1b_A = 0;
-    
+
         // Sampling Light Volume A
         LV_SampleVolume(volumeID_A, localUVW_A, L0_A, L1r_A, L1g_A, L1b_A);
-    
+
         float mask = LV_BoundsMask(localUVW_A, _UdonLightVolumeInvLocalEdgeSmooth[volumeID_A]);
         [branch] if (mask == 1) { // Returning SH A result if it's the center of mask
-    
+
             L0  += L0_A;
             L1r += L1r_A;
             L1g += L1g_A;
             L1b += L1b_A;
             return;
-    
+
         }
-    
+
         float3 L0_B = 0, L1r_B = 0, L1g_B = 0, L1b_B = 0; // Volume B SH components
-    
+
         [branch] if (isNoB) {
             [branch] if (_UdonLightVolumeSharpBounds) {
                 L0  += L0_A;
@@ -1001,7 +1102,7 @@
                 L1b += L1b_A;
                 return;
             }
-    
+
             [branch] if (_UdonLightVolumeProbesBlend) { // No Volume B found and light volumes blending enabled
                 LV_SampleLightProbe(L0_B, L1r_B, L1g_B, L1b_B);
             } else {
@@ -1010,22 +1111,22 @@
         } else {
             LV_SampleVolume(volumeID_B, localUVW_B, L0_B, L1r_B, L1g_B, L1b_B);
         }
-    
+
         // Lerping SH components
         L0  += lerp(L0_B,  L0_A,  mask);
         L1r += lerp(L1r_B, L1r_A, mask);
         L1g += lerp(L1g_B, L1g_A, mask);
         L1b += lerp(L1b_B, L1b_A, mask);
-    
+
     }
 
     void LV_LightVolumeAdditiveSH(float3 worldPos, inout float3 L0, inout float3 L1r, inout float3 L1g, inout float3 L1b) {
         uint additiveCount = min((uint) _UdonLightVolumeAdditiveCount, VRCLV_MAX_VOLUMES_COUNT); // Clamping global iteration counts
         [branch] if (additiveCount == 0) return;
-    
+
         uint maxOverdraw = min((uint) _UdonLightVolumeAdditiveMaxOverdraw, additiveCount);
         [branch] if (maxOverdraw == 0) return;
-    
+
         uint addVolumesCount = 0;
         [loop] for (uint id = 0; id < additiveCount && addVolumesCount < maxOverdraw; id++) {
             float3 localUVW = LV_LocalFromVolume(id, worldPos);
@@ -1139,4 +1240,3 @@
 
     #endif
 }
-
