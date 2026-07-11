@@ -5,7 +5,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "01079b99d35c08ee91dfe778016d607f5bf657eb"
+      "hash": "c734af12e6e5dfe5c8fbc7d4f64d0c8e57abb94a"
     },
     "com.emdl.scene-view-msaa": {
       "version": "https://github.com/Error-mdl/UnitySceneViewMSAAPatch.git",
@@ -20,15 +20,11 @@
       "source": "embedded",
       "dependencies": {}
     },
-    "com.singularitygroup.hotreload": {
-      "version": "git+https://gitlab.hotreload.net/root/hot-reload-releases.git#1.12.8",
+    "com.poiyomi.toon": {
+      "version": "file:com.poiyomi.toon",
       "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.unity.ugui": "1.0.0",
-        "com.unity.modules.unitywebrequest": "1.0.0"
-      },
-      "hash": "ff60e352632357969bf3ff54ce63c8c4ba171566"
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.unity.2d.animation": {
       "version": "9.1.1",
@@ -132,13 +128,6 @@
       "dependencies": {
         "com.unity.test-framework": "1.1.9"
       },
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.ide.vscode": {
-      "version": "1.2.5",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.mathematics": {
@@ -282,6 +271,32 @@
         "com.unity.xr.management": "4.0.1"
       },
       "url": "https://packages.unity.com"
+    },
+    "dev.hai-vr.lightbox-viewer": {
+      "version": "file:dev.hai-vr.lightbox-viewer",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "jp.lilxyzw.liltoon": {
+      "version": "file:jp.lilxyzw.liltoon",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "red.sim.lightvolumes": {
+      "version": "file:red.sim.lightvolumes",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.editorcoroutines": "1.0.0"
+      }
+    },
+    "red.sim.particlevolumes": {
+      "version": "file:red.sim.particlevolumes",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
     },
     "sh.orels.shaders": {
       "version": "file:sh.orels.shaders",
