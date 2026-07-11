@@ -364,7 +364,6 @@
         float NoL = saturate((centerNoL + lightSpread) * rcp(1.0 + lightSpread));
         float3 specular = float3(0.0, 0.0, 0.0);
         [branch] if (NoL > 0) {
-
             float3 lightHalfVector = Unity_SafeNormalize(lightDirNormal + viewDir);
             half NoH = saturate(dot(worldNormal, lightHalfVector));
             half lightLoH = dot(lightDirNormal, lightHalfVector);
@@ -401,7 +400,6 @@
 
     #endif
 }
-
 
 %PassFunctions()
 {
@@ -720,7 +718,7 @@
                     counted = true;
                     [branch] if (customId > 0) { // Point light with a baked attenuation LUT
                         float dirRadius = distSq * pos.w;
-                        uint textureId = (uint) _UdonPointLightVolumeCubeCount * 5 + customId - 1;
+                        uint textureId = (uint) _UdonPointLightVolumeCubeCount * 5 + customId;
                         float3 att = color.rgb * LV_SAMPLE_POINT(float3(0, sqrt(dirRadius), textureId)).xyz;
                         lightDirNormal = lightDir;
                         specularSpreadSq = 0;
