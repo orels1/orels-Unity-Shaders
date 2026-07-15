@@ -14,7 +14,7 @@
     [ToggleUI]_SpecularMode("Specular Mode %Priority(100)", Int) = 0
     [NoScaleOffset]_SpecularMap("Specular > %ShowIf(_SpecularMode) %Priority(100)", 2D) = "white" { }
     _SpecularColor("Specular Color %ShowIf(_SpecularMode && !_SpecularMap)", Color) = (1,1,1,1)
-    [Enum(Masks Map Smoothness, 0, Specular Map Alpha, 1)]_GlossSource("Gloss Source %ShowIf(_SpecularMode) %Priority(100)", Int) = 0
+    [Enum(Masks Map Smoothness, 0, Specular Map Alpha, 1, Albedo Alpha, 2)]_GlossSource("Gloss Source %ShowIf(_SpecularMode) %Priority(100)", Int) = 0
     [NoScaleOffset]_MaskMap("Masks >", 2D) = "white" { }
     [Enum(R, 0, G, 1, B, 2, A, 3)]_MetalChannel("Metal %ShowIf(_MaskMap) %CombineWith(_AOChannel, _DetailMaskChannel, _SmoothChannel)", Int) = 0
     [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)]_AOChannel("AO", Int) = 1
@@ -169,8 +169,12 @@
         half metal = masks[_MetalChannel];
         half smooth = masks[_SmoothChannel];
 
-        if (_SpecularMode && _GlossSource) {
-            smooth = specular.a;
+        if (_SpecularMode) {
+            if (_GlossSource > 1) {
+                smooth = albedo.a;
+            } else if (_GlossSource > 0) {
+                smooth = specular.a;
+            }
         }
 
         if (_RoughnessMode)
