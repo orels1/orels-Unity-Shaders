@@ -99,10 +99,9 @@
         half specRoughness = _SpecRoughnessChannel > 3 ? 1.0 : specMap[min(_SpecRoughnessChannel, 3)];
         half specAlbedoTint = _SpecAlbedoTintChannel > 3 ? 1.0 : specMap[min(_SpecAlbedoTintChannel,3)];
 
-        o.SpecularIntensity = max(0, _SpecularIntensity * specIntensity);
+        o.SpecularIntensity = lerp(o.SpecularIntensity, max(0, _SpecularIntensity * specIntensity), lerp(1, specMask, _SpecularMaskStrength));
 
         o.SpecularRoughness = max(0.01, GSAA_Filament(d.worldNormal, _SpecularRoughness, 0.05, 0.1) * specRoughness);
-        o.SpecularRoughness = lerp(o.SpecularRoughness, o.SpecularRoughness * specMask, _SpecularMaskStrength);
 
         o.SpecularAnisotropy = _SpecularAnisotropy;
         o.SpecularAlbedoTint = _SpecularAlbedoTint * specAlbedoTint;
@@ -134,34 +133,33 @@
         d.bitangent.xyz = cross(o.WorldNormal, d.worldSpaceTangent.xyz);
 
         half3 finalSpecular = 0;
-        #if !defined(_INTEGRATE_CUSTOMSPECULAR)
-        {
+        lightNoL = saturate(lightNoL);
 
-            lightNoL = saturate(lightNoL);
+        half NoH = saturate(dot(o.WorldNormal, lightHalfVector));
+        // Calculate f0 in place with Metallic = 0
+        half3 F = F_Schlick(lightLoH, 0.16 * 0.5 * 0.5 + lerp(1, o.Albedo, o.SpecularAlbedoTint));
 
-            half NoH = saturate(dot(o.WorldNormal, lightHalfVector));
-            // Calculate f0 in place with Metallic = 0
-            half3 F = F_Schlick(lightLoH, 0.16 * 0.5 * 0.5 + lerp(1, o.Albedo, o.SpecularAlbedoTint));
+        float D = D_GGX(NoH, perceptualRoughness);
+        half V = V_SmithGGXCorrelated(NoV, lightNoL, perceptualRoughness);
+        half3 isotropicSpecular = max(0, D * V * F);
 
-            float D = D_GGX(NoH, perceptualRoughness);
-            half V = V_SmithGGXCorrelated(NoV, lightNoL, perceptualRoughness);
-            half3 isotropicSpecular = max(0, D * V * F);
+        D = D_GGX_Anisotropic(NoH, lightHalfVector, d.worldSpaceTangent, d.bitangent, at, ab);
+        half3 anisotropicSpecular = max(0, D * V * F);
 
-            D = D_GGX_Anisotropic(NoH, lightHalfVector, d.worldSpaceTangent, d.bitangent, at, ab);
-            half3 anisotropicSpecular = max(0, D * V * F);
+        finalSpecular = lerp(isotropicSpecular, anisotropicSpecular, saturate(abs(anisotropy * 100)));
+        // Apply sharpness modifier by focusing in the center
+        finalSpecular = lerp(finalSpecular, smoothstep(0.5, 0.51, finalSpecular), o.SpecularSharpness);
+        finalSpecular *= UNITY_PI; // Multiply by PI to bring up to brightness of standard
+        finalSpecular *= lightColor;
+        finalSpecular *= o.SpecularIntensity;
+        finalSpecular *= o.SpecularTint;
+        finalSpecular = clamp(finalSpecular, 0, o.SpecularIntensity);
 
-            finalSpecular = lerp(isotropicSpecular, anisotropicSpecular, saturate(abs(anisotropy * 100)));
-            // Apply sharpness modifier by focusing in the center
-            finalSpecular = lerp(finalSpecular, smoothstep(0.5, 0.51, finalSpecular), o.SpecularSharpness);
-            finalSpecular *= UNITY_PI; // Multiply by PI to bring up to brightness of standard
-            finalSpecular *= lightColor;
-            finalSpecular *= o.SpecularIntensity;
-            finalSpecular *= o.SpecularTint;
-            finalSpecular = clamp(finalSpecular, 0, o.SpecularIntensity);
+        finalSpecular *= lightNoL * lightAttenuation;
 
-            finalSpecular *= lightNoL * lightAttenuation;
-        }
-        #else
+        // additional specular handled here
+        // E.g., vrclv will inject their custom per-light specular here, while the main light specular is handled above
+        #if defined (_INTEGRATE_CUSTOMSPECULAR)
         {
             %CustomSpecularFunctions
         }
