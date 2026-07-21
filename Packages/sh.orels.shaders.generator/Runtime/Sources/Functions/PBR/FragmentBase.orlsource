@@ -1,7 +1,7 @@
 ﻿%Properties()
 {
     UI_ShadingModeHeader("# Shading Mode", Int) = 0
-    [ToggleUI]_SpecularMode("Specular Mode", Int) = 0
+    [Toggle(SPECULAR_MODE)]_SpecularMode("Specular Mode", Int) = 0
     [KeywordEnum(Default, Cloth)]SHADING_MODE("Shading Mode", Int) = 0
     [Toggle(CLEARCOAT)]_ClearCoat("Add Clear Coat %ShowIf(SHADING_MODE_DEFAULT)", Int) = 0
     _ClearCoatStrength("Clear Coat Strength %ShowIf(SHADING_MODE_DEFAULT && CLEARCOAT)", Range(0,1)) = 1
@@ -116,6 +116,7 @@
     #pragma shader_feature_local_fragment SHADE_VERTEXLIGHTS
     #pragma shader_feature_local_fragment SHADING_MODE_DEFAULT SHADING_MODE_CLOTH
     #pragma shader_feature_local_fragment CLEARCOAT
+    #pragma shader_feature_local_fragment SPECULAR_MODE
 
     // PC Only Features
     #if !defined(UNITY_PBS_USE_BRDF2) && !defined(SHADER_API_MOBILE)
@@ -189,8 +190,6 @@
 
 %Variables()
 {
-    int _SpecularMode;
-
     #if defined(GSAA)
     half _GSAAVariance;
     half _GSAAThreshold;
@@ -290,8 +289,21 @@
         // If in specular mode - we use specular map luminance to drive diffuse vs specular Contributions
         // Values >0.5 are essentially metallic, and values below 0.5 are dielectric
         // f0 is also simply directly done via specular map
-        float oneMinusReflectivity = _SpecularMode ? (1.0 - max(max(o.Specular.r, o.Specular.g), o.Specular.b)) : (1.0 - 0.04 - o.Metallic * (1.0 - 0.04));
-        half3 f0 = _SpecularMode ? (o.Specular) : (0.16 * reflectance * reflectance * oneMinusReflectivity + o.Albedo * o.Metallic);
+        float oneMinusReflectivity = 0.5;
+        half3 f0 = 0.5;
+
+        #if defined(SPECULAR_MODE)
+        {
+            oneMinusReflectivity = 1.0 - max(max(o.Specular.r, o.Specular.g), o.Specular.b);
+            f0 = o.Specular;
+        }
+        #else
+        {
+            oneMinusReflectivity = (1.0 - 0.04 - o.Metallic * (1.0 - 0.04));
+            f0 = (0.16 * reflectance * reflectance * oneMinusReflectivity + o.Albedo * o.Metallic);
+        }
+        #endif
+
 
         half3 indirectDiffuse = 0;
         half3 indirectSpecular = 0;
