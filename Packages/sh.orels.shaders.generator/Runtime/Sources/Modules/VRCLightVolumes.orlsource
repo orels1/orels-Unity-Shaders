@@ -64,6 +64,7 @@
             #define _INTEGRATE_CUSTOMSPECULAR
             #define LV_CUSTOM_SPECULAR_BRDF
             #define EXPOSE_GLOBAL_DATA
+            #define LV_SKIP_MAIN_SPECULAR
         #endif
 
         #define LV_PI 3.141592653589793f
@@ -339,14 +340,41 @@
 
 %CustomSpecular("VRCLightVolumesCustomSpecularToon")
 {
-    void VRCLightVolumesCustomSpecularToon(inout half3 finalSpecular, SurfaceData o)
+    void VRCLightVolumesCustomSpecularToon(inout half3 finalSpecular, MeshData d, SurfaceData o, half perceptualRoughness, float at, float ab, half anisotropy, half3 lightColor, half lightAttenuation, float3 lightHalfVector, half lightLoH, half lightNoL, half NoV)
     {
         #if defined(INTEGRATE_VRCLIGHTVOLUMES)
         {
             // Only Toon v2 Uses this at the moment
-            #if defined(ORL_LIGHTING_MODEL_TOON_V2)
+            #if defined(ORL_LIGHTING_MODEL_TOON_V2) && defined(SPECULAR_ON)
             {
-                finalSpecular += o.VRCLV_Specular;
+                // If light volumes were enabled - simply apply them, otherwise - fall back
+                [branch]
+                if (_UdonLightVolumeEnabled != 0 && _UdonLightVolumeVersion >= VRCLV_MIN_SUPPORTED_VERSION) {
+                    finalSpecular += o.VRCLV_Specular * o.SpecularIntensity;
+                } else {
+                    lightNoL = saturate(lightNoL);
+                    half NoH = saturate(dot(o.WorldNormal, lightHalfVector));
+                    // Calculate f0 in place with Metallic = 0
+                    half3 F = F_Schlick(lightLoH, 0.16 * 0.5 * 0.5 + lerp(1, o.Albedo, o.SpecularAlbedoTint));
+
+                    float D = D_GGX(NoH, perceptualRoughness);
+                    half V = V_SmithGGXCorrelated(NoV, lightNoL, perceptualRoughness);
+                    half3 isotropicSpecular = max(0, D * V * F);
+
+                    D = D_GGX_Anisotropic(NoH, lightHalfVector, d.worldSpaceTangent, d.bitangent, at, ab);
+                    half3 anisotropicSpecular = max(0, D * V * F);
+
+                    finalSpecular = lerp(isotropicSpecular, anisotropicSpecular, saturate(abs(anisotropy * 100)));
+                    // Apply sharpness modifier by focusing in the center
+                    finalSpecular = lerp(finalSpecular, smoothstep(0.5, 0.51, finalSpecular), o.SpecularSharpness);
+                    finalSpecular *= UNITY_PI; // Multiply by PI to bring up to brightness of standard
+                    finalSpecular *= lightColor;
+                    finalSpecular *= o.SpecularIntensity;
+                    finalSpecular *= o.SpecularTint;
+                    finalSpecular = clamp(finalSpecular, 0, o.SpecularIntensity);
+
+                    finalSpecular *= lightNoL * lightAttenuation;
+                }
             }
             #endif
         }
@@ -369,7 +397,7 @@
             half lightLoH = dot(lightDirNormal, lightHalfVector);
             half perceptualRoughness = max(0.01, GLOBAL_SurfaceData.SpecularRoughness);
             perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
-            half anisotropy = GLOBAL_SurfaceData.SpecularAnisotropy * saturate(5.0 * perceptualRoughness);
+            half anisotropy = _SpecularAnisotropy * saturate(5.0 * perceptualRoughness);
 
             perceptualRoughness *= perceptualRoughness;
             perceptualRoughness = max(perceptualRoughness, 0.0045);
@@ -392,7 +420,7 @@
             specular *= l0;
             specular *= GLOBAL_SurfaceData.SpecularIntensity;
             specular *= GLOBAL_SurfaceData.SpecularTint;
-            specular = clamp(specular, 0, GLOBAL_SurfaceData.SpecularIntensity);
+            specular = clamp(specular, 0, GLOBAL_SurfaceData.SpecularIntensity.rrr);
             specular *= NoL;
         }
         return specular;
@@ -1210,11 +1238,19 @@
         L0 = 0; L1r = 0; L1g = 0; L1b = 0; specular = 0;
         [branch] if (_UdonLightVolumeEnabled == 0 || _UdonLightVolumeVersion < VRCLV_MIN_SUPPORTED_VERSION) {
             LV_SampleLightProbe(L0, L1r, L1g, L1b);
+            #if defined(LV_SKIP_MAIN_SPECULAR)
             specular = LV_Specular(f0, smoothness, worldNormal, viewDir, L0, L1r + L1g + L1b);
+            #else
+            specular = 0;
+            #endif
         } else {
             LV_LightVolumeRegularSH(worldPos + worldPosOffset, L0, L1r, L1g, L1b);
             LV_LightVolumeAdditiveSH(worldPos + worldPosOffset, L0, L1r, L1g, L1b);
+            #if defined(LV_SKIP_MAIN_SPECULAR)
             specular = LV_Specular(f0, smoothness, worldNormal, viewDir, L0, L1r + L1g + L1b);
+            #else
+            specular = 0;
+            #endif
             LV_PointLightVolumeSHSpecular(worldPos, worldNormal, viewDir, smoothness, f0, pointLightShading, L0, L1r, L1g, L1b, specular);
         }
     }
