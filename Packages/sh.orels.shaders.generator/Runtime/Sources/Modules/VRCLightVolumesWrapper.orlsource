@@ -1,0 +1,65 @@
+%Properties()
+{
+    UI_VRCLightVolumesHeader("# VRC Light Volumes", Int) = 0
+    [Toggle(VRCLIGHTVOLUMES)]_VRCLightVolumesEnabled("Enable VRC Light Volumes", Int) = 0
+    _VRCLightVolumesSurfacePushoff("Surface Pushoff", Range(0, 1)) = 0.04
+    UI_VRCLightVolumesSurfacePushoffNote("> Pushes the volume sampling point away from the surface along the normal vector. This is useful for avoiding leaking and other artifacts on thin surfaces\nValues in 0.05-0.15 range are recommended", Int) = 0
+}
+
+%ShaderFeatures()
+{
+    #pragma shader_feature_local_fragment VRCLIGHTVOLUMES
+
+    // Global keyword to enable in the project
+    #pragma shader_feature_fragment DISABLE_VRCLIGHTVOLUMES
+}
+
+%ShaderDefines()
+{
+    #define VRCLV_VERSION 3
+    #define VRCLV_MIN_SUPPORTED_VERSION 2
+    #define VRCLV_MAX_VOLUMES_COUNT 32
+    #define VRCLV_MAX_LIGHTS_COUNT 128
+    #define VRCLV_MIN_SPECULAR_PERCEPTUAL_ROUGHNESS 0.089
+    #define VRCLV_MIN_N_DOT_V 0.0001
+
+    #if !defined(DISABLE_VRCLIGHTVOLUMES) && defined(VRCLIGHTVOLUMES)
+        #define INTEGRATE_VRCLIGHTVOLUMES
+
+        // For PBR shaders on non-baked objects - we skip built-in specular and instead simply use the one provided by VRCLV
+        #if !defined(LIGHTMAP_ON)
+            #define SKIP_NATIVE_SPECULAR
+        #endif
+
+        // Toon Specular uses a custom specular calculation function so we need to
+        // 1. Tell the Specular Module to skip its built-in specular calculations (forwardbase only, add pass lights are still handled directly)
+        // 2. Tell VRCLV to use a custom specular accumulation
+        // 3. Tell Toon fragment base to expose its final Mesh and Surface data structs globally
+        #if defined(ORL_LIGHTING_MODEL_TOON_V2) && defined(SPECULAR_ON) && defined(UNITY_PASS_FORWARDBASE)
+            #define _INTEGRATE_CUSTOMSPECULAR
+            #define LV_CUSTOM_SPECULAR_BRDF
+            #define EXPOSE_GLOBAL_DATA
+            #define LV_SKIP_MAIN_SPECULAR
+        #endif
+
+        #define LV_PI 3.141592653589793f
+        #define LV_INV_PI 0.3183098861837907f
+        #define LV_PI2 6.283185307179586f
+        #define LV_EVSM_POSITIVE_EXPONENT 5.54f
+        #define LV_EVSM_NEGATIVE_EXPONENT 5.0f
+
+        #define _INTEGRATE_CUSTOMPROBES
+        #define _INTEGRATE_CUSTOMGI_FLEX
+    #endif
+}
+
+%AdditionalSurfaceData()
+{
+    #if defined(INTEGRATE_VRCLIGHTVOLUMES)
+    float3 VRCLV_L0;
+    float3 VRCLV_L1r;
+    float3 VRCLV_L1g;
+    float3 VRCLV_L1b;
+    float3 VRCLV_Specular;
+    #endif
+}

@@ -4,7 +4,7 @@
       "version": "2.0.0"
     },
     "red.sim.lightvolumes": {
-      "version": "3.0.0-dev.9"
+      "version": "3.0.0-dev.13"
     }
   },
   "locked": {
@@ -13,7 +13,7 @@
       "dependencies": {}
     },
     "red.sim.lightvolumes": {
-      "version": "3.0.0-dev.9",
+      "version": "3.0.0-dev.13",
       "dependencies": {}
     }
   }
