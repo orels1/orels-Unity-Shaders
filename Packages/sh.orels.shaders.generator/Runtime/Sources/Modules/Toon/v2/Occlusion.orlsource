@@ -4,6 +4,7 @@
     _OcclusionMap("Occlusion >", 2D) = "white" {}
     [Enum(R,0,G,1,B,2,A,3)]_OcclusionChannel("Channel", Int) = 0
     _OcclusionStrength("Occlusion Strength %ShowIf(_OcclusionMap)", Range(0,1)) = 0
+    _OcclusionPower("Occlusion Power", Float) = 1
     [Enum(Synced With Albedo, 0, Independent, 1)]_OcclusionTilingMode("Tiling Mode %ShowIf(_OcclusionMap)", Int) = 0
     _OcclusionTiling("Tiling %ShowIf(_OcclusionMap)", Float) = 1
     UI_OcclusionTilingSyncedNote("> Will scale UVs based on the Albedo texture Tiling and Offset settings %ShowIf(_OcclusionTilingMode == 0 && _OcclusionMap)", Int) = 0
@@ -28,6 +29,7 @@
 {
     int _OcclusionChannel;
     half _OcclusionStrength;
+    half _OcclusionPower;
     int _OcclusionTilingMode;
     half _OcclusionTiling;
 
@@ -77,6 +79,7 @@
         #endif
 
         half occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_MainTex, lerp(globalUv * _OcclusionTiling, d.uv0 * _OcclusionTiling, _OcclusionTilingMode))[_OcclusionChannel];
+        occlusion = pow(occlusion, max(0.01, _OcclusionPower));
         o.Occlusion = lerp(1, occlusion, _OcclusionStrength);
 
         if (_OcclusionDetailEnabled) {
