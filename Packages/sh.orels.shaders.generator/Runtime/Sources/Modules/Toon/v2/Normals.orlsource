@@ -178,7 +178,7 @@
         half4 detailMask = 1;
         #if defined(DETAIL_NORMALS_MASK_SET)
         {
-            float2 detailMaskUV = GLOBAL_uvArray[_DetailNormalsMaskUVSet].xy;
+            float2 detailMaskUV = GLOBAL_uvArray[clamp(_DetailNormalsMaskUVSet, 0, 3)].xy;
             detailMaskUV = detailMaskUV * _DetailNormalsMask_ST.xy + _DetailNormalsMask_ST.zw;
             detailMask = SAMPLE_TEXTURE2D(_DetailNormalsMask, sampler_BumpMap, detailMaskUV);
         }
@@ -187,7 +187,7 @@
         // Details Layer 1
         #if defined(DETAIL_NORMALS_0)
         {
-            float2 detailUV = GLOBAL_uvArray[_DetailNormals0UVSet].xy;
+            float2 detailUV = GLOBAL_uvArray[clamp(_DetailNormals0UVSet, 0, 3)].xy;
             detailUV = detailUV * _DetailNormals0Map_ST.xy + _DetailNormals0Map_ST.zw;
             half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals0Map, sampler_BumpMap, detailUV);
             if (_FlipDetailNormals0Y)
@@ -201,7 +201,7 @@
 
         #if defined(DETAIL_NORMALS_1)
         {
-            float2 detailUV = GLOBAL_uvArray[_DetailNormals1UVSet].xy;
+            float2 detailUV = GLOBAL_uvArray[clamp(_DetailNormals1UVSet, 0, 3)].xy;
             detailUV = detailUV * _DetailNormals1Map_ST.xy + _DetailNormals1Map_ST.zw;
             half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals1Map, sampler_BumpMap, detailUV);
             if (_FlipDetailNormals1Y)
@@ -215,7 +215,7 @@
 
         #if defined(DETAIL_NORMALS_2)
         {
-            float2 detailUV = GLOBAL_uvArray[_DetailNormals2UVSet].xy;
+            float2 detailUV = GLOBAL_uvArray[clamp(_DetailNormals2UVSet, 0, 3)].xy;
             detailUV = detailUV * _DetailNormals2Map_ST.xy + _DetailNormals2Map_ST.zw;
             half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals2Map, sampler_BumpMap, detailUV);
             if (_FlipDetailNormals2Y)
@@ -229,7 +229,7 @@
 
         #if defined(DETAIL_NORMALS_3)
         {
-            float2 detailUV = GLOBAL_uvArray[_DetailNormals3UVSet].xy;
+            float2 detailUV = GLOBAL_uvArray[clamp(_DetailNormals3UVSet, 0, 3)].xy;
             detailUV = detailUV * _DetailNormals3Map_ST.xy + _DetailNormals3Map_ST.zw;
             half4 detailNormalsTex = SAMPLE_TEXTURE2D(_DetailNormals3Map, sampler_BumpMap, detailUV);
             if (_FlipDetailNormals3Y)

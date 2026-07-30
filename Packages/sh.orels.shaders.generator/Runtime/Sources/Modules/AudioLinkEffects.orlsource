@@ -153,7 +153,7 @@
 
         half3 finalEmission = 0;
         half finalAlpha = 1;
-        float2 maskUv = GLOBAL_uvArray[_ALUVChannel];
+        float2 maskUv = GLOBAL_uvArray[clamp(_ALUVChannel, 0, 3)];
         half4 mask = SAMPLE_TEXTURE2D(_ALMask, sampler_ALMask, maskUv);
 
         float2 uv = _ALEffectUVChannel == 0 ? maskUv : GLOBAL_uvArray[max(0, _ALEffectUVChannel - 1)];

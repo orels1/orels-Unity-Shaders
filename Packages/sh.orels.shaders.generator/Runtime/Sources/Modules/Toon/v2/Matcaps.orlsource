@@ -243,7 +243,7 @@
         half4 matcapMask = 1;
         #if defined(MATCAPS_MASK_SET)
         {
-            float2 matcapMaskUV = GLOBAL_uvArray[_MatcapsMaskUVSet].xy;
+            float2 matcapMaskUV = GLOBAL_uvArray[clamp(_MatcapsMaskUVSet, 0, 3)].xy;
             matcapMaskUV = matcapMaskUV * _MatcapsMask_ST.xy + _MatcapsMask_ST.zw;
             matcapMask = SAMPLE_TEXTURE2D(_MatcapsMask, sampler_MainTex, matcapMaskUV);
         }

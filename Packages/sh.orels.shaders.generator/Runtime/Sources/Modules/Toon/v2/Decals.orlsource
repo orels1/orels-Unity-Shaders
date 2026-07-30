@@ -276,7 +276,7 @@
 {
     half4 GetDecalTexture(MeshData d, int uvSet, float scale, int shouldTile, float2 tiling, float2 offset, float rotation, TEXTURE2D_PARAM(decalTexture, sampler_decalTexture), half4 tint, out float2 decalUV)
     {
-        decalUV = GLOBAL_uvArray[uvSet].xy;
+        decalUV = GLOBAL_uvArray[clamp(uvSet, 0, 3)].xy;
         decalUV -= offset;
         decalUV -= 0.5;
         decalUV *= 1.0 / scale;
@@ -349,7 +349,7 @@
         half4 decalsMask = 1;
         #if defined(DECALS_MASK_SET)
         {
-            float2 decalsMaskUV = GLOBAL_uvArray[_DecalsMaskUVSet].xy;
+            float2 decalsMaskUV = GLOBAL_uvArray[clamp(_DecalsMaskUVSet, 0 , 3)].xy;
             decalsMaskUV = decalsMaskUV * _DecalsMask_ST.xy + _DecalsMask_ST.zw;
             decalsMask = SAMPLE_TEXTURE2D(_DecalsMask, sampler_MainTex, decalsMaskUV);
         }

@@ -62,7 +62,7 @@
 {
     void ToonMainFragment(MeshData d, inout SurfaceData o, bool facing)
     {
-        float2 uv = GLOBAL_uvArray[_MainTexUVSet].xy;
+        float2 uv = GLOBAL_uvArray[clamp(_MainTexUVSet, 0, 3)].xy;
         uv = uv * _MainTex_ST.xy + _MainTex_ST.zw;
         GLOBAL_uv = uv;
         half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, GLOBAL_uv);
