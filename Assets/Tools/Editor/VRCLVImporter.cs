@@ -15,11 +15,12 @@ namespace ORL.Tools
 {
     public class VRCLVImporter
     {
-        [MenuItem("Tools/orels1/Import and Parse VRC Light Volumes v2")]
-        public static void ImportAndParseV2()
-        {
-            ImportAndParse(2);
-        }
+        // TODO: can probably remove this, the new structure isnt very v2 compatible
+        // [MenuItem("Tools/orels1/Import and Parse VRC Light Volumes v2")]
+        // public static void ImportAndParseV2()
+        // {
+        //     ImportAndParse(2);
+        // }
 
         [MenuItem("Tools/orels1/Import and Parse VRC Light Volumes v3")]
         public static void ImportAndParseV3()
@@ -27,7 +28,6 @@ namespace ORL.Tools
             ImportAndParse(3);
         }
 
-        [MenuItem("Tools/orels1/Import and Parse VRC Light Volumes")]
         public static void ImportAndParse(int version)
         {
             var projectPath = Application.dataPath.Replace("/Assets", "");
