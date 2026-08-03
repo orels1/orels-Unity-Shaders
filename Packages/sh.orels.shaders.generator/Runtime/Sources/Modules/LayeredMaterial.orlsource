@@ -72,7 +72,7 @@
     _LMLayer2Color("Main Color %ShowIf(_LayeredMatLayersCount > 1)", Color) = (1, 1, 1, 1)
     _LMLayer2MainTex("Albedo %ShowIf(_LayeredMatLayersCount > 1)", 2D) = "white" {}
 
-    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_LMLayer2UV("UV Channel %ShowIf(!_LMLayer2Triplanar)", Int) = 0
+    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_LMLayer2UV("UV Channel %ShowIf(!_LMLayer2Triplanar && _LayeredMatLayersCount > 1)", Int) = 0
     [ToggleUI]_LMLayer2Triplanar("Enable Triplanar %ShowIf(_LayeredMatLayersCount > 1)", Int) = 0
     _LMLayer2TriplanarTiling("Tiling %ShowIf(_LMLayer2Triplanar && _LayeredMatLayersCount > 1)", Float) = 1
     _LMLayer2TriplanarBlend("Blend %ShowIf(_LMLayer2Triplanar && _LayeredMatLayersCount > 1)", Range(0,2)) = 1
@@ -104,7 +104,7 @@
     _LMLayer3Color("Main Color %ShowIf(_LayeredMatLayersCount > 2)", Color) = (1, 1, 1, 1)
     _LMLayer3MainTex("Albedo %ShowIf(_LayeredMatLayersCount > 2)", 2D) = "white" { }
 
-    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_LMLayer3UV("UV Channel %ShowIf(!_LMLayer3Triplanar)", Int) = 0
+    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_LMLayer3UV("UV Channel %ShowIf(!_LMLayer3Triplanar && _LayeredMatLayersCount > 2)", Int) = 0
     [ToggleUI]_LMLayer3Triplanar("Enable Triplanar %ShowIf(_LayeredMatLayersCount > 2)", Int) = 0
     _LMLayer3TriplanarTiling("Tiling %ShowIf(_LMLayer3Triplanar && _LayeredMatLayersCount > 2)", Float) = 1
     _LMLayer3TriplanarBlend("Blend %ShowIf(_LMLayer3Triplanar && _LayeredMatLayersCount > 2)", Range(0,2)) = 1
@@ -136,7 +136,7 @@
     _LMLayer4Color("Main Color %ShowIf(_LayeredMatLayersCount > 3)", Color) = (1, 1, 1, 1)
     _LMLayer4MainTex("Albedo %ShowIf(_LayeredMatLayersCount > 3)", 2D) = "white" { }
 
-    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_LMLayer4UV("UV Channel %ShowIf(!_LMLayer4Triplanar)", Int) = 0
+    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_LMLayer4UV("UV Channel %ShowIf(!_LMLayer4Triplanar && _LayeredMatLayersCount > 3)", Int) = 0
     [ToggleUI]_LMLayer4Triplanar("Enable Triplanar %ShowIf(_LayeredMatLayersCount > 3)", Int) = 0
     _LMLayer4TriplanarTiling("Tiling %ShowIf(_LMLayer4Triplanar && _LayeredMatLayersCount > 3)", Float) = 1
     _LMLayer4TriplanarBlend("Blend %ShowIf(_LMLayer4Triplanar && _LayeredMatLayersCount > 3)", Range(0,2)) = 1
