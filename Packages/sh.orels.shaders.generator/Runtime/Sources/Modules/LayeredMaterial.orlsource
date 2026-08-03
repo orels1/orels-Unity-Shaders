@@ -40,6 +40,7 @@
     _LMLayer1Color("Main Color", Color) = (1, 1, 1, 1)
     _LMLayer1MainTex("Albedo", 2D) = "white" {}
 
+    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_LMLayer1UV("UV Channel %ShowIf(!_LMLayer1Triplanar)", Int) = 0
     [ToggleUI]_LMLayer1Triplanar("Enable Triplanar", Int) = 0
     _LMLayer1TriplanarTiling("Tiling %ShowIf(_LMLayer1Triplanar)", Float) = 1
     _LMLayer1TriplanarBlend("Blend %ShowIf(_LMLayer1Triplanar)", Range(0,2)) = 1
@@ -71,6 +72,7 @@
     _LMLayer2Color("Main Color %ShowIf(_LayeredMatLayersCount > 1)", Color) = (1, 1, 1, 1)
     _LMLayer2MainTex("Albedo %ShowIf(_LayeredMatLayersCount > 1)", 2D) = "white" {}
 
+    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_LMLayer2UV("UV Channel %ShowIf(!_LMLayer2Triplanar)", Int) = 0
     [ToggleUI]_LMLayer2Triplanar("Enable Triplanar %ShowIf(_LayeredMatLayersCount > 1)", Int) = 0
     _LMLayer2TriplanarTiling("Tiling %ShowIf(_LMLayer2Triplanar && _LayeredMatLayersCount > 1)", Float) = 1
     _LMLayer2TriplanarBlend("Blend %ShowIf(_LMLayer2Triplanar && _LayeredMatLayersCount > 1)", Range(0,2)) = 1
@@ -102,6 +104,7 @@
     _LMLayer3Color("Main Color %ShowIf(_LayeredMatLayersCount > 2)", Color) = (1, 1, 1, 1)
     _LMLayer3MainTex("Albedo %ShowIf(_LayeredMatLayersCount > 2)", 2D) = "white" { }
 
+    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_LMLayer3UV("UV Channel %ShowIf(!_LMLayer3Triplanar)", Int) = 0
     [ToggleUI]_LMLayer3Triplanar("Enable Triplanar %ShowIf(_LayeredMatLayersCount > 2)", Int) = 0
     _LMLayer3TriplanarTiling("Tiling %ShowIf(_LMLayer3Triplanar && _LayeredMatLayersCount > 2)", Float) = 1
     _LMLayer3TriplanarBlend("Blend %ShowIf(_LMLayer3Triplanar && _LayeredMatLayersCount > 2)", Range(0,2)) = 1
@@ -133,6 +136,7 @@
     _LMLayer4Color("Main Color %ShowIf(_LayeredMatLayersCount > 3)", Color) = (1, 1, 1, 1)
     _LMLayer4MainTex("Albedo %ShowIf(_LayeredMatLayersCount > 3)", 2D) = "white" { }
 
+    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_LMLayer4UV("UV Channel %ShowIf(!_LMLayer4Triplanar)", Int) = 0
     [ToggleUI]_LMLayer4Triplanar("Enable Triplanar %ShowIf(_LayeredMatLayersCount > 3)", Int) = 0
     _LMLayer4TriplanarTiling("Tiling %ShowIf(_LMLayer4Triplanar && _LayeredMatLayersCount > 3)", Float) = 1
     _LMLayer4TriplanarBlend("Blend %ShowIf(_LMLayer4Triplanar && _LayeredMatLayersCount > 3)", Range(0,2)) = 1
@@ -193,6 +197,7 @@
 
     // Layer 1
     int _LMLayer1ColorMask;
+    int _LMLayer1UV;
     half _LMLayer1Strength;
     half4 _LMLayer1MaskRemap;
     half4 _LMLayer1Color;
@@ -221,6 +226,7 @@
 
     // Layer 2
     int _LMLayer2ColorMask;
+    int _LMLayer2UV;
     half _LMLayer2Strength;
     half4 _LMLayer2MaskRemap;
     half4 _LMLayer2Color;
@@ -248,6 +254,7 @@
 
     // Layer 3
     int _LMLayer3ColorMask;
+    int _LMLayer3UV;
     half _LMLayer3Strength;
     half4 _LMLayer3MaskRemap;
     half4 _LMLayer3Color;
@@ -275,6 +282,7 @@
 
     // Layer 4
     int _LMLayer4ColorMask;
+    int _LMLayer4UV;
     half _LMLayer4Strength;
     half4 _LMLayer4MaskRemap;
     half4 _LMLayer4Color;
@@ -327,8 +335,30 @@
 
 %PassFunctions()
 {
+    float2 GetLMUVs(MeshData d, int channel) {
+        float2 uv = 0;
+        #if defined(GLOBAL_UVS_PRESENT)
+        {
+            uv = GLOBAL_uvArray[clamp(channel, 0, 3)].xy;
+        }
+        #else
+        {
+            switch (channel)
+            {
+                case 0: uv = d.uv0.xy; break;
+                case 1: uv = d.uv1.xy; break;
+                case 2: uv = d.uv2.xy; break;
+                case 3: uv = d.uv3.xy; break;
+            }
+        }
+        #endif
+
+        return uv;
+    }
+
     #define SetupLayerInputs(x) \
     LayerData layer##x##Data = (LayerData)0; \
+    layer##x##Data.uv = GetLMUVs(d, _LMLayer##x##UV); \
     layer##x##Data.ST = _LMLayer##x##MainTex_ST; \
     layer##x##Data.color = _LMLayer##x##Color; \
     layer##x##Data.maskChannel = _LMLayer##x##ColorMask; \
@@ -417,6 +447,7 @@
     struct LayerData
     {
         float4 ST;
+        float2 uv;
         half4 color;
         int maskChannel;
         half4 maskRemap;
@@ -515,7 +546,7 @@
 
             normal = normalize(lerp(lerp(lerp(0, unpackedNormalZ, triWeights.y), unpackedNormalY, triWeights.x), unpackedNormalX, triWeights.z));
         } else {
-            float2 uv = d.uv0.xy * layer.ST.xy + layer.ST.zw;
+            float2 uv = layer.uv * layer.ST.xy + layer.ST.zw;
             albedo = SAMPLE_TEXTURE2D(albedoTex, albedoSampler, uv);
             masks = SAMPLE_TEXTURE2D(maskTex, maskSampler, uv);
             float4 normalTex = SAMPLE_TEXTURE2D(bumpTex, bumpSampler, uv);
@@ -552,14 +583,7 @@
         // Base Layer
         // This one is unmasked and applied as a base coat
 
-        float2 uv = 0;
-        switch (_LMLayerBaseUV)
-        {
-            case 0: uv = d.uv0.xy; break;
-            case 1: uv = d.uv1.xy; break;
-            case 2: uv = d.uv2.xy; break;
-            case 3: uv = d.uv3.xy; break;
-        }
+        float2 uv = GetLMUVs(d, _LMLayerBaseUV);
         uv = uv * _LMLayerBaseMainTex_ST.xy + _LMLayerBaseMainTex_ST.zw;
 
         half4 albedo = SAMPLE_TEXTURE2D(_LMLayerBaseMainTex, sampler_LMLayerBaseMainTex, uv);
@@ -594,14 +618,7 @@
         o.Alpha = albedo.a * _LMLayerBaseColor.a;
 
 
-        float2 layerMaskUv = 0;
-        switch (_LMMaskTexUV)
-        {
-            case 0: layerMaskUv = d.uv0.xy; break;
-            case 1: layerMaskUv = d.uv1.xy; break;
-            case 2: layerMaskUv = d.uv2.xy; break;
-            case 3: layerMaskUv = d.uv3.xy; break;
-        }
+        float2 layerMaskUv = GetLMUVs(d, _LMMaskTexUV);
         half4 layerMask = d.vertexColor;
 
         [branch]
