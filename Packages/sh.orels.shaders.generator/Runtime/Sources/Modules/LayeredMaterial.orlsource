@@ -58,7 +58,8 @@
     _LMLayer1SmoothnessRemap("Smoothness Remap %ShowIf(_LMLayer1MaskMap) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
     _LMLayer1OcclusionStrength("AO Strength %ShowIf(_LMLayer1MaskMap)", Range(0, 1)) = 1
     [NoScaleOffset]_LMLayer1BumpMap("Normal Map >", 2D) = "bump" { }
-    _LMLayer1BumpScale("Normal Map Scale %ShowIf(_LMLayer1BumpMap)", Range(-1, 1)) = 1
+    [Enum(Replace, 0, Blend, 1)]_LMLayer1NormalBlendMode("Normal Blend Mode", Int) = 0
+    _LMLayer1BumpScale("Normal Map Scale %ShowIf((_LMLayer1BumpMap || (_LMLayer1NormalBlendMode == 1)))", Range(-1, 1)) = 1
     [ToggleUI]_LMLayer1FlipBumpY("Flip Y (UE Mode) %ShowIf(_LMLayer1BumpMap)", Int) = 0
 
     // Layer 2
@@ -90,7 +91,8 @@
     _LMLayer2SmoothnessRemap("Smoothness Remap %ShowIf(_LMLayer2MaskMap && _LayeredMatLayersCount > 1) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
     _LMLayer2OcclusionStrength("AO Strength %ShowIf(_LMLayer2MaskMap && _LayeredMatLayersCount > 1)", Range(0, 1)) = 1
     [NoScaleOffset]_LMLayer2BumpMap("Normal Map > %ShowIf(_LayeredMatLayersCount > 1)", 2D) = "bump" { }
-    _LMLayer2BumpScale("Normal Map Scale %ShowIf(_LMLayer2BumpMap && _LayeredMatLayersCount > 1)", Range(-1, 1)) = 1
+    [Enum(Replace, 0, Blend, 1)]_LMLayer2NormalBlendMode("Normal Blend Mode %ShowIf(_LayeredMatLayersCount > 1)", Int) = 0
+    _LMLayer2BumpScale("Normal Map Scale %ShowIf((_LMLayer2BumpMap || (_LMLayer2NormalBlendMode == 1)) && _LayeredMatLayersCount > 1)", Range(-1, 1)) = 1
     [ToggleUI]_LMLayer2FlipBumpY("Flip Y (UE Mode) %ShowIf(_LMLayer2BumpMap && _LayeredMatLayersCount > 1)", Int) = 0
 
     // Layer 3
@@ -122,7 +124,8 @@
     _LMLayer3SmoothnessRemap("Smoothness Remap %ShowIf(_LMLayer3MaskMap && _LayeredMatLayersCount > 2) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
     _LMLayer3OcclusionStrength("AO Strength %ShowIf(_LayeredMatLayersCount > 2)", Range(0, 1)) = 1
     [NoScaleOffset]_LMLayer3BumpMap("Normal Map > %ShowIf(_LayeredMatLayersCount > 2)", 2D) = "bump" { }
-    _LMLayer3BumpScale("Normal Map Scale %ShowIf(_LMLayer3BumpMap && _LayeredMatLayersCount > 2)", Range(-1, 1)) = 1
+    [Enum(Replace, 0, Blend, 1)]_LMLayer3NormalBlendMode("Normal Blend Mode %ShowIf(_LayeredMatLayersCount > 2)", Int) = 0
+    _LMLayer3BumpScale("Normal Map Scale %ShowIf((_LMLayer3BumpMap || (_LMLayer3NormalBlendMode == 1)) && _LayeredMatLayersCount > 2)", Range(-1, 1)) = 1
     [ToggleUI]_LMLayer3FlipBumpY("Flip Y (UE Mode) %ShowIf(_LMLayer3BumpMap && _LayeredMatLayersCount > 2)", Int) = 0
 
     // Layer 4
@@ -154,7 +157,8 @@
     _LMLayer4SmoothnessRemap("Smoothness Remap %ShowIf(_LMLayer4MaskMap && _LayeredMatLayersCount > 3) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
     _LMLayer4OcclusionStrength("AO Strength %ShowIf(_LayeredMatLayersCount > 3)", Range(0, 1)) = 1
     [NoScaleOffset]_LMLayer4BumpMap("Normal Map > %ShowIf(_LayeredMatLayersCount > 3)", 2D) = "bump" { }
-    _LMLayer4BumpScale("Normal Map Scale %ShowIf(_LMLayer4BumpMap && _LayeredMatLayersCount > 3)", Range(-1, 1)) = 1
+    [Enum(Replace, 0, Blend, 1)]_LMLayer4NormalBlendMode("Normal Blend Mode %ShowIf(_LayeredMatLayersCount > 3)", Int) = 0
+    _LMLayer4BumpScale("Normal Map Scale %ShowIf((_LMLayer4BumpMap || (_LMLayer4NormalBlendMode == 1)) && _LayeredMatLayersCount > 3)", Range(-1, 1)) = 1
     [ToggleUI]_LMLayer4FlipBumpY("Flip Y (UE Mode) %ShowIf(_LMLayer4BumpMap && _LayeredMatLayersCount > 3)", Int) = 0
 }
 
@@ -221,6 +225,7 @@
     half4 _LMLayer1SmoothnessRemap;
     half4 _LMLayer1MaskMap_TexelSize;
     half _LMLayer1OcclusionStrength;
+    int _LMLayer1NormalBlendMode;
     half _LMLayer1BumpScale;
     int _LMLayer1FlipBumpY;
 
@@ -249,6 +254,7 @@
     half4 _LMLayer2SmoothnessRemap;
     half4 _LMLayer2MaskMap_TexelSize;
     half _LMLayer2OcclusionStrength;
+    int _LMLayer2NormalBlendMode;
     half _LMLayer2BumpScale;
     int _LMLayer2FlipBumpY;
 
@@ -277,6 +283,7 @@
     half4 _LMLayer3SmoothnessRemap;
     half4 _LMLayer3MaskMap_TexelSize;
     half _LMLayer3OcclusionStrength;
+    int _LMLayer3NormalBlendMode;
     half _LMLayer3BumpScale;
     int _LMLayer3FlipBumpY;
 
@@ -305,6 +312,7 @@
     half4 _LMLayer4SmoothnessRemap;
     half4 _LMLayer4MaskMap_TexelSize;
     half _LMLayer4OcclusionStrength;
+    int _LMLayer4NormalBlendMode;
     half _LMLayer4BumpScale;
     int _LMLayer4FlipBumpY;
 }
@@ -365,6 +373,7 @@
     layer##x##Data.maskRemap = _LMLayer##x##MaskRemap; \
     layer##x##Data.strength = _LMLayer##x##Strength; \
     layer##x##Data.albedoChannel = _LMLayer##x##AlbedoChannel; \
+    layer##x##Data.normalBlendMode = _LMLayer##x##NormalBlendMode; \
     layer##x##Data.bumpScale = _LMLayer##x##BumpScale; \
     layer##x##Data.bumpYFlip = _LMLayer##x##FlipBumpY; \
     layer##x##Data.hasMasks = _LMLayer##x##MaskMap_TexelSize.z > 8; \
@@ -453,6 +462,7 @@
         half4 maskRemap;
         half strength;
         int albedoChannel;
+        int normalBlendMode;
         half bumpScale;
         bool bumpYFlip;
         bool hasMasks;
@@ -573,7 +583,11 @@
         o.Metallic = lerp(o.Metallic, layer.hasMasks ? metal : layer.metallic, mask);
         o.Smoothness = lerp(o.Smoothness, layer.hasMasks ? smooth : layer.smoothness, mask);
         o.Occlusion = lerp(o.Occlusion, layer.hasMasks ? occlusion : layer.ao, mask);
-        o.Normal = normalize(lerp(o.Normal, normal, mask));
+        if (layer.normalBlendMode) {
+            o.Normal = normalize(lerp(o.Normal, BlendNormals(o.Normal, normal), mask));
+        } else {
+            o.Normal = normalize(lerp(o.Normal, normal, mask));
+        }
         o.Albedo = lerp(o.Albedo, albedo.rgb * layer.color.rgb, mask);
         o.Alpha = lerp(o.Alpha, albedo.a * layer.color.a, mask);
     }
