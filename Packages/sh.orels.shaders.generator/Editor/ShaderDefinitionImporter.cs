@@ -1399,6 +1399,12 @@ namespace ORL.ShaderGenerator
                         continue;
                     }
 
+                    // GLES doesnt support selecting a type of a texture here, so we just add it as-is if a generic type is used
+                    if (item.Trim().StartsWith("Texture2D<"))
+                    {
+                        deduped.Add(item);
+                        continue;
+                    }
                     Debug.LogWarning($"Could not find a item in {item}, adding as-is");
                     deduped.Add(item);
                     continue;
