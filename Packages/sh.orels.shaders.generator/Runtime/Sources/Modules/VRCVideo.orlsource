@@ -28,6 +28,7 @@
 {
     UI_Video_ScreenHeader("# Video Screen", Int) = 1
     UI_VideoDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/video-screen)", Int) = 0
+    [ToggleUI]_VideoUseGlobalTexture("Use Global Video Texture", Int) = 0
     _MetaPassEmissiveBoost("Meta Pass Emissive Boost", Float) = 1.0
     _TargetAspectRatio("Target Aspect Ratio", Float) = 1.7777777
     [ToggleUI]_IsAVProInput("Is AV Pro Input", Int) = 0
@@ -35,20 +36,48 @@
 
 %Variables()
 {
+    int _VideoUseGlobalTexture;
     half _MetaPassEmissiveBoost;
     float _TargetAspectRatio;
     int _IsAVProInput;
     half4 _EmissionMap_TexelSize;
+    half4 _MainTex_TexelSize;
+
+    float4 _Udon_VideoTex_ST;
+    float4 _Udon_VideoTex_TexelSize;
+    float4x4 _Udon_VideoData;
+}
+
+
+%Textures()
+{
+    TEXTURE2D(_MainTex);
+    SAMPLER(sampler_MainTex);
+    TEXTURE2D(_Udon_VideoTex);
+    SAMPLER(sampler_Udon_VideoTex);
 }
 
 %Fragment("VRCVideoFragment")
 {
-    half3 VideoEmission(float2 uv)
+    half3 VideoEmission(float2 uv, inout SurfaceData o)
     {
     #ifndef _EMISSION
         return 0;
     #else
+
     float2 emissionRes = _EmissionMap_TexelSize.zw;
+
+    if (_VideoUseGlobalTexture) {
+        emissionRes = _Udon_VideoTex_TexelSize.zw;
+    }
+
+    bool hasVideoTex = emissionRes.x > 16;
+
+    // Fall back to MainTex if EmissionMap is small
+    if (!hasVideoTex)
+    {
+        emissionRes = _MainTex_TexelSize.zw;
+    }
 
     float currentAspectRatio = emissionRes.x / emissionRes.y;
 
@@ -59,7 +88,7 @@
     {
         float2 normalizedVideoRes = float2(emissionRes.x / _TargetAspectRatio, emissionRes.y);
         float2 correctiveScale;
-        
+
         // Find which axis is greater, we will clamp to that
         if (normalizedVideoRes.x > normalizedVideoRes.y)
             correctiveScale = float2(1, normalizedVideoRes.y / normalizedVideoRes.x);
@@ -86,8 +115,21 @@
         uv = float2(uv.x, 1 - uv.y);
     }
     #endif
-    
-    float3 texColor = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, uv).rgb;
+
+    float3 texColor = 0;
+
+    [branch]
+    if (hasVideoTex) {
+        if (_VideoUseGlobalTexture) {
+            texColor = SAMPLE_TEXTURE2D(_Udon_VideoTex, sampler_Udon_VideoTex, uv).rgb;
+        } else {
+            texColor = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, uv).rgb;
+        }
+        o.Albedo = 0;
+    } else {
+        texColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv).rgb;
+        o.Albedo = 0;
+    }
 
     if (_IsAVProInput)
     {
@@ -99,7 +141,7 @@
     }
 
     void VRCVideoFragment(MeshData d, inout SurfaceData o) {
-        o.Emission = VideoEmission(d.uv0.xy);
+        o.Emission = VideoEmission(d.uv0.xy, o);
     }
 }
 
