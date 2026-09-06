@@ -50,16 +50,6 @@
 
         float _UdonLightVolumeSharpBounds;
 
-        float4x4 _UdonLightVolumeInvWorldMatrix[VRCLV_MAX_VOLUMES_COUNT];
-
-        float4 _UdonLightVolumeRotation[VRCLV_MAX_VOLUMES_COUNT * 2];
-
-        float3 _UdonLightVolumeInvLocalEdgeSmooth[VRCLV_MAX_VOLUMES_COUNT];
-
-        float4 _UdonLightVolumeUvwScale[VRCLV_MAX_VOLUMES_COUNT * 3];
-
-        float4 _UdonLightVolumeColor[VRCLV_MAX_VOLUMES_COUNT];
-
         float _UdonPointLightVolumeCount;
 
         float _UdonPointLightVolumeCubeCount;
@@ -70,6 +60,26 @@
 
         float4 _UdonPointLightVolumeShadowReceiverParams;
 
+        float _UdonLightBrightnessCutoff;
+
+        float _UdonPointLightVolumeTextureTexelCount;
+
+        float _UdonPointLightVolumeTextureMaxMip;
+
+        float4x4 _UdonLightVolumeInvWorldMatrix[VRCLV_MAX_VOLUMES_COUNT];
+
+        float4 _UdonLightVolumeRotation[VRCLV_MAX_VOLUMES_COUNT * 2];
+
+        float3 _UdonLightVolumeInvLocalEdgeSmooth[VRCLV_MAX_VOLUMES_COUNT];
+
+        float4 _UdonLightVolumeUvwScale[VRCLV_MAX_VOLUMES_COUNT * 3];
+
+        float4 _UdonLightVolumeColor[VRCLV_MAX_VOLUMES_COUNT];
+
+        float4 _UdonPointLightVolumeShadowReprojectionData[VRCLV_MAX_LIGHTS_COUNT];
+
+        float4 _UdonPointLightVolumeShadowRotationData[VRCLV_MAX_LIGHTS_COUNT];
+
         float4 _UdonPointLightVolumePosition[VRCLV_MAX_LIGHTS_COUNT];
 
         float4 _UdonPointLightVolumeColor[VRCLV_MAX_LIGHTS_COUNT];
@@ -79,16 +89,6 @@
         float4 _UdonPointLightVolumeDirection[VRCLV_MAX_LIGHTS_COUNT];
 
         float4 _UdonPointLightVolumeCustomID[VRCLV_MAX_LIGHTS_COUNT];
-
-        float4 _UdonPointLightVolumeShadowReprojectionData[VRCLV_MAX_LIGHTS_COUNT];
-
-        float4 _UdonPointLightVolumeShadowRotationData[VRCLV_MAX_LIGHTS_COUNT];
-
-        float _UdonLightBrightnessCutoff;
-
-        float _UdonPointLightVolumeTextureTexelCount;
-
-        float _UdonPointLightVolumeTextureMaxMip;
 
     }
     #endif
@@ -401,7 +401,8 @@
 
     inline bool LV_PointLightVolumeShadowMask(uint id, float shadowIdData, float shadowInvDepthRange, float3 worldPos, float3 lightVector, float3 normalMaskLightDir, float distSq, float invDist, float3 pointLightShadingNormal, float pointLightShadingBias, bool forceCubemapShadow, bool packedPointCube, out float shadow) {
         shadow = 1;
-        bool shadowVisible = true;
+        // Keep the value crossing flattened control flow numeric. Unity 2022.3 HLSLcc can otherwise try to bitcast a bool phi/select to float on GLES3 and emit the invalid placeholder "ERROR missing components in GetBitcastOp()" into the generated GLSL.
+        float shadowVisible = 1.0;
         float shadowIdAbs = abs(shadowIdData);
         float normalAttenuation = 1;
         [flatten] if (pointLightShadingBias >= 0 && shadowIdAbs < 10000) {
@@ -413,11 +414,11 @@
                 float shadingStrength = 1 - frac(shadowIdAbs);
 
                 [flatten] if (pointLightShadingBias >= 0) { // Apply surface-normal shading before strength blending
-                    shadowVisible = normalAttenuation > 0 || shadingStrength < 1;
+                    shadowVisible = (normalAttenuation > 0 || shadingStrength < 1) ? 1.0 : 0.0;
                 }
 
                 float shadowAttenuation = 1;
-                [branch] if (shadowVisible && shadowIdAbs >= 1) { // Baked shadow
+                [branch] if (shadowVisible > 0 && shadowIdAbs >= 1) { // Baked shadow
                     uint shadowIndex = (uint)shadowIdAbs - 1; // Integer part stores shadow index + 1. Fraction stores inverted shading strength
                     [branch] if (_UdonLightVolumeVersion >= 3) {
                         if (packedPointCube) {
@@ -433,10 +434,10 @@
         } else {
             [flatten] if (pointLightShadingBias >= 0) { // Apply full-strength surface-normal shading when configured
                 shadow = normalAttenuation;
-                shadowVisible = shadow > 0;
+                shadowVisible = shadow > 0 ? 1.0 : 0.0;
             }
         }
-        return shadowVisible;
+        return shadowVisible > 0;
     }
 
     bool LV_PointLightVolumeContribution(uint id, float3 worldPos, float3 pointLightShadingNormal, float pointLightShadingBias, out float3 l0, out float3 l1, out float3 lightDirNormal, out float specularSpreadSq, out float shadow) {
@@ -780,7 +781,7 @@
         uint sequentialEnd = useClustering ? 0u : pointCount;
 
         // Select IDs from the cluster mask or sequential range, then process them through one shared loop body.
-        [fastopt] while (pcount < maxOverdraw) {
+        VRCLV_DYNAMIC_LOOP while (pcount < maxOverdraw) {
             uint pid;
             [branch] if (traversalIndex < sequentialEnd) {
                 pid = traversalIndex++;
@@ -791,7 +792,7 @@
             if (LV_AccumulatePointLightVolumeSHSpecular(pid, worldPos, worldNormal, specularViewDir, f0, pointLightShadingNormal, pointLightShadingBias, specularRoughness, specularRoughnessSq, specularNoV, L0, L1r, L1g, L1b, specular)) pcount++;
         }
         #else
-        [fastopt] for (uint pid = 0u; pid < pointCount && pcount < maxOverdraw; pid++) {
+        VRCLV_DYNAMIC_LOOP for (uint pid = 0u; pid < pointCount && pcount < maxOverdraw; pid++) {
             if (LV_AccumulatePointLightVolumeSHSpecular(pid, worldPos, worldNormal, specularViewDir, f0, pointLightShadingNormal, pointLightShadingBias, specularRoughness, specularRoughnessSq, specularNoV, L0, L1r, L1g, L1b, specular)) pcount++;
         }
         #endif
@@ -820,7 +821,7 @@
         uint sequentialEnd = useClustering ? 0u : pointCount;
 
         // Select IDs from the cluster mask or sequential range, then process them through one shared loop body.
-        [fastopt] while (pcount < maxOverdraw) {
+        VRCLV_DYNAMIC_LOOP while (pcount < maxOverdraw) {
             uint pid;
             [branch] if (traversalIndex < sequentialEnd) {
                 pid = traversalIndex++;
@@ -831,7 +832,7 @@
             if (LV_AccumulatePointLightVolumeSH(pid, worldPos, pointLightShadingNormal, pointLightShadingBias, L0, L1r, L1g, L1b)) pcount++;
         }
         #else
-        [fastopt] for (uint pid = 0u; pid < pointCount && pcount < maxOverdraw; pid++) {
+        VRCLV_DYNAMIC_LOOP for (uint pid = 0u; pid < pointCount && pcount < maxOverdraw; pid++) {
             if (LV_AccumulatePointLightVolumeSH(pid, worldPos, pointLightShadingNormal, pointLightShadingBias, L0, L1r, L1g, L1b)) pcount++;
         }
         #endif
@@ -859,7 +860,7 @@
         bool isNoA = true, isNoB = true;
 
         // Iterating through regular light volumes with simplified algorithm requiring Light Volumes to be sorted by weight in descending order
-        [fastopt] for (uint id = additiveCount; id < volumesCount; id++) {
+        VRCLV_DYNAMIC_LOOP for (uint id = additiveCount; id < volumesCount; id++) {
             localUVW = LV_LocalFromVolume(id, worldPos);
             [branch] if (LV_PointLocalAABB(localUVW)) { // Intersection test
                 [branch] if (isNoA) { // First, searching for volume A
@@ -935,7 +936,7 @@
         [branch] if (maxOverdraw == 0) return;
 
         uint addVolumesCount = 0;
-        [fastopt] for (uint id = 0; id < additiveCount && addVolumesCount < maxOverdraw; id++) {
+        VRCLV_DYNAMIC_LOOP for (uint id = 0; id < additiveCount && addVolumesCount < maxOverdraw; id++) {
             float3 localUVW = LV_LocalFromVolume(id, worldPos);
             [branch] if (LV_PointLocalAABB(localUVW)) {
                 LV_SampleVolume(id, localUVW, L0, L1r, L1g, L1b);
