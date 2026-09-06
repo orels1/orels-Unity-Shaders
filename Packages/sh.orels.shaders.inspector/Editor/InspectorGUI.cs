@@ -135,28 +135,28 @@ namespace ORL.ShaderInspector
                     _uiState.Add(packerKey + "_blue_tex", prop.textureValue);
                     _uiState.Add(packerKey + "_green_tex", prop.textureValue);
                     _uiState.Add(packerKey + "_alpha_tex", prop.textureValue);
-                
+
                     _uiState.Add(packerKey + "_red_channel", 0);
                     _uiState.Add(packerKey + "_green_channel", 1);
                     _uiState.Add(packerKey + "_blue_channel", 2);
                     _uiState.Add(packerKey + "_alpha_channel", 0);
-                
+
                     _uiState.Add(packerKey + "_red_val", 1f);
                     _uiState.Add(packerKey + "_blue_val", 1f);
                     _uiState.Add(packerKey + "_green_val", 1f);
                     _uiState.Add(packerKey + "_alpha_val", 1f);
-                
+
                     _uiState.Add(packerKey + "_red_invert", false);
                     _uiState.Add(packerKey + "_blue_invert", false);
                     _uiState.Add(packerKey + "_green_invert", false);
                     _uiState.Add(packerKey + "_alpha_invert", false);
-                
+
                     _uiState.Add(packerKey + "_size", 2048);
                     _uiState.Add(packerKey + "_linear", false);
                     _uiState.Add(packerKey + "_name", materialEditor.target.name + "_" + Utils.StripInternalSymbols(prop.displayName).Trim() + "_packed");
                 }
             }
-            
+
             // Load localization cache
             var locAssets = AssetDatabase.FindAssets("t:LocalizationData");
             _localizedPropData = new Dictionary<string, LocalizationData.LocalizedPropData>();
@@ -453,7 +453,7 @@ namespace ORL.ShaderInspector
                     propIndex++;
                     continue;
                 }
-                
+
                 DrawRegularProp(materialEditor, properties, property, propIndex);
 
                 // do post draw match as well
@@ -584,6 +584,12 @@ namespace ORL.ShaderInspector
 #endif
 
             var strippedName = Utils.StripInternalSymbols(property.displayName);
+            // If ALT is held down - show actual names
+            if (Event.current.alt)
+            {
+                strippedName = property.name;
+            }
+
             var isSingleLine = property.type == MaterialProperty.PropType.Texture && _singleLineRegex.IsMatch(property.displayName);
             var defaultProps =
                 (editor.target as Material).shader.GetPropertyAttributes(Array.IndexOf(properties, property));
