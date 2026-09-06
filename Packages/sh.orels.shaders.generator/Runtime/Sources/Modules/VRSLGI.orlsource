@@ -1,9 +1,57 @@
+// The code below contains most of the VRSLGI-Functions.cginc from https://github.com/AcChosen/VR-Stage-Lighting-GI-ShaderPack
+// THE CODE BELOW IS DIRECTLY FROM THE .UNITYPACKAGE
+// THE GITHUB SOURCE DOES NOT MATCH THE CONTENTS OF THE PACKAGE
+//
+// MIT License
+
+// Copyright (c) 2023 AcChosen
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+// Clustering is using z3y clustered-birp
+// MIT License
+//
+// Copyright (c) 2023 z3y
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE
+
 %Properties()
 {
     [ToggleUI]UI_VRSLGIHeader("# VRSL GI", Int) = 1
     UI_VRSLGIDocs("[This module has documentation](https://shaders.orels.sh/docs/orl-standard/vrslgi)", Int) = 0
     [Toggle(_VRSL_GI)]useVRSLGI("Integrate VRSL GI", Float) = 0.0
-    UI_VRSLGIDownload("[Make sure to download VRSLGI Shader Pack before enabling this option](https://github.com/AcChosen/VR-Stage-Lighting-GI-ShaderPack/releases)", Int) = 0
     _VRSLGIStrength("VRSL GI Strength %ShowIf(_VRSL_GI)", Float) = 2
     _VRSLDiffuseMix("VRSL Diffuse Mix %ShowIf(_VRSL_GI)", Range(0, 1)) = 1.0
     [ToggleUI]_VRSLClampBrightness("Clamp Brightness %ShowIf(_VRSL_GI)", Int) = 0
@@ -13,15 +61,31 @@
     [Toggle(_VRSL_GI_SPECULARHIGHLIGHTS)]useVRSLGISpecular("Use VRSL GI Specular %ShowIf(_VRSL_GI)", Float) = 1.0
     [KeywordEnum(GGX, Beckman, Phong)]_VRSL_SPECFUNC("VRSL Specular Function %ShowIf(_VRSL_GI && _VRSL_GI_SPECULARHIGHLIGHTS)", Int) = 0 // Selecting the specular function.
     _VRSLGISpecularClamp("Max Specular Brightness %ShowIf(_VRSL_GI && _VRSL_GI_SPECULARHIGHLIGHTS)", Range(1.0, 50000.0)) = 10000
-    [Toggle(_VRSL_SHADOWMASK1)]_UseVRSLShadowMask1("Use VRSL Shadow Mask 1 %ShowIf(_VRSL_GI)", Int) = 0 // The first shadow mask toggle
-    _VRSLShadowMask1("VRSL GI ShadowMask 1 > %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", 2D) = "white" {} // The first shadow mask texture
+
+    UI_VRSLShadowMaskHeader("## Shadowmask", Int) = 1
+    [KeywordEnum(R, RG, RGB, RGBA)]_VRSL_SHADOWMASK("Active Channels %ShowIf(_VRSL_GI)", Int) = 3
     [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, UV1_LightmapST, 9)]_VRSLShadowmaskUVSet("VRSL Shadow Mask UV Set %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", Int) = 1
 
-    [KeywordEnum(R, RG, RGB, RGBA)]_VRSL_SHADOWMASK("Active Channels %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", Int) = 3
+    [Toggle(_VRSL_SHADOWMASK1)]_UseVRSLShadowMask1("Use VRSL Shadow Mask 1 %ShowIf(_VRSL_GI)", Int) = 0 // The first shadow mask toggle
+    _VRSLShadowMask1("VRSL GI ShadowMask 1 > %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", 2D) = "white" {} // The first shadow mask texture
     _UseVRSLShadowMask1RStrength("VRSL SM 1 R Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", Range(0.0, 1.0)) = 1.0 // the R strength of the first shadow mask
     _UseVRSLShadowMask1GStrength("VRSL SM 1 G Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", Range(0.0, 1.0)) = 1.0 // the G strength of the first shadow mask
     _UseVRSLShadowMask1BStrength("VRSL SM 1 B Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", Range(0.0, 1.0)) = 1.0 // the B strength of the first shadow mask
     _UseVRSLShadowMask1AStrength("VRSL SM 1 A Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK1)", Range(0.0, 1.0)) = 1.0 // the A strength of the first shadow mask
+
+    [Toggle(_VRSL_SHADOWMASK2)]_UseVRSLShadowMask2("Use VRSL Shadow Mask 2 %ShowIf(_VRSL_GI)", Int) = 0 // The second shadow mask toggle
+    _VRSLShadowMask2("VRSL GI ShadowMask 2 > %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK2)", 2D) = "white" {} // The second shadow mask texture
+    _UseVRSLShadowMask2RStrength("VRSL SM 2 R Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK2 && _VRSL_SHADOWMASK >= 0)", Range(0.0, 1.0)) = 1.0 // the R strength of the second shadow mask
+    _UseVRSLShadowMask2GStrength("VRSL SM 2 G Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK2 && _VRSL_SHADOWMASK >= 1)", Range(0.0, 1.0)) = 1.0 // the G strength of the second shadow mask
+    _UseVRSLShadowMask2BStrength("VRSL SM 2 B Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK2 && _VRSL_SHADOWMASK >= 2)", Range(0.0, 1.0)) = 1.0 // the B strength of the second shadow mask
+    _UseVRSLShadowMask2AStrength("VRSL SM 2 A Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK2 && _VRSL_SHADOWMASK >= 3)", Range(0.0, 1.0)) = 1.0 // the A strength of the second shadow mask
+
+    [Toggle(_VRSL_SHADOWMASK3)]_UseVRSLShadowMask3("Use VRSL Shadow Mask 3 %ShowIf(_VRSL_GI)", Int) = 0 // The third shadow mask toggle
+    _VRSLShadowMask3("VRSL GI ShadowMask 3 > %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK3)", 2D) = "white" {} // The third shadow mask texture
+    _UseVRSLShadowMask3RStrength("VRSL SM 3 R Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK3 && _VRSL_SHADOWMASK >= 0)", Range(0.0, 1.0)) = 1.0 // the R strength of the third shadow mask
+    _UseVRSLShadowMask3GStrength("VRSL SM 3 G Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK3 && _VRSL_SHADOWMASK >= 1)", Range(0.0, 1.0)) = 1.0 // the G strength of the third shadow mask
+    _UseVRSLShadowMask3BStrength("VRSL SM 3 B Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK3 && _VRSL_SHADOWMASK >= 2)", Range(0.0, 1.0)) = 1.0 // the B strength of the third shadow mask
+    _UseVRSLShadowMask3AStrength("VRSL SM 3 A Strength %ShowIf(_VRSL_GI && _VRSL_SHADOWMASK3 && _VRSL_SHADOWMASK >= 3)", Range(0.0, 1.0)) = 1.0 // the A strength of the third shadow mask
 }
 
 %ShaderFeatures()
@@ -30,34 +94,571 @@
     #pragma shader_feature_local_fragment _VRSL_SPECFUNC_GGX _VRSL_SPECFUNC_BECKMAN _VRSL_SPECFUNC_PHONG
     #pragma shader_feature_local_fragment _VRSL_GI_SPECULARHIGHLIGHTS
     #pragma shader_feature_local_fragment _VRSL_SHADOWMASK1
+    #pragma shader_feature_local_fragment _VRSL_SHADOWMASK2
+    #pragma shader_feature_local_fragment _VRSL_SHADOWMASK3
     #pragma shader_feature_local_fragment _VRSL_GLOBALLIGHTTEXTURE
     #pragma shader_feature_local_fragment _ _VRSL_SHADOWMASK_RG _VRSL_SHADOWMASK_RGB _VRSL_SHADOWMASK_RGBA
 }
 
 %Variables()
 {
+    #if defined(_VRSL_GI)
+    float _VRSLGIStrength;
+    float _VRSLDiffuseMix;
+
     int _VRSLClampBrightness;
     half _VRSLMaxBrightness;
     half _VRSLRoughnessModifier;
     int _VRSLAlphaPremultiply;
+
+    float4 _VRSL_LightTexture_TexelSize;
+
     int _VRSLShadowmaskUVSet;
+    float4 _VRSLShadowMask1_ST;
+    float4 _VRSLShadowMask2_ST;
+    float4 _VRSLShadowMask3_ST;
+
+    int _UseVRSLShadowMask1;
+    float _UseVRSLShadowMask1RStrength;
+    float _UseVRSLShadowMask1GStrength;
+    float _UseVRSLShadowMask1BStrength;
+    float _UseVRSLShadowMask1AStrength;
+
+    half _UseVRSLShadowMask2RStrength;
+    half _UseVRSLShadowMask2GStrength;
+    half _UseVRSLShadowMask2BStrength;
+    half _UseVRSLShadowMask2AStrength;
+
+    half _UseVRSLShadowMask3RStrength;
+    half _UseVRSLShadowMask3GStrength;
+    half _UseVRSLShadowMask3BStrength;
+    half _UseVRSLShadowMask3AStrength;
+
+    half _VRSLMetallicMapStrength;
+    half _VRSLGlossMapStrength;
+    half _VRSLSmoothnessChannel;
+    half _VRSLMetallicChannel;
+    half _VRSLInvertMetallicMap;
+    half _VRSLInvertSmoothnessMap;
+
+    half _VRSLGISpecularClamp;
+    half _VRSLGIDiffuseClamp;
+
+    half _VRSLSpecularShine;
+    half _VRSLGlossiness;
+    half _VRSLSpecularStrength;
+    half _VRSLGIStrength;
+    half _VRSLDiffuseMix;
+    half _VRSLSpecularMultiplier;
+
+    float4 _Udon_VRSL_GI_ClusterInitialization;
+    uint _Udon_CBIRP_DummyZero;
+    int _Udon_VRSL_GI_LightCount;
+
+    int _ClusterDebugFalloff;
+    #endif
+}
+
+%Textures()
+{
+    #if defined(_VRSL_GI)
+    TEXTURE2D(_Udon_VRSL_GI_LightTexture);
+    TEXTURE2D(_Udon_VRSL_GI_GoboTexture);
+    Texture2D<uint4> _Udon_VRSL_GI_ClusterTexture;
+
+    SAMPLER(VRSL_BilinearClampSampler);
+    SAMPLER(VRSLGI_PointClampSampler);
+    SAMPLER(VRSL_BilinearRepeatSampler);
+
+    TEXTURE2D(_VRSLShadowMask1);
+    TEXTURE2D(_VRSLShadowMask2);
+    TEXTURE2D(_VRSLShadowMask3);
+    #endif
 }
 
 %ShaderDefines()
 {
-    #if !defined(_VRSL_GI)
-        #define SKIP_VRSLGI
-    #endif
+    #define VRSLGI_VOLUME_POS _Udon_VRSL_GI_ClusterInitialization.xyz
+    #define VRSLGI_CULL_FAR _Udon_VRSL_GI_ClusterInitialization.w
 
-    #define INCLUDE_VRSLGI defined(_VRSL_GI)
+    #define VRSLGI_CULLING_SIZE uint(1024)
+    #define VRSLGI_VOXELS_COUNT VRSLGI_CULLING_SIZE
+    #define VRSLGI_VOXELS_SIZE VRSLGI_CULL_FAR / float(VRSLGI_CULLING_SIZE / 2.0)
 
-    #if INCLUDE_VRSLGI
-        #include "Assets/VRSL Addons/VRSL-GI Shader Package/VRSLGI-Functions.cginc"
+    #define VRSLGI_UNIFORMS_SIZE uint2(128, 4)
+    #define VRSLGI_UNIFORMS_PROBE_START 4
+
+    #define VRSLGI_MAX_LIGHTS (uint) _Udon_VRSL_GI_LightCount
+
+    #define VRSLGI_CLUSTER_START_LIGHT(cluster) \
+        uint4 flags4x = _Udon_VRSL_GI_ClusterTexture[uint2(0, cluster.x)]; \
+        uint4 flags4y = _Udon_VRSL_GI_ClusterTexture[uint2(1, cluster.y)]; \
+        uint4 flags4z = _Udon_VRSL_GI_ClusterTexture[uint2(2, cluster.z)]; \
+        uint4 flags4 = flags4x & flags4y & flags4z; \
+        uint flags = flags4.x; \
+        uint offset = 0; \
+        [loop] while (offset != 128) { \
+            [branch] if (flags == 0) { \
+                offset += 32; \
+                flags = offset == 32 ? flags4.y : (offset == 64 ? flags4.z : flags4.w); \
+            } else { \
+                uint index = firstbitlow(flags); \
+                flags ^= 0x1 << index; \
+                index += offset; \
+
+    #define VRSLGI_CLUSTER_END_LIGHT \
+        }} \
+}
+
+%PassFunctions()
+{
+    #if defined(_VRSL_GI)
+    namespace VRSLGI_CBIRP
+    {
+        void UnpackFloatAndUint(float input, out float a, out uint b)
+        {
+            uint uintInput = asuint(input);
+            a = f16tof32(uintInput >> 16);
+            b = uintInput & 0xff;
+        }
+        void UnpackFloat(float input, out float a, out float b)
+        {
+            uint uintInput = asuint(input);
+            a = f16tof32(uintInput >> 16);
+            b = f16tof32(uintInput);
+        }
+        void UnpackFloat(float4 input, out float4 a, out float4 b)
+        {
+            uint4 uintInput = asuint(input);
+            a = f16tof32(uintInput >> 16);
+            b = f16tof32(uintInput);
+        }
+        void UnpackEightBit( in float c, inout float a, inout float b, inout uint bINT)
+        {
+        uint x = (uint) (c);
+        uint aINT = ((x & 0x0000FF00) >> 8);
+        bINT = (x & 0x000000FF);
+
+        a = ((float) aINT) / 255.0;
+        b = ((float) bINT) / 255.0;
+            // b = frac(c); // removes the integer value, leaving B (0-1)
+            // a = (c - b) / 255; // removes the fractional value (B) and scales back to 0-1
+        }
+        float LuminanceRangeReduction(float range, float3 color)
+        {
+            return lerp(range * 0.5, range,saturate((color.r + color.b + color.g)/3));
+        }
+
+        float3 Heatmap(float v)
+        {
+            float3 r = v * 2.1 - float3(1.8, 1.14, 0.3);
+            return 1.0 - r * r;
+        }
+
+        struct Light
+        {
+            half3 color;
+            float3 positionWS;
+            half3 direction;
+            float range;
+            half spotBlend;
+            half outerSpotAngle;
+            half innerSpotAngle;
+            uint shadowMaskTarget;
+            uint shadowMaskChannel;
+            half3 rawColor;
+            half spotThreshold;
+            uint coneWidthGoboFlags;
+            uint innerSpotAngleRaw;
+
+            static Light DecodeLight(uint index)
+            {
+                Light l = (Light)0;
+                float4 colorDirectionData = _Udon_VRSL_GI_LightTexture[uint2(index, 0)];
+                float4 positionData = _Udon_VRSL_GI_LightTexture[uint2(index, 1)];
+
+                float4 colorData = float4(0,0,0,0);
+                float4 directionData = float4(0,0,0,0);
+                UnpackFloat(colorDirectionData, colorData, directionData);
+
+
+                l.rawColor = colorData.xyz;
+                l.color = l.rawColor * 0.01;
+                l.positionWS = positionData.xyz;
+                l.range = colorData.w*150;
+                float SpotBlend = 0.0;
+                uint ShadowMaskPackedData = 0;
+                UnpackFloatAndUint(positionData.w, SpotBlend, ShadowMaskPackedData);
+                uint smpd = (uint) ShadowMaskPackedData;
+                l.spotBlend = SpotBlend;
+                l.shadowMaskTarget = smpd >> 6;
+                l.shadowMaskChannel = (smpd >> 4) & 3;
+                l.coneWidthGoboFlags = smpd & 0x0F;
+                l.spotThreshold = 0.05;
+
+
+                l.direction = directionData.xyz;
+                float osa = 0.0;
+                float isa = 0.0;
+                uint isa_raw = 0;
+                if(l.coneWidthGoboFlags > 0)
+                {
+                    l.outerSpotAngle = directionData.w;
+                    l.innerSpotAngle = isa;
+                }
+                else
+                {
+                    UnpackEightBit(directionData.w, osa, isa, isa_raw);
+                    l.outerSpotAngle = osa * 180.0;
+                    l.innerSpotAngle = isa * 180.0;
+                }
+                l.innerSpotAngleRaw = isa_raw;
+
+                return l;
+            }
+        };
+
+        // Normalize that account for vectors with zero length
+        float3 SafeNormalize(float3 inVec)
+        {
+            const float flt_min = 1.175494351e-38;
+            float dp3 = max(flt_min, dot(inVec, inVec));
+            return inVec * rsqrt(dp3);
+        }
+
+        uint3 GetCluster(float3 positionWS)
+        {
+            uint3 cluster = uint3(((positionWS - VRSLGI_VOLUME_POS) + VRSLGI_CULL_FAR) / float(VRSLGI_VOXELS_SIZE));
+            return cluster;
+        }
+    }
     #endif
 }
 
 %Color("VRSLGIColor")
 {
+    #if defined(_VRSL_GI)
+    #if _VRSL_GI_SPECULARHIGHLIGHTS
+    //GGX Specular function found here http://filmicworlds.com/blog/optimizing-ggx-shaders-with-dotlh/
+    float GGXSpec(float3 N, float3 V, float3 L, float roughness)
+    {
+        float alpha = roughness*roughness;
+
+        float3 H = normalize(V+L);
+
+        float dotNL = saturate(dot(N,L));
+        //float dotNV = saturate(dot(N,V));
+        float dotNH = saturate(dot(N,H));
+        float dotLH = saturate(dot(L,H));
+
+        float D, vis;
+
+        // D
+        float alphaSqr = alpha*alpha;
+        float pi = 3.14159f;
+        float denom = dotNH * dotNH *(alphaSqr-1.0) + 1.0f;
+        D = alphaSqr/(pi * denom * denom);
+
+
+        // V
+        float k = alpha/2.0f;
+        float k2 = k*k;
+        float invK2 = 1.0f-k2;
+        vis = rcp(dotLH*dotLH*invK2 + k2);
+
+        float specular = dotNL * D * vis;
+        return specular;
+    }
+
+    float BeckmanSpec(float3 N, float3 V, float3 L, float roughness)
+    {
+        float3 H = normalize(V+L);
+        float NdotH = saturate(dot(N,H));
+        float roughnessSqr = roughness*roughness * (roughness * 0.5);
+        float NdotHSqr = NdotH*NdotH;
+        return max(0.000001,(1.0 / (3.1415926535*roughnessSqr*NdotHSqr*NdotHSqr))
+        * exp((NdotHSqr-1)/(roughnessSqr*NdotHSqr)));
+    }
+
+    float PhongSpec(float3 N, float3 V, float3 L, float roughness)
+    {
+        //float r = lerp(roughness * 0.01, roughness * 2, roughness);
+        float speculargloss = (1/(roughness * roughness)) * 20;
+        float specularpower = lerp(15, 2, roughness);
+        float3 H = normalize(V+L);
+        float NdotH = saturate(dot(N,H));
+        float Distribution = pow(NdotH,speculargloss) * specularpower;
+        Distribution *= (2+specularpower) / (2*3.1415926535);
+        return Distribution;
+    }
+    #endif
+
+    half4 VRSLShadowMask1(float2 uv)
+    {
+        uv = uv.xy * _VRSLShadowMask1_ST.xy + _VRSLShadowMask1_ST.zw;
+        return _VRSLShadowMask1.SampleLevel(VRSL_BilinearRepeatSampler, uv, 0);
+    }
+    half4 VRSLShadowMask2(float2 uv)
+    {
+        uv = uv.xy * _VRSLShadowMask2_ST.xy + _VRSLShadowMask2_ST.zw;
+        return _VRSLShadowMask2.SampleLevel(VRSL_BilinearRepeatSampler, uv, 0);
+    }
+    half4 VRSLShadowMask3(float2 uv)
+    {
+        uv = uv.xy * _VRSLShadowMask3_ST.xy + _VRSLShadowMask3_ST.zw;
+        return _VRSLShadowMask3.SampleLevel(VRSL_BilinearRepeatSampler, uv, 0);
+    }
+
+    void SetShadowMaskChannel(int maskChannel, out float s1, out float s1Strength, float4 mask, float4 strength)
+    {
+        s1 = 1.0;
+        s1Strength = 0.0;
+        #if _VRSL_SHADOWMASK_RG
+            [branch]
+            switch(maskChannel)
+            {
+                case 0:
+                    s1 = mask.r;
+                    s1Strength = strength.r;
+                    break;
+                case 1:
+                    s1 = mask.g;
+                    s1Strength = strength.g;
+                    break;
+                default:
+                    break;
+            }
+        #elif _VRSL_SHADOWMASK_RGB
+            [branch]
+            switch(maskChannel)
+            {
+                case 0:
+                    s1 = mask.r;
+                    s1Strength = strength.r;
+                    break;
+                case 1:
+                    s1 = mask.g;
+                    s1Strength = strength.g;
+                    break;
+                case 2:
+                    s1 = mask.b;
+                    s1Strength = strength.b;
+                    break;
+                default:
+                    break;
+            }
+        #elif _VRSL_SHADOWMASK_RGBA
+            s1 = mask[maskChannel];
+            s1Strength = strength[maskChannel];
+        #else
+        if(maskChannel == 0)
+        {
+            s1 = mask.r;
+            s1Strength =strength.r;
+        }
+        #endif
+    }
+
+    float CalculateShadowMask(
+        float4 mask1Strength,
+        float4 mask2Strength,
+        float4 mask3Strength,
+        int maskChannel,
+        int maskSelection,
+        float4 shadowMask1,
+        float4 shadowMask2,
+        float4 shadowMask3
+    )
+    {
+        float s1 =  1.0f;
+        float s1Strength = 0.0f;
+
+        [branch]
+        switch(maskSelection)
+        {
+            default:
+                break;
+            #if defined(_VRSL_SHADOWMASK1)
+            case 1:
+                SetShadowMaskChannel(maskChannel,s1,s1Strength,shadowMask1,mask1Strength);
+                break;
+            #endif
+            #if defined(_VRSL_SHADOWMASK2)
+            case 2:
+                SetShadowMaskChannel(maskChannel,s1,s1Strength,shadowMask2,mask2Strength);
+                break;
+            #endif
+            #if defined(_VRSL_SHADOWMASK3)
+            case 3:
+                SetShadowMaskChannel(maskChannel,s1,s1Strength,shadowMask3,mask3Strength);
+                break;
+            #endif
+        }
+
+        return lerp(1,s1,s1Strength);
+    }
+
+    float GetSquareFalloffAttenuationCustom(float distanceSquare, float lightInvRadius2)
+    {
+        float factor = distanceSquare * lightInvRadius2;
+        float smoothFactor = saturate(1.0 - factor * factor);
+        return (smoothFactor * smoothFactor) / (distanceSquare + 1.0);
+    }
+
+    float vrslgi_contrast(float colors, float contrast)
+    {
+        return ((colors - 0.5) * max(contrast + 1.0, 0.0)) + 0.5;
+    }
+
+    float3 VRSLGI(float3 worldPos, float3 worldNormal, float roughness, float3 eyeVec, float3 diffuseColor, float2 mg, float2 uv, float occlusion)
+    {
+        float3 finalOut = 0.0;
+        float3 viewDirection = normalize(eyeVec.xyz);
+            float4 shadowmask1 = float4(1,1,1,1);
+            float4 shadowmask2 = float4(1,1,1,1);
+            float4 shadowmask3 = float4(1,1,1,1);
+
+        diffuseColor = clamp(diffuseColor, float3(0.005,0.005,0.005), float3(1,1,1));
+        #ifndef VRSL_GI_PROJECTOR
+            #ifdef _VRSL_SHADOWMASK1
+                shadowmask1 = VRSLShadowMask1(uv);
+            #endif
+            #ifdef _VRSL_SHADOWMASK2
+                shadowmask2 = VRSLShadowMask2(uv);
+            #endif
+            #ifdef _VRSL_SHADOWMASK3
+                shadowmask3 = VRSLShadowMask3(uv);
+            #endif
+        #endif
+        #ifndef VRLSGI_USE_BUILTIN_SPECULAR
+            #if _VRSL_GI_SPECULARHIGHLIGHTS
+                float metallic = _VRSLSpecularStrength;
+                #ifndef VRSL_GI_PROJECTOR
+                    roughness = lerp(roughness,mg.y,_VRSLGlossMapStrength);
+                    metallic =  lerp(metallic,mg.x,_VRSLMetallicMapStrength);
+
+                    #ifndef VRSL_GI_PROJECTOR
+                        metallic = abs(_VRSLInvertMetallicMap - metallic);
+                        roughness = abs(_VRSLInvertSmoothnessMap - roughness);
+                    #endif
+                #endif
+                roughness = max(roughness, 0.002);
+            #endif
+        #else
+            float metallic = mg.x;
+            roughness = mg.y;
+        #endif
+        ///////////////////////////////////////////////////////////////////////////////
+            half debug = 0;
+            uint3 cluster = VRSLGI_CBIRP::GetCluster(worldPos);
+            half3 light = 0;
+            VRSLGI_CLUSTER_START_LIGHT(cluster)
+                debug+=1;
+                VRSLGI_CBIRP::Light light = VRSLGI_CBIRP::Light::DecodeLight(index);
+
+                float3 lightColor = light.color.rgb * (0.5 * light.range);
+                float3 lightPos = light.positionWS;
+                float SpotBlend = light.spotBlend;
+                float range = light.range;
+                int maskSelection = light.shadowMaskTarget;
+                int maskChannel =  light.shadowMaskChannel;
+
+                float3 lightDirection = lightPos - worldPos;
+                float distanceSquare = dot(lightDirection, lightDirection);
+                //range*= 0.5;
+
+                range = VRSLGI_CBIRP::LuminanceRangeReduction(light.range, light.color);
+                UNITY_BRANCH
+                if (distanceSquare < range)
+                {
+                    float shadowmask = 1.0;
+                    float specular = 1.0;
+                    range = 1.0 / range;
+
+                    float falloff = GetSquareFalloffAttenuationCustom(distanceSquare, range);
+
+                    lightDirection = normalize(lightDirection);
+                    #if _VRSL_DIFFUSETOON
+                        float atten = saturate(dot(lightDirection, worldNormal) );
+                        atten = lerp(0.0025, 1.0, atten);
+                        atten = smoothstep(0,0.01,atten);
+                    #elif _VRSL_DIFFUSETINT
+                        float atten = 1.0f;
+                    #else
+                        float atten = saturate(dot(lightDirection, worldNormal) );
+                    #endif
+
+                    atten = clamp(atten, _VRSLGIDiffuseClamp, 1.0);
+                    //End Diffuse Stuff
+
+                    //Begin Specular Stuff
+                    #if _VRSL_GI_SPECULARHIGHLIGHTS
+                        #ifdef _VRSL_SPECFUNC_GGX
+                            specular = GGXSpec(worldNormal, viewDirection, lightDirection, roughness);
+                        #elif _VRSL_SPECFUNC_BECKMAN
+                            specular = BeckmanSpec(worldNormal, viewDirection, lightDirection, roughness);
+                        #elif _VRSL_SPECFUNC_PHONG
+                            specular = PhongSpec(worldNormal, viewDirection, lightDirection, roughness);
+                        #endif
+                        specular = lerp(1.0, specular, clamp(metallic,0.01, 1.0));
+                        specular = specular * specular;
+
+                        specular *= (1/(light.range*0.005));
+                        //specular *= abs(_VRSLSpecularMultiplier);
+                        specular = vrslgi_contrast(specular, _VRSLSpecularMultiplier);
+                    //specular *= (1/(range*0.5));
+                        //specular *= CalcLuminance(rawLightColor.rgb);
+                    #endif
+                    //End SPecular Stuff
+
+                    //Begin ShadowMask Stuff
+                    #ifndef VRSL_GI_PROJECTOR
+                        #if defined(_VRSL_SHADOWMASK1) || defined(_VRSL_SHADOWMASK2) || defined(_VRSL_SHADOWMASK3)
+
+                            shadowmask = saturate(CalculateShadowMask(float4(_UseVRSLShadowMask1RStrength,
+                            _UseVRSLShadowMask1GStrength,_UseVRSLShadowMask1BStrength, _UseVRSLShadowMask1AStrength),
+                            float4(_UseVRSLShadowMask2RStrength, _UseVRSLShadowMask2GStrength, _UseVRSLShadowMask2BStrength, _UseVRSLShadowMask2AStrength),
+                            float4(_UseVRSLShadowMask3RStrength, _UseVRSLShadowMask3GStrength, _UseVRSLShadowMask3BStrength, _UseVRSLShadowMask3AStrength)
+                            , maskChannel, maskSelection,
+                            shadowmask1, shadowmask2, shadowmask3));
+                        #endif
+
+                    #endif
+                    //End Shadowmask Stuff
+
+                    //Combine
+                    lightColor = lerp(float3(0,0,0), lightColor * abs(_VRSLGIStrength), shadowmask);
+                    diffuseColor = lerp(float3(1,1,1), diffuseColor, _VRSLDiffuseMix);
+
+                    //#if _VRSL_GI_ANGLES
+
+                    if(SpotBlend > light.spotThreshold)
+                    {
+                            float outerSpotAngle = (cos(radians(light.outerSpotAngle)));
+                            float innerSpotAngle = (cos(radians(light.coneWidthGoboFlags > 0 ? light.outerSpotAngle - 5 : light.innerSpotAngle)));
+                            float3 spotlightDir = light.direction.xyz;
+
+                            float theta     = dot(lightDirection, normalize(-spotlightDir));
+                            float epsilon   = abs(innerSpotAngle - outerSpotAngle);
+                            float spotlight = clamp((theta - outerSpotAngle) / epsilon, 0.0, 1.0);
+
+                            atten = lerp(atten, atten*spotlight, SpotBlend);
+                            specular = lerp(specular, specular*spotlight, SpotBlend);
+                    }
+                    debug += ((atten > 0) && (_ClusterDebugFalloff > 0));
+                    finalOut += falloff * lightColor  * atten * diffuseColor * clamp(specular, 0.0, _VRSLGISpecularClamp);
+                }
+            VRSLGI_CLUSTER_END_LIGHT
+
+        #ifdef _VRSLGI_CBIRP_DEBUG
+            // diffuse = Heatmap((debug) / 16.);
+            finalOut = debug / 32.;
+        #endif
+
+
+        return finalOut * occlusion;
+    }
+    #endif
 
     void VRSLGIColor(MeshData d, SurfaceData o, inout half4 FinalColor)
     {
@@ -73,7 +674,7 @@
         }
         #else
         {
-            #if defined(_VRSL_GI) && !defined(SKIP_VRSLGI)
+            #if defined(_VRSL_GI)
             {
                 float2 uv = d.uv0.xy;
                 #if defined(LIGHTMAP_ON)
