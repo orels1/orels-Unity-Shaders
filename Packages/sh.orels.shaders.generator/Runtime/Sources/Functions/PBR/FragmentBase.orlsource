@@ -331,6 +331,14 @@
         #endif
 
         UNITY_LIGHT_ATTENUATION(lightAttenuation, i, d.worldSpacePosition);
+        #if defined(HANDLE_SHADOWS_BLENDING_IN_GI)
+        {
+            half bakedAtten = UnitySampleBakedOcclusion(d.lightmapUv.xy, d.worldSpacePosition);
+            float zDist = dot(_WorldSpaceCameraPos - d.worldSpacePosition, UNITY_MATRIX_V[2].xyz);
+            float fadeDist = UnityComputeShadowFadeDistance(d.worldSpacePosition, zDist);
+            lightAttenuation = UnityMixRealtimeAndBakedShadows(lightAttenuation, bakedAtten, UnityComputeShadowFade(fadeDist));
+        }
+        #endif
         half3 lightColor = lightAttenuation * _LightColor0.rgb;
 
         float3 lightHalfVector = Unity_SafeNormalize(lightDir + d.worldSpaceViewDir);
@@ -685,15 +693,6 @@
             #endif
         #endif // end of #if defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
 
-        // Attenuate main light diffuse by shadowmask
-        float3 forwardShadows = 1;
-        #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
-        {
-            forwardShadows = UnityComputeForwardShadows(d.lightmapUv.xy, d.worldSpacePosition, d.screenPos);
-            mainLightDiffuse *= forwardShadows;
-        }
-        #endif
-
         #if defined(CLEARCOAT) && defined(SHADING_MODE_DEFAULT)
         clearcoatdfguv = half3(NoV, clearCoatRoughness, 0);
         clearcoatdfg = SAMPLE_TEXTURE2D(_DFG, sampler_DFG, clearcoatdfguv).xy;
@@ -756,13 +755,6 @@
                 }
             }
             #endif
-        }
-        #endif
-
-        // Attenuate main light specular by shadowmask
-        #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD)
-        {
-            mainLightSpecular *= forwardShadows;
         }
         #endif
 
