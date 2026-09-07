@@ -7,6 +7,9 @@
     _LMMaskTex("Mask Texture > %ShowIf(_LMMaskingType == 1)", 2D) = "white" {}
     [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_LMMaskTexUV("UV Set %ShowIf(_LMMaskingType == 1)", Int) = 0
     [ToggleUI]_LMMaskBicubic("Use Bicubic Sampling %ShowIf(_LMMaskingType == 1 && _LMMaskTex)", Int) = 0
+    [ToggleUI]_LMBreakUpMaskEdge("Breakup Mask Edge", Int) = 0
+    _LMEdgeBreakupTexture("Edge Breakup Texture %ShowIf(_LMBreakUpMaskEdge)", 2D) = "white" {}
+    [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)]_LMEdgeBreakupTextureUV("UV Set %ShowIf(_LMBreakUpMaskEdge)", Int) = 0
     [Toggle(MASK_DEBUGGING)]_LMMaskDebugging("Mask Debugging", Int) = 0
     [Enum(All, 0, Black, 1, Red, 2, Green, 3, Blue, 4, White, 5, Alpha, 6)]_LMMaskDebuggingChannel("Debug Channel %ShowIf(MASK_DEBUGGING)", Int) = 0
 
@@ -182,6 +185,10 @@
     int _LMMaskDebuggingChannel;
     #endif
 
+    int _LMBreakUpMaskEdge;
+    int _LMEdgeBreakupTextureUV;
+    float4 _LMEdgeBreakupTexture_ST;
+
     // Base Layer
     half4 _LMLayerBaseColor;
     int _LMLayerBaseUV;
@@ -321,6 +328,8 @@
 {
     TEXTURE2D(_LMMaskTex);
     SAMPLER(sampler_LMMaskTex);
+    TEXTURE2D(_LMEdgeBreakupTexture);
+    SAMPLER(sampler_LMEdgeBreakupTexture);
     TEXTURE2D(_LMLayerBaseMainTex);
     TEXTURE2D(_LMLayerBaseMaskMap);
     TEXTURE2D(_LMLayerBaseBumpMap);
@@ -645,6 +654,11 @@
             }
         }
 
+        if (_LMBreakUpMaskEdge) {
+            half maskBreakupModifier = SAMPLE_TEXTURE2D(_LMEdgeBreakupTexture, sampler_LMEdgeBreakupTexture, GetLMUVs(d, _LMEdgeBreakupTextureUV) * _LMEdgeBreakupTexture_ST.xy + _LMEdgeBreakupTexture_ST.zw).r;
+            layerMask = saturate(layerMask * 2.0 + maskBreakupModifier - 1.0);
+        }
+
         // Layer 1
         SetupLayerInputs(1);
 
@@ -708,11 +722,16 @@
 
         #if defined(DEBUG_LAYER_1_MASK)
         {
-            half4 layerMask = _LMMaskingType == 0 ? d.vertexColor : SAMPLE_TEXTURE2D(_LMMaskTex, sampler_LMMaskTex, d.uv0.xy);
+            half4 layerMask = _LMMaskingType == 0 ? d.vertexColor : SAMPLE_TEXTURE2D(_LMMaskTex, sampler_LMMaskTex, GetMask(layerMask, _LMMaskTexUV));
             LayerData layer1Data = (LayerData)0;
             layer1Data.maskChannel = _LMLayer1ColorMask;
             layer1Data.maskRemap = _LMLayer1MaskRemap;
             layer1Data.strength = _LMLayer1Strength;
+
+            if (_LMBreakUpMaskEdge) {
+                half maskBreakupModifier = SAMPLE_TEXTURE2D(_LMEdgeBreakupTexture, sampler_LMEdgeBreakupTexture, GetLMUVs(d, _LMEdgeBreakupTextureUV) * _LMEdgeBreakupTexture_ST.xy + _LMEdgeBreakupTexture_ST.zw).r;
+                layerMask = saturate(layerMask * 2.0 + maskBreakupModifier - 1.0);
+            }
 
             half3 mask = GetMask(layerMask, layer1Data);
             FinalColor.rgb = mask;
@@ -721,11 +740,16 @@
 
         #if defined(DEBUG_LAYER_2_MASK)
         {
-            half4 layerMask = _LMMaskingType == 0 ? d.vertexColor : SAMPLE_TEXTURE2D(_LMMaskTex, sampler_LMMaskTex, d.uv0.xy);
+            half4 layerMask = _LMMaskingType == 0 ? d.vertexColor : SAMPLE_TEXTURE2D(_LMMaskTex, sampler_LMMaskTex, GetMask(layerMask, _LMMaskTexUV));
             LayerData layer2Data = (LayerData)0;
             layer2Data.maskChannel = _LMLayer2ColorMask;
             layer2Data.maskRemap = _LMLayer2MaskRemap;
             layer2Data.strength = _LMLayer2Strength;
+
+            if (_LMBreakUpMaskEdge) {
+                half maskBreakupModifier = SAMPLE_TEXTURE2D(_LMEdgeBreakupTexture, sampler_LMEdgeBreakupTexture, GetLMUVs(d, _LMEdgeBreakupTextureUV) * _LMEdgeBreakupTexture_ST.xy + _LMEdgeBreakupTexture_ST.zw).r;
+                layerMask = saturate(layerMask * 2.0 + maskBreakupModifier - 1.0);
+            }
 
             half3 mask = GetMask(layerMask, layer2Data);
             FinalColor.rgb = mask;
@@ -734,11 +758,16 @@
 
         #if defined(DEBUG_LAYER_3_MASK)
         {
-            half4 layerMask = _LMMaskingType == 0 ? d.vertexColor : SAMPLE_TEXTURE2D(_LMMaskTex, sampler_LMMaskTex, d.uv0.xy);
+            half4 layerMask = _LMMaskingType == 0 ? d.vertexColor : SAMPLE_TEXTURE2D(_LMMaskTex, sampler_LMMaskTex, GetMask(layerMask, _LMMaskTexUV));
             LayerData layer3Data = (LayerData)0;
             layer3Data.maskChannel = _LMLayer3ColorMask;
             layer3Data.maskRemap = _LMLayer3MaskRemap;
             layer3Data.strength = _LMLayer3Strength;
+
+            if (_LMBreakUpMaskEdge) {
+                half maskBreakupModifier = SAMPLE_TEXTURE2D(_LMEdgeBreakupTexture, sampler_LMEdgeBreakupTexture, GetLMUVs(d, _LMEdgeBreakupTextureUV) * _LMEdgeBreakupTexture_ST.xy + _LMEdgeBreakupTexture_ST.zw).r;
+                layerMask = saturate(layerMask * 2.0 + maskBreakupModifier - 1.0);
+            }
 
             half3 mask = GetMask(layerMask, layer3Data);
             FinalColor.rgb = mask;
@@ -747,11 +776,16 @@
 
         #if defined(DEBUG_LAYER_4_MASK)
         {
-            half4 layerMask = _LMMaskingType == 0 ? d.vertexColor : SAMPLE_TEXTURE2D(_LMMaskTex, sampler_LMMaskTex, d.uv0.xy);
+            half4 layerMask = _LMMaskingType == 0 ? d.vertexColor : SAMPLE_TEXTURE2D(_LMMaskTex, sampler_LMMaskTex, GetMask(layerMask, _LMMaskTexUV));
             LayerData layer4Data = (LayerData)0;
             layer4Data.maskChannel = _LMLayer4ColorMask;
             layer4Data.maskRemap = _LMLayer4MaskRemap;
             layer4Data.strength = _LMLayer4Strength;
+
+            if (_LMBreakUpMaskEdge) {
+                half maskBreakupModifier = SAMPLE_TEXTURE2D(_LMEdgeBreakupTexture, sampler_LMEdgeBreakupTexture, GetLMUVs(d, _LMEdgeBreakupTextureUV) * _LMEdgeBreakupTexture_ST.xy + _LMEdgeBreakupTexture_ST.zw).r;
+                layerMask = saturate(layerMask * 2.0 + maskBreakupModifier - 1.0);
+            }
 
             half3 mask = GetMask(layerMask, layer4Data);
             FinalColor.rgb = mask;
@@ -760,15 +794,14 @@
 
         #if defined(MASK_DEBUGGING)
         {
-            float2 layerMaskUv = 0;
-            switch (_LMMaskTexUV)
-            {
-                case 0: layerMaskUv = d.uv0.xy; break;
-                case 1: layerMaskUv = d.uv1.xy; break;
-                case 2: layerMaskUv = d.uv2.xy; break;
-                case 3: layerMaskUv = d.uv3.xy; break;
-            }
+            float2 layerMaskUv = GetLMUVs(d, _LMMaskTexUV);
             half4 layerMask = _LMMaskingType == 0 ? d.vertexColor : SAMPLE_TEXTURE2D(_LMMaskTex, sampler_LMMaskTex, layerMaskUv);
+
+            if (_LMBreakUpMaskEdge) {
+                half maskBreakupModifier = SAMPLE_TEXTURE2D(_LMEdgeBreakupTexture, sampler_LMEdgeBreakupTexture, GetLMUVs(d, _LMEdgeBreakupTextureUV) * _LMEdgeBreakupTexture_ST.xy + _LMEdgeBreakupTexture_ST.zw).r;
+                layerMask = saturate(layerMask * 2.0 + maskBreakupModifier - 1.0);
+            }
+
             half3 mask = _LMMaskDebuggingChannel == 0 ? layerMask.rgb : _LMMaskDebuggingChannel == 1 ? all(layerMask.rgb < 0.00001) : _LMMaskDebuggingChannel == 5 ? all(layerMask.rgb > 0.99999) : _LMMaskDebuggingChannel == 6 ? layerMask.aaa : layerMask[_LMMaskDebuggingChannel - 2].rrr;
             FinalColor.rgb = mask;
         }
