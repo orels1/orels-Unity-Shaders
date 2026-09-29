@@ -7,6 +7,11 @@
     _VFStart("Start Height", Float) =  -100
     _VFEnd("End Height", Float) =  0
     _VFPow("Fog Blend Power", Float) = 1
+    [ToggleUI]_VFScaleByDistance("Scale By Distance", Int) = 0
+    _VFScaleByDistanceStart("Start %ShowIf(_VFScaleByDistance)", Float) = 1000
+    _VFScaleByDistanceEnd("Start %ShowIf(_VFScaleByDistance)", Float) = 2000
+    _VFScaleByDistanceFactor("Distance Factor %ShowIf(_VFScaleByDistance)", Float) = 0.001
+    _VFScaleByDistanceRake("Distance Rake %ShowIf(_VFScaleByDistance)", Float) = 1.0
     _VFGlobalTint("Tint", Color) =  (1, 1, 1, 1)
 }
 
@@ -18,17 +23,31 @@
     half _VFEnd;
     half _VFPow;
     half4 _VFGlobalTint;
+    int _VFScaleByDistance;
+    float _VFScaleByDistanceStart;
+    float _VFScaleByDistanceEnd;
+    float _VFScaleByDistanceFactor;
+    float _VFScaleByDistanceRake;
 }
 
 %Color("VerticalFogColor")
 {
-    void VerticalFogColor(MeshData d, inout half4 FinalColor) {
+    void VerticalFogColor(MeshData d, FragmentData i, inout half4 FinalColor) {
         #if defined(UNITY_PASS_FORWARDBASE)
         half mask = saturate(remap(d.worldSpacePosition.y, _VFStart, _VFEnd, 0, 1));
         mask = pow(mask, _VFPow);
         half4 col = lerp(_VFBottomColor, _VFTopColor, mask);
+
+        float factor = 1.0;
+        if (_VFScaleByDistance) {
+            float dist = distance(_WorldSpaceCameraPos, d.worldSpacePosition.xyz);
+            _VFScaleByDistanceFactor = max(0.00001, _VFScaleByDistanceFactor);
+            factor = saturate(invLerp(_VFScaleByDistanceStart, _VFScaleByDistanceEnd, dist));
+            factor = pow(factor, _VFScaleByDistanceRake * _VFScaleByDistanceFactor);
+        }
+
         FinalColor.rgb *= _VFGlobalTint;
-        FinalColor.rgb = lerp(FinalColor.rgb, col.rgb, col.a);
+        FinalColor.rgb = lerp(FinalColor.rgb, col.rgb, col.a * saturate(factor));
         #endif
     }
 }
