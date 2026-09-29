@@ -1,0 +1,27 @@
+%Properties()
+{
+    UI_UVScrollHeader("# UV Scroll", Int) = 1
+    _UVScrollUV0("UV 0 %Vector2(X,Y)", Vector) = (0,0,0,0)
+    _UVScrollUV1("UV 1 %Vector2(X,Y)", Vector) = (0,0,0,0)
+    _UVScrollUV2("UV 2 %Vector2(X,Y)", Vector) = (0,0,0,0)
+    _UVScrollUV3("UV 3 %Vector2(X,Y)", Vector) = (0,0,0,0)
+}
+
+%Variables()
+{
+    float2 _UVScrollUV0;
+    float2 _UVScrollUV1;
+    float2 _UVScrollUV2;
+    float2 _UVScrollUV3;
+}
+
+%Vertex("UVScrollVertex")
+{
+    void UVScrollVertex(inout VertexData v)
+    {
+        v.uv0.xy += _UVScrollUV0.xy * _Time.y;
+        v.uv1.xy += _UVScrollUV1.xy * _Time.y;
+        v.uv2.xy += _UVScrollUV2.xy * _Time.y;
+        v.uv3.xy += _UVScrollUV3.xy * _Time.y;
+    }
+}
