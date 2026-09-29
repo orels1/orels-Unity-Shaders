@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityShaderParser.Common;
 using UnityShaderParser.HLSL;
 using Debug = UnityEngine.Debug;
@@ -372,24 +373,31 @@ namespace ORL.ShaderGenerator
         private int BlockHasContent()
         {
             var line = _currentLine.Trim();
-            if (line[_total - 1] == '{')
-            {
-                return 1;
-            }
+            var localTotal = line.Length;
+            try {
+                if (line[localTotal - 1] == '{')
+                {
+                    return 1;
+                }
 
-            if (_lineNumber + 1 >= _lines.Length)
-            {
-                return 0;
-            }
+                if (_lineNumber + 1 >= _lines.Length)
+                {
+                    return 0;
+                }
 
-            if (string.IsNullOrEmpty(_lines[_lineNumber + 1].Trim()))
-            {
-                return 0;
-            }
+                if (string.IsNullOrEmpty(_lines[_lineNumber + 1].Trim()))
+                {
+                    return 0;
+                }
 
-            if (_lines[_lineNumber + 1].Trim()[0] == '{')
+                if (_lines[_lineNumber + 1].Trim()[0] == '{')
+                {
+                    return 2;
+                }
+            } catch (Exception e)
             {
-                return 2;
+                Debug.LogException(e);
+                Debug.LogError($"Line was {line}, total {_total}");
             }
 
             return 0;
@@ -450,7 +458,7 @@ namespace ORL.ShaderGenerator
                     });
                 }
 
-                result.Add(cleanLine.Substring(string.IsNullOrWhiteSpace(cleanLine) ? 0 : offset));
+                result.Add(cleanLine.Substring(string.IsNullOrWhiteSpace(cleanLine) ? 0 : Mathf.Min(cleanLine.Length - 1, offset)));
             }
 
             return null;
@@ -480,7 +488,7 @@ namespace ORL.ShaderGenerator
                 {
                     return _currentLine.Substring(_start, _current - _start);
                 }
-                
+
                 _current++;
             }
 

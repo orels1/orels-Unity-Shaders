@@ -416,6 +416,7 @@ namespace ORL.ShaderGenerator
             ctx.AddObjectToAsset("Shader Source", textAsset);
         }
 
+        [HideInCallstack]
         private void Log(object message)
         {
             var shaderName = Path.GetFileNameWithoutExtension(_ctx.assetPath);
