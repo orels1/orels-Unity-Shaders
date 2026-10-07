@@ -16,6 +16,78 @@
 
 %ShaderDefines()
 {
+    // This needs to be included as-is to support vrclv shader stripping
+    #ifndef VRCLV_FORCE_FULL_FEATURES
+        #include "Packages/sh.orels.shaders.generator/Runtime/Sources/Modules/LightVolumesBuildConfig.cginc"
+    #endif
+
+    // Feature toggles
+    #if defined(VRCLV_DISABLE_REGULAR_VOLUMES)
+        #ifndef VRCLV_DISABLE_LIGHT_PROBES_BLENDING
+            #define VRCLV_DISABLE_LIGHT_PROBES_BLENDING
+        #endif
+        #ifndef VRCLV_DISABLE_SMOOTH_BOUNDS
+            #define VRCLV_DISABLE_SMOOTH_BOUNDS
+        #endif
+        #if defined(VRCLV_DISABLE_ADDITIVE_VOLUMES) && !defined(VRCLV_DISABLE_VOLUME_ROTATION)
+            #define VRCLV_DISABLE_VOLUME_ROTATION
+        #endif
+    #endif
+
+    #if defined(VRCLV_DISABLE_POINT_LIGHTS)
+        #define VRCLV_POINT_LIGHTS_SUPPORTED 0
+        #ifndef VRCLV_DISABLE_POINT_COOKIES
+            #define VRCLV_DISABLE_POINT_COOKIES
+        #endif
+    #else
+        #define VRCLV_POINT_LIGHTS_SUPPORTED 1
+    #endif
+    #if defined(VRCLV_DISABLE_SPOT_LIGHTS)
+        #define VRCLV_SPOT_LIGHTS_SUPPORTED 0
+        #ifndef VRCLV_DISABLE_SPOT_COOKIES
+            #define VRCLV_DISABLE_SPOT_COOKIES
+        #endif
+        #ifndef VRCLV_DISABLE_SINGLE_SLICE_SHADOWS
+            #define VRCLV_DISABLE_SINGLE_SLICE_SHADOWS
+        #endif
+    #else
+        #define VRCLV_SPOT_LIGHTS_SUPPORTED 1
+    #endif
+    #if defined(VRCLV_DISABLE_AREA_LIGHTS)
+        #define VRCLV_AREA_LIGHTS_SUPPORTED 0
+        #ifndef VRCLV_DISABLE_AREA_COOKIES
+            #define VRCLV_DISABLE_AREA_COOKIES
+        #endif
+    #else
+        #define VRCLV_AREA_LIGHTS_SUPPORTED 1
+    #endif
+    #define VRCLV_LIGHTS_SUPPORTED (VRCLV_POINT_LIGHTS_SUPPORTED || VRCLV_SPOT_LIGHTS_SUPPORTED || VRCLV_AREA_LIGHTS_SUPPORTED)
+
+    #if !VRCLV_POINT_LIGHTS_SUPPORTED && !VRCLV_SPOT_LIGHTS_SUPPORTED && !defined(VRCLV_DISABLE_LIGHT_LUTS)
+        #define VRCLV_DISABLE_LIGHT_LUTS
+    #endif
+    #if !VRCLV_LIGHTS_SUPPORTED
+        #ifndef VRCLV_DISABLE_CLUSTERING
+            #define VRCLV_DISABLE_CLUSTERING
+        #endif
+        #ifndef VRCLV_DISABLE_SHADOWS
+            #define VRCLV_DISABLE_SHADOWS
+        #endif
+    #endif
+    #if defined(VRCLV_DISABLE_SHADOWS)
+        #ifndef VRCLV_DISABLE_CUBEMAP_SHADOWS
+            #define VRCLV_DISABLE_CUBEMAP_SHADOWS
+        #endif
+        #ifndef VRCLV_DISABLE_SINGLE_SLICE_SHADOWS
+            #define VRCLV_DISABLE_SINGLE_SLICE_SHADOWS
+        #endif
+    #endif
+    // World-space shadows select a bake origin for a receiver; they are not a separate
+    // shadow projection. Keep the Shadows parent independent when both children are off.
+    #if defined(VRCLV_DISABLE_CUBEMAP_SHADOWS) && defined(VRCLV_DISABLE_SINGLE_SLICE_SHADOWS) && !defined(VRCLV_DISABLE_WORLD_SPACE_SHADOWS)
+        #define VRCLV_DISABLE_WORLD_SPACE_SHADOWS
+    #endif
+
     #define VRCLV_VERSION 3
     #define VRCLV_MIN_SUPPORTED_VERSION 2
     #define VRCLV_MAX_VOLUMES_COUNT 32
@@ -23,6 +95,14 @@
     #define VRCLV_MIN_SPECULAR_PERCEPTUAL_ROUGHNESS 0.089
     #define VRCLV_MIN_N_DOT_V 0.0001
     #define VRCLV_DYNAMIC_LOOP [fastopt]
+
+    // The packed integer atlas requires native integers and texel Load. Lower targets and
+    // VRCLV_DISABLE_CLUSTERING defined before this include compile the exact unclustered loop.
+    #if VRCLV_LIGHTS_SUPPORTED && !defined(SHADER_TARGET_SURFACE_ANALYSIS) && !defined(VRCLV_DISABLE_CLUSTERING) && SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLCORE) || defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL))
+        #define VRCLV_CLUSTERING_SUPPORTED 1
+    #else
+        #define VRCLV_CLUSTERING_SUPPORTED 0
+    #endif
 
     #if !defined(DISABLE_VRCLIGHTVOLUMES) && defined(VRCLIGHTVOLUMES)
         #define INTEGRATE_VRCLIGHTVOLUMES
@@ -33,9 +113,9 @@
         #endif
 
         // Toon Specular uses a custom specular calculation function so we need to
-        // 1. Tell the Specular Module to skip its built-in specular calculations (forwardbase only, add pass lights are still handled directly)
-        // 2. Tell VRCLV to use a custom specular accumulation
-        // 3. Tell Toon fragment base to expose its final Mesh and Surface data structs globally
+        // 1. Tell VRCLV to use a custom specular accumulation
+        // 2. Tell Toon fragment base to expose its final Mesh and Surface data structs globally
+        // 3. Tell VRCLV to not handle main light specular internally as it is derived by the toon shader from SH
         #if defined(ORL_LIGHTING_MODEL_TOON_V2) && defined(SPECULAR_ON) && defined(UNITY_PASS_FORWARDBASE)
             #define _INTEGRATE_CUSTOMSPECULAR
             #define LV_CUSTOM_SPECULAR_BRDF
@@ -51,6 +131,15 @@
 
         #define _INTEGRATE_CUSTOMPROBES
         #define _INTEGRATE_CUSTOMGI_FLEX
+    #endif
+}
+
+%Variables()
+{
+    #if VRCLV_CLUSTERING_SUPPORTED
+    float4 _UdonFroxelRight;      // xyz: axis, w: camera position x
+    float4 _UdonFroxelUp;         // xyz: axis, w: camera position y
+    float4 _UdonFroxelForward;    // xyz: axis, w: camera position z
     #endif
 }
 
