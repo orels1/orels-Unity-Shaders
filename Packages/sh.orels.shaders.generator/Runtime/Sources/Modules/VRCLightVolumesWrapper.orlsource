@@ -120,7 +120,7 @@
             #define _INTEGRATE_CUSTOMSPECULAR
             #define LV_CUSTOM_SPECULAR_BRDF
             #define LV_CUSTOM_SH_SPECULAR_BRDF
-            #define LV_SKIP_POINTS_IN_MAIN_SH
+            // #define LV_SKIP_POINTS_IN_MAIN_SH
             #define EXPOSE_GLOBAL_DATA
         #endif
 
@@ -151,6 +151,12 @@
     float3 VRCLV_L1r;
     float3 VRCLV_L1g;
     float3 VRCLV_L1b;
+    #if defined(ORL_LIGHTING_MODEL_TOON_V2)
+    float3 VRCLV_P0;
+    float3 VRCLV_P1r;
+    float3 VRCLV_P1g;
+    float3 VRCLV_P1b;
+    #endif
     float3 VRCLV_Specular;
     #endif
 }
