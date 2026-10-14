@@ -32,7 +32,16 @@
                 GLOBAL_MeshData = d;
                 #endif
 
-                LightVolumeSHSpecular(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b, specular, o.Albedo, 1.0 - o.SpecularRoughness, o.SpecularAlbedoTint, worldNormal, d.worldSpaceViewDir);
+                // Add main SH without point lights, as we do not want them to contribute to SH for light probe fallback reasons
+                LightVolumeSH(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, L0, L1r, L1g, L1b, float3(0,0,0), worldNormal);
+                bool useFallback = _UdonLightVolumeEnabled == 0 || _UdonLightVolumeVersion < VRCLV_MIN_SUPPORTED_VERSION;
+
+                // Separate handling for point light specular
+                [branch] if (!useFallback) {
+                    // Avoid writing point light SH into the main SH
+                    float3 P0, P1r, P1g, P1b;
+                    LV_PointLightVolumeSHSpecular(d.worldSpacePosition + d.worldNormal * _VRCLightVolumesSurfacePushoff, worldNormal, d.worldSpaceViewDir, 1.0 - o.SpecularRoughness, lerp(0.04, o.Albedo, o.SpecularAlbedoTint), 3, P0, P1r, P1g, P1b, specular);
+                }
                 o.VRCLV_Specular = specular;
             }
             // All other models (UI/VFX) do not use special LV Specular
@@ -245,6 +254,59 @@
             specular *= GLOBAL_SurfaceData.SpecularTint;
             specular = clamp(specular, 0, GLOBAL_SurfaceData.SpecularIntensity.rrr);
             specular *= NoL;
+        }
+        return specular;
+    }
+
+    #endif
+
+    #if defined(INTEGRATE_VRCLIGHTVOLUMES) && defined(LV_CUSTOM_SH_SPECULAR_BRDF) && defined(ORL_LIGHTING_MODEL_TOON_V2) && defined(SPECULAR_ON) && defined(EXPOSE_GLOBAL_DATA)
+
+    float3 LV_SpecularBRDFSH_Custom(float3 f0, float smoothness,float3 worldNormal, float3 viewDir, float3 L0, float3 L1r, float3 L1g, float3 L1b) {
+        return 0;
+        float3 probeLightDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+        bool probesAreBlack = length(unity_SHAr.w + unity_SHAg.w + unity_SHAb.w) < 0.01;
+        float3 lightDir = probeLightDir;
+        if (probesAreBlack)
+        {
+            lightDir = float3(0.577, 0.577, 0.577);
+        }
+        lightDir = Unity_SafeNormalize(lightDir);
+        half lightNoL = dot(worldNormal, lightDir);
+        half NoV = saturate(dot(worldNormal, viewDir));
+
+        float3 specular = float3(0.0, 0.0, 0.0);
+        [branch] if (lightNoL > 0) {
+            float3 lightHalfVector = Unity_SafeNormalize(lightDir + viewDir);
+            half NoH = saturate(dot(worldNormal, lightHalfVector));
+            half lightLoH = dot(lightDir, lightHalfVector);
+            half perceptualRoughness = max(0.01, GLOBAL_SurfaceData.SpecularRoughness);
+            perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+            half anisotropy = _SpecularAnisotropy * saturate(5.0 * perceptualRoughness);
+
+            perceptualRoughness *= perceptualRoughness;
+            perceptualRoughness = max(perceptualRoughness, 0.0045);
+            float at = max(perceptualRoughness * (1.0 + anisotropy), 0.001);
+            float ab = max(perceptualRoughness * (1.0 - anisotropy), 0.001);
+
+            // Calculate f0 in place with Metallic = 0
+            half3 F = F_Schlick(lightLoH, 0.16 * 0.5 * 0.5 + lerp(1, GLOBAL_SurfaceData.Albedo, GLOBAL_SurfaceData.SpecularAlbedoTint));
+
+            float D = D_GGX(NoH, perceptualRoughness);
+            half V = V_SmithGGXCorrelated(NoV, lightNoL, perceptualRoughness);
+            half3 isotropicSpecular = max(0, D * V * F);
+
+            D = D_GGX_Anisotropic(NoH, lightHalfVector, GLOBAL_MeshData.worldSpaceTangent, GLOBAL_MeshData.bitangent, at, ab);
+            half3 anisotropicSpecular = max(0, D * V * F);
+
+            specular = lerp(isotropicSpecular, anisotropicSpecular, saturate(abs(anisotropy * 100)));
+            specular = lerp(specular, smoothstep(0.5, 0.51, specular), GLOBAL_SurfaceData.SpecularSharpness);
+            specular *= UNITY_PI;
+            specular *= L0;
+            specular *= GLOBAL_SurfaceData.SpecularIntensity;
+            specular *= GLOBAL_SurfaceData.SpecularTint;
+            specular = clamp(specular, 0, GLOBAL_SurfaceData.SpecularIntensity.rrr);
+            specular *= lightNoL;
         }
         return specular;
     }

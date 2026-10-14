@@ -119,8 +119,9 @@
         #if defined(ORL_LIGHTING_MODEL_TOON_V2) && defined(SPECULAR_ON) && defined(UNITY_PASS_FORWARDBASE)
             #define _INTEGRATE_CUSTOMSPECULAR
             #define LV_CUSTOM_SPECULAR_BRDF
+            #define LV_CUSTOM_SH_SPECULAR_BRDF
+            #define LV_SKIP_POINTS_IN_MAIN_SH
             #define EXPOSE_GLOBAL_DATA
-            #define LV_SKIP_MAIN_SPECULAR
         #endif
 
         #define LV_PI 3.141592653589793f
@@ -151,5 +152,20 @@
     float3 VRCLV_L1g;
     float3 VRCLV_L1b;
     float3 VRCLV_Specular;
+    #endif
+}
+
+%PassFunctions(-110)
+{
+    #if defined(INTEGRATE_VRCLIGHTVOLUMES)
+
+    #if defined(LV_CUSTOM_SPECULAR_BRDF)
+    float3 LV_SpecularBRDFDirection_Custom(float3 f0, float roughness, float roughnessSq, float NoV, float3 worldNormal, float3 viewDir, float3 l0, float3 lightDirNormal, float lightSpreadSq);
+    #endif
+
+    #if defined(LV_CUSTOM_SH_SPECULAR_BRDF)
+    float3 LV_SpecularBRDFSH_Custom(float3 f0, float smoothness,float3 worldNormal, float3 viewDir, float3 L0, float3 L1r, float3 L1g, float3 L1b);
+    #endif
+
     #endif
 }

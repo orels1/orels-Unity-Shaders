@@ -140,10 +140,6 @@
 {
     #if defined(INTEGRATE_VRCLIGHTVOLUMES)
 
-    #if defined(LV_CUSTOM_SPECULAR_BRDF)
-    float3 LV_SpecularBRDFDirection_Custom(float3 f0, float roughness, float roughnessSq, float NoV, float3 worldNormal, float3 viewDir, float3 l0, float3 lightDirNormal, float lightSpreadSq);
-    #endif
-
     inline float LV_Smoothstep01(float x) {
         return x * x * (3 - 2 * x);
     }
@@ -1159,7 +1155,9 @@
         } else {
             LV_LightVolumeRegularSH(worldPos + worldPosOffset, L0, L1r, L1g, L1b);
             LV_LightVolumeAdditiveSH(worldPos + worldPosOffset, L0, L1r, L1g, L1b);
+            #if !defined(LV_SKIP_POINTS_IN_MAIN_SH)
             LV_PointLightVolumeSH(worldPos, worldNormal, pointLightShading, L0, L1r, L1g, L1b);
+            #endif
         }
     }
 
@@ -1174,7 +1172,9 @@
             float3 L0 = 0, unused_L1 = 0; // Only L0 is returned; the shared SH functions' L1 outputs are discarded.
             LV_LightVolumeRegularSH(worldPos + worldPosOffset, L0, unused_L1, unused_L1, unused_L1);
             LV_LightVolumeAdditiveSH(worldPos + worldPosOffset, L0, unused_L1, unused_L1, unused_L1);
+            #if !defined(LV_SKIP_POINTS_IN_MAIN_SH)
             LV_PointLightVolumeSH(worldPos, worldNormal, pointLightShading, L0, unused_L1, unused_L1, unused_L1);
+            #endif
             return L0;
         }
     }
@@ -1187,7 +1187,9 @@
         L0 = 0; L1r = 0; L1g = 0; L1b = 0;
         [branch] if (_UdonLightVolumeEnabled != 0 && _UdonLightVolumeVersion >= VRCLV_MIN_SUPPORTED_VERSION) {
             LV_LightVolumeAdditiveSH(worldPos + worldPosOffset, L0, L1r, L1g, L1b);
+            #if !defined(LV_SKIP_POINTS_IN_MAIN_SH)
             LV_PointLightVolumeSH(worldPos, worldNormal, pointLightShading, L0, L1r, L1g, L1b);
+            #endif
         }
     }
 
@@ -1201,7 +1203,9 @@
         } else {
             float3 L0 = 0, unused_L1 = 0; // Only L0 is returned; the shared SH functions' L1 outputs are discarded.
             LV_LightVolumeAdditiveSH(worldPos + worldPosOffset, L0, unused_L1, unused_L1, unused_L1);
+            #if !defined(LV_SKIP_POINTS_IN_MAIN_SH)
             LV_PointLightVolumeSH(worldPos, worldNormal, pointLightShading, L0, unused_L1, unused_L1, unused_L1);
+            #endif
             return L0;
         }
     }
