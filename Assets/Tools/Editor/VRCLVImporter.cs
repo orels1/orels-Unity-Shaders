@@ -41,7 +41,8 @@ namespace ORL.Tools
             if (!File.Exists(Path.Combine(projectPath, "Temp", "VRCLV", "LightVolumes.cginc")))
             {
                 Debug.Log("No VRCLightVolumes include found, downloading...");
-                var branch = version == 3 ? "lv-3" : "main";
+                // var branch = version == 3 ? "lv-3" : "main";
+                var branch = "main";
                 var url = $"https://github.com/REDSIM/VRCLightVolumes/raw/refs/heads/{branch}/Packages/red.sim.lightvolumes/Shaders/LightVolumes.cginc";
                 var client = new System.Net.Http.HttpClient();
                 var response =
