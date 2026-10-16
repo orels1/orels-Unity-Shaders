@@ -15,11 +15,11 @@
     [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)]_AOChannel("AO", Int) = 1
     [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)]_DetailMaskChannel("Detail", Int) = 2
     [HideInInspector][Enum(R, 0, G, 1, B, 2, A, 3)]_SmoothChannel("Smooth", Int) = 3
-    _Smoothness("Smoothness %ShowIf(!_MaskMap)", Range(0, 1)) = 0.5
-    [ToggleUI][_MaskMap]_RoughnessMode("Roughness Mode %ShowIf(_MaskMap)", Int) = 0
-    _Metallic("Metallic %ShowIf(!_MaskMap)", Range(0, 1)) = 0
-    _MetallicRemap("Metallic Remap %ShowIf(_MaskMap) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
-    _SmoothnessRemap("Smoothness Remap %ShowIf(_MaskMap) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
+    _Smoothness("Smoothness %ShowIf((!_MaskMap && !SPECULAR_MODE) || (SPECULAR_MODE && _GlossSource == 0 && !_MaskMap))", Range(0, 1)) = 0.5
+    [ToggleUI][_MaskMap]_RoughnessMode("Roughness Mode %ShowIf(_MaskMap || (SPECULAR_MODE && _GlossSource > 0))", Int) = 0
+    _Metallic("Metallic %ShowIf(!_MaskMap && !SPECULAR_MODE)", Range(0, 1)) = 0
+    _MetallicRemap("Metallic Remap %ShowIf(_MaskMap && !SPECULAR_MODE) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
+    _SmoothnessRemap("Smoothness Remap %ShowIf(_MaskMap || (SPECULAR_MODE && _SpecularMap && _GlossSource > 0)) %RemapSlider(0,1)", Vector) = (0, 1, 0, 1)
     _OcclusionStrength("AO Strength %ShowIf(_MaskMap)", Range(0, 1)) = 1
     [ToggleUI]_DetailAsTintMask("Detail as Tint Mask %ShowIf(_MaskMap)", Int) =  0
     [NoScaleOffset]_BumpMap("Normal Map >", 2D) = "bump" { }
