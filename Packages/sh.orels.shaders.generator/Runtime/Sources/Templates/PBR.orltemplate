@@ -12,6 +12,10 @@
 
         // Global Include Start
         CGINCLUDE
+        #define UNITY_INSTANCED_LOD_FADE
+        #define UNITY_INSTANCED_SH
+        #define UNITY_INSTANCED_LIGHTMAPSTS
+
         #include "UnityStandardUtils.cginc"
         #include "Lighting.cginc"
         #include "AutoLight.cginc"
@@ -44,10 +48,6 @@
             #pragma fragment Fragment
             %ShaderFeatures
 
-            #define UNITY_INSTANCED_LOD_FADE
-            #define UNITY_INSTANCED_SH
-            #define UNITY_INSTANCED_LIGHTMAPSTS
-
             #ifndef UNITY_PASS_FORWARDBASE
                 #define UNITY_PASS_FORWARDBASE
             #endif
@@ -61,6 +61,14 @@
 
             // Variables
             %Variables
+
+            // Support instancing arbitrary props
+            UNITY_INSTANCING_BUFFER_START(Props)
+
+            // Instanced Variables
+            %InstancedVariables
+
+            UNITY_INSTANCING_BUFFER_END(Props)
 
             // Textures
             %Textures
@@ -152,10 +160,6 @@
             #pragma fragment Fragment
             %ShaderFeatures
 
-            #define UNITY_INSTANCED_LOD_FADE
-            #define UNITY_INSTANCED_SH
-            #define UNITY_INSTANCED_LIGHTMAPSTS
-
             #ifndef UNITY_PASS_FORWARDADD
                 #define UNITY_PASS_FORWARDADD
             #endif
@@ -169,6 +173,14 @@
 
             // Variables
             %Variables
+
+            // Support instancing arbitrary props
+            UNITY_INSTANCING_BUFFER_START(Props)
+
+            // Instanced Variables
+            %InstancedVariables
+
+            UNITY_INSTANCING_BUFFER_END(Props)
 
             // Textures
             %Textures
@@ -260,10 +272,6 @@
             #pragma fragment Fragment
             %ShaderFeatures
 
-            #define UNITY_INSTANCED_LOD_FADE
-            #define UNITY_INSTANCED_SH
-            #define UNITY_INSTANCED_LIGHTMAPSTS
-
             #ifndef UNITY_PASS_META
                 #define UNITY_PASS_META
             #endif
@@ -278,10 +286,16 @@
             // GlobalVariables
             %GlobalVariables
 
-
-
             // Variables
             %Variables
+
+            // Support instancing arbitrary props
+            UNITY_INSTANCING_BUFFER_START(Props)
+
+            // Instanced Variables
+            %InstancedVariables
+
+            UNITY_INSTANCING_BUFFER_END(Props)
 
             // Textures
             %Textures
@@ -381,10 +395,6 @@
             #pragma fragment Fragment
             %ShaderFeatures
 
-            #define UNITY_INSTANCED_LOD_FADE
-            #define UNITY_INSTANCED_SH
-            #define UNITY_INSTANCED_LIGHTMAPSTS
-
             #ifndef UNITY_PASS_SHADOWCASTER
                 #define UNITY_PASS_SHADOWCASTER
             #endif
@@ -398,10 +408,16 @@
             // GlobalVariables
             %GlobalVariables
 
-
-
             // Variables
             %Variables
+
+            // Support instancing arbitrary props
+            UNITY_INSTANCING_BUFFER_START(Props)
+
+            // Instanced Variables
+            %InstancedVariables
+
+            UNITY_INSTANCING_BUFFER_END(Props)
 
             // Textures
             %Textures

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using ORL.ShaderGenerator.Settings;
 using UnityEditor;
 using UnityEngine;
@@ -189,7 +190,7 @@ namespace ORL.ShaderGenerator
             var fullPath = ResolveORLAsset(path, true, remaps);
             return File.ReadAllLines(fullPath);
         }
-        
+
         public static string[] GetORLSource(string path, List<ModuleRemap> remaps, out string fullPath)
         {
             fullPath = ResolveORLAsset(path, true, remaps);
@@ -205,7 +206,7 @@ namespace ORL.ShaderGenerator
         {
             return File.ReadAllLines(ResolveORLAsset(path, path.StartsWith("@/"), remaps, basePath));
         }
-        
+
         public static string[] GetAssetSource(string path, string basePath, List<ModuleRemap> remaps, out string fullPath)
         {
             fullPath = ResolveORLAsset(path, path.StartsWith("@/"), remaps, basePath);
@@ -297,6 +298,31 @@ namespace ORL.ShaderGenerator
             }
 
             return sb.ToString();
+        }
+        
+        private static Regex _variableMatchRegex =
+            new Regex(
+                @"(?:uniform)?(?:\s*)(?<type>(?:half|float|int|real|fixed|bool|float2x2|float3x3|float4x4|half2x2|half3x3|half4x4|fixed2x2|fixed3x3|fixed4x4|real2x2|real3x3|real4x4){1}(?:\d)?)\s+(?<identifier>\w+)");
+
+        public static List<string> WriteInstanceMacros(ShaderBlock block) {
+            var result = new List<string>();
+            foreach (var line in block.Contents) {
+                var match = _variableMatchRegex.Match(line.Trim());
+                // copy-paste as is if not a match
+                if (!match.Success)
+                {
+                    result.Add(line);
+                    continue;
+                }
+
+                if (match.Groups.Count != 3) continue;
+                // Now we grab an identifier and a type and write out a macro
+                var type = match.Groups["type"].Value;
+                var identifier = match.Groups["identifier"].Value;
+
+                result.Add($"UNITY_DEFINE_INSTANCED_PROP({type}, {identifier})");
+            }
+            return result;
         }
     }
 }

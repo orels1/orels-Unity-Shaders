@@ -25,6 +25,7 @@ namespace ORL.ShaderGenerator
             PassModifiers,
             Variables,
             GlobalVariables,
+            InstancedVariables,
             Textures,
             ShaderFeatures,
             ShaderDefines,
@@ -81,6 +82,8 @@ namespace ORL.ShaderGenerator
                     return BlockType.Variables;
                 case "%GlobalVariables":
                     return BlockType.GlobalVariables;
+                case "%InstancedVariables":
+                    return BlockType.InstancedVariables;
                 case "%Textures":
                     return BlockType.Textures;
                 case "%ShaderFeatures":

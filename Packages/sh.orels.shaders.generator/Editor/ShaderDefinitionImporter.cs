@@ -963,6 +963,14 @@ namespace ORL.ShaderGenerator
                             continue;
                         }
 
+                        // For a better developer experience, we rewrite the non-instanced variable declarations in an instanced way
+                        if (block.CoreBlockType == BlockType.InstancedVariables)
+                        {
+                            newLine.Remove(match.Index, matchLen);
+                            newLine.Insert(match.Index, Utils.IndentContents(Utils.WriteInstanceMacros(block), match.Index));
+                            continue;
+                        }
+
                         // Simply insert the block lines if no special cases are met
                         newLine.Remove(match.Index, matchLen);
                         newLine.Insert(match.Index, Utils.IndentContents(block.Contents, match.Index));
@@ -1195,6 +1203,8 @@ namespace ORL.ShaderGenerator
                     case BlockType.PassModifiers:
                         collapsedBlocks[i].Contents = DeDuplicateByParser(block.Contents, DeDupeType.Modifiers);
                         continue;
+                    case BlockType.GlobalVariables:
+                    case BlockType.InstancedVariables:
                     case BlockType.Variables:
                         collapsedBlocks[i].Contents = DeDuplicateByRegex(block.Contents, _varRegex);
                         continue;

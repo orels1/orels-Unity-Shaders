@@ -14,10 +14,6 @@ Pass
     #pragma fragment Fragment
     %ShaderFeatures
 
-    #define UNITY_INSTANCED_LOD_FADE
-    #define UNITY_INSTANCED_SH
-    #define UNITY_INSTANCED_LIGHTMAPSTS
-
     // ShaderDefines
     %ShaderDefines
     // DataStructs
@@ -27,6 +23,15 @@ Pass
 
     // Variables
     %Variables
+
+    // Support instancing arbitrary props
+    UNITY_INSTANCING_BUFFER_START(Props)
+
+    // Instanced Variables
+    %InstancedVariables
+
+    UNITY_INSTANCING_BUFFER_END(Props)
+
 
     // Textures
     %Textures
