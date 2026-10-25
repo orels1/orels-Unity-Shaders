@@ -25,7 +25,8 @@ namespace ORL.Drawers
             MaterialProperty property,
             int index,
             ref Dictionary<string, object> uiState,
-            Func<bool> next)
+            Func<bool> next,
+            Dictionary<string, LocalizationData.LocalizedLanguageData> localizationData)
         {
             var matchLevel = _matcher.Match(property.displayName).Value.Length;
             if (index != 0 && EditorGUI.indentLevel > -1)
@@ -36,6 +37,10 @@ namespace ORL.Drawers
 
             var filteredName = property.displayName.Replace("#", "");
             filteredName = Utils.StripInternalSymbols(filteredName);
+            if (localizationData.ContainsKey(property.name) && !string.IsNullOrWhiteSpace(localizationData[property.name].name))
+            {
+                filteredName =  localizationData[property.name].name;
+            }
             if (matchLevel == 1)
             {
                 EditorGUI.indentLevel = 0;

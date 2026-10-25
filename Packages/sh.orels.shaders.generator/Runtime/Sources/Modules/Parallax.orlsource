@@ -13,8 +13,10 @@
 
 %ShaderFeatures()
 {
-    #pragma shader_feature_local_fragment PARALLAX
+    #pragma shader_feature_local PARALLAX
     #pragma shader_feature_local_fragment _PARALLAXSTEPS_EIGHT _PARALLAXSTEPS_SIXTEEN _PARALLAXSTEPS_THIRTYTWO _PARALLAXSTEPS_SIXTYFOUR
+
+    #define ORL_MODULE_PARALLAX_INCLUDED
 }
 
 %Variables()

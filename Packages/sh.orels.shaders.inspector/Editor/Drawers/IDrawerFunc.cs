@@ -20,7 +20,7 @@ namespace ORL.Drawers
             Func<bool> next
         )
         {
-            return OnGUI(editor, properties, property, index, ref uiState, next, new Dictionary<string, LocalizationData.LocalizedPropData>());
+            return OnGUI(editor, properties, property, index, ref uiState, next, new Dictionary<string, LocalizationData.LocalizedLanguageData>());
         }
         
         bool OnGUI(
@@ -30,7 +30,7 @@ namespace ORL.Drawers
             int index,
             ref Dictionary<string, object> uiState,
             Func<bool> next,
-            Dictionary<string, LocalizationData.LocalizedPropData> localizationData
+            Dictionary<string, LocalizationData.LocalizedLanguageData> localizationData
         )
         {
             return OnGUI(editor, properties, property, index, ref uiState, next);

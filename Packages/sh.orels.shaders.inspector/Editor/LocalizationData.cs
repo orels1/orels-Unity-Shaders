@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ORL.ShaderInspector
 {
@@ -9,12 +10,20 @@ namespace ORL.ShaderInspector
         [Serializable]
         public struct LocalizedPropData
         {
-            public string langauge;
+            public string propName;
+            public List<LocalizedLanguageData> data;
+        }
+        
+        [Serializable]
+        public struct LocalizedLanguageData
+        {
+            public string language;
             public string tooltip;
+            public string name;
 
             public override string ToString()
             {
-                return tooltip;
+                return name + " : " + tooltip;
             }
         }
 
