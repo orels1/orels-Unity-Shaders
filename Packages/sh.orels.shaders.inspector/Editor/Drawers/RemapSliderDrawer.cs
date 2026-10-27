@@ -49,8 +49,10 @@ namespace ORL.Drawers
             {
                 strippedName = localizationData[property.name].name;
             }
+            strippedName = Utils.GetAltName(property, strippedName);
 
             var baseRect = EditorGUILayout.GetControlRect();
+            Utils.CopyNameOnClick(property, baseRect);
             var maxSliderSize = baseRect.width * 0.62f;
             var labelRect = baseRect;
             labelRect.width = EditorStyles.label.CalcSize(new GUIContent(strippedName)).x + 20f * EditorGUIUtility.pixelsPerPoint;

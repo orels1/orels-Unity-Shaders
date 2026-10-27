@@ -52,13 +52,15 @@ namespace ORL.Drawers
             EditorGUI.BeginChangeCheck();
 
             var baseRect = EditorGUILayout.GetControlRect();
+            Utils.CopyNameOnClick(property, baseRect);
             var texRect = baseRect;
             texRect.width = 20f;
             editor.TexturePropertyMiniThumbnail(texRect, property, null, null);
             var labelRect = baseRect;
             labelRect.xMin += texRect.width + 10f;
-            labelRect.width = Mathf.Min(150f, EditorStyles.label.CalcSize(new GUIContent(strippedName)).x + 20f * EditorGUIUtility.pixelsPerPoint);
-            EditorGUI.LabelField(labelRect, strippedName);
+            var labelName = Utils.GetAltName(property, strippedName);
+            labelRect.width = Mathf.Min(150f, EditorStyles.label.CalcSize(new GUIContent(labelName)).x + 20f * EditorGUIUtility.pixelsPerPoint);
+            EditorGUI.LabelField(labelRect, labelName);
             var gradRect = baseRect;
             gradRect.xMin = EditorGUIUtility.labelWidth + 34.0f;
             gradRect.width = EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth - 38f;

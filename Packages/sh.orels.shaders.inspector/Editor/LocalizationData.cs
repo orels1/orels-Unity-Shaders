@@ -27,6 +27,10 @@ namespace ORL.ShaderInspector
             }
         }
 
+        // The module this file provides localization for
+        // Defaults to the file name when not set explicitly in the file
+        public string moduleName;
+
         public List<string> properties;
         public List<LocalizedPropData> data;
     }

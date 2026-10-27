@@ -18,12 +18,17 @@ namespace ORL.Drawers
         public string[] PersistentKeys => Array.Empty<string>();
 
         public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index,
-            ref Dictionary<string, object> uiState, Func<bool> next)
+            ref Dictionary<string, object> uiState, Func<bool> next,
+            Dictionary<string, LocalizationData.LocalizedLanguageData> localizationData)
         {
             if (EditorGUI.indentLevel == -1) return true;
 
             var match = _matcher.Match(property.displayName);
             var label = match.Groups["label"].Value;
+            if (localizationData.ContainsKey(property.name) && !string.IsNullOrWhiteSpace(localizationData[property.name].name))
+            {
+                label = localizationData[property.name].name;
+            }
 
             EditorGUILayout.LabelField(label, Styles.LinkTextStyle);
             var rect = GUILayoutUtility.GetLastRect();

@@ -3,64 +3,65 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
-#if ORL_SHADER_GENERATOR
-using ORL.ShaderGenerator;
-using UnityShaderParser.ShaderLab;
-#endif
 
 namespace ORL.ShaderInspector
 {
-    public class LocalizationHelpers: EditorWindow
+    public class LocalizationHelpers : EditorWindow
     {
+        // Generates a localization scaffolding for a shader
         [MenuItem("Tools/orels1/Localization Helpers")]
         public static void ShowWindow()
         {
             var window = GetWindow<LocalizationHelpers>(true);
-            window.titleContent = new GUIContent($"ORL Localization Helpers");
+            window.titleContent = new GUIContent("ORL Localization Helpers");
             window.minSize = new Vector2(300, 600);
             window.Show();
         }
 
         private TextAsset _sourceAsset;
-        private Dictionary<string, string> _properties;
+        private List<KeyValuePair<string, string>> _properties;
 
         private void OnGUI()
         {
             using var check = new EditorGUI.ChangeCheckScope();
-            _sourceAsset = EditorGUILayout.ObjectField(_sourceAsset, typeof(TextAsset), false) as TextAsset;
-
+            _sourceAsset = (TextAsset)EditorGUILayout.ObjectField("Source File", _sourceAsset, typeof(TextAsset), false);
             if (check.changed)
             {
-#if ORL_SHADER_GENERATOR
-                var parser = new Parser();
-                _properties = new Dictionary<string, string>();
-                var lines = _sourceAsset.text.Split(Environment.NewLine);
-                var blocks = parser.Parse(lines, AssetDatabase.GetAssetPath(_sourceAsset));
-                var properties = blocks.Find(b => b.CoreBlockType == ShaderBlock.BlockType.Properties);
-                
-                var combined = string.Join(Environment.NewLine, properties.Contents);
-                var tokens = ShaderLabLexer.Lex(combined, null, null, false, out _);
-                var nodes = ShaderLabParser.ParseShaderProperties(tokens, ShaderAnalyzers.SLConfig, out _);
-                foreach (var node in nodes)
-                {
-                    _properties.Add(node.Uniform, Utils.StripInternalSymbols(node.Name.Replace("#", "")));
-                }
-#endif
+                _properties = _sourceAsset == null
+                    ? new List<KeyValuePair<string, string>>()
+                    : LocalizationCache.GetAssetProperties(AssetDatabase.GetAssetPath(_sourceAsset));
             }
-            
-            if (GUILayout.Button("Copy Names"))
+
+            if (_sourceAsset == null)
+            {
+                EditorGUILayout.HelpBox("Assign a .orlsource file to extract the property names from", MessageType.Info);
+                return;
+            }
+            if (_properties == null || _properties.Count == 0)
+            {
+                EditorGUILayout.HelpBox("No properties found in the assigned file", MessageType.Warning);
+                return;
+            }
+
+            EditorGUILayout.LabelField($"Found {_properties.Count} properties", EditorStyles.miniLabel);
+
+            if (GUILayout.Button("Copy Localization Template"))
             {
                 var sb = new StringBuilder();
+                sb.AppendLine("# Localization for <module name>");
+                sb.AppendLine();
                 foreach (var kvp in _properties)
                 {
-                    sb.Append(kvp.Key);
-                    sb.Append(";");
-                    sb.Append(kvp.Value);
+                    sb.Append('[').Append(kvp.Key).AppendLine("]");
+                    sb.Append("name.en = ").AppendLine(kvp.Value);
                     sb.AppendLine();
                 }
-
                 EditorGUIUtility.systemCopyBuffer = sb.ToString();
             }
+
+            EditorGUILayout.HelpBox(
+                "\"Copy Localization Template\" copies a ready-to-fill block-format localization file.",
+                MessageType.None);
         }
     }
 }

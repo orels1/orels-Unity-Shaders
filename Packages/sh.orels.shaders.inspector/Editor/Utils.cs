@@ -67,5 +67,33 @@ namespace ORL.ShaderInspector
             cleaned = Regex.Replace(cleaned, pattern, "");
             return cleaned;
         }
+
+        /// <summary>
+        /// Returns the actual property name instead of the display name when the user holds down the ALT key
+        /// </summary>
+        /// <param name="property">The property to show the name of</param>
+        /// <param name="displayName">The display name to fall back to</param>
+        /// <returns>Either the actual property name, or the passed display name</returns>
+        public static string GetAltName(MaterialProperty property, string displayName)
+        {
+            return Event.current != null && Event.current.alt ? property.name : displayName;
+        }
+
+        /// <summary>
+        /// Copies the actual property name to the clipboard when the user left-clicks the property while holding down the ALT key
+        /// </summary>
+        /// <param name="property">The property to copy the name of</param>
+        /// <param name="rect">The rect of the property row to check clicks against</param>
+        public static void CopyNameOnClick(MaterialProperty property, Rect rect)
+        {
+            var e = Event.current;
+            if (e == null || !e.alt || e.type != EventType.MouseDown || e.button != 0 || !rect.Contains(e.mousePosition))
+            {
+                return;
+            }
+
+            GUIUtility.systemCopyBuffer = property.name;
+            e.Use();
+        }
     }
 }

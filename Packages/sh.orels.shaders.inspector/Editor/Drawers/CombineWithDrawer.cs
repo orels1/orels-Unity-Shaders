@@ -56,6 +56,7 @@ namespace ORL.Drawers
 
         private void DrawElement(Rect controlRect, MaterialEditor editor, MaterialProperty property, int index, Dictionary<string, LocalizationData.LocalizedLanguageData> localizationData)
         {
+            Utils.CopyNameOnClick(property, controlRect);
             var localRect = controlRect;
             var name = Utils.StripInternalSymbols(property.displayName);
             var labelSize = EditorStyles.label.CalcSize(new GUIContent(name));
@@ -79,7 +80,8 @@ namespace ORL.Drawers
             {
                 name = localizationData[property.name].name;
             }
-            
+            name = Utils.GetAltName(property, name);
+
             var enumAttribute = Array.Find(defaultProps, attr => attr.StartsWith("Enum("));
 
             if (!string.IsNullOrWhiteSpace(enumAttribute))

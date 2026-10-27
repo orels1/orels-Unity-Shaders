@@ -17,7 +17,8 @@ namespace ORL.Drawers
         
         public string[] PersistentKeys => Array.Empty<string>();
 
-        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next)
+        public bool OnGUI(MaterialEditor editor, MaterialProperty[] properties, MaterialProperty property, int index, ref Dictionary<string, object> uiState, Func<bool> next,
+            Dictionary<string, LocalizationData.LocalizedLanguageData> localizationData)
         {
             if (EditorGUI.indentLevel == -1) return true;
             var label = _matcher.Replace(property.displayName, "");
@@ -46,6 +47,10 @@ namespace ORL.Drawers
             }
 
             var strippedText = Utils.StripInternalSymbols(label);
+            if (localizationData.ContainsKey(property.name) && !string.IsNullOrWhiteSpace(localizationData[property.name].name))
+            {
+                strippedText = localizationData[property.name].name;
+            }
             EditorGUILayout.LabelField(strippedText.Replace("\\n", "\n"), Styles.NoteTextStyle);
             
             return true;

@@ -11,6 +11,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+
 namespace ORL.ShaderInspector
 {
     public class InspectorGUI : ShaderGUI
@@ -37,21 +38,12 @@ namespace ORL.ShaderInspector
         #region State Management
         private string[] _persistedKeys = new[] { "debugShown", "mapBakerShown" };
 
+        private const string LanguageSessionKey = "ORL.ShaderInspector.SelectedLanguage";
         private string _selectedLanguage = "EN";
-        private readonly Dictionary<string, int> _languageValues = new Dictionary<string, int>()
-        {
-            { "EN", 0 },
-            { "JP", 1 }
-        };
-        private readonly string[] _languageKeys = new string[]
-        {
-            "EN", "JP"
-        };
-        private readonly string[] _languageNames = new string[]
-        {
-            "English",
-            "日本語（実験的）[DeepL]"
-        };
+        // Rebuilt from the loaded localization data, see RebuildLanguageList
+        private Dictionary<string, int> _languageValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private List<string> _languageKeys = new List<string>();
+        private List<string> _languageNames = new List<string>();
         // Contains all languages
         private Dictionary<string, LocalizationData.LocalizedPropData> _localizedPropData;
         // Contains current language only
@@ -144,6 +136,7 @@ namespace ORL.ShaderInspector
                 _uiState.Add("mapBakerShown", false);
             }
 
+            // TODO: probably nuke this or make it less... terrible
             foreach (var prop in properties)
             {
                 if (prop.type == MaterialProperty.PropType.Texture && prop.textureDimension == TextureDimension.Tex2D && !_uiState.ContainsKey(prop.name + "_packer"))
@@ -176,30 +169,41 @@ namespace ORL.ShaderInspector
                 }
             }
 
-            // Load localization cache
-            var locAssets = AssetDatabase.FindAssets("t:LocalizationData");
-            _localizedPropData = new Dictionary<string, LocalizationData.LocalizedPropData>();
-            foreach (var guid in locAssets)
+            // Load localization data through the shared cache
+            // Localization files named after a module included into this shader take priority
+            _selectedLanguage = SessionState.GetString(LanguageSessionKey, "EN");
+            _localizedPropData = LocalizationCache.GetShaderLocalization((materialEditor.target as Material)?.shader);
+            RebuildLanguageList();
+            BuildLanguageData();
+
+            _initialized = true;
+        }
+
+        private void RebuildLanguageList()
+        {
+            var languages = LocalizationCache.GetAvailableLanguages();
+            _languageKeys = languages;
+            _languageNames = languages.Select(LocalizationCache.GetLanguageDisplayName).ToList();
+            _languageValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            for (var i = 0; i < languages.Count; i++)
             {
-                var path = AssetDatabase.GUIDToAssetPath(guid);
-                var locAsset = AssetDatabase.LoadAssetAtPath<LocalizationData>(path);
-
-                for (var i = 0; i < locAsset.properties.Count; i++)
-                {
-                    if (!_localizedPropData.ContainsKey(locAsset.properties[i]))
-                    {
-                        _localizedPropData.Add(locAsset.properties[i], locAsset.data[i]);
-                    }
-                }
+                _languageValues[languages[i]] = i;
             }
+            if (_languageKeys.Count > 0 && !_languageValues.ContainsKey(_selectedLanguage))
+            {
+                _selectedLanguage = _languageKeys[0];
+            }
+        }
 
+        // this pokes the cache for all the data necessary for the current shader based on the props list
+        private void BuildLanguageData()
+        {
             _localizedLanguageData = new Dictionary<string, LocalizationData.LocalizedLanguageData>(_localizedPropData.Count);
             foreach (var kvp in _localizedPropData)
             {
-                _localizedLanguageData.Add(kvp.Key, kvp.Value.data.Find(e => e.language == _selectedLanguage));
+                _localizedLanguageData.Add(kvp.Key,
+                    kvp.Value.data.Find(e => LocalizationCache.NormalizeLanguage(e.language) == _selectedLanguage));
             }
-
-            _initialized = true;
         }
 
         private class SerializedState
@@ -430,15 +434,15 @@ namespace ORL.ShaderInspector
 
             using (new EditorGUI.IndentLevelScope(-1))
             {
-                var newIndex = EditorGUILayout.Popup("Language", _languageValues[_selectedLanguage], _languageNames);
-                if (newIndex != _languageValues[_selectedLanguage])
+                if (_languageKeys.Count > 0)
                 {
-                    _selectedLanguage = _languageKeys[newIndex];
-                    _localizedLanguageData =
-                        new Dictionary<string, LocalizationData.LocalizedLanguageData>(_localizedPropData.Count);
-                    foreach (var kvp in _localizedPropData)
+                    var currentIndex = _languageValues.ContainsKey(_selectedLanguage) ? _languageValues[_selectedLanguage] : 0;
+                    var newIndex = EditorGUILayout.Popup("Language", currentIndex, _languageNames.ToArray());
+                    if (newIndex != currentIndex)
                     {
-                        _localizedLanguageData.Add(kvp.Key, kvp.Value.data.Find(e => e.language == _selectedLanguage));
+                        _selectedLanguage = _languageKeys[newIndex];
+                        SessionState.SetString(LanguageSessionKey, _selectedLanguage);
+                        BuildLanguageData();
                     }
                 }
             }
@@ -625,11 +629,6 @@ namespace ORL.ShaderInspector
 #endif
 
             var strippedName = Utils.StripInternalSymbols(property.displayName);
-            // If ALT is held down - show actual names
-            if (Event.current.alt)
-            {
-                strippedName = property.name;
-            }
 
             var isSingleLine = property.type == MaterialProperty.PropType.Texture && _singleLineRegex.IsMatch(property.displayName);
             var defaultProps =
@@ -658,9 +657,16 @@ namespace ORL.ShaderInspector
                 strippedName = _localizedLanguageData[property.name].name;
             }
 
+            // If ALT is held down - show actual names
+            if (Event.current.alt)
+            {
+                strippedName = property.name;
+            }
+
             if (isSingleLine)
             {
                 var buttonRect = editor.TexturePropertySingleLine(new GUIContent(strippedName, tooltip), property);
+                Utils.CopyNameOnClick(property, buttonRect);
                 buttonRect.x = EditorGUIUtility.labelWidth + 34.0f;
                 buttonRect.width = EditorGUIUtility.currentViewWidth - EditorGUIUtility.labelWidth - 38f;
                 // We can only repack 2D textures
@@ -683,6 +689,7 @@ namespace ORL.ShaderInspector
                 propHeight /= 2.0f;
             }
             var controlRect = EditorGUILayout.GetControlRect(true, propHeight, EditorStyles.layerMaskField);
+            Utils.CopyNameOnClick(property, controlRect);
 
             if (property.type == MaterialProperty.PropType.Texture)
             {

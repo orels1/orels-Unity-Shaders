@@ -32,11 +32,12 @@ namespace ORL.Drawers
             var label3 = groups[2].Value;
 
             var baseRect = EditorGUILayout.GetControlRect();
+            Utils.CopyNameOnClick(property, baseRect);
             var oldSize = EditorGUIUtility.labelWidth;
             var baseSize = (baseRect.width - oldSize) / 3.0f - 2f;
             var labelRect = baseRect;
             labelRect.width = oldSize;
-            EditorGUI.LabelField(labelRect, new GUIContent(Utils.StripInternalSymbols(property.displayName)));
+            EditorGUI.LabelField(labelRect, new GUIContent(Utils.GetAltName(property, Utils.StripInternalSymbols(property.displayName))));
 
             EditorGUIUtility.labelWidth = baseSize - EditorGUIUtility.fieldWidth + 15f;
 
