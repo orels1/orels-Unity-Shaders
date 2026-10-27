@@ -1,0 +1,42 @@
+# Localization for the UVDiscard module
+# Source: Modules/Toon/UVDiscard.orlsource
+module = Modules/Toon/UVDiscard
+
+[UI_UVDiscardHeader]
+name.en = UV Discard
+
+[_UVDiscardOn]
+name.en = Enable UV Discard
+
+[_UVDiscardUVSet]
+name.en = UV Set
+
+[_UVDiscardHide0]
+name.en = Hide 0
+
+[_UVDiscardHide1]
+name.en = Hide 1
+
+[_UVDiscardHide2]
+name.en = Hide 2
+
+[_UVDiscardHide3]
+name.en = Hide 3
+
+[_UVDiscardHide4]
+name.en = Hide 4
+
+[_UVDiscardHide5]
+name.en = Hide 5
+
+[_UVDiscardHide6]
+name.en = Hide 6
+
+[_UVDiscardHide7]
+name.en = Hide 7
+
+[_UVDiscardHide8]
+name.en = Hide 8
+
+[_UVDiscardHide9]
+name.en = Hide 9

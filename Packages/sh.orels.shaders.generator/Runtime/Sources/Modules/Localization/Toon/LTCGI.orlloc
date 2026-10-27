@@ -1,0 +1,42 @@
+# Localization for the LTCGI module
+# Source: Modules/Toon/LTCGI.orlsource
+module = Modules/Toon/LTCGI
+
+[UI_LTCGIHeader]
+name.en = LTCGI
+
+[UI_LTCGIDocs]
+name.en = This module has documentation
+
+[_IntegrateLTCGI]
+name.en = Integrate LTCGI
+
+[UI_LTCGIDownload]
+name.en = Make sure to download LTCGI before enabling this option
+
+[_LTCGIEnableOnMobile]
+name.en = Enable on Mobile
+
+[UI_LTCGIEnableOnMobileNote]
+name.en = LTCGI is pretty heavy for mobile devices, please test your content when enabling this option
+
+[_LTCGIClampBrightness]
+name.en = Clamp Brightness
+
+[_LTCGIMaxBrightness]
+name.en = Max Brightness
+
+[_LTCGIDiffuseIntensity]
+name.en = Diffuse Intensity
+
+[_LTCGISpecularIntensity]
+name.en = Specular Intensity
+
+[_LTCGIRoughnessModifier]
+name.en = Roughness Modifier
+
+[_LTCGIAlphaPremultiply]
+name.en = Alpha Premultiply
+
+[_LTCGIRamp]
+name.en = LTCGI Ramp

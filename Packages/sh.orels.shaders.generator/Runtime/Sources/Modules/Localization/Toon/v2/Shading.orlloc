@@ -1,0 +1,18 @@
+# Localization for the Shading module
+# Source: Modules/Toon/v2/Shading.orlsource
+module = Modules/Toon/v2/Shading
+
+[UI_ShadingHeader]
+name.en = Shading Settings
+
+[_Ramp]
+name.en = Ramp
+
+[_ShadowSharpness]
+name.en = Shadow Sharpness
+
+[_OffsetRampByOcclusion]
+name.en = Offset Ramp by Occlusion
+
+[_IgnoreLightprobeNormal]
+name.en = Uniform Probe Lighting

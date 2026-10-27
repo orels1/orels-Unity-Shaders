@@ -1,0 +1,26 @@
+# Localization for the VerticalFog module
+# Source: Modules/VerticalFog.orlsource
+
+[UI_VerticalFogHeader]
+name.en = Vertical Fog
+
+[UI_VerticalFogDocs]
+name.en = This module has documentation
+
+[_VFBottomColor]
+name.en = Bottom Color
+
+[_VFTopColor]
+name.en = Top Color
+
+[_VFStart]
+name.en = Start Height
+
+[_VFEnd]
+name.en = End Height
+
+[_VFPow]
+name.en = Fog Blend Power
+
+[_VFGlobalTint]
+name.en = Tint

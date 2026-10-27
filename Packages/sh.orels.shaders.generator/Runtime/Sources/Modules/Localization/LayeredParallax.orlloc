@@ -1,0 +1,152 @@
+# Localization for the LayeredParallax module
+# Source: Modules/LayeredParallax.orlsource
+
+[_LPHeader]
+name.en = Layered Parallax
+
+[UI_LPDocs]
+name.en = This shader has documentation
+
+[_LPBackground]
+name.en = Background
+
+[_LPOverlay]
+name.en = Overlay
+
+[_LPLayerCount]
+name.en = Layer Count
+
+[UI_LPLayer1Header]
+name.en = Layer 1
+
+[_LPLayer1UV]
+name.en = UV Set
+
+[_LPLayer1UVMode]
+name.en = UV Mode
+
+[_LPLayer1]
+name.en = Texture
+
+[_LPLayer1Color]
+name.en = Tint
+
+[_LPLayer1Depth]
+name.en = Layer Depth
+
+[_LPLayer1Mode]
+name.en = Movement Mode
+
+[_LPLayer1Speed]
+name.en = Movement Speed
+
+[_LPLayer1Direction]
+name.en = Movement Direction
+
+[UI_LPLayer2Header]
+name.en = Layer 2
+
+[_LPLayer2UV]
+name.en = @[_LPLayer1UV]
+
+[_LPLayer2UVMode]
+name.en = @[_LPLayer1UVMode]
+
+[_LPLayer2]
+name.en = @[_LPLayer1]
+
+[_LPLayer2Color]
+name.en = @[_LPLayer1Color]
+
+[_LPLayer2Depth]
+name.en = @[_LPLayer1Depth]
+
+[_LPLayer2Mode]
+name.en = @[_LPLayer1Mode]
+
+[_LPLayer2Speed]
+name.en = @[_LPLayer1Speed]
+
+[_LPLayer2Direction]
+name.en = @[_LPLayer1Direction]
+
+[UI_LPLayer3Header]
+name.en = Layer 3
+
+[_LPLayer3UV]
+name.en = @[_LPLayer1UV]
+
+[_LPLayer3UVMode]
+name.en = @[_LPLayer1UVMode]
+
+[_LPLayer3]
+name.en = @[_LPLayer1]
+
+[_LPLayer3Color]
+name.en = @[_LPLayer1Color]
+
+[_LPLayer3Depth]
+name.en = @[_LPLayer1Depth]
+
+[_LPLayer3Mode]
+name.en = @[_LPLayer1Mode]
+
+[_LPLayer3Speed]
+name.en = @[_LPLayer1Speed]
+
+[_LPLayer3Direction]
+name.en = @[_LPLayer1Direction]
+
+[UI_LPLayer4Header]
+name.en = Layer 4
+
+[_LPLayer4UV]
+name.en = @[_LPLayer1UV]
+
+[_LPLayer4UVMode]
+name.en = @[_LPLayer1UVMode]
+
+[_LPLayer4]
+name.en = @[_LPLayer1]
+
+[_LPLayer4Color]
+name.en = @[_LPLayer1Color]
+
+[_LPLayer4Depth]
+name.en = @[_LPLayer1Depth]
+
+[_LPLayer4Mode]
+name.en = @[_LPLayer1Mode]
+
+[_LPLayer4Speed]
+name.en = @[_LPLayer1Speed]
+
+[_LPLayer4Direction]
+name.en = @[_LPLayer1Direction]
+
+[UI_LPLayer5Header]
+name.en = Layer 5
+
+[_LPLayer5UV]
+name.en = @[_LPLayer1UV]
+
+[_LPLayer5UVMode]
+name.en = @[_LPLayer1UVMode]
+
+[_LPLayer5]
+name.en = @[_LPLayer1]
+
+[_LPLayer5Color]
+name.en = @[_LPLayer1Color]
+
+[_LPLayer5Depth]
+name.en = @[_LPLayer1Depth]
+
+[_LPLayer5Mode]
+name.en = @[_LPLayer1Mode]
+
+[_LPLayer5Speed]
+name.en = @[_LPLayer1Speed]
+
+[_LPLayer5Direction]
+name.en = @[_LPLayer1Direction]

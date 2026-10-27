@@ -1,0 +1,135 @@
+# Localization for the Normals module
+# Source: Modules/Toon/v2/Normals.orlsource
+module = Modules/Toon/v2/Normals
+
+[UI_NormalsHeader]
+name.en = Normals
+
+[_BumpMap]
+name.en = Normal Map
+
+[_BumpMapTilingMode]
+name.en = Normal Tiling Mode
+
+[_BumpMapTiling]
+name.en = Normal Tiling
+
+[UI_BumpMapTilingSyncedNote]
+name.en = Will scale UVs based on the Albedo texture Tiling and Offset settings
+
+[UI_BumpMapTilingIndependentNote]
+name.en = Will scale UVs on its own
+
+[_BumpScale]
+name.en = Normal Map Scale
+
+[_FlipBumpY]
+name.en = Flip Y (UE Mode)
+
+[_NormalBicubicSampling]
+name.en = Use Bicubic Sampling
+
+[UI_DetailNormalsHeader]
+name.en = Detail Normals
+
+[_DetailNormalsMask]
+name.en = Detail Normals Mask
+
+[_DetailNormalsMaskUVSet]
+name.en = UV Set
+
+[UI_DetailNormalsLayer1Header]
+name.en = Layer 1
+
+[_DetailNormals0Enabled]
+name.en = Enable Layer 1
+
+[_DetailNormals0Map]
+name.en = Detail Normal
+
+[_DetailNormals0UVSet]
+name.en = UV Set
+
+[_DetailNormals0Scale]
+name.en = Detail Normal Map Scale
+
+[_FlipDetailNormals0Y]
+name.en = Flip Y (UE Mode)
+
+[_DetailNormals0MaskChannel]
+name.en = Mask Channel
+
+[_DetailNormals0MaskStrength]
+name.en = Mask Strength
+
+[UI_DetailNormalsLayer2Header]
+name.en = Layer 2
+
+[_DetailNormals1Enabled]
+name.en = Enable Layer 2
+
+[_DetailNormals1Map]
+name.en = @[_DetailNormals0Map]
+
+[_DetailNormals1UVSet]
+name.en = @[_DetailNormals0UVSet]
+
+[_DetailNormals1Scale]
+name.en = @[_DetailNormals0Scale]
+
+[_FlipDetailNormals1Y]
+name.en = @[_FlipDetailNormals0Y]
+
+[_DetailNormals1MaskChannel]
+name.en = @[_DetailNormals0MaskChannel]
+
+[_DetailNormals1MaskStrength]
+name.en = @[_DetailNormals0MaskStrength]
+
+[UI_DetailNormalsLayer3Header]
+name.en = Layer 3
+
+[_DetailNormals2Enabled]
+name.en = Enable Layer 3
+
+[_DetailNormals2Map]
+name.en = @[_DetailNormals0Map]
+
+[_DetailNormals2UVSet]
+name.en = @[_DetailNormals0UVSet]
+
+[_DetailNormals2Scale]
+name.en = @[_DetailNormals0Scale]
+
+[_FlipDetailNormals2Y]
+name.en = @[_FlipDetailNormals0Y]
+
+[_DetailNormals2MaskChannel]
+name.en = @[_DetailNormals0MaskChannel]
+
+[_DetailNormals2MaskStrength]
+name.en = @[_DetailNormals0MaskStrength]
+
+[UI_DetailNormalsLayer4Header]
+name.en = Layer 4
+
+[_DetailNormals3Enabled]
+name.en = Enable Layer 4
+
+[_DetailNormals3Map]
+name.en = @[_DetailNormals0Map]
+
+[_DetailNormals3UVSet]
+name.en = @[_DetailNormals0UVSet]
+
+[_DetailNormals3Scale]
+name.en = @[_DetailNormals0Scale]
+
+[_FlipDetailNormals3Y]
+name.en = @[_FlipDetailNormals0Y]
+
+[_DetailNormals3MaskChannel]
+name.en = @[_DetailNormals0MaskChannel]
+
+[_DetailNormals3MaskStrength]
+name.en = @[_DetailNormals0MaskStrength]

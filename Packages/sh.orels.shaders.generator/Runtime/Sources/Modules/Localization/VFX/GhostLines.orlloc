@@ -1,0 +1,132 @@
+# Localization for the GhostLines module
+# Source: Modules/VFX/GhostLines.orlsource
+module = Modules/VFX/GhostLines
+
+[UI_GhostLinesHeader]
+name.en = Ghost Lines
+
+[UI_GhostLinesDocs]
+name.en = This module has documentation
+
+[_GSLinesEditMode]
+name.en = Settings Mode
+
+[UI_GhistLinesBaseHeader]
+name.en = Base Glow
+
+[_GSGlowGradientDir]
+name.en = Gradient Direction
+
+[_GSGradientSharpness]
+name.en = Gradient Sharpness
+
+[_GSGlowGradientRemap]
+name.en = Gradient Range (Min, Max)
+
+[_GLTopColor]
+name.en = Top Color
+
+[_GLBottomColor]
+name.en = Bottom Color
+
+[_GLRimLightSharpness]
+name.en = Rim Light Sharpness
+
+[_GLRimLightPush]
+name.en = Rim Light Push
+
+[UI_GhostLinesLinesHeader]
+name.en = Lines Settings
+
+[_GSLinesCoordinates]
+name.en = Coordinate Source
+
+[_GSLinesOrigin]
+name.en = Origin
+
+[_GSLinesMovement]
+name.en = Movement
+
+[_GSLinesScale]
+name.en = Scale
+
+[_GSLinesNudge]
+name.en = Nudge
+
+[_GSLinesFalloff]
+name.en = Falloff
+
+[_GSLinesStrength]
+name.en = Strength
+
+[UI_GSLinesScaleNote]
+name.en = Scale - Controls the amount of lines
+
+[UI_GSLinesNudgeNote]
+name.en = Nudge - shifts the line gradient
+
+[UI_GSLinesFalloffNote]
+name.en = Falloff - makes the lines sold or faded
+
+[UI_GhostLinesLinesDistortionHeader]
+name.en = Lines Distortion
+
+[_BakedNoiseTex]
+name.en = Distortion Texture
+
+[_GSNoiseScale]
+name.en = Scale
+
+[_GSNoiseStrength]
+name.en = Strength
+
+[_GSNoiseMovement]
+name.en = Movement
+
+[UI_GSDistortionNote]
+name.en = Distortion affects the line shape. No distortion will make the lines into concentric circles
+
+[UI_GhostLinesLinesColorHeader]
+name.en = Lines Colors
+
+[_GLTopLinesColor]
+name.en = Top Lines Color
+
+[_GLBottomLinesColor]
+name.en = Bottom Lines Color
+
+[UI_GhistLinesPBRHeader]
+name.en = Material Influence
+
+[_GSLinesAffectPBR]
+name.en = Lines Influence PBR
+
+[UI_LInesAffectPBRNote]
+name.en = Lines will affect Metallic/Smoothness/Albedo of the base material if this toggle is on
+
+[_GSLinesAffectMetallicScale]
+name.en = Metallic Influence
+
+[_GSLinesAffectSmoothnessScale]
+name.en = Smoothness Influence
+
+[_GSLinesAffectAlbedoScale]
+name.en = Albedo Influence
+
+[UI_GhostLinesWobbleHeader]
+name.en = Vertex Wobble
+
+[UI_GSWobbleNote]
+name.en = Vertex Wobbling is done in Local Space
+
+[_GSWobbleScale]
+name.en = Wobble Scale
+
+[_GSWobbleStrength]
+name.en = Wobble Strength
+
+[_GSWobbleMovement]
+name.en = Wobble Movement
+
+[_GSWobbleRange]
+name.en = Wobble Y Range (Min, Max)

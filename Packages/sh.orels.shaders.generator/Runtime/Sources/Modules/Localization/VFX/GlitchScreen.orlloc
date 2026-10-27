@@ -1,0 +1,81 @@
+# Localization for the GlitchScreen module
+# Source: Modules/VFX/GlitchScreen.orlsource
+module = Modules/VFX/GlitchScreen
+
+[UI_GlitchHeader]
+name.en = Glitch Screen
+
+[UI_GlitchDocs]
+name.en = This module has documentation
+
+[_GlitchTexture]
+name.en = Base Texture
+
+[_SeparateAlpha]
+name.en = Separate Transparency Texture
+
+[_AlphaTex]
+name.en = Transparency
+
+[_AlphaScale]
+name.en = Alpha Scale
+
+[_PosterEmission]
+name.en = Emission
+
+[_GlitchEffectCycleSpeed]
+name.en = Effects Cycle Speed
+
+[UI_GlitchEffectCycleNote]
+name.en = Controls how often the whole effect will be switched around
+
+[UI_GlitchPixelHeader]
+name.en = Subpixel Effect
+
+[_GlitchPixelEnabled]
+name.en = Add Subpixel Effect
+
+[_GlitchPixel]
+name.en = Subpixel Texture
+
+[_GlitchPixelHorizontal]
+name.en = Horizontal Pixels
+
+[_GlitchPixelVertical]
+name.en = Vertical Pixels
+
+[_GlitchColorScales]
+name.en = Color Scales (R,G,B)
+
+[UI_GlitchShiftHeader]
+name.en = Shift Glitch
+
+[_GlitchShiftMask]
+name.en = Shift Mask
+
+[UI_GlitchShiftMaskNote]
+name.en = Red - area to be shifted\nGreen - shift time offset\nBlue - max shift distance\nAlpha - 64x64 time randomisation offset
+
+[_GlitchShiftChance]
+name.en = Shift Chance
+
+[_GlitchSiftRandomizationAmount]
+name.en = Shift Randomization Amount
+
+[UI_GlitchShiftNote]
+name.en = Controls how much the shift amount will be randomized cycle to cycle
+
+[UI_GlitchColorGlitchHeader]
+name.en = Color Glitch
+
+[_GlitchColorGlitchMask]
+name.en = Mask
+
+[UI_GlitchColorGlitchMaskNote]
+name.en = Red - 8x4 color glitch areas with time offset\nGreen - 32x32 time offset of pixels within color glitch areas\nAlpha - 64x64 time randomisation offset
+
+[_GlitchColorGlitchChance]
+name.en = Chance
+
+[_GlitchColorGlitchSpeed]
+name.en = Speed

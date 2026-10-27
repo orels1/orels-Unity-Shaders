@@ -1,0 +1,63 @@
+# Localization for the Specular module
+# Source: Modules/Toon/Specular.orlsource
+module = Modules/Toon/Specular
+
+[UI_SpecularHeader]
+name.en = Specular
+
+[_SpecularOn]
+name.en = Enable Specular
+
+[_SpecularMap]
+name.en = Specular Map
+
+[UI_SpecMapdNote]
+name.en = Red - Intensity, Green - Albedo Tint, Blue - Roughness
+
+[_SpecularTilingMode]
+name.en = Tiling Mode
+
+[_SpecularTiling]
+name.en = Tiling
+
+[UI_SpecularTilingSyncedNote]
+name.en = Will scale UVs based on the Albedo texture Tiling and Offset settings
+
+[UI_SpecularTilingIndependentNote]
+name.en = Will scale UVs on its own
+
+[_SpecularIntensity]
+name.en = Intensity
+
+[_SpecularRoughness]
+name.en = Roughness
+
+[_SpecularSharpness]
+name.en = Sharpness
+
+[_SpecularAnisotropy]
+name.en = Anisotropy
+
+[_SpecularAlbedoTint]
+name.en = Albedo Tint
+
+[UI_SpecularMasking]
+name.en = Masking
+
+[_SpecularMask]
+name.en = Specular Mask
+
+[_SpecularMaskTilingMode]
+name.en = Tiling Mode
+
+[_SpecularMaskTiling]
+name.en = Tiling
+
+[UI_SpecularMaskTilingSyncedNote]
+name.en = Will scale UVs based on the Albedo texture Tiling and Offset settings
+
+[UI_SpecularMaskTilingIndependentNote]
+name.en = Will scale UVs on its own
+
+[_SpecularMaskStrength]
+name.en = Mask Strength

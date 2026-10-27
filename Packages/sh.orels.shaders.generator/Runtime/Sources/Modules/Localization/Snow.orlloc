@@ -3,144 +3,108 @@
 
 [_SnowLevel]
 tooltip.en = Controls the level of snow coverage
-tooltip.ja = 雪のカバー量を制御します
 
 [_SnowDirection]
 tooltip.en = Controls the world-space direction of where the snow is coming from. E.g. (0,1,0) will create a snow coverage from above (default value)
-tooltip.ja = 雪が降ってくる方向（ワールド空間）を制御します。例えば (0,1,0) では上から雪が積もります（デフォルト値）
 
 [_SnowLayerNormalStrength]
 tooltip.en = Controls how much the base layer Normal map affects the snow coverage
-tooltip.ja = ベースレイヤーのノーマルマップが雪のカバーに影響する度合いを制御します
 
 [_SnowPower]
 tooltip.en = Adjusts the edge of the snow coverage
-tooltip.ja = 雪のカバーのエッジを調整します
 
 [_SnowEdgeWidth]
 tooltip.en = Adjusts the width of the edge blend gradient for the snow coverage
-tooltip.ja = 雪のカバーのエッジブレンドグラデーションの幅を調整します
 
 [_SnowEdgeOffset]
 tooltip.en = Flat coverage offset, higher numbers allow to coat the whole mesh in snow
-tooltip.ja = フラットなカバーのオフセット。高い値にするとメッシュ全体を雪で覆えます
 
 [_SnowUseEdgeMask]
 tooltip.en = Enables additional masking of the snow coverage edge
-tooltip.ja = 雪のカバーのエッジに対する追加マスクを有効化します
 
 [_SnowEdgeMask]
 tooltip.en = Additional mask that will be applied to the edge of the snow coverage. Useful for adding variation and breaking up a perfect coverage edge
-tooltip.ja = 雪のカバーのエッジに適用される追加のマスク。変化を加えて完璧すぎるカバーのエッジを崩すのに役立ちます
 
 [_SnowEdgeMaskRange]
 tooltip.en = Adjusts how much of the snow coverage edge will be affected by the snow edge mask. Lower values make the final edge sharper
-tooltip.ja = 雪のカバーのエッジのうち、エッジマスクの影響を受ける範囲を調整します。低い値ほど最終的なエッジがシャープになります
 
 [_SnowEdgeMaskContrast]
 tooltip.en = Adjusts the values of the snow coverage mask texture. Setting to minimum will eliminate the mask completely. Setting to full width will multiply the base gradient by the mask texture
-tooltip.ja = 雪のカバーマスクテクスチャの値を調整します。最小に設定するとマスクが完全に無効になり、最大に設定するとベースのグラデーションにマスクテクスチャが乗算されます
 
 [_SnowDebug]
 tooltip.en = Enables debug visualization for the snow level
-tooltip.ja = 雪のレベルのデバッグ表示を有効化します
 
 [_SnowUseHeight]
 tooltip.en = Enables height-based effects for improved blending
-tooltip.ja = ハイトベースのエフェクトを有効化して、ブレンドを改善します
 
 [_SnowInvertHeightEffects]
 tooltip.en = Inverts the height effects. Enabling this will change whether the snow will accumulate on the height map peaks or in the valleys first
-tooltip.ja = ハイトのエフェクトを反転します。有効化すると、ハイトマップのピークと谷のどちらに雪が積もるかが切り替わります
 
 [_SnowHeightSmoothing]
 tooltip.en = Smooths out the height map effects. Higher values will allow the snow to cover more of the surface
-tooltip.ja = ハイトマップのエフェクトを滑らかにします。高い値ほど雪がより広い範囲のサーフェスを覆います
 
 [_SnowHeightStrength]
 tooltip.en = Controls the overall strength of the height effects. At 0 the height will be ignored, as if "Use Height" is off
-tooltip.ja = ハイトエフェクトの全体の強さを制御します。0では「Use Height」がオフの場合と同様にハイトが無視されます
 
 [_SnowUVMode]
 tooltip.en = Controls how snow texture UVs are calculated
-tooltip.ja = 雪テクスチャのUVの計算方法を制御します
 
 [_SnowTriplanarBlend]
 tooltip.en = Controls the triplanar blend between different world axis
-tooltip.ja = ワールド軸間のトライプラナーのブレンドを制御します
 
 [_SnowTriplanarPower]
 tooltip.en = Controls the sharpness of the triplanar blend edge between different world axis
-tooltip.ja = ワールド軸間のトライプラナーのブレンドのエッジのシャープさを制御します
 
 [_SnowDisplacementMap]
 tooltip.en = A texture to adjust where snow piles show up on the mesh. This uses world-space XZ coordinates to map to the surface
-tooltip.ja = メッシュ上で雪が積もる位置を調整するテクスチャ。ワールド空間のXZ座標を使用してサーフェスにマッピングします
 
 [_SnowDisplacementMapStrength]
 tooltip.en = Controls how much the Displacement Map affects the overall snow pile distribution. At 0 this will create snow coverage that perfectly copies the surfaces below it
-tooltip.ja = ディスプレイスメントマップが雪の積もり方全体に影響する度合いを制御します。0では、下のサーフェスを完全になぞる雪のカバーになります
 
 [_SnowDisplacementEdgeMaskStength]
 tooltip.en = Controls how much the Snow Edge Mask affects the snow piles displacement effects. Mainly for fine tuning and avoiding jagged edges coming from high frequency noise masks
-tooltip.ja = 雪のエッジマスクがディスプレイスメントエフェクトに影響する度合いを制御します。主に、高周波ノイズマスクによるギザギザのエッジを避けるための微調整に使用します
 
 [_SnowDisplacementLevel]
 tooltip.en = Controls how much the surface will be displaced along the Snow Direction
-tooltip.ja = 雪の方向に沿ってサーフェスがどれだけディスプレイスされるかを制御します
 
 [_SnowEnableGlitter]
 tooltip.en = Turns on snow glitter effects
-tooltip.ja = 雪のラメエフェクトを有効化します
 
 [_SnowGlitter]
 tooltip.en = A glitter noise map. Preferably a normal map (Red + Green noise texture)
-tooltip.ja = ラメ用のノイズマップ。できればノーマルマップ（赤+緑のノイズテクスチャ）が推奨です
 
 [_SnowGlitterTiling]
 tooltip.en = Tiling amount for the noise map
-tooltip.ja = ノイズマップのタイリング量
 
 [_SnowGlitterColor]
 tooltip.en = Controls glitter sparkle tint color
-tooltip.ja = ラメのきらめきのティントカラーを制御します
 
 [_SnowGlitterThreshold]
 tooltip.en = Controls how much glitter is visible
-tooltip.ja = ラメの見える量を制御します
 
 [_SnowGlitterStrength]
 tooltip.en = Controls the overall strength of the glitter
-tooltip.ja = ラメの全体の強さを制御します
 
 [_SnowGlitterBoost]
 tooltip.en = Additionally boosts the glitter effect beyond 0-1 range
-tooltip.ja = ラメエフェクトを0-1の範囲を超えてさらにブーストします
 
 [_SnowGlitterAnisotropy]
 tooltip.en = Controls the anisotropic highlight direction for the glitter effect. Effectively spreads the glitter horizontally or vertically across the surface
-tooltip.ja = ラメエフェクトの異方性ハイライトの方向を制御します。サーフェス上でラメを水平・垂直に広げる効果があります
 
 [_SnowGlitterSpread]
 tooltip.en = Controls how wide the glitter highlight is
-tooltip.ja = ラメのハイライトの広がりを制御します
 
 [_SnowGlitterRimMask]
 tooltip.en = Controls the sharpness of the rim-based masking. Values below and above 0 will rim mask in different directions
-tooltip.ja = リムベースのマスクのシャープさを制御します。0の前後で異なる方向にリムマスクされます
 
 [_SnowGlitterRimStrength]
 tooltip.en = Controls how much the rim mask affects the glitter highlights
-tooltip.ja = リムマスクがラメのハイライトに影響する度合いを制御します
 
 [_SnowGlitterDistanceFade]
 tooltip.en = Controls the distance fade effect of glitter highlights. Set Start and End to 0 to disable the effect
-tooltip.ja = ラメのハイライトの距離フェードを制御します。開始と終了を0にするとエフェクトが無効になります
 
 [_SnowRimColor]
 tooltip.en = Controls the tint of a rim light effect
-tooltip.ja = リムライトエフェクトのティントを制御します
 
 [_SnowRimPower]
 tooltip.en = Controls the spread of the rim light effect
-tooltip.ja = リムライトエフェクトの広がりを制御します

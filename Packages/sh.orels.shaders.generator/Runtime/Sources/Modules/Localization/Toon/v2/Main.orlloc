@@ -1,0 +1,54 @@
+# Localization for the Main module
+# Source: Modules/Toon/v2/Main.orlsource
+module = Modules/Toon/v2/Main
+
+[UI_MainHeader]
+name.en = Main Settings
+
+[UI_ToonDocs]
+name.en = This shader has documentation
+
+[_Color]
+name.en = Main Color
+
+[_BackfaceColor]
+name.en = Backface Color
+
+[_BackfaceAlbedoTint]
+name.en = Backface Albedo Tint
+
+[_TintByVertexColor]
+name.en = Tint By Vertex Color
+
+[_MainTex]
+name.en = Albedo
+
+[_SeparateAlpha]
+name.en = Separate Transparency Texture
+
+[_AlphaTex]
+name.en = Transparency
+
+[_AlphaBicubic]
+name.en = Use Bicubic Sampling
+
+[_AlphaScale]
+name.en = Alpha Scale
+
+[_MainTexUVSet]
+name.en = UV Set
+
+[_Hue]
+name.en = Hue
+
+[_Saturation]
+name.en = Saturation
+
+[_Value]
+name.en = Value
+
+[UI_VRCLightVolumesHeader]
+name.en = VRC Light Volumes
+
+[_VRCLightVolumesEnabled]
+name.en = Enable VRC Light Volumes

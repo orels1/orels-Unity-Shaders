@@ -1,0 +1,89 @@
+# Localization for the StandardSetup module
+# Source: Modules/StandardSetup.orlsource
+
+[_Color]
+name.en = Main Color
+
+[_MainTex]
+name.en = Albedo
+
+[_AlbedoChannel]
+name.en = Albedo Channel
+
+[_MappingSpace]
+name.en = Mapping Space
+
+[_PlanarAxisX]
+name.en = X Axis
+
+[_PlanarAxisY]
+name.en = Y Axis
+
+[_SpecularMode]
+name.en = Specular Mode
+
+[_SpecularMap]
+name.en = Specular
+
+[_SpecularColor]
+name.en = Specular Color
+
+[_GlossSource]
+name.en = Gloss Source
+
+[_MaskMap]
+name.en = Masks
+
+[_MetalChannel]
+name.en = Metal
+
+[_AOChannel]
+name.en = AO
+
+[_DetailMaskChannel]
+name.en = Detail
+
+[_SmoothChannel]
+name.en = Smooth
+
+[_Smoothness]
+name.en = Smoothness
+
+[_RoughnessMode]
+name.en = Roughness Mode
+
+[_Metallic]
+name.en = Metallic
+
+[_MetallicRemap]
+name.en = Metallic Remap
+
+[_SmoothnessRemap]
+name.en = Smoothness Remap
+
+[_OcclusionStrength]
+name.en = AO Strength
+
+[_DetailAsTintMask]
+name.en = Detail as Tint Mask
+
+[_BumpMap]
+name.en = Normal Map
+
+[_BumpScale]
+name.en = Normal Map Scale
+
+[_FlipBumpY]
+name.en = Flip Y (UE Mode)
+
+[_EmissionEnabled]
+name.en = Emission
+
+[_EmissionMap]
+name.en = Emission Map
+
+[_EmissionColor]
+name.en = Emission Color
+
+[_EmissionChannel]
+name.en = Emission Channel

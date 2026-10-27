@@ -1,0 +1,42 @@
+# Localization for the RimLight module
+# Source: Modules/Toon/v2/RimLight.orlsource
+module = Modules/Toon/v2/RimLight
+
+[UI_RimLightHeader]
+name.en = Rim Light
+
+[_RimLight]
+name.en = Enable Rim Light
+
+[_RimTint]
+name.en = Tint
+
+[_RimIntensity]
+name.en = Intensity
+
+[_RimAlbedoTint]
+name.en = Albedo Tint
+
+[_RimEnvironmentTint]
+name.en = Environment Tint
+
+[_RimSpread]
+name.en = Spread
+
+[_RimSharpness]
+name.en = Sharpness
+
+[_RimThreshold]
+name.en = Threshold
+
+[UI_RimThresholdNote]
+name.en = Controls how much the rim light will be offset by the light direction. 1 Will only show up in the areas hit by the light, 0 will show up everywhere
+
+[_RimAttenuation]
+name.en = Attenuation
+
+[UI_RimAttenuationNote]
+name.en = Controls how much the rimlight will be visible in shadowed areas. 0 always visible
+
+[_RimNormalStrength]
+name.en = Normal Map Influence

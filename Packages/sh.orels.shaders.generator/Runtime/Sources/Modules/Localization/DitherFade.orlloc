@@ -1,0 +1,29 @@
+# Localization for the DitherFade module
+# Source: Modules/DitherFade.orlsource
+
+[UI_DFHeadeR]
+name.en = Fade Settings
+
+[UI_DFDocs]
+name.en = This module has documentation
+
+[_EnableDitherFade]
+name.en = Enable
+
+[_DitherTex]
+name.en = Dither Texture
+
+[_DFStart]
+name.en = Fade Start
+
+[_DFEnd]
+name.en = Fade End
+
+[UI_DFParamsNote]
+name.en = Fade distances are specified in World Units
+
+[_DFOverrideFade]
+name.en = Override Fade
+
+[_DFOverrideProgress]
+name.en = Fade Progress

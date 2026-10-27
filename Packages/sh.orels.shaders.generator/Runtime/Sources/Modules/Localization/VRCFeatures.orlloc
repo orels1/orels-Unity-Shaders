@@ -1,0 +1,53 @@
+# Localization for the VRCFeatures module
+# Source: Modules/VRCFeatures.orlsource
+
+[UI_VRCFeaturesHeader]
+name.en = VRChat Features
+
+[UI_VRCDocs]
+name.en = This module has documentation
+
+[_VRCFallbackTag]
+name.en = VRC Fallback
+
+[_MetallicGlossMap]
+name.en = Metallic Map
+
+[_Glossiness]
+name.en = Smoothness
+
+[_GlossMapScale]
+name.en = Smoothness
+
+[_OcclusionMap]
+name.en = Occlusion Map
+
+[_VRCFeaturesEnabled]
+name.en = VRChat Features Enabled
+
+[UI_VRCHideMainViewHeader]
+name.en = Hide from Main View
+
+[_VRCHideInVR]
+name.en = In VR
+
+[_VRCHideInDesktop]
+name.en = On Desktop
+
+[UI_VRCHideCameraHeader]
+name.en = Hide from Handheld Camera
+
+[_VRCHideInVRCamera]
+name.en = In VR
+
+[_VRCHideInDesktopCamera]
+name.en = On Desktop
+
+[UI_VRCHideInMirrorHeader]
+name.en = Hide from Mirror
+
+[_VRCHideInVRMirror]
+name.en = In VR
+
+[_VRCHideInDesktopMirror]
+name.en = On Desktop

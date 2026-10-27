@@ -1,0 +1,74 @@
+# Localization for the Puddles module
+# Source: Modules/Puddles.orlsource
+
+[UI_PuddlesHeader]
+name.en = Puddles
+
+[UI_PuddlesDocs]
+name.en = This module has documentation
+
+[_PuddlesMode]
+name.en = Puddles Mode
+
+[UI_PuddlesModeHeightMissingNote]
+name.en = Height texture is missing. Make sure to enable parallax and set a height texture, or use a different Puddles Mode
+
+[UI_PuddlesModeHeightNode]
+name.en = Height Based Mode: Uses Height texture as a base for water level
+
+[_PuddlesVertexChannel]
+name.en = Vertex Channel
+
+[_PuddlesLevel]
+name.en = Water Level
+
+[_PuddlesSmoothing]
+name.en = Water Edge Smoothing
+
+[_PuddlesColor]
+name.en = Color
+
+[UI_PuddlesMaskHeader]
+name.en = Masking
+
+[_PuddlesMask]
+name.en = Puddles Mask
+
+[_PuddlesMaskMappingSpace]
+name.en = Mapping Space
+
+[_PuddlesMaskMappingAxis]
+name.en = Mapping Axis
+
+[_PuddlesMaskStrength]
+name.en = Mask Strength
+
+[UI_RaindropsHeader]
+name.en = Raindrops
+
+[_RaindropsEnable]
+name.en = Enable Raindrops
+
+[_RaindropsMap]
+name.en = Raindrops Texture
+
+[UI_RaindropsMapNote]
+name.en = Red - Progression Gradient\nGreen/Blue - Raindrop Normal\nAlpha - Raindrop Animation Time Offset
+
+[_RaindropsMappingSpace]
+name.en = Mapping Space
+
+[_RaindropsMappingAxis]
+name.en = Mapping Axis
+
+[_RaindropsAmount]
+name.en = Amount
+
+[_RaindropsNormalStrength]
+name.en = Normal Strength
+
+[_RaindropsSpeed]
+name.en = Speed
+
+[_RaindropsLayer2Rotation]
+name.en = Layer 2 Rotation

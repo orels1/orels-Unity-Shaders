@@ -1,0 +1,51 @@
+# Localization for the Occlusion module
+# Source: Modules/Toon/Occlusion.orlsource
+module = Modules/Toon/Occlusion
+
+[_OcclusionMap]
+name.en = Occlusion
+
+[_OcclusionStrength]
+name.en = Occlusion Strength
+
+[_OcclusionTilingMode]
+name.en = Tiling Mode
+
+[_OcclusionTiling]
+name.en = Tiling
+
+[UI_OcclusionTilingSyncedNote]
+name.en = Will scale UVs based on the Albedo texture Tiling and Offset settings
+
+[UI_OcclusionTilingIndependentNote]
+name.en = Will scale UVs on its own
+
+[_OcclusionDetailEnabled]
+name.en = Occlusion Detail Enabled
+
+[_OcclusionDetail]
+name.en = Occlusion Detail
+
+[_OcclusionDetailStrength]
+name.en = Occlusion Detail Strength
+
+[_OcclusionDetailTilingMode]
+name.en = Tiling Mode
+
+[_OcclusionDetailTiling]
+name.en = Tiling
+
+[UI_OcclusionDetailTilingSyncedNote]
+name.en = Will scale UVs based on the Albedo texture Tiling and Offset settings
+
+[UI_OcclusionDetailTilingIndependentNote]
+name.en = Will scale UVs on its own
+
+[_OcclusionMode]
+name.en = Occlusion Mode
+
+[UI_OcclusionIndirectModeNote]
+name.en = Multiplies indirect light by occlusion
+
+[UI_OcclusionIntegrateModeNote]
+name.en = Multiplies the shadow ramp by occlusion

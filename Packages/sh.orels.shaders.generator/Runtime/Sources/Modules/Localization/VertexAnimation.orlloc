@@ -1,0 +1,134 @@
+# Localization for the VertexAnimation module
+# Source: Modules/VertexAnimation.orlsource
+
+[UI_VertexAnimHeader]
+name.en = Vertex Animation
+
+[UI_VertexAnimDocs]
+name.en = This module has documentation
+
+[UI_SpinHeader]
+name.en = Spin
+
+[SPIN]
+name.en = Spinning
+
+[_SpinAxis]
+name.en = Spin Axis
+
+[_NormalizeSpinAxis]
+name.en = Normalize Axis
+
+[_SpinOrigin]
+name.en = Spin Origin Point
+
+[UI_SpinOriginNote]
+name.en = Spin Origin Point is considered in object's local space
+
+[_SpinSpeed]
+name.en = Spin Speed
+
+[UI_SpinOffsetsHeader]
+name.en = Offsets
+
+[_SpinPhaseOffset]
+name.en = Phase Offset
+
+[_SpinPositionOffset]
+name.en = Position-Based Offset
+
+[_SpinPositionOffsetAxis]
+name.en = Offset Axis
+
+[_SpinPositionOffsetScale]
+name.en = Offset Scale
+
+[_SpinPositionOffsetSpeed]
+name.en = Offset Speed Modifier
+
+[_SpinStoppedChance]
+name.en = Spin Stopped Chance
+
+[_SpinStoppedChanceSeed]
+name.en = Spin Stopped Chance Seed
+
+[UI_FloatHeader]
+name.en = Float
+
+[FLOATING]
+name.en = Floating
+
+[_FloatAxis]
+name.en = Float Axis
+
+[_NormalizeFloatAxis]
+name.en = Normalize Axis
+
+[_FloatSpeed]
+name.en = Float Speed
+
+[_FloatPhaseOffset]
+name.en = Phase Offset
+
+[_FloatPositionOffset]
+name.en = Position Offset
+
+[_FloatPositionOffsetAxis]
+name.en = Position Offset Axis
+
+[_FloatPositionOffsetScale]
+name.en = Position Offset Scale
+
+[_FloatAmount]
+name.en = Float Amount
+
+[_FloatTwoWay]
+name.en = Two Way
+
+[UI_FloatNote]
+name.en = Defines whether the object will go back and forth along the axis
+
+[UI_ScaleHeader]
+name.en = Scale
+
+[SCALE]
+name.en = Scaling
+
+[_ScaleFlowType]
+name.en = Flow Based On
+
+[_ScaleFlowUVChannel]
+name.en = Flow UV Channel
+
+[_ScaleFlowAxis]
+name.en = Flow Axis
+
+[_ScaleSpeed]
+name.en = Scale Speed
+
+[_ScaleFlowCyclePause]
+name.en = Cycle Pause
+
+[UI_ScaleFlowCyclePauseNote]
+name.en = Controls how many seconds to wait before restarting the flow cycle
+
+[_ScalePhaseOffset]
+name.en = Phase Offset
+
+[_ScalePositionOffset]
+name.en = Position Offset
+
+[_ScalePositionOffsetAxis]
+name.en = Position Offset Axis
+
+[_ScalePositionOffsetScale]
+name.en = Position Offset Scale
+
+[_ScaleAmount]
+name.en = Scale Amount
+
+[_ScaleFlowSmoothing]
+name.en = Flow Smoothing
+
+[_ScaleFlowWidth]
+name.en = Flow Width

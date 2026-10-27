@@ -1,0 +1,38 @@
+# Localization for the Pulse module
+# Source: Modules/Pulse.orlsource
+
+[UI_PulseHeader]
+name.en = Pulse
+
+[_PulseColor]
+name.en = Color
+
+[_PulseType]
+name.en = Type
+
+[_PulseGradientSource]
+name.en = Gradient Source
+
+[_PulseTexture]
+name.en = Gradient Texture
+
+[UI_PulseTextureNote]
+name.en = This texture will be used as a base of pulse progression. Generally expected to be some kind of gradient, sometimes multiplied by a pattern
+
+[_PulseGradientDirection]
+name.en = Gradient Direction
+
+[UI_PulseTextureChannelNote]
+name.en = When using a texture as a source, X,Y,Z directions become an R,G,B channel selector
+
+[_DebugPulseGradient]
+name.en = Debug Gradient
+
+[_PulseAuto]
+name.en = Automatic
+
+[_PulseProgress]
+name.en = Progress
+
+[_PulseSpeed]
+name.en = Speed

@@ -1,0 +1,29 @@
+# Localization for the Parallax module
+# Source: Modules/Parallax.orlsource
+
+[UI_ParallaxHeader]
+name.en = Parallax
+
+[UI_ParallaxDocs]
+name.en = This module has documentation
+
+[_EnableParallax]
+name.en = Enable Parallax
+
+[_Height]
+name.en = Height
+
+[_HeightScale]
+name.en = Height Scale
+
+[_HeightRefPlane]
+name.en = Height Ref Plane
+
+[_ParallaxSteps]
+name.en = Steps
+
+[_ParallaxScaleBasedOnAngle]
+name.en = Scaled Based On Angle
+
+[UI_ParallaxScaleBasedOnAngleNote]
+name.en = This will scale the parallax effect based on the angle between the camera forward ray and the surface normal

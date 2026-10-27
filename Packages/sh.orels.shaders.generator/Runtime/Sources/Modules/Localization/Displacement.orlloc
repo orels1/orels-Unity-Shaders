@@ -1,0 +1,14 @@
+# Localization for the Displacement module
+# Source: Modules/Displacement.orlsource
+
+[UI_VertexHeightHeader]
+name.en = Displacement
+
+[_VertexHeight]
+name.en = Displacement Map
+
+[_VertexHeightAmount]
+name.en = Displacement Amount
+
+[_VertexHeightOffset]
+name.en = Displacement Offset

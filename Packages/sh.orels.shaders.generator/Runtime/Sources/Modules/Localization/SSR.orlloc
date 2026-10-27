@@ -1,0 +1,44 @@
+# Localization for the SSR module
+# Source: Modules/SSR.orlsource
+
+[UI_SSRHeader]
+name.en = Screen Space Reflections
+
+[UI_SSRDocs]
+name.en = This module has documentation
+
+[_SSREnabled]
+name.en = Enable SSR
+
+[_SSRStrength]
+name.en = Strength
+
+[_SSRMaxSteps]
+name.en = Maximum Steps
+
+[_SSRStep]
+name.en = Step Size
+
+[_SSREdgeFade]
+name.en = Edge Fade
+
+[_SSRBakedReflectionStrength]
+name.en = Baked Reflection Strength
+
+[_SSRSurfacePushoff]
+name.en = Surface Pushoff
+
+[UI_SSRSurfacePushoffNote]
+name.en = When using on non-transparent queues (2500 and less) and ZWrite On - you might encounter a see-through effect. Use the Surface Pushoff value to work around the issue. In most cases - the SSR material should be on the queue 2501
+
+[UI_SSRInternalsHeader]
+name.en = Internals
+
+[_SSRLRad]
+name.en = Intersection (L)
+
+[_SSRSRad]
+name.en = Intersection (R)
+
+[_SSRNoiseTexture]
+name.en = Noise Texture

@@ -1,0 +1,65 @@
+# Localization for the VRSLGI module
+# Source: Modules/VRSLGI.orlsource
+
+[UI_VRSLGIHeader]
+name.en = VRSL GI
+
+[UI_VRSLGIDocs]
+name.en = This module has documentation
+
+[useVRSLGI]
+name.en = Integrate VRSL GI
+
+[UI_VRSLGIDownload]
+name.en = Make sure to download VRSLGI Shader Pack before enabling this option
+
+[_VRSLGIStrength]
+name.en = VRSL GI Strength
+
+[_VRSLDiffuseMix]
+name.en = VRSL Diffuse Mix
+
+[_VRSLClampBrightness]
+name.en = Clamp Brightness
+
+[_VRSLMaxBrightness]
+name.en = Max Brightness
+
+[_VRSLRoughnessModifier]
+name.en = Roughness Modifier
+
+[_VRSLAlphaPremultiply]
+name.en = Alpha Premultiply
+
+[useVRSLGISpecular]
+name.en = Use VRSL GI Specular
+
+[_VRSL_SPECFUNC]
+name.en = VRSL Specular Function
+
+[_VRSLGISpecularClamp]
+name.en = Max Specular Brightness
+
+[_UseVRSLShadowMask1]
+name.en = Use VRSL Shadow Mask 1
+
+[_VRSLShadowMask1]
+name.en = VRSL GI ShadowMask 1
+
+[_VRSLShadowmaskUVSet]
+name.en = VRSL Shadow Mask UV Set
+
+[_VRSL_SHADOWMASK]
+name.en = Active Channels
+
+[_UseVRSLShadowMask1RStrength]
+name.en = VRSL SM 1 R Strength
+
+[_UseVRSLShadowMask1GStrength]
+name.en = VRSL SM 1 G Strength
+
+[_UseVRSLShadowMask1BStrength]
+name.en = VRSL SM 1 B Strength
+
+[_UseVRSLShadowMask1AStrength]
+name.en = VRSL SM 1 A Strength

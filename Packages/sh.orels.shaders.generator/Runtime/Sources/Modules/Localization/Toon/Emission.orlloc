@@ -1,0 +1,21 @@
+# Localization for the Emission module
+# Source: Modules/Toon/Emission.orlsource
+module = Modules/Toon/Emission
+
+[UI_EmissionHeader]
+name.en = Emission
+
+[_EmissionMap]
+name.en = Emission Map
+
+[_EmissionColor]
+name.en = Color
+
+[_EmissionTintToDiffuse]
+name.en = Tint To Diffuse
+
+[_EmissionScaleWithLight]
+name.en = Scale w/ Light
+
+[_EmissionScaleWithLightSensitivity]
+name.en = Scaling Sensitivity

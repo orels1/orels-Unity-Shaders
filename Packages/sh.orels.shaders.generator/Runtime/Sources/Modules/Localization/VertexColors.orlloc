@@ -1,0 +1,62 @@
+# Localization for the VertexColors module
+# Source: Modules/VertexColors.orlsource
+
+[UI_VertexColorsHeader]
+name.en = Vertex Colors
+
+[UI_VertexColorsDocs]
+name.en = This module has documentation
+
+[UI_VertexColorsNote]
+name.en = Select which material parameters will be affected by vertex colors
+
+[_VCAlbedo]
+name.en = Albedo
+
+[_VCAlbedoStrength]
+name.en = Albedo Strength
+
+[_VCAlpha]
+name.en = Alpha
+
+[_VCAlphaStrength]
+name.en = Alpha Strength
+
+[_VCAlphaChannel]
+name.en = Channel
+
+[_VCAlphaPremultiply]
+name.en = Alpha Premultiply
+
+[_VCEmission]
+name.en = Emission
+
+[_VCEmissionStrength]
+name.en = Emission Strength
+
+[_VCMetallic]
+name.en = Metallic
+
+[_VCMetallicStrength]
+name.en = Metallic Strength
+
+[_VCMetallicMapChannel]
+name.en = Channel
+
+[_VCSmoothness]
+name.en = Smoothness
+
+[_VCSmoothnessStrength]
+name.en = Smoothness Strength
+
+[_VCSmoothnessMapChannel]
+name.en = Channel
+
+[_VCOcclusion]
+name.en = Occlusion
+
+[_VCOcclusionStrength]
+name.en = Occlusion Strength
+
+[_VCOcclusionMapChannel]
+name.en = Channel

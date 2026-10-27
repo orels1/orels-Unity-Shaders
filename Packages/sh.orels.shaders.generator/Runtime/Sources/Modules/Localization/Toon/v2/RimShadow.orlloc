@@ -1,0 +1,27 @@
+# Localization for the RimShadow module
+# Source: Modules/Toon/v2/RimShadow.orlsource
+module = Modules/Toon/v2/RimShadow
+
+[UI_RimShadowHeader]
+name.en = Rim Shadow
+
+[_RimShadow]
+name.en = Enable Rim Shadow
+
+[_ShadowRimTint]
+name.en = Tint
+
+[_ShadowRimAlbedoTint]
+name.en = Albedo Tint
+
+[_ShadowRimSpread]
+name.en = Spread
+
+[_ShadowRimSharpness]
+name.en = Sharpness
+
+[_ShadowRimThreshold]
+name.en = Threshold
+
+[UI_ShadowRimThresholdNote]
+name.en = Controls how much the rim shadow will be offset by the light direction. 1 Will only show up in the areas in shadow, 0 will show up everywhere

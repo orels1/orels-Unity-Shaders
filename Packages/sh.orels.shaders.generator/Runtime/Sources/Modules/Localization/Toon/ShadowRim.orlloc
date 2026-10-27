@@ -1,0 +1,24 @@
+# Localization for the ShadowRim module
+# Source: Modules/Toon/ShadowRim.orlsource
+module = Modules/Toon/ShadowRim
+
+[UI_RimShadowHeader]
+name.en = Rim Shadow
+
+[_RimShadow]
+name.en = Enable Rim Shadow
+
+[_ShadowRimTint]
+name.en = Tint
+
+[_ShadowRimRange]
+name.en = Range
+
+[_ShadowRimThreshold]
+name.en = Threshold
+
+[_ShadowRimSharpness]
+name.en = Sharpness
+
+[_ShadowRimAlbedoTint]
+name.en = Albedo Tint

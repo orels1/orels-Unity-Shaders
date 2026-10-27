@@ -1,0 +1,68 @@
+# Localization for the Details module
+# Source: Modules/Details.orlsource
+
+[UI_DetailsHeader]
+name.en = Details
+
+[UI_DetailsDocs]
+name.en = This module has documentation
+
+[_DetailsOverlay]
+name.en = Enable Details
+
+[_DIgnoreMask]
+name.en = Ignore Mask
+
+[UI_IgnoreMaskNote]
+name.en = Force-draws the detail effects
+
+[DETAILS_MODE]
+name.en = Detail Map Mode
+
+[_DDetailsMap]
+name.en = Details Map
+
+[UI_DetailsMapNote]
+name.en = R: Albedo, G: Normal G, B: Smooth, A: Normal R. Uncheck sRGB!
+
+[UI_DetailsMapNoteSeparate]
+name.en = RGB: Albedo, A: Smooth
+
+[_DDetailsNormal]
+name.en = Details Normal Map
+
+[_DMappingSpace]
+name.en = Mapping Space
+
+[_DUVChannel]
+name.en = UV Set
+
+[_DPlanarAxisX]
+name.en = X Axis
+
+[_DPlanarAxisY]
+name.en = Y Axis
+
+[_DAlbedoScale]
+name.en = Albedo Scale
+
+[UI_DetailAlbedoNote]
+name.en = Values < 0.5 - darken,  0.5 - lighten
+
+[UI_DAlbedoMixingLegacyNote]
+name.en = Multiplies albedo by 2x the detail Albedo. Same as BIRP Standard Shader
+
+[_DAlbedoMixingLegacy]
+name.en = Legacy Albedo Mixing
+
+[_DNormalScale]
+name.en = Normal Scale
+
+[_DNormalFlipY]
+name.en = Flip Y (UE Mode)
+
+[_DSmoothScale]
+name.en = Smooth Scale
+
+[UI_DetailSmoothNote]
+name.en = Values < 0.5 - roughen,  0.5 - smoothen

@@ -1,0 +1,51 @@
+# Localization for the Main module
+# Source: Modules/Toon/Main.orlsource
+module = Modules/Toon/Main
+
+[UI_MainHeader]
+name.en = Main Settings
+
+[UI_ToonDocs]
+name.en = This shader has documentation
+
+[_Color]
+name.en = Main Color
+
+[_BackfaceColor]
+name.en = Backface Color
+
+[_BackfaceAlbedoTint]
+name.en = Backface Albedo Tint
+
+[_TintByVertexColor]
+name.en = Tint By Vertex Color
+
+[_MainTex]
+name.en = Albedo
+
+[_SeparateAlpha]
+name.en = Separate Transparency Texture
+
+[_AlphaTex]
+name.en = Transparency
+
+[_AlphaScale]
+name.en = Alpha Scale
+
+[_MainTexUVSet]
+name.en = UV Set
+
+[_Hue]
+name.en = Hue
+
+[_Saturation]
+name.en = Saturation
+
+[_Value]
+name.en = Value
+
+[_Ramp]
+name.en = Ramp
+
+[_ShadowSharpness]
+name.en = Shadow Sharpness

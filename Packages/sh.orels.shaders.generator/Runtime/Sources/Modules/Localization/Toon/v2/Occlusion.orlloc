@@ -1,0 +1,51 @@
+# Localization for the Occlusion module
+# Source: Modules/Toon/v2/Occlusion.orlsource
+module = Modules/Toon/v2/Occlusion
+
+[UI_OcclusionHeader]
+name.en = Occlusion
+
+[_OcclusionMap]
+name.en = Occlusion
+
+[_OcclusionChannel]
+name.en = Channel
+
+[_OcclusionStrength]
+name.en = Occlusion Strength
+
+[_OcclusionTilingMode]
+name.en = Tiling Mode
+
+[_OcclusionTiling]
+name.en = Tiling
+
+[UI_OcclusionTilingSyncedNote]
+name.en = Will scale UVs based on the Albedo texture Tiling and Offset settings
+
+[UI_OcclusionTilingIndependentNote]
+name.en = Will scale UVs on its own
+
+[_OcclusionDetailEnabled]
+name.en = Occlusion Detail Enabled
+
+[_OcclusionDetail]
+name.en = Occlusion Detail
+
+[_OcclusionDetailChannel]
+name.en = Channel
+
+[_OcclusionDetailStrength]
+name.en = Occlusion Detail Strength
+
+[_OcclusionDetailTilingMode]
+name.en = Tiling Mode
+
+[_OcclusionDetailTiling]
+name.en = Tiling
+
+[UI_OcclusionDetailTilingSyncedNote]
+name.en = Will scale UVs based on the Albedo texture Tiling and Offset settings
+
+[UI_OcclusionDetailTilingIndependentNote]
+name.en = Will scale UVs on its own

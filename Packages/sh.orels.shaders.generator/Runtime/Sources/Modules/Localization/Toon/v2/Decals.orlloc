@@ -1,0 +1,333 @@
+# Localization for the Decals module
+# Source: Modules/Toon/v2/Decals.orlsource
+module = Modules/Toon/v2/Decals
+
+[UI_DecalsHeader]
+name.en = Decals
+
+[_DecalsMask]
+name.en = Decals Mask
+
+[_DecalsMaskUVSet]
+name.en = UV Set
+
+[UI_DecalsLayer1Header]
+name.en = Layer 1
+
+[_Decal0Enabled]
+name.en = Enable Layer 1
+
+[_Decal0Map]
+name.en = Decal
+
+[_Decal0UVSet]
+name.en = UV Set
+
+[_Decal0Scale]
+name.en = Scale
+
+[_Decal0Offset]
+name.en = Offset
+
+[_Decal0Rotation]
+name.en = Rotation
+
+[_Decal0Tile]
+name.en = Tile Decal
+
+[_Decal0Tiling]
+name.en = Tiling
+
+[UI_Decal0ColorsHeader]
+name.en = Colors
+
+[_Decal0BlendMode]
+name.en = Blend Mode
+
+[_Decal0Tint]
+name.en = Tint
+
+[_Decal0MultiplyByAlbedo]
+name.en = Multiply By Albedo
+
+[_Decal0UseEmission]
+name.en = Use Emission
+
+[_Decal0EmissionStrength]
+name.en = Emission Strength
+
+[_Decal0RimFade]
+name.en = Rim Fade
+
+[_Decal0RimFadePower]
+name.en = Rim Fade Power
+
+[_Decal0RimFadeInvert]
+name.en = Invert Rim Fade
+
+[_Decal0RimFadeUnderlay]
+name.en = Rim Fade Underlay
+
+[UI_Decal0MaskingHeader]
+name.en = Masking
+
+[_Decal0MaskChannel]
+name.en = Mask Channel
+
+[_Decal0MaskStrength]
+name.en = Mask Strength
+
+[_Decal0Clip]
+name.en = Clip Decal
+
+[_Decal0ClipCirlce]
+name.en = Circle Clip
+
+[_Decal0ClipSize]
+name.en = Clip Size
+
+[_Decal0ClipFalloff]
+name.en = Clip Falloff
+
+[UI_Decal0Separator]
+name.en = ---
+
+[UI_DecalsLayer2Header]
+name.en = Layer 2
+
+[_Decal1Enabled]
+name.en = Enable Layer 2
+
+[_Decal1Map]
+name.en = @[_Decal0Map]
+
+[_Decal1UVSet]
+name.en = @[_Decal0UVSet]
+
+[_Decal1Scale]
+name.en = @[_Decal0Scale]
+
+[_Decal1Offset]
+name.en = @[_Decal0Offset]
+
+[_Decal1Rotation]
+name.en = @[_Decal0Rotation]
+
+[_Decal1Tile]
+name.en = @[_Decal0Tile]
+
+[_Decal1Tiling]
+name.en = @[_Decal0Tiling]
+
+[UI_Decal1ColorsHeader]
+name.en = @[UI_Decal0ColorsHeader]
+
+[_Decal1BlendMode]
+name.en = @[_Decal0BlendMode]
+
+[_Decal1Tint]
+name.en = @[_Decal0Tint]
+
+[_Decal1MultiplyByAlbedo]
+name.en = @[_Decal0MultiplyByAlbedo]
+
+[_Decal1UseEmission]
+name.en = @[_Decal0UseEmission]
+
+[_Decal1EmissionStrength]
+name.en = @[_Decal0EmissionStrength]
+
+[_Decal1RimFade]
+name.en = @[_Decal0RimFade]
+
+[_Decal1RimFadePower]
+name.en = @[_Decal0RimFadePower]
+
+[_Decal1RimFadeInvert]
+name.en = @[_Decal0RimFadeInvert]
+
+[_Decal1RimFadeUnderlay]
+name.en = @[_Decal0RimFadeUnderlay]
+
+[UI_Decal1MaskingHeader]
+name.en = @[UI_Decal0MaskingHeader]
+
+[_Decal1MaskChannel]
+name.en = @[_Decal0MaskChannel]
+
+[_Decal1MaskStrength]
+name.en = @[_Decal0MaskStrength]
+
+[_Decal1Clip]
+name.en = @[_Decal0Clip]
+
+[_Decal1ClipCirlce]
+name.en = @[_Decal0ClipCirlce]
+
+[_Decal1ClipSize]
+name.en = @[_Decal0ClipSize]
+
+[_Decal1ClipFalloff]
+name.en = @[_Decal0ClipFalloff]
+
+[UI_Decal1Separator]
+name.en = @[UI_Decal0Separator]
+
+[UI_DecalsLayer3Header]
+name.en = Layer 3
+
+[_Decal2Enabled]
+name.en = Enable Layer 3
+
+[_Decal2Map]
+name.en = @[_Decal0Map]
+
+[_Decal2UVSet]
+name.en = @[_Decal0UVSet]
+
+[_Decal2Scale]
+name.en = @[_Decal0Scale]
+
+[_Decal2Offset]
+name.en = @[_Decal0Offset]
+
+[_Decal2Rotation]
+name.en = @[_Decal0Rotation]
+
+[_Decal2Tile]
+name.en = @[_Decal0Tile]
+
+[_Decal2Tiling]
+name.en = @[_Decal0Tiling]
+
+[UI_Decal2ColorsHeader]
+name.en = @[UI_Decal0ColorsHeader]
+
+[_Decal2BlendMode]
+name.en = @[_Decal0BlendMode]
+
+[_Decal2Tint]
+name.en = @[_Decal0Tint]
+
+[_Decal2MultiplyByAlbedo]
+name.en = @[_Decal0MultiplyByAlbedo]
+
+[_Decal2UseEmission]
+name.en = @[_Decal0UseEmission]
+
+[_Decal2EmissionStrength]
+name.en = @[_Decal0EmissionStrength]
+
+[_Decal2RimFade]
+name.en = @[_Decal0RimFade]
+
+[_Decal2RimFadePower]
+name.en = @[_Decal0RimFadePower]
+
+[_Decal2RimFadeInvert]
+name.en = @[_Decal0RimFadeInvert]
+
+[_Decal2RimFadeUnderlay]
+name.en = @[_Decal0RimFadeUnderlay]
+
+[UI_Decal2MaskingHeader]
+name.en = @[UI_Decal0MaskingHeader]
+
+[_Decal2MaskChannel]
+name.en = @[_Decal0MaskChannel]
+
+[_Decal2MaskStrength]
+name.en = @[_Decal0MaskStrength]
+
+[_Decal2Clip]
+name.en = @[_Decal0Clip]
+
+[_Decal2ClipCirlce]
+name.en = @[_Decal0ClipCirlce]
+
+[_Decal2ClipSize]
+name.en = @[_Decal0ClipSize]
+
+[_Decal2ClipFalloff]
+name.en = @[_Decal0ClipFalloff]
+
+[UI_Decal2Separator]
+name.en = @[UI_Decal0Separator]
+
+[UI_DecalsLayer4Header]
+name.en = Layer 4
+
+[_Decal3Enabled]
+name.en = Enable Layer 4
+
+[_Decal3Map]
+name.en = @[_Decal0Map]
+
+[_Decal3UVSet]
+name.en = @[_Decal0UVSet]
+
+[_Decal3Scale]
+name.en = @[_Decal0Scale]
+
+[_Decal3Offset]
+name.en = @[_Decal0Offset]
+
+[_Decal3Rotation]
+name.en = @[_Decal0Rotation]
+
+[_Decal3Tile]
+name.en = @[_Decal0Tile]
+
+[_Decal3Tiling]
+name.en = @[_Decal0Tiling]
+
+[UI_Decal3ColorsHeader]
+name.en = @[UI_Decal0ColorsHeader]
+
+[_Decal3BlendMode]
+name.en = @[_Decal0BlendMode]
+
+[_Decal3Tint]
+name.en = @[_Decal0Tint]
+
+[_Decal3MultiplyByAlbedo]
+name.en = @[_Decal0MultiplyByAlbedo]
+
+[_Decal3UseEmission]
+name.en = @[_Decal0UseEmission]
+
+[_Decal3EmissionStrength]
+name.en = @[_Decal0EmissionStrength]
+
+[_Decal3RimFade]
+name.en = @[_Decal0RimFade]
+
+[_Decal3RimFadePower]
+name.en = @[_Decal0RimFadePower]
+
+[_Decal3RimFadeInvert]
+name.en = @[_Decal0RimFadeInvert]
+
+[_Decal3RimFadeUnderlay]
+name.en = @[_Decal0RimFadeUnderlay]
+
+[UI_Decal3MaskingHeader]
+name.en = @[UI_Decal0MaskingHeader]
+
+[_Decal3MaskChannel]
+name.en = @[_Decal0MaskChannel]
+
+[_Decal3MaskStrength]
+name.en = @[_Decal0MaskStrength]
+
+[_Decal3Clip]
+name.en = @[_Decal0Clip]
+
+[_Decal3ClipCirlce]
+name.en = @[_Decal0ClipCirlce]
+
+[_Decal3ClipSize]
+name.en = @[_Decal0ClipSize]
+
+[_Decal3ClipFalloff]
+name.en = @[_Decal0ClipFalloff]

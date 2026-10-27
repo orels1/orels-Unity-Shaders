@@ -1,0 +1,17 @@
+# Localization for the SnowTessellation module
+# Source: Modules/SnowTessellation.orlsource
+
+[UI_SnowDisplacement]
+name.en = Displacement
+
+[_SnowDisplacementMap]
+name.en = Displacement Map
+
+[_SnowDisplacementMapStrength]
+name.en = Map Strength
+
+[_SnowDisplacementEdgeMaskStength]
+name.en = Edge Mask Strength
+
+[_SnowDisplacementLevel]
+name.en = Extrusion Level

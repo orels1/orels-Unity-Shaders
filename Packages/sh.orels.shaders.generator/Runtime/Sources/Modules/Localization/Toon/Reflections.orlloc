@@ -1,0 +1,81 @@
+# Localization for the Reflections module
+# Source: Modules/Toon/Reflections.orlsource
+module = Modules/Toon/Reflections
+
+[UI_ReflectionsHeader]
+name.en = Reflections
+
+[REFLECTION_MODE]
+name.en = Reflection Mode
+
+[_ReflectionBlendMode]
+name.en = Reflection Blend Mode
+
+[_BakedCubemap]
+name.en = BakedCubemap
+
+[UI_FallbackNote]
+name.en = Will be used if world has no reflections
+
+[_MetallicGlossMap]
+name.en = Metallic Smoothness
+
+[UI_MetallicNote]
+name.en = R - Metallic, A - Smoothness
+
+[_MetallicGlossMapTilingMode]
+name.en = Tiling Mode
+
+[_MetallicGlossMapTiling]
+name.en = Tiling
+
+[UI_MetallicGlossMapTilingSyncedNote]
+name.en = Will scale UVs based on the Albedo texture Tiling and Offset settings
+
+[UI_MetallicGlossMapTilingIndependentNote]
+name.en = Will scale UVs on its own
+
+[_Smoothness]
+name.en = Smoothness
+
+[_RoughnessMode]
+name.en = Roughness Mode
+
+[_Metallic]
+name.en = Metallic
+
+[_MetallicRemap]
+name.en = Metallic Remap
+
+[_SmoothnessRemap]
+name.en = Smoothness Remap
+
+[_ReflectionAnisotropy]
+name.en = Anisotropy
+
+[_Matcap]
+name.en = Matcap
+
+[_MatcapBlur]
+name.en = Matcap Blur Level
+
+[_MatcapTintToDiffuse]
+name.en = Tint Matcap to Diffuse
+
+[_ReflectivityMask]
+name.en = Reflectivity Mask
+
+[_ReflectivityMaskTilingMode]
+name.en = Tiling Mode
+
+[_ReflectivityMaskTiling]
+name.en = Tiling
+
+[UI_ReflectivityMaskTilingSyncedNote]
+name.en = Will scale UVs based on the Albedo texture Tiling and Offset settings
+
+[UI_ReflectivityMaskTilingIndependentNote]
+name.en = Will scale UVs on its own
+
+[_ReflectivityLevel]
+name.en = Reflectivity

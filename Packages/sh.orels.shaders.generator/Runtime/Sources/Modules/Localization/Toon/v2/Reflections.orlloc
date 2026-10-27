@@ -1,0 +1,81 @@
+# Localization for the Reflections module
+# Source: Modules/Toon/v2/Reflections.orlsource
+module = Modules/Toon/v2/Reflections
+
+[UI_ReflectionsHeader]
+name.en = Reflections
+
+[_ReflectionsOn]
+name.en = Enable Reflections
+
+[_MetallicGlossMap]
+name.en = Metallic Smoothness
+
+[UI_MetallicNote]
+name.en = R - Metallic, A - Smoothness
+
+[_Smoothness]
+name.en = Smoothness
+
+[_RoughnessMode]
+name.en = Roughness Mode
+
+[_Metallic]
+name.en = Metallic
+
+[_MetallicRemap]
+name.en = Metallic Remap
+
+[_SmoothnessRemap]
+name.en = Smoothness Remap
+
+[_ReflectionAnisotropy]
+name.en = Anisotropy
+
+[_ReflectivityLevel]
+name.en = Reflectivity
+
+[UI_ReflectionMaskingHeader]
+name.en = Masking
+
+[_ReflectionMask]
+name.en = Reflection Mask
+
+[_ReflectionMaskUVSet]
+name.en = UV Set
+
+[_ReflectionMaskChannel]
+name.en = Mask Channel
+
+[_ReflectionMaskStrength]
+name.en = Mask Strength
+
+[_ReflectionStrength]
+name.en = Reflection Strength
+
+[UI_ReflectionTweaksHeader]
+name.en = Tweaks
+
+[_ReflectionOcclusion]
+name.en = Reflection Occlusion
+
+[_ReflectionRealtimeShadowOcclusion]
+name.en = Realtime Shadow Reflection Occlusion
+
+[UI_ReflectionOcclusionNote]
+name.en = This effect is not physically accurate, it can be useful to tone down strong reflection probes in shadowed areas
+
+[_ReflectionGSAAVariance]
+name.en = GSAA Variance
+
+[_ReflectionGSAAThreshold]
+name.en = GSAA Threshold
+
+[_BakedCubemap]
+name.en = Fallback Cubemap
+
+[UI_FallbackNote]
+name.en = Will be used if world has no reflections
+
+[_DFG]
+name.en = DFG

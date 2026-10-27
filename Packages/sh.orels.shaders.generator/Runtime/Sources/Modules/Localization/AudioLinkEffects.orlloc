@@ -1,0 +1,131 @@
+# Localization for the AudioLinkEffects module
+# Source: Modules/AudioLinkEffects.orlsource
+
+[UI_AudioLinkHeader]
+name.en = Audio Link
+
+[UI_AudioLinkDocs]
+name.en = This module has documentation
+
+[UI_GlobalSettingsHeader]
+name.en = Global Settings
+
+[_ALMask]
+name.en = Mask
+
+[_ALUVChannel]
+name.en = Mask UV Channel
+
+[_ALTint]
+name.en = Tint
+
+[_KillEffects]
+name.en = Kill Effects
+
+[AL_EFFECT]
+name.en = Effect Type
+
+[UI_SelectedEffect]
+name.en = Effect Settings
+
+[_ALEffectUVChannel]
+name.en = Effect UV Channel
+
+[_BandFrequency]
+name.en = Frequency Band
+
+[UI_BandNote]
+name.en = 1: Bass, 2: Low Mids, 3: High Mids, 4: Highs
+
+[_BandHistoryRange]
+name.en = History Range
+
+[_BandScrollAxis]
+name.en = Scroll Axis
+
+[_UVHistoryRange]
+name.en = History Range
+
+[_UVFlipXY]
+name.en = Flip UV X and Y
+
+[_UVUseThemeColors]
+name.en = Use Theme Colors
+
+[UI_UVColorsNote]
+name.en = Check AudioLink object for colors, still applies global tint!
+
+[_WVFRMBottomColor]
+name.en = Waveform Bottom Color
+
+[_WVFRMTopColor]
+name.en = Waveform Top Color
+
+[_WVFRMMiddleLine]
+name.en = Add Middle Line
+
+[_WVFRMMiddleColor]
+name.en = Waveform Middle Color
+
+[_WVFRMFlipUVDirection]
+name.en = Flip UV Direction
+
+[_WVFRMMiddleLineWidth]
+name.en = Line Width
+
+[_WVFRMFlip]
+name.en = Flip Waveform
+
+[_WVFRMOffset]
+name.en = Waveform Offset
+
+[_WVFRMScale]
+name.en = Waveform Scale
+
+[_PulseBand]
+name.en = Frequency Band
+
+[_PulseSmoothing]
+name.en = Smoothing
+
+[_PulseMode]
+name.en = Pulse Mode
+
+[_PulseStrength]
+name.en = Pulse Strength
+
+[_PulseEmissionMode]
+name.en = Emission Mode
+
+[_PulseTextureAdjustment]
+name.en = Texture Pulse Mode
+
+[UI_PulseTextureNote]
+name.en = Bump: Bumps the texture in a direction with the beat
+
+[UI_PulseTextureNote2]
+name.en = Continuous: Pushes the texture continuously with the beat
+
+[_PulseTexture]
+name.en = Pulse Texture
+
+[_PulseTextureDirection]
+name.en = Pulse Direction
+
+[_BarBand]
+name.en = Frequency Band
+
+[_BarSmoothing]
+name.en = Smoothing
+
+[_BarAxis]
+name.en = Bar UV Axis
+
+[_BarColor]
+name.en = Bar Gradient
+
+[_BarScale]
+name.en = Bar Scale
+
+[UI_AudioLinkThanksNote]
+name.en = Thanks to the amazing AudioLink project <3

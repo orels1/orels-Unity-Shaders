@@ -1,0 +1,17 @@
+# Localization for the VRCVideo module
+# Source: Modules/VRCVideo.orlsource
+
+[UI_Video_ScreenHeader]
+name.en = Video Screen
+
+[UI_VideoDocs]
+name.en = This module has documentation
+
+[_MetaPassEmissiveBoost]
+name.en = Meta Pass Emissive Boost
+
+[_TargetAspectRatio]
+name.en = Target Aspect Ratio
+
+[_IsAVProInput]
+name.en = Is AV Pro Input

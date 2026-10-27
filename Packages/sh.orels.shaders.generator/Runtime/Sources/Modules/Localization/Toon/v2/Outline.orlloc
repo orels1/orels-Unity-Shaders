@@ -1,0 +1,45 @@
+# Localization for the Outline module
+# Source: Modules/Toon/v2/Outline.orlsource
+module = Modules/Toon/v2/Outline
+
+[UI_OutlineHeader]
+name.en = Outline
+
+[_Outline]
+name.en = Enable Outline
+
+[_OutlineTex]
+name.en = Texture
+
+[_OutlineColor]
+name.en = Color
+
+[_OutlineLightingMode]
+name.en = Lighting Mode
+
+[_OutlineAlbedoTint]
+name.en = Albedo Tint
+
+[_OutlineMask]
+name.en = Width Mask
+
+[_OutlineWidth]
+name.en = Width
+
+[_OutlineWidthAdjustByVertexColor]
+name.en = Adjust by Vertex Color
+
+[_StencilBasePass]
+name.en = Stencil Base Pass
+
+[_OutlineIgnoreStencils]
+name.en = Ignore Stencils
+
+[UI_OutlineIgnoreStencilsNote]
+name.en = Allows overlapping shapes to show outlines on top of each other. Does not work correctly with transparent materials
+
+[_StencilOutlineComp]
+name.en = Stencil Outline Comp
+
+[_StencilBaseComp]
+name.en = Stencil Base Comp

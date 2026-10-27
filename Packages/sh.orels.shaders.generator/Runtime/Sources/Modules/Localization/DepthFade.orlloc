@@ -1,0 +1,20 @@
+# Localization for the DepthFade module
+# Source: Modules/DepthFade.orlsource
+
+[UI_DepthFadeHeader]
+name.en = Depth Fade
+
+[UI_DepthFadeDocs]
+name.en = This module has documentation
+
+[_DepthFade]
+name.en = Enable Depth Fade
+
+[_DepthParticlesNearFadeDistance]
+name.en = Near Distance
+
+[_DepthParticlesFarFadeDistance]
+name.en = Far Distance
+
+[_DepthFadePremultiply]
+name.en = Alpha Premultiply

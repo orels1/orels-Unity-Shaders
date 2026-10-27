@@ -1,0 +1,54 @@
+# Localization for the Normals module
+# Source: Modules/Toon/Normals.orlsource
+module = Modules/Toon/Normals
+
+[UI_NormalsHeader]
+name.en = Normals
+
+[_BumpMap]
+name.en = Normal Map
+
+[_BumpMapTilingMode]
+name.en = Normal Tiling Mode
+
+[_BumpMapTiling]
+name.en = Normal Tiling
+
+[UI_BumpMapTilingSyncedNote]
+name.en = Will scale UVs based on the Albedo texture Tiling and Offset settings
+
+[UI_BumpMapTilingIndependentNote]
+name.en = Will scale UVs on its own
+
+[_BumpScale]
+name.en = Normal Map Scale
+
+[_FlipBumpY]
+name.en = Flip Y (UE Mode)
+
+[_NormalBicubicSampling]
+name.en = Use Bicubic Sampling
+
+[_DetailNormalMap]
+name.en = Detail Normal
+
+[_DetailNormalsUVSet]
+name.en = UV Set
+
+[_DetailNormalTiling]
+name.en = Tiling
+
+[_DetailNormalScale]
+name.en = Detail Normal Map Scale
+
+[_FlipDetailNormalY]
+name.en = Flip Y (UE Mode)
+
+[_DetailNormalMask]
+name.en = Detail Normal Mask
+
+[_DetailNormalMaskUVSet]
+name.en = UV Set
+
+[_DetailNormalMaskTiling]
+name.en = Tiling

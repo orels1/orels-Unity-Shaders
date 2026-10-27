@@ -1,0 +1,33 @@
+# Localization for the RimLight module
+# Source: Modules/Toon/RimLight.orlsource
+module = Modules/Toon/RimLight
+
+[UI_RimLightHeader]
+name.en = Rim Light
+
+[_RimLight]
+name.en = Enable Rim Light
+
+[_RimTint]
+name.en = Tint
+
+[_RimIntensity]
+name.en = Intensity
+
+[_RimAlbedoTint]
+name.en = Albedo Tint
+
+[_RimEnvironmentTint]
+name.en = Environment Tint
+
+[_RimAttenuation]
+name.en = Attenuation
+
+[_RimRange]
+name.en = Range
+
+[_RimThreshold]
+name.en = Threshold
+
+[_RimSharpness]
+name.en = Sharpness

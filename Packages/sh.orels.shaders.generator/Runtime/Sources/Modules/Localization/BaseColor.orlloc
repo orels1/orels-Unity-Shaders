@@ -1,0 +1,11 @@
+# Localization for the BaseColor module
+# Source: Modules/BaseColor.orlsource
+
+[UI_BaseColorHeader]
+name.en = Base Color
+
+[_MainTex]
+name.en = Albedo
+
+[_Color]
+name.en = Color

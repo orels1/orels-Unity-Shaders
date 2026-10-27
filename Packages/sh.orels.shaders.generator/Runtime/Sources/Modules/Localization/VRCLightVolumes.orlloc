@@ -1,0 +1,14 @@
+# Localization for the VRCLightVolumes module
+# Source: Modules/VRCLightVolumes.orlsource
+
+[UI_VRCLightVolumesHeader]
+name.en = VRC Light Volumes
+
+[_VRCLightVolumesEnabled]
+name.en = Enable VRC Light Volumes
+
+[_VRCLightVolumesSurfacePushoff]
+name.en = Surface Pushoff
+
+[UI_VRCLightVolumesSurfacePushoffNote]
+name.en = Pushes the volume sampling point away from the surface along the normal vector. This is useful for avoiding leaking and other artifacts on thin surfaces\nValues in 0.05-0.15 range are recommended

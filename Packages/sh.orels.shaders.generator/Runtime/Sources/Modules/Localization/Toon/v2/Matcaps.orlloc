@@ -1,0 +1,156 @@
+# Localization for the Matcaps module
+# Source: Modules/Toon/v2/Matcaps.orlsource
+module = Modules/Toon/v2/Matcaps
+
+[UI_MatcapsHader]
+name.en = Matcaps
+
+[_MatcapsMask]
+name.en = Matcap Mask
+
+[_MatcapsMaskUVSet]
+name.en = UV Set
+
+[UI_Matcap0Header]
+name.en = Layer 1
+
+[_Matcap0Enabled]
+name.en = Enable Layer 1
+
+[_Matcap0Tex]
+name.en = Matcap
+
+[_Matcap0Tint]
+name.en = Tint
+
+[_Matcap0UVMode]
+name.en = UV Mode
+
+[_Matcap0Border]
+name.en = Border
+
+[_Matcap0Blur]
+name.en = Matcap Blur Level
+
+[_Matcap0TintToDiffuse]
+name.en = Tint Matcap to Diffuse
+
+[_Matcap0BlendMode]
+name.en = Blend Mode
+
+[_Matcap0Strength]
+name.en = Strength
+
+[_Matcap0MaskChannel]
+name.en = Mask Channel
+
+[_Matcap0MaskStrength]
+name.en = Mask Strength
+
+[UI_Matcap1Header]
+name.en = Layer 2
+
+[_Matcap1Enabled]
+name.en = Enable Layer 2
+
+[_Matcap1Tex]
+name.en = @[_Matcap0Tex]
+
+[_Matcap1Tint]
+name.en = @[_Matcap0Tint]
+
+[_Matcap1UVMode]
+name.en = @[_Matcap0UVMode]
+
+[_Matcap1Border]
+name.en = @[_Matcap0Border]
+
+[_Matcap1Blur]
+name.en = @[_Matcap0Blur]
+
+[_Matcap1TintToDiffuse]
+name.en = @[_Matcap0TintToDiffuse]
+
+[_Matcap1BlendMode]
+name.en = @[_Matcap0BlendMode]
+
+[_Matcap1Strength]
+name.en = @[_Matcap0Strength]
+
+[_Matcap1MaskChannel]
+name.en = @[_Matcap0MaskChannel]
+
+[_Matcap1MaskStrength]
+name.en = @[_Matcap0MaskStrength]
+
+[UI_Matcap2Header]
+name.en = Layer 3
+
+[_Matcap2Enabled]
+name.en = Enable Layer 3
+
+[_Matcap2Tex]
+name.en = @[_Matcap0Tex]
+
+[_Matcap2Tint]
+name.en = @[_Matcap0Tint]
+
+[_Matcap2UVMode]
+name.en = @[_Matcap0UVMode]
+
+[_Matcap2Border]
+name.en = @[_Matcap0Border]
+
+[_Matcap2Blur]
+name.en = @[_Matcap0Blur]
+
+[_Matcap2TintToDiffuse]
+name.en = @[_Matcap0TintToDiffuse]
+
+[_Matcap2BlendMode]
+name.en = @[_Matcap0BlendMode]
+
+[_Matcap2Strength]
+name.en = @[_Matcap0Strength]
+
+[_Matcap2MaskChannel]
+name.en = @[_Matcap0MaskChannel]
+
+[_Matcap2MaskStrength]
+name.en = @[_Matcap0MaskStrength]
+
+[UI_Matcap3Header]
+name.en = Layer 4
+
+[_Matcap3Enabled]
+name.en = Enable Layer 4
+
+[_Matcap3Tex]
+name.en = @[_Matcap0Tex]
+
+[_Matcap3Tint]
+name.en = @[_Matcap0Tint]
+
+[_Matcap3UVMode]
+name.en = @[_Matcap0UVMode]
+
+[_Matcap3Border]
+name.en = @[_Matcap0Border]
+
+[_Matcap3Blur]
+name.en = @[_Matcap0Blur]
+
+[_Matcap3TintToDiffuse]
+name.en = @[_Matcap0TintToDiffuse]
+
+[_Matcap3BlendMode]
+name.en = @[_Matcap0BlendMode]
+
+[_Matcap3Strength]
+name.en = @[_Matcap0Strength]
+
+[_Matcap3MaskChannel]
+name.en = @[_Matcap0MaskChannel]
+
+[_Matcap3MaskStrength]
+name.en = @[_Matcap0MaskStrength]

@@ -1,0 +1,93 @@
+# Localization for the Patterns module
+# Source: Modules/VFX/Patterns.orlsource
+module = Modules/VFX/Patterns
+
+[UI_PatternsHeader]
+name.en = Patterns
+
+[UI_PatternsDocs]
+name.en = This module has documentation
+
+[UI_PatternsPresesets]
+name.en = Selected Preset
+
+[PATTERN_SUPERSAMPLING]
+name.en = Super Sampling
+
+[UI_PatternsSuperSamplingNote]
+name.en = If the patterns look too jagged, you can try increasing the Super Sampling amount
+
+[_CirclesColor1]
+name.en = Color 1
+
+[_CirclesColor2]
+name.en = Color 2
+
+[UI_CirclesKaleidoscopeHeader]
+name.en = Kaleidoscope
+
+[_CirclesKaleidoscopeUV]
+name.en = Kaleidoscope UV
+
+[UI_CirclesKaleidoscopeUVNote]
+name.en = Adds Kaleidoscope effect, recommended to use with Circle Offset of 0,0
+
+[_CirclesKaleidoscopeSlices]
+name.en = Slice Count
+
+[_CirclesKaleidoscopeSpinSpeed]
+name.en = Spin Speed
+
+[_CirclesKaleidoscopeSpinOffset]
+name.en = Spin Time Offset
+
+[_CirclesKaleidoscopeTiling]
+name.en = Tiling
+
+[UI_CirclesSettingsHeader]
+name.en = Circles Settings
+
+[_CircleOrigin]
+name.en = Circle Origin
+
+[UI_CircleOriginNote]
+name.en = Only X and Y values are used
+
+[_CircleCount]
+name.en = Circle Count
+
+[_CircleSmoothing]
+name.en = Circle Smoothing
+
+[_CircleExpandSpeed]
+name.en = Expand Speed
+
+[_CircleExpandTimeOffset]
+name.en = Time Offset
+
+[UI_LinesHeader]
+name.en = Lines Mask
+
+[_CircleAddLines]
+name.en = Add Lines
+
+[_CircleLinesThickness]
+name.en = Line Thickness
+
+[_CircleLinesSmoothing]
+name.en = Line Smoothing
+
+[_CircleLinesDegreeOffset]
+name.en = Offset (Degrees)
+
+[UI_CircleLinesDegreeOffsetNote]
+name.en = Add a line every X degrees. E.g. a value of 30 will draw a line every 30 degrees
+
+[_CircleLinesSpinSpeed]
+name.en = Spin Speed
+
+[_CircleLinesSpinAlternate]
+name.en = Alternate Spin
+
+[_CircleLinesSpinTimeOffset]
+name.en = Spin Time Offset

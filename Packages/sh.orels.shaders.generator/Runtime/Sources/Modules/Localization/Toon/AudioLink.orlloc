@@ -1,0 +1,105 @@
+# Localization for the AudioLink module
+# Source: Modules/Toon/AudioLink.orlsource
+module = Modules/Toon/AudioLink
+
+[UI_AudioLink]
+name.en = AudioLink
+
+[AL_MODE]
+name.en = Audio Link Mode
+
+[_MuteALEffects]
+name.en = Mute AudioLink Effects
+
+[_ALMap]
+name.en = Audio Link Map
+
+[_ALMapChannel]
+name.en = Mask Channel
+
+[_ALMapUVSet]
+name.en = Mask UV Set
+
+[_ALMapPackedChannelBass]
+name.en = Bass
+
+[_ALEffectUV]
+name.en = Effect UV Set
+
+[_ALMapPackedChannelMid]
+name.en = Mids
+
+[_ALMapPackedChannelHigh]
+name.en = Highs
+
+[_ALMapPackedMaskChannel]
+name.en = Mask Channel
+
+[_ALEmissionColor]
+name.en = Color
+
+[_ALEmissionDotMask]
+name.en = Audio Link Rim Mask
+
+[UI_ALEmissionDotMaskNote]
+name.en = When enabled, the AudioLink-powered emission will be darkened by the rim settings
+
+[_ALEmissionDotMaskInvert]
+name.en = Invert Rim Mask
+
+[_ALEmissionDotMaskSmoothing]
+name.en = Rim Mask Smoothing
+
+[_ALBand]
+name.en = Frequency Band
+
+[_ALSmoothingLevel]
+name.en = Smoothing Level
+
+[UI_ALPackedRedHeader]
+name.en = Bass
+
+[_ALGradientOnRed]
+name.en = Gradient
+
+[_ALPackedRedColor]
+name.en = Color
+
+[_ALPackedRedInvert]
+name.en = Invert Gradient
+
+[_ALPackedRedBoost]
+name.en = Mask Boost
+
+[UI_ALPackedGreenHeader]
+name.en = Mids
+
+[_ALGradientOnGreen]
+name.en = Gradient
+
+[_ALPackedGreenColor]
+name.en = Color
+
+[_ALPackedGreenInvert]
+name.en = Invert Gradient
+
+[_ALPackedGreenBoost]
+name.en = Mask Boost
+
+[UI_ALPackedBlueHeader]
+name.en = Highs
+
+[_ALGradientOnBlue]
+name.en = Gradient
+
+[_ALPackedBlueColor]
+name.en = Color
+
+[_ALPackedBlueInvert]
+name.en = Invert Gradient
+
+[_ALPackedBlueBoost]
+name.en = Mask Boost
+
+[_ALUVWidth]
+name.en = History Sample Amount

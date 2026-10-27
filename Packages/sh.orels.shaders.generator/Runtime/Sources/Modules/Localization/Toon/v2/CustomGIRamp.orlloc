@@ -1,0 +1,9 @@
+# Localization for the CustomGIRamp module
+# Source: Modules/Toon/v2/CustomGIRamp.orlsource
+module = Modules/Toon/v2/CustomGIRamp
+
+[UI_CustomGIDiffuseRampHeader]
+name.en = Custom GI Diffuse Ramp
+
+[_CustomGIDiffuseRamp]
+name.en = Custom GI Diffuse Ramp

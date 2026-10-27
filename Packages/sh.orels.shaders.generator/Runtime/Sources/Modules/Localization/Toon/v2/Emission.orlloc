@@ -1,0 +1,45 @@
+# Localization for the Emission module
+# Source: Modules/Toon/v2/Emission.orlsource
+module = Modules/Toon/v2/Emission
+
+[UI_EmissionHeader]
+name.en = Emission
+
+[_EmissionMap]
+name.en = Emission Map
+
+[_EmissionMapChannel]
+name.en = Emission Map Channel
+
+[_EmissionColor]
+name.en = Color
+
+[_EmissionMaskByUVTile]
+name.en = Mask By UV Tile
+
+[_EmissionHue]
+name.en = Hue
+
+[_EmissionSaturation]
+name.en = Saturation
+
+[_EmissionValue]
+name.en = Value
+
+[_EmissionTintToDiffuse]
+name.en = Tint To Diffuse
+
+[_EmissionPower]
+name.en = Power
+
+[_EmissionRimMasking]
+name.en = Rim Masking
+
+[_EmissionScaleWithLight]
+name.en = Scale w/ Light
+
+[UI_EmissionScaleWithLightNote]
+name.en = Hides emission unless light is weaker than Scaling Sensitivity
+
+[_EmissionScaleWithLightSensitivity]
+name.en = Scaling Sensitivity

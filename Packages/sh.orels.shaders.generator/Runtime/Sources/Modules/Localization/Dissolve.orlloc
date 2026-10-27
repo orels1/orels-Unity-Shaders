@@ -1,0 +1,74 @@
+# Localization for the Dissolve module
+# Source: Modules/Dissolve.orlsource
+
+[UI_DissolveHeader]
+name.en = Dissolve
+
+[UI_DissolveDocs]
+name.en = This module has documentation
+
+[_DissolveCutoff]
+name.en = Cutoff
+
+[_DissolveCutoffRangeMin]
+name.en = Cutoff Range Min
+
+[_DissolveCutoffRangeMax]
+name.en = Max
+
+[_DissolveSource]
+name.en = Fade Based On
+
+[_DissolveTexture]
+name.en = Fade Texture
+
+[UI_DissolveTextureNote]
+name.en = This texture will be used as a base of fade progression. Generally expected to be some kind of gradient, sometimes multiplied by a pattern
+
+[_DissolveDirection]
+name.en = Fade Direction
+
+[UI_DissolveTextureChannelNote]
+name.en = When using a texture as a source, X,Y,Z directions become an R,G,B channel selector
+
+[_DebugFadeGrad]
+name.en = Debug Fade Gradient
+
+[UI_DissolveOverlayHeader]
+name.en = Overlays
+
+[_DissolveUseBakedNoise]
+name.en = Use Baked Noise
+
+[_DissolveBakedNoiseScale]
+name.en = Noise Scale
+
+[_DissolveBakedNoiseTex]
+name.en = Noise Texture
+
+[_DissolveBakedNoiseStrength]
+name.en = Noise strength
+
+[_DissolveBakedNoiseScroll]
+name.en = Scroll Speed (X,Y,Z)
+
+[_DissolveOverlayTex]
+name.en = Overlay Texture
+
+[_DissolveOverlayChannel]
+name.en = Overlay Channel
+
+[_DissolveOverlayStrength]
+name.en = Overlay Strength
+
+[UI_DissolveBorderHeader]
+name.en = Border
+
+[_DissolveGlowBorder]
+name.en = Add Glowing Border
+
+[_DissolveGlowBorderWidth]
+name.en = Border Width
+
+[_DissolveGlowBorderColor]
+name.en = Border Color

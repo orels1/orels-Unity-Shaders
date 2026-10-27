@@ -1,0 +1,89 @@
+# Localization for the TriplanarEffects module
+# Source: Modules/TriplanarEffects.orlsource
+
+[UI_TriplanarEffectsHeader]
+name.en = Triplanar Effects (Dirt, Damage)
+
+[UI_TriplanarEffectsDocs]
+name.en = This module has documentation
+
+[_TriplanarMask]
+name.en = Triplanar Masks
+
+[_TriplanarMaskTiling]
+name.en = Tiling
+
+[_TriplanarBlend]
+name.en = Triplanar Blend
+
+[_TriplanarBlendPow]
+name.en = Triplanar Blend Power
+
+[UI_TriplanarMaskNote]
+name.en = Green: Damage Mask, Blue: Dirt Mask
+
+[DEBUG_TRIPLANAR]
+name.en = Debug Visualization
+
+[UI_DirtHeader]
+name.en = Dirt
+
+[DIRT_MODE]
+name.en = Dirt Mode
+
+[_DirtMaskPower]
+name.en = Dirt Mask Power
+
+[_DirtColor]
+name.en = Dirt Color
+
+[_DirtSmooth]
+name.en = Dirt Smoothness
+
+[_DirtGradPower]
+name.en = Dirt Gradient Power
+
+[_DirtGradPosition]
+name.en = Dirt Gradient position
+
+[_DirtGradientMin]
+name.en = Dirt Gradient Min
+
+[_DirtGradientMax]
+name.en = Dirt Gradient Max
+
+[_DirtOpacity]
+name.en = Dirt Opacity
+
+[_DirtPlanarMask]
+name.en = Use Planar Mask
+
+[UI_DamageHeader]
+name.en = Damage
+
+[DAMAGE_MODE]
+name.en = Damage Mode
+
+[_DamageAlbedo]
+name.en = Damage Albedo
+
+[_DamageAlbedoTiling]
+name.en = Tiling
+
+[_DamageColor]
+name.en = Damage Color
+
+[_DamageSmooth]
+name.en = Smoothness Remap
+
+[_DamageNormal]
+name.en = Damage Normal
+
+[_DamageNormalScale]
+name.en = Normal Scale
+
+[_DamageNormalFlipY]
+name.en = Flip Y (UE Mode)
+
+[_DamageAmount]
+name.en = Damage Amount

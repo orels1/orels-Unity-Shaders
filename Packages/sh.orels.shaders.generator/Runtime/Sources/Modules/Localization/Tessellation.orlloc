@@ -1,0 +1,29 @@
+# Localization for the Tessellation module
+# Source: Modules/Tessellation.orlsource
+
+[UI_TessellationHeader]
+name.en = Tessellation
+
+[_TessPhong]
+name.en = Enable Phong Tessellation
+
+[TESS_MODE]
+name.en = Tessellation Mode
+
+[_TessFactor]
+name.en = Tessellation Factor
+
+[_TessMinDist]
+name.en = Start Distance
+
+[_TessMaxDist]
+name.en = End Distance
+
+[_TessEdgeLength]
+name.en = Max Edge Length
+
+[_TessMaxDisplacement]
+name.en = Max Displacement
+
+[UI_TessMaxDisplacementNote]
+name.en = This defines how much you will be displacing the mesh to help with optimisations

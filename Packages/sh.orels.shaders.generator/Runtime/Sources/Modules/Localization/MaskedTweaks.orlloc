@@ -1,0 +1,89 @@
+# Localization for the MaskedTweaks module
+# Source: Modules/MaskedTweaks.orlsource
+
+[UI_MaskedTweaksHeader]
+name.en = Masked Tweaks
+
+[_MaskedTweaksEnabled]
+name.en = Enable Masked Tweaks
+
+[_MaskedTweaksMap]
+name.en = Masked Tweaks Map
+
+[UI_MaskedTweaksColorHeader]
+name.en = Colors
+
+[_MaskedTweaksColor]
+name.en = Swap Colors
+
+[_MaskedTweaksRed]
+name.en = Red Mask Color
+
+[_MaskedTweaksGreen]
+name.en = Green Mask Color
+
+[_MaskedTweaksBlue]
+name.en = Blue Mask Color
+
+[_MaskedTweaksAlpha]
+name.en = Alpha Mask Color
+
+[_MaskedTweaksHSV]
+name.en = HSV Adjustment
+
+[UI_MaskedTweaksHSVRedHeader]
+name.en = Red Mask Channel
+
+[_MaskedTweaksHSVRedStrength]
+name.en = Adjustment Strength
+
+[_MaskedTweaksRedHSV]
+name.en = Red Mask HSV
+
+[UI_MaskedTweaksHSVGreenHeader]
+name.en = Green Mask Channel
+
+[_MaskedTweaksHSVGreenStrength]
+name.en = Adjustment Strength
+
+[_MaskedTweaksGreenHSV]
+name.en = Green Mask HSV
+
+[UI_MaskedTweaksHSVBlueHeader]
+name.en = Blue Mask Channel
+
+[_MaskedTweaksHSVBlueStrength]
+name.en = Adjustment Strength
+
+[_MaskedTweaksBlueHSV]
+name.en = Blue Mask HSV
+
+[UI_MaskedTweaksHSVAlphaHeader]
+name.en = Alpha Mask Channel
+
+[_MaskedTweaksHSVAlphaStrength]
+name.en = Adjustment Strength
+
+[_MaskedTweaksAlphaHSV]
+name.en = Alpha Mask HSV
+
+[UI_MaskedTweaksSmoothnessHeader]
+name.en = Smoothness
+
+[_MaskedTweaksSmoothness]
+name.en = Tweak Smoothness
+
+[_MaskedTweaksSmoothnessOffset]
+name.en = Offset Smoothness
+
+[_MaskedTweaksRedSmoothness]
+name.en = Red Mask Smoothness
+
+[_MaskedTweaksGreenSmoothness]
+name.en = Green Mask Smoothness
+
+[_MaskedTweaksBlueSmoothness]
+name.en = Blue Mask Smoothness
+
+[_MaskedTweaksAlphaSmoothness]
+name.en = Alpha Mask Smoothness
