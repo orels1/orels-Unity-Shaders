@@ -1,0 +1,59 @@
+# Localization for the AreaLit module
+# Source: Modules/AreaLit.orlsource
+
+[UI_AreaLitHeader]
+name.en = AreaLit
+
+[UI_AreaLitDocs]
+name.en = This module has documentation
+
+[_IntegrateAreaLit]
+name.en = Integrate AreaLit
+
+[UI_AreaLitDownload]
+name.en = Make sure to download AreaLit before enabling this option
+
+[_AreaLitEnableOnMobile]
+name.en = Enable on Mobile
+
+[UI_AreaLitEnableOnMobileNote]
+name.en = AreaLit is pretty heavy for mobile devices, please test your content when enabling this option
+
+[_AreaLitClampBrightness]
+name.en = Clamp Brightness
+
+[_AreaLitMaxBrightness]
+name.en = Max Brightness
+
+[_OpaqueLights]
+name.en = Opaque Lights
+
+[_AreaLitRoughnessModifier]
+name.en = Roughness Modifier
+
+[_AreaLitAlphaPremultiply]
+name.en = Alpha Premultiply
+
+[UI_AreaLitInternalHeader]
+name.en = AreaLit Inputs
+
+[_LightMesh]
+name.en = Light Mesh
+
+[_LightTex0]
+name.en = Light Texture 0
+
+[_LightTex1]
+name.en = Light Texture 1
+
+[_LightTex2]
+name.en = Light Texture 2
+
+[_LightTex3]
+name.en = Light Texture 3
+
+[_AreaLitOcclusionMap]
+name.en = Shadowmask (Occlusion Map)
+
+[_AreaLitOcclusionUVSet]
+name.en = Shadowmask UV Set
