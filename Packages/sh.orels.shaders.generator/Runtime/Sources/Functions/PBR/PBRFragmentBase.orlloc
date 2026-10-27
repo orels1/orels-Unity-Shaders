@@ -1,98 +1,255 @@
-propName;EN;JA
+# Localization for the PBR FragmentBase function
+# Source: Functions/PBR/FragmentBase.orlsource
 
-=== NAMES ===
+[UI_ShadingModeHeader]
+name.en = Shading Mode
 
-UI_ShadingModeHeader; Shading Mode;シェーディングモード
-SHADING_MODE;Shading Mode;シェーディングモード
-_ClearCoat;Add Clear Coat;クリアコートを追加
-_ClearCoatStrength;Clear Coat Strength;クリアコート強度
-_HasClearCoatMask;Use Clear Coat Mask;クリアコートマスクを使用
-_ClearCoatMask;Clear Coat Mask;クリアコートマスク
-_ClearCoatMaskChannel;Clear Coat Mask Channel;クリアコートマスクチャンネル
-_ClearCoatSmoothness;Clear Coat Smoothness;クリアコートスムースネス
-_ClothHasCustomSheen;Custom Sheen Color;カスタムシーンカラー
-_ClothSheenColor;Sheen Color;シーンカラー
-_ClothHasSubsurface;Add Subsurface Color;サブサーフェスカラーを追加
-_ClothSubsurfaceColor;Subsurface Color;サブサーフェスカラー
+[SHADING_MODE]
+name.en = Shading Mode
 
-UI_AdvancedSettingsHeader; Advanced Settings;詳細設定
-_CullMode;Culling Mode;カリングモード
-_RenderType;Render Type;レンダータイプ
-_BlendOp;Blend Operation;ブレンド操作
-_SrcBlend;Source Blend;ソースブレンド
-_DstBlend;Destination Blend;デスティネーションブレンド
-_BlendOpAlpha;Blend Operation Alpha;ブレンド操作アルファ
-_SrcBlendAlpha;Source Blend Alpha;ソースブレンドアルファ
-_DstBlendAlpha;Destination Blend Alpha;デスティネーションブレンドアルファ
-_Cutoff;Cutoff;カットオフ
-_ShadeVertexLights;Enable Vertex Lights;頂点ライトを有効化
+[_ClearCoat]
+name.en = Add Clear Coat
 
-UI_AdvancedSettingsDepthHeader; Depth;深度
-_ZWrite;Depth Write;深度書き込み
-_ZTest;Depth Test;深度テスト
+[_ClearCoatStrength]
+name.en = Clear Coat Strength
 
-UI_GSAAHeader; GSAA;GSAA
-_EnableGSAA;GSAA Enabled;GSAAを有効化
-UI_GSAANote; GSAA dramatically reduces specular aliasing;GSAAはスペキュラーエイリアシングを大幅に軽減します
-_GSAAVariance;GSAA Variance;GSAA分散
-_GSAAThreshold;GSAA Threshold;GSAAしきい値
-_GSAAIncludeNormalMaps;Include Normal Maps;ノーマルマップを含める
+[_HasClearCoatMask]
+name.en = Use Clear Coat Mask
 
-UI_MobileTweaks; Mobile Tweaks;モバイル調整
-_ForceBoxProjection;Force Box Projection;ボックスプロジェクションを強制
-_ApplyColorCorrection;Apply Mobile Color Correction;モバイル色補正を適用
-MOBILE_TONEMAP;Mobile Tonemap Mode;モバイルトーンマップモード
-_ColorCorrLift;Lift;リフト
-_ColorCorrGamma;Gamma;ガンマ
-_ColorCorrGain;Gain;ゲイン
+[_ClearCoatMask]
+name.en = Clear Coat Mask
 
-UI_LightmappingHeader; Lightmapping;ライトマッピング
-_NonlinearSH;Non-Linear Lightprobe SH;非線形ライトプローブSH
-_SpecOcclusion;Reflection Probe Occlusion;リフレクションプローブオクルージョン
-_RealtimeShadowSpecOcclusion;Realtime Shadow Specular Occlusion;リアルタイムシャドウスペキュラーオクルージョン
-_Bicubic;Bicubic Sampling;バイキュービックサンプリング
-_BakedSpecular;Baked Specular;ベイクドスペキュラー
-_SpecularRoughnessMod;Specular Roughness Mod;スペキュラーラフネス調整
-_BakedSpecularOcclusion;Baked Specular Occlusion;ベイクドスペキュラーオクルージョン
+[_ClearCoatMaskChannel]
+name.en = Clear Coat Mask Channel
 
-UI_GITweaksHeader; Global Illumination Tweaks;グローバルイルミネーション調整
-_BoxProjectionContactHardening;Box Projection Contact Hardening;ボックスプロジェクション接触硬化
-_BoxProjectionContactHardeningStrength;Hardening Strength;硬化強度
-_GIEmissiveBoost;GI Emissive Boost;GIエミッシブブースト
-_IgnoreRealtimeGI;Ignore Relatime GI;リアルタイムGIを無視
-_RealtimeGIDisableBicubic;Disable Bicubic for RTGI;RTGI用バイキュービックを無効化
+[_ClearCoatSmoothness]
+name.en = Clear Coat Smoothness
 
-UI_BakeryHeader; Bakery Features;Bakery機能
-_BakeryEnabled;Enable Bakery Features;Bakery機能を有効化
-BAKERY;Bakery Mode;Bakeryモード
-_BakerySHNonLinear;Bakery Non-Linear SH;Bakery非線形SH
-_BakeryVolume;Support Volumes;ボリュームをサポート
-UI_BakeryVolumeAssigner;Volume Assigner;ボリューム割り当て
-_BakeryCompressedVolume;Support Compressed Volumes;圧縮ボリュームをサポート
-_BakeryVolumeRotationY;Support Baked Volume Rotation;ベイクドボリューム回転をサポート
-_BakeryVolumeRotation;Support Runtime Volume Rotation;ランタイムボリューム回転をサポート
-UI_AdvancedSettingsStancilHeader; Stencils;ステンシル
-_StencilRef;Reference;リファレンス
-_StencilComp;Comparison;比較
-_StencilPassOp;Pass Operation;パス操作
-_StencilFailOp;Fail Operation;失敗操作
-_StencilZFailOp;ZFail Operation;Z失敗操作
+[_ClothHasCustomSheen]
+name.en = Custom Sheen Color
 
-UI_InternalHeader; Internal;内部
-INTERNAL_ShaderVersion;Shader Version;シェーダーバージョン
-INTERNAL_MaterialShaderVersion;Material Shader Version;マテリアルシェーダーバージョン
-_DFG;DFG;DFG
+[_ClothSheenColor]
+name.en = Sheen Color
 
-UI_BakerySHHeader; Bakery SH;Bakery SH
-_RNM0;RNM0;RNM0
-_RNM1;RNM1;RNM1
-_RNM2;RNM2;RNM2
+[_ClothHasSubsurface]
+name.en = Add Subsurface Color
 
-UI_BakeryVolumesHeader; Bakery Volumes;Bakeryボリューム
-_Volume0;Volume 0;ボリューム0
-_Volume1;Volume 1;ボリューム1
-_Volume2;Volume 2;ボリューム2
-_Volume3;Volume 3;ボリューム3
-_VolumeMask;Volume Mask;ボリュームマスク
-_VolumeMin;Volume min;ボリューム最小
-_VolumeInvSize;Volume Inv Size;ボリューム逆サイズ
+[_ClothSubsurfaceColor]
+name.en = Subsurface Color
+
+[UI_AdvancedSettingsHeader]
+name.en = Advanced Settings
+
+[_CullMode]
+name.en = Culling Mode
+
+[_RenderType]
+name.en = Render Type
+
+[_BlendOp]
+name.en = Blend Operation
+
+[_SrcBlend]
+name.en = Source Blend
+
+[_DstBlend]
+name.en = Destination Blend
+
+[_BlendOpAlpha]
+name.en = Blend Operation Alpha
+
+[_SrcBlendAlpha]
+name.en = Source Blend Alpha
+
+[_DstBlendAlpha]
+name.en = Destination Blend Alpha
+
+[_Cutoff]
+name.en = Cutoff
+
+[_ShadeVertexLights]
+name.en = Enable Vertex Lights
+
+[UI_AdvancedSettingsDepthHeader]
+name.en = Depth
+
+[_ZWrite]
+name.en = Depth Write
+
+[_ZTest]
+name.en = Depth Test
+
+[UI_GSAAHeader]
+name.en = GSAA
+name.ja = GSAA
+
+[_EnableGSAA]
+name.en = GSAA Enabled
+
+[UI_GSAANote]
+name.en = GSAA dramatically reduces specular aliasing
+
+[_GSAAVariance]
+name.en = GSAA Variance
+
+[_GSAAThreshold]
+name.en = GSAA Threshold
+
+[_GSAAIncludeNormalMaps]
+name.en = Include Normal Maps
+
+[UI_MobileTweaks]
+name.en = Mobile Tweaks
+
+[_ForceBoxProjection]
+name.en = Force Box Projection
+
+[_ApplyColorCorrection]
+name.en = Apply Mobile Color Correction
+
+[MOBILE_TONEMAP]
+name.en = Mobile Tonemap Mode
+
+[_ColorCorrLift]
+name.en = Lift
+
+[_ColorCorrGamma]
+name.en = Gamma
+
+[_ColorCorrGain]
+name.en = Gain
+
+[UI_LightmappingHeader]
+name.en = Lightmapping
+
+[_NonlinearSH]
+name.en = Non-Linear Lightprobe SH
+
+[_SpecOcclusion]
+name.en = Reflection Probe Occlusion
+
+[_RealtimeShadowSpecOcclusion]
+name.en = Realtime Shadow Specular Occlusion
+
+[_Bicubic]
+name.en = Bicubic Sampling
+
+[_BakedSpecular]
+name.en = Baked Specular
+
+[_SpecularRoughnessMod]
+name.en = Specular Roughness Mod
+
+[_BakedSpecularOcclusion]
+name.en = Baked Specular Occlusion
+
+[UI_GITweaksHeader]
+name.en = Global Illumination Tweaks
+
+[_BoxProjectionContactHardening]
+name.en = Box Projection Contact Hardening
+
+[_BoxProjectionContactHardeningStrength]
+name.en = Hardening Strength
+
+[_GIEmissiveBoost]
+name.en = GI Emissive Boost
+
+[_IgnoreRealtimeGI]
+name.en = Ignore Realtime GI
+
+[_RealtimeGIDisableBicubic]
+name.en = Disable Bicubic for RTGI
+
+[UI_BakeryHeader]
+name.en = Bakery Features
+
+[_BakeryEnabled]
+name.en = Enable Bakery Features
+
+[BAKERY]
+name.en = Bakery Mode
+
+[_BakerySHNonLinear]
+name.en = Bakery Non-Linear SH
+
+[_BakeryVolume]
+name.en = Support Volumes
+
+[UI_BakeryVolumeAssigner]
+name.en = Volume Assigner
+
+[_BakeryCompressedVolume]
+name.en = Support Compressed Volumes
+
+[_BakeryVolumeRotationY]
+name.en = Support Baked Volume Rotation
+
+[_BakeryVolumeRotation]
+name.en = Support Runtime Volume Rotation
+
+[UI_AdvancedSettingsStancilHeader]
+name.en = Stencils
+
+[_StencilRef]
+name.en = Reference
+
+[_StencilComp]
+name.en = Comparison
+
+[_StencilPassOp]
+name.en = Pass Operation
+
+[_StencilFailOp]
+name.en = Fail Operation
+
+[_StencilZFailOp]
+name.en = ZFail Operation
+
+[UI_InternalHeader]
+name.en = Internal
+
+[INTERNAL_ShaderVersion]
+name.en = Shader Version
+
+[INTERNAL_MaterialShaderVersion]
+name.en = Material Shader Version
+
+[_DFG]
+name.en = DFG
+
+[UI_BakerySHHeader]
+name.en = Bakery SH
+
+[_RNM0]
+name.en = RNM0
+
+[_RNM1]
+name.en = RNM1
+
+[_RNM2]
+name.en = RNM2
+
+[UI_BakeryVolumesHeader]
+name.en = Bakery Volumes
+
+[_Volume0]
+name.en = Volume 0
+
+[_Volume1]
+name.en = Volume 1
+
+[_Volume2]
+name.en = Volume 2
+
+[_Volume3]
+name.en = Volume 3
+
+[_VolumeMask]
+name.en = Volume Mask
+
+[_VolumeMin]
+name.en = Volume min
+
+[_VolumeInvSize]
+name.en = Volume Inv Size

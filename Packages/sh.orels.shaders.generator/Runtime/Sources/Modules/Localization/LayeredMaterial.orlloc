@@ -1,160 +1,556 @@
-propName;EN;JA
+# Localization for the LayeredMaterial module
+# Source: Modules/LayeredMaterial.orlsource
+#
+# `@[Prop]` references copy the same field of the target property,
+# in the same language (falling back to english).
+# Layers 2-4 reuse the names of the Layer 1 properties.
 
-=== NAMES ===
+[UI_LayeredMatHeader]
+name.en = Layers
+name.ja = レイヤー
 
-UI_LayeredMatHeader; Layers;レイヤー
-_LayeredMatLayersCount;Layer Count;レイヤー数
-_LMMaskingType;Mask Type;マスクタイプ
-_LMMaskTex;Mask Texture;マスクテクスチャ
-_LMMaskTexUV;UV Set;UVセット
-_LMMaskDebugging;Mask Debugging;マスクデバッグ
-_LMMaskDebuggingChannel;Debug Channel;デバッグチャンネル
+[_LayeredMatLayersCount]
+name.en = Layer Count
+name.ja = レイヤー数
+tooltip.en = The amount of layers used
+tooltip.ja = 使用するレイヤーの数
 
-UI_LMLayerBaseHeader; Base Layer;ベースレイヤー
-_LMLayerBaseColor;Main Color;メインカラー
-_LMLayerBaseUV;UV Set;UVセット
-_LMLayerBaseMainTex;Albedo;アルベド
-_LMLayerBaseMaskMap;Masks;マスク
-_LMLayerBaseMetalChannel;Metal;メタル
-_LMLayerBaseAOChannel;AO;AO
-_LMLayerBaseSmoothChannel;Smooth;スムース
-_LMLayerBaseSmoothness;Smoothness;スムースネス
-_LMLayerBaseRoughnessMode;Roughness Mode;ラフネスモード
-_LMLayerBaseMetallic;Metallic;メタリック
-_LMLayerBaseMetallicRemap;Metallic Remap;メタリックリマップ
-_LMLayerBaseSmoothnessRemap;Smoothness Remap;スムースネスリマップ
-_LMLayerBaseOcclusionStrength;AO Strength;AO強度
-_LMLayerBaseBumpMap;Normal Map;ノーマルマップ
-_LMLayerBaseBumpScale;Normal Map Scale;ノーマルマップスケール
-_LMLayerBaseFlipBumpY;Flip Y (UE Mode);Y反転（UEモード）]
+[_LMMaskingType]
+name.en = Mask Type
+name.ja = マスクタイプ
+tooltip.en = Controls what is used for masking
+tooltip.ja = マスキングに使用するものを制御
 
-UI_LMLayer1Header; Layer 1;レイヤー1
-_LMLayer1ColorMask;Mask Channel;マスクチャンネル
-_LMLayer1MaskRemap;Mask Remap;マスクリマップ
-_LMLayer1Strength;Layer Strength;レイヤー強度
-_LMLayer1DebugMask;Show Mask;マスクを表示
-UI_LMLayer1MaterialHeader; Material;マテリアル
-_LMLayer1Color;Main Color;メインカラー
-_LMLayer1MainTex;Albedo;アルベド
-_LMLayer1Triplanar;Enable Triplanar;トライプラナーを有効化
-_LMLayer1TriplanarTiling;Tiling;タイリング
-_LMLayer1TriplanarBlend;Blend;ブレンド
-_LMLayer1TriplanarPower;Power;強度
-_LMLayer1AlbedoChannel;Albedo Channel;アルベドチャンネル
-_LMLayer1MaskMap;Masks;マスク
-_LMLayer1MetalChannel;Metal;メタル
-_LMLayer1AOChannel;AO;AO
-_LMLayer1SmoothChannel;Smooth;スムース
-_LMLayer1Smoothness;Smoothness;スムースネス
-_LMLayer1RoughnessMode;Roughness Mode;ラフネスモード
-_LMLayer1Metallic;Metallic;メタリック
-_LMLayer1MetallicRemap;Metallic Remap;メタリックリマップ
-_LMLayer1SmoothnessRemap;Smoothness Remap;スムースネスリマップ
-_LMLayer1OcclusionStrength;AO Strength;AO強度
-_LMLayer1BumpMap;Normal Map;ノーマルマップ
-_LMLayer1BumpScale;Normal Map Scale;ノーマルマップスケール
-_LMLayer1FlipBumpY;Flip Y (UE Mode);Y反転（UEモード）
+[_LMMaskTex]
+name.en = Mask Texture
+name.ja = マスクテクスチャ
+tooltip.en = This will be used to mask the layers by color
+tooltip.ja = 色によってレイヤーをマスクするために使用されます
 
-UI_LMLayer2Header; Layer 2;レイヤー2
-_LMLayer2ColorMask;Mask Channel;マスクチャンネル
-_LMLayer2MaskRemap;Mask Remap;マスクリマップ
-_LMLayer2Strength;Layer Strength;レイヤー強度
-_LMLayer2DebugMask;Show Mask;マスクを表示
-UI_LMLayer2MaterialHeader; Material;マテリアル
-_LMLayer2Color;Main Color;メインカラー
-_LMLayer2MainTex;Albedo;アルベド
-_LMLayer2Triplanar;Enable Triplanar;トライプラナーを有効化
-_LMLayer2TriplanarTiling;Tiling;タイリング
-_LMLayer2TriplanarBlend;Blend;ブレンド
-_LMLayer2TriplanarPower;Power;強度
-_LMLayer2AlbedoChannel;Albedo Channel;アルベドチャンネル
-_LMLayer2MaskMap;Masks;マスク
-_LMLayer2MetalChannel;Metal;メタル
-_LMLayer2AOChannel;AO;AO
-_LMLayer2SmoothChannel;Smooth;スムース
-_LMLayer2Smoothness;Smoothness;スムースネス
-_LMLayer2RoughnessMode;Roughness Mode;ラフネスモード
-_LMLayer2Metallic;Metallic;メタリック
-_LMLayer2MetallicRemap;Metallic Remap;メタリックリマップ
-_LMLayer2SmoothnessRemap;Smoothness Remap;スムースネスリマップ
-_LMLayer2OcclusionStrength;AO Strength;AO強度
-_LMLayer2BumpMap;Normal Map;ノーマルマップ
-_LMLayer2BumpScale;Normal Map Scale;ノーマルマップスケール
-_LMLayer2FlipBumpY;Flip Y (UE Mode);Y反転（UEモード）
+[_LMMaskTexUV]
+name.en = UV Set
+name.ja = UVセット
+tooltip.en = Selects the UV set used for sampling the Mask Texture
+tooltip.ja = マスクテクスチャのサンプリングに使用するUVセットを選択
 
-UI_LMLayer3Header; Layer 3;レイヤー3
-_LMLayer3ColorMask;Mask Channel;マスクチャンネル
-_LMLayer3MaskRemap;Mask Remap;マスクリマップ
-_LMLayer3Strength;Layer Strength;レイヤー強度
-_LMLayer3DebugMask;Show Mask;マスクを表示
-UI_LMLayer3MaterialHeader; Material;マテリアル
-_LMLayer3Color;Main Color;メインカラー
-_LMLayer3MainTex;Albedo;アルベド
-_LMLayer3Triplanar;Enable Triplanar;トライプラナーを有効化
-_LMLayer3TriplanarTiling;Tiling;タイリング
-_LMLayer3TriplanarBlend;Blend;ブレンド
-_LMLayer3TriplanarPower;Power;強度
-_LMLayer3AlbedoChannel;Albedo Channel;アルベドチャンネル
-_LMLayer3MaskMap;Masks;マスク
-_LMLayer3MetalChannel;Metal;メタル
-_LMLayer3AOChannel;AO;AO
-_LMLayer3SmoothChannel;Smooth;スムース
-_LMLayer3Smoothness;Smoothness;スムースネス
-_LMLayer3RoughnessMode;Roughness Mode;ラフネスモード
-_LMLayer3Metallic;Metallic;メタリック
-_LMLayer3MetallicRemap;Metallic Remap;メタリックリマップ
-_LMLayer3SmoothnessRemap;Smoothness Remap;スムースネスリマップ
-_LMLayer3OcclusionStrength;AO Strength;AO強度
-_LMLayer3BumpMap;Normal Map;ノーマルマップ
-_LMLayer3BumpScale;Normal Map Scale;ノーマルマップスケール
-_LMLayer3FlipBumpY;Flip Y (UE Mode);Y反転（UEモード）
+[_LMMaskDebugging]
+name.en = Mask Debugging
+name.ja = マスクデバッグ
+tooltip.en = Displays the mask values on the mesh based on selected Mask Type
+tooltip.ja = 選択したマスクタイプに基づいてメッシュ上にマスク値を表示
 
-UI_LMLayer4Header; Layer 4;レイヤー4
-_LMLayer4ColorMask;Mask Channel;マスクチャンネル
-_LMLayer4MaskRemap;Mask Remap;マスクリマップ
-_LMLayer4Strength;Layer Strength;レイヤー強度
-_LMLayer4DebugMask;Show Mask;マスクを表示
-UI_LMLayer4MaterialHeader; Material;マテリアル
-_LMLayer4Color;Main Color;メインカラー
-_LMLayer4MainTex;Albedo;アルベド
-_LMLayer4Triplanar;Enable Triplanar;トライプラナーを有効化
-_LMLayer4TriplanarTiling;Tiling;タイリング
-_LMLayer4TriplanarBlend;Blend;ブレンド
-_LMLayer4TriplanarPower;Power;強度
-_LMLayer4AlbedoChannel;Albedo Channel;アルベドチャンネル
-_LMLayer4MaskMap;Masks;マスク
-_LMLayer4MetalChannel;Metal;メタル
-_LMLayer4AOChannel;AO;AO
-_LMLayer4SmoothChannel;Smooth;スムース
-_LMLayer4Smoothness;Smoothness;スムースネス
-_LMLayer4RoughnessMode;Roughness Mode;ラフネスモード
-_LMLayer4Metallic;Metallic;メタリック
-_LMLayer4MetallicRemap;Metallic Remap;メタリックリマップ
-_LMLayer4SmoothnessRemap;Smoothness Remap;スムースネスリマップ
-_LMLayer4OcclusionStrength;AO Strength;AO強度
-_LMLayer4BumpMap;Normal Map;ノーマルマップ
-_LMLayer4BumpScale;Normal Map Scale;ノーマルマップスケール
-_LMLayer4FlipBumpY;Flip Y (UE Mode);Y反転（UEモード）
+[_LMMaskDebuggingChannel]
+name.en = Debug Channel
+name.ja = デバッグチャンネル
+tooltip.en = Controls which channel to display during debugging
+tooltip.ja = デバッグ中に表示するチャンネルを制御
 
-=== TOOLTIPS ===
+[UI_LMLayerBaseHeader]
+name.en = Base Layer
+name.ja = ベースレイヤー
 
-_LayeredMatLayersCount;The amount of layers used;使用するレイヤーの数
-_LMMaskingType;Controls what is used for masking;マスキングに使用するものを制御
-_LMMaskTex;This will be used to mask the layers by color;色によってレイヤーをマスクするために使用されます
-_LMMaskTexUV;Selects the UV set used for sampling the Mask Texture;マスクテクスチャのサンプリングに使用するUVセットを選択
-_LMMaskDebugging;Displays the mask values on the mesh based on selected Mask Type;選択したマスクタイプに基づいてメッシュ上にマスク値を表示
-_LMMaskDebuggingChannel;Controls which channel to display during debugging;デバッグ中に表示するチャンネルを制御
+[_LMLayerBaseColor]
+name.en = Main Color
+name.ja = メインカラー
+tooltip.en = Main Tint Color
+tooltip.ja = メインの色合い
 
-_LMLayerBaseColor;Main Tint Color;メインの色合い
-_LMLayerBaseUV;Selects the UV set used for sampling all the Base Layer textures;すべてのベースレイヤーテクスチャのサンプリングに使用するUVセットを選択
-_LMLayerBaseMaskMap;Texture containing Metallic, Smoothness, and AO maps. Default channel layout is Red: Metallic, Green: AO, Alpha: Smoothness. Can be adjusted using a remapper below;メタリック、スムースネス、AOマップを含むテクスチャ。デフォルトのチャンネル配置は赤:メタリック、緑:AO、アルファ:スムースネス。下のリマッパーで調整可能
-_LMLayerBaseMetalChannel;Selects a channel containing Metal values;メタル値を含むチャンネルを選択
-_LMLayerBaseAOChannel;Selects a channel containing AO values;AO値を含むチャンネルを選択
-_LMLayerBaseSmoothChannel;Selects a channel containing Smoothness values;スムースネス値を含むチャンネルを選択
-_LMLayerBaseSmoothness;Controls global smoothness level, uses this value across the whole material;グローバルなスムースネスレベルを制御し、マテリアル全体でこの値を使用
-_LMLayerBaseRoughnessMode;Flips the channel value. If your texture contains Roughness instead of Smoothness - you should use this option;チャンネル値を反転します。テクスチャがスムースネスの代わりにラフネスを含む場合は、このオプションを使用してください
-_LMLayerBaseMetallic;Controls global metalness level, uses this value across the whole material;グローバルなメタルネスレベルを制御し、マテリアル全体でこの値を使用
-_LMLayerBaseMetallicRemap;Allows you to adjust the range of metalness values of the provided Metal map;提供されたメタルマップのメタルネス値の範囲を調整できます
-_LMLayerBaseSmoothnessRemap;Allows you to adjust the range of smoothness values of the provided Smoothness map;提供されたスムースネスマップのスムースネス値の範囲を調整できます
-_LMLayerBaseOcclusionStrength;Controls the strength of the provided Ambient Occlusion map;提供されたアンビエントオクルージョンマップの強度を制御
-_LMLayerBaseFlipBumpY;Flips the green channel of the normal map for DirectX-style normal maps, which are commonly found in something like Unreal Engine assets. If your normal map looks "upside-down" - you should try this option;Unreal Engineアセットなどで一般的に見られるDirectXスタイルのノーマルマップのために、ノーマルマップの緑チャンネルを反転します。ノーマルマップが「上下逆」に見える場合は、このオプションを試してください
+[_LMLayerBaseUV]
+name.en = UV Set
+name.ja = UVセット
+tooltip.en = Selects the UV set used for sampling all the Base Layer textures
+tooltip.ja = すべてのベースレイヤーテクスチャのサンプリングに使用するUVセットを選択
+
+[_LMLayerBaseMainTex]
+name.en = Albedo
+name.ja = アルベド
+
+[_LMLayerBaseMaskMap]
+name.en = Masks
+name.ja = マスク
+tooltip.en = Texture containing Metallic, Smoothness, and AO maps. Default channel layout is Red: Metallic, Green: AO, Alpha: Smoothness. Can be adjusted using a remapper below
+tooltip.ja = メタリック、スムースネス、AOマップを含むテクスチャ。デフォルトのチャンネル配置は赤:メタリック、緑:AO、アルファ:スムースネス。下のリマッパーで調整可能
+
+[_LMLayerBaseMetalChannel]
+name.en = Metal
+name.ja = メタル
+tooltip.en = Selects a channel containing Metal values
+tooltip.ja = メタル値を含むチャンネルを選択
+
+[_LMLayerBaseAOChannel]
+name.en = AO
+name.ja = AO
+tooltip.en = Selects a channel containing AO values
+tooltip.ja = AO値を含むチャンネルを選択
+
+[_LMLayerBaseSmoothChannel]
+name.en = Smooth
+name.ja = スムース
+tooltip.en = Selects a channel containing Smoothness values
+tooltip.ja = スムースネス値を含むチャンネルを選択
+
+[_LMLayerBaseSmoothness]
+name.en = Smoothness
+name.ja = スムースネス
+tooltip.en = Controls global smoothness level, uses this value across the whole material
+tooltip.ja = グローバルなスムースネスレベルを制御し、マテリアル全体でこの値を使用
+
+[_LMLayerBaseRoughnessMode]
+name.en = Roughness Mode
+name.ja = ラフネスモード
+tooltip.en = Flips the channel value. If your texture contains Roughness instead of Smoothness - you should use this option
+tooltip.ja = チャンネル値を反転します。テクスチャがスムースネスの代わりにラフネスを含む場合は、このオプションを使用してください
+
+[_LMLayerBaseMetallic]
+name.en = Metallic
+name.ja = メタリック
+tooltip.en = Controls global metalness level, uses this value across the whole material
+tooltip.ja = グローバルなメタルネスレベルを制御し、マテリアル全体でこの値を使用
+
+[_LMLayerBaseMetallicRemap]
+name.en = Metallic Remap
+name.ja = メタリックリマップ
+tooltip.en = Allows you to adjust the range of metalness values of the provided Metal map
+tooltip.ja = 提供されたメタルマップのメタルネス値の範囲を調整できます
+
+[_LMLayerBaseSmoothnessRemap]
+name.en = Smoothness Remap
+name.ja = スムースネスリマップ
+tooltip.en = Allows you to adjust the range of smoothness values of the provided Smoothness map
+tooltip.ja = 提供されたスムースネスマップのスムースネス値の範囲を調整できます
+
+[_LMLayerBaseOcclusionStrength]
+name.en = AO Strength
+name.ja = AO強度
+tooltip.en = Controls the strength of the provided Ambient Occlusion map
+tooltip.ja = 提供されたアンビエントオクルージョンマップの強度を制御
+
+[_LMLayerBaseBumpMap]
+name.en = Normal Map
+name.ja = ノーマルマップ
+
+[_LMLayerBaseBumpScale]
+name.en = Normal Map Scale
+name.ja = ノーマルマップスケール
+
+[_LMLayerBaseFlipBumpY]
+name.en = Flip Y (UE Mode)
+name.ja = Y反転（UEモード）
+tooltip.en = Flips the green channel of the normal map for DirectX-style normal maps, which are commonly found in something like Unreal Engine assets. If your normal map looks "upside-down" - you should try this option
+tooltip.ja = Unreal Engineアセットなどで一般的に見られるDirectXスタイルのノーマルマップのために、ノーマルマップの緑チャンネルを反転します。ノーマルマップが「上下逆」に見える場合は、このオプションを試してください
+
+[UI_LMLayer1Header]
+name.en = Layer 1
+name.ja = レイヤー1
+
+[_LMLayer1ColorMask]
+name.en = Mask Channel
+name.ja = マスクチャンネル
+
+[_LMLayer1MaskRemap]
+name.en = Mask Remap
+name.ja = マスクリマップ
+
+[_LMLayer1Strength]
+name.en = Layer Strength
+name.ja = レイヤー強度
+
+[_LMLayer1DebugMask]
+name.en = Show Mask
+name.ja = マスクを表示
+
+[UI_LMLayer1MaterialHeader]
+name.en = Material
+name.ja = マテリアル
+
+[_LMLayer1Color]
+name.en = Main Color
+name.ja = メインカラー
+
+[_LMLayer1MainTex]
+name.en = Albedo
+name.ja = アルベド
+
+[_LMLayer1Triplanar]
+name.en = Enable Triplanar
+name.ja = トライプラナーを有効化
+
+[_LMLayer1TriplanarTiling]
+name.en = Tiling
+name.ja = タイリング
+
+[_LMLayer1TriplanarBlend]
+name.en = Blend
+name.ja = ブレンド
+
+[_LMLayer1TriplanarPower]
+name.en = Power
+name.ja = 強度
+
+[_LMLayer1AlbedoChannel]
+name.en = Albedo Channel
+name.ja = アルベドチャンネル
+
+[_LMLayer1MaskMap]
+name.en = Masks
+name.ja = マスク
+
+[_LMLayer1MetalChannel]
+name.en = Metal
+name.ja = メタル
+
+[_LMLayer1AOChannel]
+name.en = AO
+name.ja = AO
+
+[_LMLayer1SmoothChannel]
+name.en = Smooth
+name.ja = スムース
+
+[_LMLayer1Smoothness]
+name.en = Smoothness
+name.ja = スムースネス
+
+[_LMLayer1RoughnessMode]
+name.en = Roughness Mode
+name.ja = ラフネスモード
+
+[_LMLayer1Metallic]
+name.en = Metallic
+name.ja = メタリック
+
+[_LMLayer1MetallicRemap]
+name.en = Metallic Remap
+name.ja = メタリックリマップ
+
+[_LMLayer1SmoothnessRemap]
+name.en = Smoothness Remap
+name.ja = スムースネスリマップ
+
+[_LMLayer1OcclusionStrength]
+name.en = AO Strength
+name.ja = AO強度
+
+[_LMLayer1BumpMap]
+name.en = Normal Map
+name.ja = ノーマルマップ
+
+[_LMLayer1BumpScale]
+name.en = Normal Map Scale
+name.ja = ノーマルマップスケール
+
+[_LMLayer1FlipBumpY]
+name.en = Flip Y (UE Mode)
+name.ja = Y反転（UEモード）
+
+[UI_LMLayer2Header]
+name.en = Layer 2
+name.ja = レイヤー2
+
+[_LMLayer2ColorMask]
+name.en = @[_LMLayer1ColorMask]
+name.ja = @[_LMLayer1ColorMask]
+
+[_LMLayer2MaskRemap]
+name.en = @[_LMLayer1MaskRemap]
+name.ja = @[_LMLayer1MaskRemap]
+
+[_LMLayer2Strength]
+name.en = @[_LMLayer1Strength]
+name.ja = @[_LMLayer1Strength]
+
+[_LMLayer2DebugMask]
+name.en = @[_LMLayer1DebugMask]
+name.ja = @[_LMLayer1DebugMask]
+
+[UI_LMLayer2MaterialHeader]
+name.en = @[UI_LMLayer1MaterialHeader]
+name.ja = @[UI_LMLayer1MaterialHeader]
+
+[_LMLayer2Color]
+name.en = @[_LMLayer1Color]
+name.ja = @[_LMLayer1Color]
+
+[_LMLayer2MainTex]
+name.en = @[_LMLayer1MainTex]
+name.ja = @[_LMLayer1MainTex]
+
+[_LMLayer2Triplanar]
+name.en = @[_LMLayer1Triplanar]
+name.ja = @[_LMLayer1Triplanar]
+
+[_LMLayer2TriplanarTiling]
+name.en = @[_LMLayer1TriplanarTiling]
+name.ja = @[_LMLayer1TriplanarTiling]
+
+[_LMLayer2TriplanarBlend]
+name.en = @[_LMLayer1TriplanarBlend]
+name.ja = @[_LMLayer1TriplanarBlend]
+
+[_LMLayer2TriplanarPower]
+name.en = @[_LMLayer1TriplanarPower]
+name.ja = @[_LMLayer1TriplanarPower]
+
+[_LMLayer2AlbedoChannel]
+name.en = @[_LMLayer1AlbedoChannel]
+name.ja = @[_LMLayer1AlbedoChannel]
+
+[_LMLayer2MaskMap]
+name.en = @[_LMLayer1MaskMap]
+name.ja = @[_LMLayer1MaskMap]
+
+[_LMLayer2MetalChannel]
+name.en = @[_LMLayer1MetalChannel]
+name.ja = @[_LMLayer1MetalChannel]
+
+[_LMLayer2AOChannel]
+name.en = @[_LMLayer1AOChannel]
+name.ja = @[_LMLayer1AOChannel]
+
+[_LMLayer2SmoothChannel]
+name.en = @[_LMLayer1SmoothChannel]
+name.ja = @[_LMLayer1SmoothChannel]
+
+[_LMLayer2Smoothness]
+name.en = @[_LMLayer1Smoothness]
+name.ja = @[_LMLayer1Smoothness]
+
+[_LMLayer2RoughnessMode]
+name.en = @[_LMLayer1RoughnessMode]
+name.ja = @[_LMLayer1RoughnessMode]
+
+[_LMLayer2Metallic]
+name.en = @[_LMLayer1Metallic]
+name.ja = @[_LMLayer1Metallic]
+
+[_LMLayer2MetallicRemap]
+name.en = @[_LMLayer1MetallicRemap]
+name.ja = @[_LMLayer1MetallicRemap]
+
+[_LMLayer2SmoothnessRemap]
+name.en = @[_LMLayer1SmoothnessRemap]
+name.ja = @[_LMLayer1SmoothnessRemap]
+
+[_LMLayer2OcclusionStrength]
+name.en = @[_LMLayer1OcclusionStrength]
+name.ja = @[_LMLayer1OcclusionStrength]
+
+[_LMLayer2BumpMap]
+name.en = @[_LMLayer1BumpMap]
+name.ja = @[_LMLayer1BumpMap]
+
+[_LMLayer2BumpScale]
+name.en = @[_LMLayer1BumpScale]
+name.ja = @[_LMLayer1BumpScale]
+
+[_LMLayer2FlipBumpY]
+name.en = @[_LMLayer1FlipBumpY]
+name.ja = @[_LMLayer1FlipBumpY]
+
+[UI_LMLayer3Header]
+name.en = Layer 3
+name.ja = レイヤー3
+
+[_LMLayer3ColorMask]
+name.en = @[_LMLayer1ColorMask]
+name.ja = @[_LMLayer1ColorMask]
+
+[_LMLayer3MaskRemap]
+name.en = @[_LMLayer1MaskRemap]
+name.ja = @[_LMLayer1MaskRemap]
+
+[_LMLayer3Strength]
+name.en = @[_LMLayer1Strength]
+name.ja = @[_LMLayer1Strength]
+
+[_LMLayer3DebugMask]
+name.en = @[_LMLayer1DebugMask]
+name.ja = @[_LMLayer1DebugMask]
+
+[UI_LMLayer3MaterialHeader]
+name.en = @[UI_LMLayer1MaterialHeader]
+name.ja = @[UI_LMLayer1MaterialHeader]
+
+[_LMLayer3Color]
+name.en = @[_LMLayer1Color]
+name.ja = @[_LMLayer1Color]
+
+[_LMLayer3MainTex]
+name.en = @[_LMLayer1MainTex]
+name.ja = @[_LMLayer1MainTex]
+
+[_LMLayer3Triplanar]
+name.en = @[_LMLayer1Triplanar]
+name.ja = @[_LMLayer1Triplanar]
+
+[_LMLayer3TriplanarTiling]
+name.en = @[_LMLayer1TriplanarTiling]
+name.ja = @[_LMLayer1TriplanarTiling]
+
+[_LMLayer3TriplanarBlend]
+name.en = @[_LMLayer1TriplanarBlend]
+name.ja = @[_LMLayer1TriplanarBlend]
+
+[_LMLayer3TriplanarPower]
+name.en = @[_LMLayer1TriplanarPower]
+name.ja = @[_LMLayer1TriplanarPower]
+
+[_LMLayer3AlbedoChannel]
+name.en = @[_LMLayer1AlbedoChannel]
+name.ja = @[_LMLayer1AlbedoChannel]
+
+[_LMLayer3MaskMap]
+name.en = @[_LMLayer1MaskMap]
+name.ja = @[_LMLayer1MaskMap]
+
+[_LMLayer3MetalChannel]
+name.en = @[_LMLayer1MetalChannel]
+name.ja = @[_LMLayer1MetalChannel]
+
+[_LMLayer3AOChannel]
+name.en = @[_LMLayer1AOChannel]
+name.ja = @[_LMLayer1AOChannel]
+
+[_LMLayer3SmoothChannel]
+name.en = @[_LMLayer1SmoothChannel]
+name.ja = @[_LMLayer1SmoothChannel]
+
+[_LMLayer3Smoothness]
+name.en = @[_LMLayer1Smoothness]
+name.ja = @[_LMLayer1Smoothness]
+
+[_LMLayer3RoughnessMode]
+name.en = @[_LMLayer1RoughnessMode]
+name.ja = @[_LMLayer1RoughnessMode]
+
+[_LMLayer3Metallic]
+name.en = @[_LMLayer1Metallic]
+name.ja = @[_LMLayer1Metallic]
+
+[_LMLayer3MetallicRemap]
+name.en = @[_LMLayer1MetallicRemap]
+name.ja = @[_LMLayer1MetallicRemap]
+
+[_LMLayer3SmoothnessRemap]
+name.en = @[_LMLayer1SmoothnessRemap]
+name.ja = @[_LMLayer1SmoothnessRemap]
+
+[_LMLayer3OcclusionStrength]
+name.en = @[_LMLayer1OcclusionStrength]
+name.ja = @[_LMLayer1OcclusionStrength]
+
+[_LMLayer3BumpMap]
+name.en = @[_LMLayer1BumpMap]
+name.ja = @[_LMLayer1BumpMap]
+
+[_LMLayer3BumpScale]
+name.en = @[_LMLayer1BumpScale]
+name.ja = @[_LMLayer1BumpScale]
+
+[_LMLayer3FlipBumpY]
+name.en = @[_LMLayer1FlipBumpY]
+name.ja = @[_LMLayer1FlipBumpY]
+
+[UI_LMLayer4Header]
+name.en = Layer 4
+name.ja = レイヤー4
+
+[_LMLayer4ColorMask]
+name.en = @[_LMLayer1ColorMask]
+name.ja = @[_LMLayer1ColorMask]
+
+[_LMLayer4MaskRemap]
+name.en = @[_LMLayer1MaskRemap]
+name.ja = @[_LMLayer1MaskRemap]
+
+[_LMLayer4Strength]
+name.en = @[_LMLayer1Strength]
+name.ja = @[_LMLayer1Strength]
+
+[_LMLayer4DebugMask]
+name.en = @[_LMLayer1DebugMask]
+name.ja = @[_LMLayer1DebugMask]
+
+[UI_LMLayer4MaterialHeader]
+name.en = @[UI_LMLayer1MaterialHeader]
+name.ja = @[UI_LMLayer1MaterialHeader]
+
+[_LMLayer4Color]
+name.en = @[_LMLayer1Color]
+name.ja = @[_LMLayer1Color]
+
+[_LMLayer4MainTex]
+name.en = @[_LMLayer1MainTex]
+name.ja = @[_LMLayer1MainTex]
+
+[_LMLayer4Triplanar]
+name.en = @[_LMLayer1Triplanar]
+name.ja = @[_LMLayer1Triplanar]
+
+[_LMLayer4TriplanarTiling]
+name.en = @[_LMLayer1TriplanarTiling]
+name.ja = @[_LMLayer1TriplanarTiling]
+
+[_LMLayer4TriplanarBlend]
+name.en = @[_LMLayer1TriplanarBlend]
+name.ja = @[_LMLayer1TriplanarBlend]
+
+[_LMLayer4TriplanarPower]
+name.en = @[_LMLayer1TriplanarPower]
+name.ja = @[_LMLayer1TriplanarPower]
+
+[_LMLayer4AlbedoChannel]
+name.en = @[_LMLayer1AlbedoChannel]
+name.ja = @[_LMLayer1AlbedoChannel]
+
+[_LMLayer4MaskMap]
+name.en = @[_LMLayer1MaskMap]
+name.ja = @[_LMLayer1MaskMap]
+
+[_LMLayer4MetalChannel]
+name.en = @[_LMLayer1MetalChannel]
+name.ja = @[_LMLayer1MetalChannel]
+
+[_LMLayer4AOChannel]
+name.en = @[_LMLayer1AOChannel]
+name.ja = @[_LMLayer1AOChannel]
+
+[_LMLayer4SmoothChannel]
+name.en = @[_LMLayer1SmoothChannel]
+name.ja = @[_LMLayer1SmoothChannel]
+
+[_LMLayer4Smoothness]
+name.en = @[_LMLayer1Smoothness]
+name.ja = @[_LMLayer1Smoothness]
+
+[_LMLayer4RoughnessMode]
+name.en = @[_LMLayer1RoughnessMode]
+name.ja = @[_LMLayer1RoughnessMode]
+
+[_LMLayer4Metallic]
+name.en = @[_LMLayer1Metallic]
+name.ja = @[_LMLayer1Metallic]
+
+[_LMLayer4MetallicRemap]
+name.en = @[_LMLayer1MetallicRemap]
+name.ja = @[_LMLayer1MetallicRemap]
+
+[_LMLayer4SmoothnessRemap]
+name.en = @[_LMLayer1SmoothnessRemap]
+name.ja = @[_LMLayer1SmoothnessRemap]
+
+[_LMLayer4OcclusionStrength]
+name.en = @[_LMLayer1OcclusionStrength]
+name.ja = @[_LMLayer1OcclusionStrength]
+
+[_LMLayer4BumpMap]
+name.en = @[_LMLayer1BumpMap]
+name.ja = @[_LMLayer1BumpMap]
+
+[_LMLayer4BumpScale]
+name.en = @[_LMLayer1BumpScale]
+name.ja = @[_LMLayer1BumpScale]
+
+[_LMLayer4FlipBumpY]
+name.en = @[_LMLayer1FlipBumpY]
+name.ja = @[_LMLayer1FlipBumpY]
