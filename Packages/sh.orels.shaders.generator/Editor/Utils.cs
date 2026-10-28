@@ -136,7 +136,8 @@ namespace ORL.ShaderGenerator
             var orlSourceExists = File.Exists($"{fullPath}.orlsource");
             var orlShaderExists = File.Exists($"{fullPath}.orlshader");
             var orlTemplateExists = File.Exists($"{fullPath}.orltemplate");
-            if (!directExists && !orlSourceExists && !orlShaderExists && !orlTemplateExists)
+            var orlLocExists = File.Exists($"{fullPath}.orlloc");
+            if (!directExists && !orlSourceExists && !orlShaderExists && !orlTemplateExists && !orlLocExists)
             {
                 return null;
             }
@@ -159,6 +160,11 @@ namespace ORL.ShaderGenerator
             if (orlTemplateExists)
             {
                 return (isAbsoluteImport ? path.Substring(1) : fullPath) + ".orltemplate";
+            }
+
+            if (orlLocExists)
+            {
+                return (isAbsoluteImport ? path.Substring(1) : fullPath) + "orlloc";
             }
 
             return fullPath;

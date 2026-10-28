@@ -144,7 +144,7 @@ namespace ORL.ShaderInspector
                 }
 
                 // Ensure only supported properties are actually parsed
-                if (!Enum.TryParse<LocalizationKey>(field, out var keyKind) || keyKind == LocalizationKey.Unknown)
+                if (!Enum.TryParse<LocalizationKey>(field[..1].ToUpperInvariant() + field.Substring(1), out var keyKind) || keyKind == LocalizationKey.Unknown)
                 {
                     continue;
                 }

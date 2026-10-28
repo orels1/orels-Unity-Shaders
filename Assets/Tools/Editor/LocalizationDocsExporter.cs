@@ -27,6 +27,24 @@ namespace ORL.Tools
             window.minSize = new Vector2(350, 200);
             window.Show();
         }
+        
+        [MenuItem("Tools/orels1/Reimport All Localization Assets")]
+        public static void ReimportLocalizationFiles()
+        {
+            var allAssets = AssetDatabase.FindAssets("t:LocalizationData", new[] { "Assets", "Packages" });
+            AssetDatabase.StartAssetEditing();
+            try
+            {
+                foreach (var asset in allAssets)
+                {
+                    AssetDatabase.ImportAsset(AssetDatabase.GUIDToAssetPath(asset), ImportAssetOptions.ForceUpdate);
+                }
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+            }
+        }
 
         private string _outputFolder;
         private Vector2 _scrollPos;
@@ -123,14 +141,30 @@ namespace ORL.Tools
                 sb.AppendLine();
                 foreach (var entry in asset.data)
                 {
+                    sb.Append("- ");
                     var langData = FindLocalized(entry, language);
-                    var name = !string.IsNullOrWhiteSpace(langData.name)
-                        ? langData.name.Trim()
-                        : displayNames.TryGetValue(entry.propName, out var displayName) && !string.IsNullOrWhiteSpace(displayName)
-                            ? displayName
-                            : entry.propName;
-                    var tooltip = langData.tooltip == null ? null : langData.tooltip.Trim();
-                    sb.AppendLine(string.IsNullOrWhiteSpace(tooltip) ? $"- {name}" : $"- {name}: {tooltip}");
+                    if (!string.IsNullOrWhiteSpace(langData.name))
+                    {
+                        sb.Append(langData.name.Trim());
+                    }
+                    else
+                    {
+                        if (displayNames.TryGetValue(entry.propName, out var displayName) && !string.IsNullOrWhiteSpace(displayName))
+                        {
+                            sb.Append(displayName);
+                        }
+                        else
+                        {
+                            sb.Append(entry.propName);
+                        }
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(langData.tooltip))
+                    {
+                        sb.Append(": ");
+                        sb.Append(langData.tooltip.Trim());
+                    }
+                    sb.AppendLine();
                 }
 
                 var fileName = SanitizeFileName(module) + ".md";

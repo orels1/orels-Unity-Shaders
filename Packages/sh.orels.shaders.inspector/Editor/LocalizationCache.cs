@@ -89,6 +89,7 @@ namespace ORL.ShaderInspector
 
         private static CacheState BuildState()
         {
+            Debug.Log("[ORL][Localization][Cache] Building Cache");
             var state = new CacheState();
             var entries = new List<(string Guid, string Path, LocalizationData Asset)>();
 
@@ -116,6 +117,7 @@ namespace ORL.ShaderInspector
                 {
                     state.ModuleToGuid.Add(module, entry.Guid);
                     state.OrderedModules.Add(module);
+                    state.ModuleToSourcePath[module] = FindModuleShader(module, entry.Path);
                 }
             }
             return state;
@@ -230,6 +232,66 @@ namespace ORL.ShaderInspector
             return new List<KeyValuePair<string, string>>();
         }
 
+        private static string FindModuleShader(string locModuleName, string path)
+        {
+            // if there is a direct module specifier, user ORL module resolution
+            if (locModuleName.Contains("/"))
+            {
+                var resolveAssetPath = ResolveAssetPath("@/" + locModuleName, null);
+                return resolveAssetPath != null ? ToUnityPath(resolveAssetPath) : null;
+            }
+            
+            // check same folder first
+            var orlShaderPath = path.Replace(".orlloc", ".orlshader");
+            if (File.Exists(orlShaderPath))
+            {
+                return orlShaderPath;
+            }
+
+            var orlSourcePath = path.Replace(".orlloc", ".orlsource");
+            if (File.Exists(orlSourcePath))
+            {
+                return orlSourcePath;
+            }
+            
+            var orlConfShaderPath =  path.Replace(".orlloc", ".orlconfshader"); 
+            if (File.Exists(orlConfShaderPath))
+            {
+                return orlConfShaderPath;
+            }
+            
+            // Now check the folder hierarchy for a Localization folder
+            var lastIndex = path.LastIndexOf("Localization");
+            // we haven't found anything
+            if (lastIndex == -1) return null;
+            var root = path.Substring(0, lastIndex);
+
+            var remainderPath =  path.Substring(lastIndex + 13);
+            var remainderWithoutFilename = remainderPath.Replace(Path.GetFileName(remainderPath), "");
+            var combinedPath = root + remainderWithoutFilename + locModuleName;
+            
+            
+            orlShaderPath = combinedPath + ".orlshader";
+            if (File.Exists(orlShaderPath))
+            {
+                return orlShaderPath;
+            }
+
+            orlSourcePath = combinedPath + ".orlsource";
+            if (File.Exists(orlSourcePath))
+            {
+                return orlSourcePath;
+            }
+            
+            orlConfShaderPath =  combinedPath + ".orlconfshader";
+            if (File.Exists(orlConfShaderPath))
+            {
+                return orlConfShaderPath;
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Returns the path of the source file (.orlsource / .orlshader) of a given module, if any
         /// </summary>
@@ -248,6 +310,7 @@ namespace ORL.ShaderInspector
             // the module identity is the path relative to the generator sources, e.g. `Modules/Toon/Main`
             // flat names (e.g. `Snow`) are looked up under Modules/ as well, matching the flat naming convention
             if (string.IsNullOrWhiteSpace(module)) return null;
+            // resolve in modules first (most things are there)
             foreach (var candidate in new[] { "@/" + module, "@/Modules/" + module })
             {
                 var full = ResolveAssetPath(candidate, null);
