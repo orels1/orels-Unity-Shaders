@@ -9,51 +9,65 @@ name.en = This module has documentation
 
 [_IntegrateAreaLit]
 name.en = Integrate AreaLit
+tooltip.en = Toggles AreaLit on and off
 
 [UI_AreaLitDownload]
 name.en = Make sure to download AreaLit before enabling this option
 
 [_AreaLitEnableOnMobile]
 name.en = Enable on Mobile
+tooltip.en = Allows AreaLit effects to be calculated on mobile platforms
 
 [UI_AreaLitEnableOnMobileNote]
 name.en = AreaLit is pretty heavy for mobile devices, please test your content when enabling this option
 
 [_AreaLitClampBrightness]
 name.en = Clamp Brightness
+tooltip.en = Enabled brightness normalization and clamping to prevent brightness spikes
 
 [_AreaLitMaxBrightness]
 name.en = Max Brightness
+tooltip.en = Maximum allowed brightness
 
 [_OpaqueLights]
 name.en = Opaque Lights
+tooltip.en = Controls whether or not lights can occlude each other
 
 [_AreaLitRoughnessModifier]
 name.en = Roughness Modifier
+tooltip.en = Modifies roughness passed to AreaLit for lighting calculations
 
 [_AreaLitAlphaPremultiply]
 name.en = Alpha Premultiply
+tooltip.en = Multiplies albedo by alpha when passing to AreaLit
 
 [UI_AreaLitInternalHeader]
 name.en = AreaLit Inputs
 
 [_LightMesh]
 name.en = Light Mesh
+tooltip.en = LightMesh data texture
 
 [_LightTex0]
 name.en = Light Texture 0
+tooltip.en = The first light texture, usually used for a video screen
 
 [_LightTex1]
 name.en = Light Texture 1
+tooltip.en = Secondary light texture, can be used for a second screen or any other image-based light
 
 [_LightTex2]
 name.en = Light Texture 2
+tooltip.en = Usually used for dynamic indirect lighting
 
 [_LightTex3]
 name.en = Light Texture 3
+tooltip.en = A texture array for static lights
 
 [_AreaLitOcclusionMap]
 name.en = Shadowmask (Occlusion Map)
+tooltip.en = RGBA mask that can be used together with pre-baked shadows. This allows you to bake shadows from individual emissive surfaces and use them in the AreaLit system.
 
 [_AreaLitOcclusionUVSet]
 name.en = Shadowmask UV Set
+tooltip.en = Mesh UV set to use for the Shadowmask sampling

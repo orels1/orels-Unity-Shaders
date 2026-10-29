@@ -12,93 +12,120 @@ name.en = Global Settings
 
 [_ALMask]
 name.en = Mask
+tooltip.en = A main texture mask used to mask-out the audio link effect on your mesh, uses the UV channel selected below
 
 [_ALUVChannel]
 name.en = Mask UV Channel
+tooltip.en = Specifies which mesh UV channel (1-4) to use for the Audio Link mask
 
 [_ALTint]
 name.en = Tint
+tooltip.en = Global tint color. Some effects provide their own coloring options, in which case you want to keep the Tint white and use it to control intensity\
 
 [_KillEffects]
 name.en = Kill Effects
+tooltip.en = A quick way to disable all effects, useful for animations / udon control
 
 [AL_EFFECT]
 name.en = Effect Type
+tooltip.en = Controls the currently active Audio Link Effect, available effects are documented below
 
 [UI_SelectedEffect]
 name.en = Effect Settings
 
 [_ALEffectUVChannel]
 name.en = Effect UV Channel
+tooltip.en = Specifies which mesh UV channel (1-4) to use for the Audio Link effects
 
 [_BandFrequency]
 name.en = Frequency Band
+tooltip.en = Controls which frequency band to sample. Options are: Bass (1), Low Mid (2), High Mid (3) and High (4)
 
 [UI_BandNote]
 name.en = 1: Bass, 2: Low Mids, 3: High Mids, 4: Highs
 
 [_BandHistoryRange]
 name.en = History Range
+tooltip.en = Controls the amount of Audio Link history to sample, visible as "Scale" of the effect
 
 [_BandScrollAxis]
 name.en = Scroll Axis
+tooltip.en = UV axis to use for scrolling. Options are: X/Y/Negative X/Negative Y
 
 [_UVHistoryRange]
 name.en = History Range
+tooltip.en = Controls the amount of Audio Link history to sample, visible as "Scale" of the effect
 
 [_UVFlipXY]
 name.en = Flip UV X and Y
+tooltip.en = Allows to quickly flip the direction of the UVs. In practical terms - rotates the UVs by 90 degrees
 
 [_UVUseThemeColors]
 name.en = Use Theme Colors
+tooltip.en = Enables tinting by the colors specified on the Audio Link object. Still applies the global Tint on top
 
 [UI_UVColorsNote]
 name.en = Check AudioLink object for colors, still applies global tint!
 
 [_WVFRMBottomColor]
 name.en = Waveform Bottom Color
+tooltip.en = Specifies a gradient used for the bottom part of the waveform, which is the actual waveform of the current audio data
 
 [_WVFRMTopColor]
 name.en = Waveform Top Color
+tooltip.en = Specifies a gradient used for the top part of the waveform, you can think about it as the background color. If set to black - will show the underlying material
 
 [_WVFRMMiddleLine]
 name.en = Add Middle Line
+tooltip.en = Adds an extra line between the top and bottom of the waveform
 
 [_WVFRMMiddleColor]
 name.en = Waveform Middle Color
+tooltip.en = Color: Only visible when 'Add Middle Line' is checked. Specifies a gradient used for the middle line
 
 [_WVFRMFlipUVDirection]
 name.en = Flip UV Direction
+tooltip.en = Flips the effect to use X UV as the basis instead of Y UV
 
 [_WVFRMMiddleLineWidth]
 name.en = Line Width
+tooltip.en = Only visible when 'Add Middle Line' is checked. Controls the middle line width
 
 [_WVFRMFlip]
 name.en = Flip Waveform
+tooltip.en = Vertically flips the top and bottom of the waveform
 
 [_WVFRMOffset]
 name.en = Waveform Offset
+tooltip.en = The offset from top/bottom
 
 [_WVFRMScale]
 name.en = Waveform Scale
+tooltip.en = The vertical scale of the waveform movement
 
 [_PulseBand]
 name.en = Frequency Band
+tooltip.en = Controls which frequency band to sample. Options are: Bass (1), Low Mid (2), High Mid (3) and High (4)
 
 [_PulseSmoothing]
 name.en = Smoothing
+tooltip.en = Only visible when 'Pulse Mode' is set to 'Emission'. Controls the amount of smoothing to be applied to AudioLink data. Can help eliminate some of the "jitter" in the effect
 
 [_PulseMode]
 name.en = Pulse Mode
+tooltip.en = Specifies one of the two effect modes
 
 [_PulseStrength]
 name.en = Pulse Strength
+tooltip.en = The strength of the Emission pulse effect
 
 [_PulseEmissionMode]
 name.en = Emission Mode
+tooltip.en = Controls how the effect emission is blender with existing emissions
 
 [_PulseTextureAdjustment]
 name.en = Texture Pulse Mode
+tooltip.en = Only visible when 'Pulse Mode' is set to 'Texture'. Controls the movement behaviour of the Texture scrolling. See examples below
 
 [UI_PulseTextureNote]
 name.en = Bump: Bumps the texture in a direction with the beat
@@ -108,24 +135,31 @@ name.en = Continuous: Pushes the texture continuously with the beat
 
 [_PulseTexture]
 name.en = Pulse Texture
+tooltip.en = Only visible when 'Pulse Mode' is set to 'Texture'. Specifies the texture being moved
 
 [_PulseTextureDirection]
 name.en = Pulse Direction
+tooltip.en = Only visible when 'Pulse Mode' is set to 'Texture'. Defines in which direction the texture is being moved. Only X and Y values are used
 
 [_BarBand]
 name.en = Frequency Band
+tooltip.en = Controls which frequency band to sample. Options are: Bass (1), Low Mid (2), High Mid (3) and High (4)
 
 [_BarSmoothing]
 name.en = Smoothing
+tooltip.en = Controls the amount of smoothing to be applied to AudioLink data. Can help eliminate some of the "jitter" in the effect
 
 [_BarAxis]
 name.en = Bar UV Axis
+tooltip.en = Specifies which axis to use for the bar direction. Options are: X/Y/Negative X/Negative Y
 
 [_BarColor]
 name.en = Bar Gradient
+tooltip.en = Specifies a gradient used for the bar, allows for creating a volume meter effect with the higher levels being colored in a different way
 
 [_BarScale]
 name.en = Bar Scale
+tooltip.en = Controls the intensity of the bar movement
 
 [UI_AudioLinkThanksNote]
 name.en = Thanks to the amazing AudioLink project <3
